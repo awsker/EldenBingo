@@ -21,6 +21,7 @@ namespace EldenBingoCommon
             ClientRanzomizeBoard, //(none)
             ClientChangeMatchStatus, //byte
             ClientTryCheck, //byte
+            ClientTryMark, //byte
             ClientDisconnect, //(none)
             
             ServerRegisterAccepted, //string, Guid

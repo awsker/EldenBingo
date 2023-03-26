@@ -30,11 +30,11 @@ namespace EldenBingoCommon
             }
         }
         
-        public virtual byte[] GetBytes()
+        public virtual byte[] GetBytes(UserInRoom user)
         {
             return PacketHelper.ConcatBytes(Squares.Select(s => s.GetBytes()));
         }
-
+        
         public Dictionary<Color, int> GetNumberOfCheckedSquaresPerColor(IEnumerable<Color> colors)
         {
             var dict = colors.ToDictionary(c => c, c => 0);
@@ -52,6 +52,7 @@ namespace EldenBingoCommon
         public string Text { get; init; }
         public string Tooltip { get; init; }
         public Color Color { get; set; }
+        public bool Marked { get; set; }
 
         public BingoBoardSquare(string text, string tooltip)
         {
@@ -64,6 +65,7 @@ namespace EldenBingoCommon
             Text = PacketHelper.ReadString(buffer, ref offset);
             Tooltip = PacketHelper.ReadString(buffer, ref offset);
             Color = Color.FromArgb(PacketHelper.ReadInt(buffer, ref offset));
+            Marked = PacketHelper.ReadBoolean(buffer, ref offset);
         }
 
         public byte[] GetBytes()
@@ -71,7 +73,8 @@ namespace EldenBingoCommon
             return PacketHelper.ConcatBytes(
                 PacketHelper.GetStringBytes(Text),
                 PacketHelper.GetStringBytes(Tooltip),
-                BitConverter.GetBytes(Color.ToArgb()));
+                BitConverter.GetBytes(Color.ToArgb()),
+                BitConverter.GetBytes(Marked));
         }
 
         public override string ToString()

@@ -2,7 +2,7 @@
 
 namespace EldenBingoCommon
 {
-    public class Match : INetSerializable
+    public class Match
     {
         public BingoBoard? Board { get; set; }
         public MatchStatus MatchStatus { get; private set; }
@@ -116,13 +116,13 @@ namespace EldenBingoCommon
             MatchTimerChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public byte[] GetBytes()
+        public byte[] GetBytes(UserInRoom user)
         {
             return PacketHelper.ConcatBytes(
                 new[] { (byte)MatchStatus },
                 BitConverter.GetBytes(MatchSeconds),
                 BitConverter.GetBytes(Board != null), //Include bingo board
-                Board?.GetBytes() ?? Array.Empty<byte>());
+                Board?.GetBytes(user) ?? Array.Empty<byte>());
         }
 
         public byte[] GetBytesWithoutBoard()

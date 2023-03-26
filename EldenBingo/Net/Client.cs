@@ -410,6 +410,7 @@ namespace EldenBingo
                             for(int i = 0; i < 25; ++i)
                             {
                                 Room.Match.Board.Squares[i].Color = Color.FromArgb(PacketHelper.ReadInt(packet.DataBytes, ref offset));
+                                Room.Match.Board.Squares[i].Marked = PacketHelper.ReadBoolean(packet.DataBytes, ref offset);
                             }
                             onIncomingData(packet.PacketType, new CheckChangedData(Room, user, indexChanged));
                         }
