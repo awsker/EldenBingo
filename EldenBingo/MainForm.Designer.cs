@@ -72,7 +72,7 @@
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(947, 519);
+            this.tabControl1.Size = new System.Drawing.Size(947, 591);
             this.tabControl1.TabIndex = 1;
             // 
             // _consolePage
@@ -81,7 +81,7 @@
             this._consolePage.Location = new System.Drawing.Point(30, 4);
             this._consolePage.Margin = new System.Windows.Forms.Padding(0);
             this._consolePage.Name = "_consolePage";
-            this._consolePage.Size = new System.Drawing.Size(913, 511);
+            this._consolePage.Size = new System.Drawing.Size(913, 583);
             this._consolePage.TabIndex = 0;
             this._consolePage.Text = "Console";
             this._consolePage.UseVisualStyleBackColor = true;
@@ -93,7 +93,7 @@
             this._consoleControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this._consoleControl.Location = new System.Drawing.Point(0, 0);
             this._consoleControl.Name = "_consoleControl";
-            this._consoleControl.Size = new System.Drawing.Size(913, 511);
+            this._consoleControl.Size = new System.Drawing.Size(913, 583);
             this._consoleControl.TabIndex = 0;
             // 
             // _lobbyPage
@@ -269,7 +269,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this._usersListBox);
-            this.splitContainer1.Size = new System.Drawing.Size(947, 519);
+            this.splitContainer1.Size = new System.Drawing.Size(947, 591);
             this.splitContainer1.SplitterDistance = 750;
             this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 0;
@@ -285,7 +285,7 @@
             this._usersListBox.ItemHeight = 20;
             this._usersListBox.Location = new System.Drawing.Point(0, 0);
             this._usersListBox.Name = "_usersListBox";
-            this._usersListBox.Size = new System.Drawing.Size(194, 519);
+            this._usersListBox.Size = new System.Drawing.Size(194, 591);
             this._usersListBox.TabIndex = 0;
             // 
             // panel1
@@ -293,7 +293,7 @@
             this.panel1.Controls.Add(this._clientStatusTextBox);
             this.panel1.Controls.Add(this._processMonitorStatusTextBox);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 589);
+            this.panel1.Location = new System.Drawing.Point(0, 661);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(947, 27);
             this.panel1.TabIndex = 0;
@@ -313,7 +313,7 @@
             // MainForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(947, 616);
+            this.ClientSize = new System.Drawing.Size(947, 688);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.panel1);

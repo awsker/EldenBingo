@@ -2,7 +2,7 @@
 
 namespace EldenBingoCommon
 {
-    public class Room<T> : INetSerializable where T : UserInRoom 
+    public class Room<T> where T : UserInRoom 
     {
         public string Name { get; init; }
         public Match Match { get; init; }
@@ -19,7 +19,7 @@ namespace EldenBingoCommon
             Match = new Match();
         }
 
-        public virtual byte[] GetBytes()
+        public virtual byte[] GetBytes(UserInRoom user)
         {
             var byteList = new List<byte[]>();
             byteList.Add(PacketHelper.GetStringBytes(Name));
@@ -28,7 +28,7 @@ namespace EldenBingoCommon
             {
                 byteList.Add(cl.GetBytes());
             }
-            byteList.Add(Match.GetBytes());
+            byteList.Add(Match.GetBytes(user));
             return PacketHelper.ConcatBytes(byteList);
         }
 

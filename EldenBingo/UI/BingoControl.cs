@@ -9,7 +9,6 @@ namespace EldenBingo.UI
         public BingoControl() : base()
         {
             InitializeComponent();
-
             _gridControl.SetAspectRatio(1.1f);
             _gridControl.MaintainAspectRatio = true;
             Squares = new BingoSquareControl[25];
@@ -22,7 +21,6 @@ namespace EldenBingo.UI
             }
             Load += bingoControl_Load;
         }
-
 
         private void bingoControl_Load(object? sender, EventArgs e)
         {
@@ -40,6 +38,15 @@ namespace EldenBingo.UI
                 if (Client.Room?.Match?.Board != null)
                 {
                     var p = new Packet(NetConstants.PacketTypes.ClientTryCheck, new byte[] { (byte)c.Index });
+                    await Client.SendPacketToServer(p);
+                }
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                //Must be in a room 
+                if (Client.Room?.Match?.Board != null)
+                {
+                    var p = new Packet(NetConstants.PacketTypes.ClientTryMark, new byte[] { (byte)c.Index });
                     await Client.SendPacketToServer(p);
                 }
             }
@@ -132,6 +139,7 @@ namespace EldenBingo.UI
                     Squares[i].Text = s.Text;
                     Squares[i].ToolTip = s.Tooltip;
                     Squares[i].Color = s.Color;
+                    Squares[i].Marked = s.Marked;
                 }
                 Invalidate();
             }
@@ -148,6 +156,8 @@ namespace EldenBingo.UI
             private readonly Label _label;
             private readonly ToolTip _toolTip;
             private Color _color;
+            private bool _marked;
+            private Image _starImage;
 
             private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
             private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
@@ -185,6 +195,19 @@ namespace EldenBingo.UI
                     if (_color != value)
                     {
                         _color = value;
+                        Invalidate();
+                    }
+                }
+            }
+
+            public bool Marked
+            {
+                get { return _marked; }
+                set
+                {
+                    if (_marked != value)
+                    {
+                        _marked = value;
                         Invalidate();
                     }
                 }
@@ -243,6 +266,10 @@ namespace EldenBingo.UI
                 var fontSize = minFont + (maxFont - minFont) * frac;
                 var f = new Font(Font.FontFamily, fontSize);
                 TextRenderer.DrawText(e, Text, f, ClientRectangle, Color.White, flags: flags);
+                if(Marked)
+                {
+                    g.DrawImage(Properties.Resources.tinystar, new Point(0, 0));
+                }
             }
         }
     }

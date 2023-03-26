@@ -5,9 +5,12 @@ namespace EldenBingo.UI
 {
     internal partial class LobbyControl : ClientUserControl
     {
+        private int _adminHeight = 0;
+
         public LobbyControl() : base()
         {
             InitializeComponent();
+            _adminHeight = adminControl1.Height;
         }
 
         public override Color BackColor
@@ -48,12 +51,14 @@ namespace EldenBingo.UI
                 e.PreviousRoom.Match.MatchStatusChanged -= match_MatchStatusChanged;
                 e.PreviousRoom.Match.MatchTimerChanged -= match_MatchTimerChanged;
             }
+            showHideAdminControls();
             if (e.NewRoom != null)
             {
                 updateMatchStatus(e.NewRoom.Match.MatchStatus);
                 setMatchTimerLabel(e.NewRoom.Match.TimerString);
                 e.NewRoom.Match.MatchStatusChanged += match_MatchStatusChanged;
                 e.NewRoom.Match.MatchTimerChanged += match_MatchTimerChanged;
+                
             }
         }
 
@@ -98,6 +103,22 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        private void showHideAdminControls()
+        {
+            void showHide()
+            {
+                var isAdmin = Client?.LocalUser?.IsAdmin == true;
+                adminControl1.Visible = isAdmin;
+                adminControl1.Height = isAdmin ? _adminHeight : 0;
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(showHide);
+                return;
+            }
+            showHide();
         }
     }
 }

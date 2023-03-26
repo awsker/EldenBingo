@@ -75,7 +75,7 @@ namespace EldenBingo.UI
                     selectedGuid = selectedUser.Guid;
                 }
                 Items.Clear();
-                foreach (var user in room.Clients)
+                foreach (var user in room.GetClientsSorted())
                 {
                     Items.Add(user);
                     if (user.Guid == selectedGuid)

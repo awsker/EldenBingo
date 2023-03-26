@@ -34,7 +34,6 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this._matchStatusLabel = new System.Windows.Forms.Label();
             this._timerLabel = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
             this.adminControl1 = new EldenBingo.UI.AdminControl();
             this._clientList = new EldenBingo.UI.ClientListControl();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -43,7 +42,6 @@
             this.splitContainer1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -57,7 +55,7 @@
             // 
             this.splitContainer1.Panel1.Controls.Add(this.panel2);
             this.splitContainer1.Panel1.Controls.Add(this.panel1);
-            this.splitContainer1.Panel1.Controls.Add(this.panel3);
+            this.splitContainer1.Panel1.Controls.Add(this.adminControl1);
             // 
             // splitContainer1.Panel2
             // 
@@ -75,7 +73,7 @@
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(621, 421);
-            this.panel2.TabIndex = 2;
+            this.panel2.TabIndex = 1;
             // 
             // _bingoControl
             // 
@@ -83,12 +81,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._bingoControl.Client = null;
-            this._bingoControl.Location = new System.Drawing.Point(10, 10);
-            this._bingoControl.Margin = new System.Windows.Forms.Padding(0);
-            this._bingoControl.MaximumSize = new System.Drawing.Size(600, 545);
-            this._bingoControl.MinimumSize = new System.Drawing.Size(450, 409);
+            this._bingoControl.Location = new System.Drawing.Point(6, 6);
             this._bingoControl.Name = "_bingoControl";
-            this._bingoControl.Size = new System.Drawing.Size(598, 409);
+            this._bingoControl.Size = new System.Drawing.Size(608, 408);
             this._bingoControl.TabIndex = 0;
             // 
             // panel1
@@ -99,7 +94,7 @@
             this.panel1.Location = new System.Drawing.Point(621, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(230, 421);
-            this.panel1.TabIndex = 1;
+            this.panel1.TabIndex = 2;
             // 
             // _matchStatusLabel
             // 
@@ -124,23 +119,14 @@
             this._timerLabel.Text = "00:00:00";
             this._timerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // panel3
-            // 
-            this.panel3.Controls.Add(this.adminControl1);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel3.Location = new System.Drawing.Point(0, 421);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(851, 146);
-            this.panel3.TabIndex = 8;
-            // 
             // adminControl1
             // 
             this.adminControl1.Client = null;
-            this.adminControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.adminControl1.Location = new System.Drawing.Point(0, 0);
+            this.adminControl1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.adminControl1.Location = new System.Drawing.Point(0, 421);
             this.adminControl1.Name = "adminControl1";
             this.adminControl1.Size = new System.Drawing.Size(851, 146);
-            this.adminControl1.TabIndex = 0;
+            this.adminControl1.TabIndex = 4;
             // 
             // _clientList
             // 
@@ -155,7 +141,7 @@
             this._clientList.Location = new System.Drawing.Point(0, 0);
             this._clientList.Name = "_clientList";
             this._clientList.Size = new System.Drawing.Size(200, 567);
-            this._clientList.TabIndex = 0;
+            this._clientList.TabIndex = 3;
             // 
             // LobbyControl
             // 
@@ -169,7 +155,6 @@
             this.splitContainer1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
-            this.panel3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -178,12 +163,11 @@
 
         private SplitContainer splitContainer1;
         private ClientListControl _clientList;
-        private BingoControl _bingoControl;
         private Panel panel1;
         private Panel panel2;
         private Label _timerLabel;
         private Label _matchStatusLabel;
-        private Panel panel3;
         private AdminControl adminControl1;
+        private BingoControl _bingoControl;
     }
 }

@@ -365,17 +365,36 @@ namespace EldenBingoServer
                     }
                 case NetConstants.PacketTypes.ClientTryCheck:
                     {
-                        if (client.Room?.Match != null &&
+                        if (client.Room?.Match?.Board is ServerBingoBoard board &&
                             !client.IsSpectator &&
-                            client.Room.Match?.Board is ServerBingoBoard board &&
                             (client.Room.Match.MatchStatus == MatchStatus.Running || client.Room.Match.MatchStatus == MatchStatus.Paused))
                         {
                             int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
                             var user = client.Room.GetClient(client.UserGuid);
                             if (user != null && board.UserClicked(i, user))
                             {
-                                var p = PacketHelperServer.CreateBoardCheckStatusPacket(user.Guid, i, board);
-                                await sendPacketToRoom(p, client.Room);
+                                foreach (var recipient in client.Room.Clients)
+                                {
+                                    var p = PacketHelperServer.CreateBoardCheckStatusPacket(user.Guid, i, recipient, board);
+                                    await sendPacketToClient(p, recipient.Client);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                case NetConstants.PacketTypes.ClientTryMark:
+                    {
+                        if (client.Room?.Match?.Board is ServerBingoBoard board)
+                        {
+                            int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
+                            var user = client.Room.GetClient(client.UserGuid);
+                            if (user != null && board.UserMarked(i, user))
+                            {
+                                foreach (var recipient in client.Room.Clients)
+                                {
+                                    var p = PacketHelperServer.CreateBoardCheckStatusPacket(user.Guid, i, recipient, board);
+                                    await sendPacketToClient(p, recipient.Client);
+                                }
                             }
                         }
                         break;
@@ -513,7 +532,7 @@ namespace EldenBingoServer
                 //Send join message to all clients already in the room
                 await sendPacketToRoomExcept(joinPacket, room, client.UserGuid);
             }
-            var usersPacket = PacketHelperServer.CreateRoomDataPacket(room);
+            var usersPacket = PacketHelperServer.CreateRoomDataPacket(room, clientInRoom);
             //Send all users currently present in the room to the new client
             await sendPacketToClient(usersPacket, client);
         }
@@ -590,7 +609,7 @@ namespace EldenBingoServer
                         }
                         else if (currentStatus == MatchStatus.Paused && room.Match.MatchSeconds < 0)
                         {
-                            
+
                             room.Match.UpdateMatchStatus(MatchStatus.Starting, -CountDown, null); // 10 second countdown until match starts
                             break;
                         }
@@ -598,7 +617,7 @@ namespace EldenBingoServer
                         {
                             room.Match.UpdateMatchStatus(MatchStatus.Running, room.Match.MatchSeconds, null);
                             break;
-                        } 
+                        }
                         else
                         {
                             room.Match.UpdateMatchStatus(MatchStatus.Paused, room.Match.MatchSeconds, null);
@@ -616,13 +635,18 @@ namespace EldenBingoServer
 
             var (adminSpectators, others) = splitClients(room, c => c.IsAdmin && c.IsSpectator);
 
-            //Admin spectators get the bingo board regardless of status
-            var adminPacket = new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytes());
-            await sendPacketToClients(adminPacket, adminSpectators);
-
-            //All other users get the same packet if match has started, otherwise a packet without the board
-            var nonAdminsPacket = room.Match.Running && room.Match.MatchSeconds >= 0 ? adminPacket : new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytesWithoutBoard());
-            await sendPacketToClients(nonAdminsPacket, others);
+            foreach (var k in adminSpectators)
+            {
+                //Admin spectators get the bingo board regardless of status
+                var adminPacket = new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytes(k));
+                await sendPacketToClient(adminPacket, k.Client);
+            }
+            foreach (var k in others)
+            {
+                //All other users gets the packet without bingo board if match hasn't started
+                var nonAdminsPacket = room.Match.Running && room.Match.MatchSeconds >= 0 ? new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytes(k)) : new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytesWithoutBoard());
+                await sendPacketToClient(nonAdminsPacket, k.Client);
+            }
             return (true, null);
         }
 
@@ -727,11 +751,11 @@ namespace EldenBingoServer
             await dropClient(client);
         }
 
-        private (IList<ClientModel>, IList<ClientModel>) splitClients(ServerRoom room, Predicate<ClientModel> pred)
+        private (IList<ClientInRoom>, IList<ClientInRoom>) splitClients(ServerRoom room, Predicate<ClientInRoom> pred)
         {
-            var truelist = new List<ClientModel>();
-            var falselist = new List<ClientModel>();
-            foreach(var c in room.ClientModels)
+            var truelist = new List<ClientInRoom>();
+            var falselist = new List<ClientInRoom>();
+            foreach(var c in room.Clients)
             {
                 (pred(c) ? truelist : falselist).Add(c);
             }

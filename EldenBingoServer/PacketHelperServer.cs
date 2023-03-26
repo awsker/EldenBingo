@@ -26,17 +26,18 @@ namespace EldenBingoServer
             return new Packet(NetConstants.PacketTypes.ServerJoinRoomDenied, data);
         }
 
-        public static Packet CreateRoomDataPacket(ServerRoom room)
+        public static Packet CreateRoomDataPacket(ServerRoom room, UserInRoom user)
         {
-            return new Packet(NetConstants.PacketTypes.ServerJoinAcceptedRoomData, room.GetBytes());
+            return new Packet(NetConstants.PacketTypes.ServerJoinAcceptedRoomData, room.GetBytes(user));
         }
 
-        public static Packet CreateBoardCheckStatusPacket(Guid guid, int indexChecked, ServerBingoBoard board)
+        public static Packet CreateBoardCheckStatusPacket(Guid guid, int indexChecked, UserInRoom recipient, ServerBingoBoard board)
         {
             var list = new List<byte[]>();
+            board.TransferSquareColors();
             list.Add(guid.ToByteArray());
             list.Add(new[] { (byte)indexChecked });
-            list.Add(board.GetColorBytes());
+            list.Add(board.GetColorBytes(recipient));
             return new Packet(NetConstants.PacketTypes.ServerBingoBoardCheckChanged, PacketHelper.ConcatBytes(list));
         }
 
