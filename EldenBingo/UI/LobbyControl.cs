@@ -100,6 +100,11 @@ namespace EldenBingo.UI
                 updateMatchLog(new[] { "Match status changed to ", Match.MatchStatusToString(msd.Match.MatchStatus, out var color2) },
                                new Color?[] { null, color2 }, true);
             }
+            if(e.PacketType == NetConstants.PacketTypes.ServerUserJoinedRoom && e.Object is UserJoinedLeftRoomData jrd)
+            {
+                updateMatchLog(new[] { jrd.User.Nick, jrd.Joined ? "joined":"left", "the lobby" },
+                    new Color?[] {jrd.User.ConvertedColor, null, null }, true);
+            }
         }
         
         private void updateMatchLog(string[] text, Color?[] color, bool timestamp)
