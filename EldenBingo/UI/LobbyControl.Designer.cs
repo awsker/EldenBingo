@@ -112,7 +112,7 @@
             this._logTextBox.Name = "_logTextBox";
             this._logTextBox.ReadOnly = true;
             this._logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this._logTextBox.Size = new System.Drawing.Size(259, 298);
+            this._logTextBox.Size = new System.Drawing.Size(259, 295);
             this._logTextBox.TabIndex = 8;
             this._logTextBox.Text = "";
             // 
