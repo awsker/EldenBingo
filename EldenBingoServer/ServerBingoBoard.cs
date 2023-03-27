@@ -137,10 +137,10 @@ namespace EldenBingoServer
         {
             public int Team;
             public Guid Player;
-            public PlayerTeam(UserInRoom user)
+            public PlayerTeam(int team, Guid player)
             {
-                Team = user.Team;
-                Player = user.Guid;
+                Team = team;
+                Player = player;
             }
         }
 
@@ -178,36 +178,44 @@ namespace EldenBingoServer
 
         public bool Mark(UserInRoom user)
         {
+            var team = getTeamModifiedForMarking(user);
             //If no changes need to be made, return false
-            if (MarkedBy.TryGetValue(user.Guid, out var pt) && pt.Player == user.Guid && pt.Team == user.Team)
+            if (MarkedBy.TryGetValue(user.Guid, out var pt) && pt.Player == user.Guid && pt.Team == team)
                 return false;
             Unmark(user);
-            MarkedBy[user.Guid] = new PlayerTeam(user);
+            MarkedBy[user.Guid] = new PlayerTeam(team, user.Guid);
             return true;
         }
 
         public bool Unmark(UserInRoom user)
         {
             bool changed = false;
-            if (user.Team > 0)
+            var team = getTeamModifiedForMarking(user);
+            if (team > 0)
             {
                 foreach(var pt in MarkedBy.Values.ToList())
                 {
                     //Remove all markings by players on the same team
-                    if (pt.Team == user.Team)
+                    if (pt.Team == team)
                     {
                         MarkedBy.Remove(pt.Player);
                         changed = true;
                     }
                 }
-            } 
+            }
             changed |= MarkedBy.Remove(user.Guid);
             return changed;
         }
 
         public bool IsMarked(UserInRoom user)
         {
-            return MarkedBy.ContainsKey(user.Guid) || (user.Team > 0 && MarkedBy.Values.Any(m => m.Team == user.Team));
+            var team = getTeamModifiedForMarking(user);
+            return MarkedBy.ContainsKey(user.Guid) || (team > 0 && MarkedBy.Values.Any(m => m.Team == team));
+        }
+
+        private int getTeamModifiedForMarking(UserInRoom user)
+        {
+            return user.IsSpectator ? 100 : user.Team;
         }
     }
 }

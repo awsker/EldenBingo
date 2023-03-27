@@ -34,7 +34,8 @@ namespace EldenBingoCommon
             ServerUserCoordinates, //UserInRoom, MapCoordinates
             ServerToAdminStatusMessage, //int(color), string,
             ServerMatchStatusChanged, //Match
-            ServerBingoBoardCheckChanged, //UserGuid, byte
+            ServerBingoBoardCheckChanged, //UserGuid, int
+            ServerBingoBoardMarkChanged, //UserGuid, int
             ServerUserConnectionClosed, //(none)
             ServerShutdown, //(none)
         }

@@ -19,6 +19,7 @@ namespace EldenBingo.UI
         private float _userZoom = 1.0f;
 
         private readonly IDictionary<Guid, CoordinateEntity> _coordinateEntities;
+        private readonly IList<Guid> _guids;
 
         private static bool _texturesLoaded;
         private static TextureData[,]? _textureData;
@@ -68,6 +69,7 @@ namespace EldenBingo.UI
         public MapWindow()
         {
             _coordinateEntities = new Dictionary<Guid, CoordinateEntity>();
+            _guids = new List<Guid>();
             _camera = null;
         }
 
@@ -110,11 +112,13 @@ namespace EldenBingo.UI
         public void AddCoordinateProvider(ICoordinateProvider p)
         {
             _coordinateEntities[p.Guid] = new CoordinateEntity(p) { NameTag = initPlayerNameTag(p.Name) };
+            _guids.Add(p.Guid);
         }
 
         public void RemoveCoordinateProvider(Guid g)
         {
             _coordinateEntities.Remove(g);
+            _guids.Remove(g);
         }
         
         public void Stop()
@@ -165,12 +169,14 @@ namespace EldenBingo.UI
                         //Get the view bounds of the current view
                         var viewBounds = getViewBounds(view);
 
-                        //Draw part of the map that is inside the view bounds
-                        drawMap(viewBounds);
+                        if (_texturesLoaded)
+                        {
+                            //Draw part of the map that is inside the view bounds
+                            drawMap(viewBounds);
 
-                        //Draw all players
-                        drawPlayers();
-
+                            //Draw all players
+                            drawPlayers();
+                        }
                         _window.Display();
                     }
                 }
@@ -224,6 +230,10 @@ namespace EldenBingo.UI
                     x = ent.X;
                     y = ent.Y;
                     boundingBox = new FloatRect(x, y, 0f, 0f);
+                } 
+                else
+                {
+                    return;
                 }
             }
             else 
@@ -415,15 +425,39 @@ namespace EldenBingo.UI
             if (_camera == null)
                 return;
 
-            if(e.Code == Keyboard.Key.Add)
+
+            if (e.Code == Keyboard.Key.N)
             {
-                var newZoom = Math.Max(0.1f, _camera.Zoom - 0.1f);
-                _camera.Zoom = newZoom;
+                ShowPlayerNames = !ShowPlayerNames;
             }
-            if (e.Code == Keyboard.Key.Subtract)
+
+            void followPlayer(int? i)
             {
-                var newZoom = Math.Min(10.0f, _camera.Zoom + 0.1f);
-                _camera.Zoom = newZoom;
+                if(i.HasValue)
+                {
+                    if(i >= 0 && i < _guids.Count)
+                    {
+                        CameraFollowTarget = _guids[i.Value];
+                    }
+                }
+                else
+                {
+                    CameraFollowTarget = null;
+                }
+            }
+
+            if(e.Code == Keyboard.Key.Num0 || e.Code == Keyboard.Key.Numpad0)
+            {
+                followPlayer(null);
+            }
+            else if(e.Code >= Keyboard.Key.Num1 && e.Code <= Keyboard.Key.Num9) 
+            {
+                followPlayer(e.Code - Keyboard.Key.Num1);
+            }
+
+            if (e.Code >= Keyboard.Key.Numpad1 && e.Code <= Keyboard.Key.Numpad9)
+            {
+                followPlayer(e.Code - Keyboard.Key.Numpad1);
             }
         }
 

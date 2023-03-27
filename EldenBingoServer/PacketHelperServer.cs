@@ -36,9 +36,19 @@ namespace EldenBingoServer
             var list = new List<byte[]>();
             board.TransferSquareColors();
             list.Add(guid.ToByteArray());
-            list.Add(new[] { (byte)indexChecked });
+            list.Add(new byte[] { (byte)indexChecked });
             list.Add(board.GetColorBytes(recipient));
             return new Packet(NetConstants.PacketTypes.ServerBingoBoardCheckChanged, PacketHelper.ConcatBytes(list));
+        }
+
+        public static Packet CreateBoardMarkedStatusPacket(Guid guid, int indexMarked, UserInRoom recipient, ServerBingoBoard board)
+        {
+            var list = new List<byte[]>();
+            board.TransferSquareColors();
+            list.Add(guid.ToByteArray());
+            list.Add(new byte[] { (byte)indexMarked });
+            list.Add(board.GetColorBytes(recipient));
+            return new Packet(NetConstants.PacketTypes.ServerBingoBoardMarkChanged, PacketHelper.ConcatBytes(list));
         }
 
         public static Packet CreateServerUserCoordinatesPacket(Guid userGuid, MapCoordinates coordinates)
