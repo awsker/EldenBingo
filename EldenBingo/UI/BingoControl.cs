@@ -75,7 +75,9 @@ namespace EldenBingo.UI
 
         private void client_IncomingData(object? sender, ObjectEventArgs e)
         {
-            if (e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged &&
+            //Checking and marking use the same type of data object, and contain the full board (colors and markings)
+            if ((e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged || 
+                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardMarkChanged) &&
                 e.Object is CheckChangedData checkData)
             {
                 if (checkData.Room.Match.Board != null)
@@ -95,8 +97,7 @@ namespace EldenBingo.UI
                     setBoard(roomData.Room.Match.Board);
                 }
             }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged &&
-                e.Object is MatchStatusData match)
+            else if (e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged && e.Object is MatchStatusData match)
             {
                 if (match.Match.Board == null)
                 {

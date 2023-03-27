@@ -401,6 +401,7 @@ namespace EldenBingo
                         break;
                     }
                 case NetConstants.PacketTypes.ServerBingoBoardCheckChanged:
+                case NetConstants.PacketTypes.ServerBingoBoardMarkChanged:
                     {
                         if (Room?.Match.Board != null)
                         {

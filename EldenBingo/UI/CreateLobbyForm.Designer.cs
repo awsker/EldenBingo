@@ -54,7 +54,7 @@
             this._roomNameTextBox.Location = new System.Drawing.Point(111, 23);
             this._roomNameTextBox.Name = "_roomNameTextBox";
             this._roomNameTextBox.Size = new System.Drawing.Size(113, 23);
-            this._roomNameTextBox.TabIndex = 2;
+            this._roomNameTextBox.TabIndex = 7;
             // 
             // label1
             // 
@@ -62,7 +62,7 @@
             this.label1.Location = new System.Drawing.Point(6, 26);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(75, 15);
-            this.label1.TabIndex = 1;
+            this.label1.TabIndex = 6;
             this.label1.Text = "Room name:";
             // 
             // label2
@@ -71,7 +71,7 @@
             this.label2.Location = new System.Drawing.Point(6, 25);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(64, 15);
-            this.label2.TabIndex = 6;
+            this.label2.TabIndex = 0;
             this.label2.Text = "Nickname:";
             // 
             // _nicknameTextBox
@@ -79,7 +79,7 @@
             this._nicknameTextBox.Location = new System.Drawing.Point(111, 22);
             this._nicknameTextBox.Name = "_nicknameTextBox";
             this._nicknameTextBox.Size = new System.Drawing.Size(113, 23);
-            this._nicknameTextBox.TabIndex = 7;
+            this._nicknameTextBox.TabIndex = 1;
             // 
             // _adminPasswordTextBox
             // 
@@ -88,7 +88,7 @@
             this._adminPasswordTextBox.PasswordChar = '*';
             this._adminPasswordTextBox.PlaceholderText = "(optional)";
             this._adminPasswordTextBox.Size = new System.Drawing.Size(113, 23);
-            this._adminPasswordTextBox.TabIndex = 4;
+            this._adminPasswordTextBox.TabIndex = 9;
             // 
             // label3
             // 
@@ -96,7 +96,7 @@
             this.label3.Location = new System.Drawing.Point(6, 56);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(99, 15);
-            this.label3.TabIndex = 3;
+            this.label3.TabIndex = 8;
             this.label3.Text = "Admin Password:";
             // 
             // label4
@@ -105,7 +105,7 @@
             this.label4.Location = new System.Drawing.Point(6, 53);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(39, 15);
-            this.label4.TabIndex = 8;
+            this.label4.TabIndex = 2;
             this.label4.Text = "Color:";
             // 
             // label5
@@ -114,7 +114,7 @@
             this.label5.Location = new System.Drawing.Point(6, 81);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(38, 15);
-            this.label5.TabIndex = 10;
+            this.label5.TabIndex = 4;
             this.label5.Text = "Team:";
             // 
             // groupBox1
@@ -125,7 +125,7 @@
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this._nicknameTextBox);
             this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(12, 108);
+            this.groupBox1.Location = new System.Drawing.Point(12, 9);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(235, 112);
             this.groupBox1.TabIndex = 5;
@@ -138,7 +138,7 @@
             this._colorPanel.Location = new System.Drawing.Point(111, 49);
             this._colorPanel.Name = "_colorPanel";
             this._colorPanel.Size = new System.Drawing.Size(25, 25);
-            this._colorPanel.TabIndex = 9;
+            this._colorPanel.TabIndex = 3;
             this._colorPanel.Click += new System.EventHandler(this._colorPanel_Click);
             // 
             // _teamComboBox
@@ -148,7 +148,7 @@
             this._teamComboBox.Location = new System.Drawing.Point(111, 78);
             this._teamComboBox.Name = "_teamComboBox";
             this._teamComboBox.Size = new System.Drawing.Size(113, 23);
-            this._teamComboBox.TabIndex = 11;
+            this._teamComboBox.TabIndex = 5;
             // 
             // groupBox2
             // 
@@ -156,7 +156,7 @@
             this.groupBox2.Controls.Add(this._roomNameTextBox);
             this.groupBox2.Controls.Add(this._adminPasswordTextBox);
             this.groupBox2.Controls.Add(this.label3);
-            this.groupBox2.Location = new System.Drawing.Point(12, 11);
+            this.groupBox2.Location = new System.Drawing.Point(12, 131);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(235, 87);
             this.groupBox2.TabIndex = 0;
@@ -169,7 +169,7 @@
             this._cancelButton.Location = new System.Drawing.Point(172, 231);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
-            this._cancelButton.TabIndex = 13;
+            this._cancelButton.TabIndex = 11;
             this._cancelButton.Text = "Cancel";
             this._cancelButton.UseVisualStyleBackColor = true;
             this._cancelButton.Click += new System.EventHandler(this._cancelButton_Click);
@@ -180,7 +180,7 @@
             this._createButton.Location = new System.Drawing.Point(91, 231);
             this._createButton.Name = "_createButton";
             this._createButton.Size = new System.Drawing.Size(75, 23);
-            this._createButton.TabIndex = 12;
+            this._createButton.TabIndex = 10;
             this._createButton.Text = "OK";
             this._createButton.UseVisualStyleBackColor = true;
             this._createButton.Click += new System.EventHandler(this._createButton_Click);
@@ -192,7 +192,6 @@
             // CreateLobbyForm
             // 
             this.AcceptButton = this._createButton;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this._cancelButton;
             this.ClientSize = new System.Drawing.Size(263, 264);

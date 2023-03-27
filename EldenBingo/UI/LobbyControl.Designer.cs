@@ -32,6 +32,7 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this._bingoControl = new EldenBingo.UI.BingoControl();
             this.panel1 = new System.Windows.Forms.Panel();
+            this._logTextBox = new System.Windows.Forms.RichTextBox();
             this._matchStatusLabel = new System.Windows.Forms.Label();
             this._timerLabel = new System.Windows.Forms.Label();
             this.adminControl1 = new EldenBingo.UI.AdminControl();
@@ -72,7 +73,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(621, 421);
+            this.panel2.Size = new System.Drawing.Size(581, 421);
             this.panel2.TabIndex = 1;
             // 
             // _bingoControl
@@ -83,18 +84,37 @@
             this._bingoControl.Client = null;
             this._bingoControl.Location = new System.Drawing.Point(6, 6);
             this._bingoControl.Name = "_bingoControl";
-            this._bingoControl.Size = new System.Drawing.Size(608, 408);
+            this._bingoControl.Size = new System.Drawing.Size(568, 408);
             this._bingoControl.TabIndex = 0;
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this._logTextBox);
             this.panel1.Controls.Add(this._matchStatusLabel);
             this.panel1.Controls.Add(this._timerLabel);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(621, 0);
+            this.panel1.Location = new System.Drawing.Point(581, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(230, 421);
+            this.panel1.Size = new System.Drawing.Size(270, 421);
             this.panel1.TabIndex = 2;
+            // 
+            // _logTextBox
+            // 
+            this._logTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this._logTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
+            this._logTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this._logTextBox.DetectUrls = false;
+            this._logTextBox.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this._logTextBox.ForeColor = System.Drawing.Color.White;
+            this._logTextBox.Location = new System.Drawing.Point(6, 123);
+            this._logTextBox.Name = "_logTextBox";
+            this._logTextBox.ReadOnly = true;
+            this._logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this._logTextBox.Size = new System.Drawing.Size(259, 298);
+            this._logTextBox.TabIndex = 8;
+            this._logTextBox.Text = "";
             // 
             // _matchStatusLabel
             // 
@@ -104,7 +124,7 @@
             this._matchStatusLabel.ForeColor = System.Drawing.Color.White;
             this._matchStatusLabel.Location = new System.Drawing.Point(3, 8);
             this._matchStatusLabel.Name = "_matchStatusLabel";
-            this._matchStatusLabel.Size = new System.Drawing.Size(224, 23);
+            this._matchStatusLabel.Size = new System.Drawing.Size(264, 23);
             this._matchStatusLabel.TabIndex = 7;
             this._matchStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -112,9 +132,9 @@
             // 
             this._timerLabel.Font = new System.Drawing.Font("Segoe UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this._timerLabel.ForeColor = System.Drawing.Color.White;
-            this._timerLabel.Location = new System.Drawing.Point(5, 39);
+            this._timerLabel.Location = new System.Drawing.Point(5, 33);
             this._timerLabel.Name = "_timerLabel";
-            this._timerLabel.Size = new System.Drawing.Size(195, 50);
+            this._timerLabel.Size = new System.Drawing.Size(218, 50);
             this._timerLabel.TabIndex = 6;
             this._timerLabel.Text = "00:00:00";
             this._timerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -169,5 +189,6 @@
         private Label _matchStatusLabel;
         private AdminControl adminControl1;
         private BingoControl _bingoControl;
+        private RichTextBox _logTextBox;
     }
 }

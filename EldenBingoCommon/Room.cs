@@ -28,7 +28,8 @@ namespace EldenBingoCommon
             {
                 byteList.Add(cl.GetBytes());
             }
-            byteList.Add(Match.GetBytes(user));
+            var includeBoard = Match.MatchStatus >= MatchStatus.Running || user.IsAdmin && user.IsSpectator;
+            byteList.Add(includeBoard ? Match.GetBytes(user) : Match.GetBytesWithoutBoard());
             return PacketHelper.ConcatBytes(byteList);
         }
 
