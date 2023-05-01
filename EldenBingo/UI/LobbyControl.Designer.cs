@@ -83,11 +83,8 @@
             // 
             // _bingoControl
             // 
-            this._bingoControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this._bingoControl.Client = null;
-            this._bingoControl.Location = new System.Drawing.Point(5, 6);
+            this._bingoControl.Location = new System.Drawing.Point(5, 5);
             this._bingoControl.Name = "_bingoControl";
             this._bingoControl.Size = new System.Drawing.Size(568, 408);
             this._bingoControl.TabIndex = 0;

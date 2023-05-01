@@ -27,22 +27,43 @@
       <Value Profile="(Default)">20, 20, 44</Value>
     </Setting>
     <Setting Name="MapWindowX" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">-1</Value>
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="MapWindowY" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">-1</Value>
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="MapWindowWidth" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">-1</Value>
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="MapWindowHeight" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">-1</Value>
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="LastBingoFile" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Team" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="BingoMaxSizeX" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="BingoMaxSizeY" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="MapWindowCustomPosition" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="MapWindowCustomSize" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BingoBoardMaximumSize" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="MainWindowSizeX" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="MainWindowSizeY" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-1</Value>
     </Setting>
   </Settings>
 </SettingsFile>

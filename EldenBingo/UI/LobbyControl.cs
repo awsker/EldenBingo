@@ -33,7 +33,20 @@ namespace EldenBingo.UI
             _adminHeight = adminControl1.Height;
             initHideLabel();
             _instance = this;
-            
+            listenToSettingsChanged();
+            updateBingoSize();
+            updateBingoMaximumSize();
+            SizeChanged += lobbyControl_SizeChanged;
+        }
+
+        private void lobbyControl_SizeChanged(object? sender, EventArgs e)
+        {
+            updateBingoSize();
+        }
+
+        private void updateBingoSize()
+        {
+            _bingoControl.Size = new Size(panel2.Width - 10, panel2.Height - 10);
         }
 
         private void initHideLabel()
@@ -46,6 +59,34 @@ namespace EldenBingo.UI
                 ll.Hide();
                 _adminInfoLabel.Hide();
             };
+        }
+
+        private void listenToSettingsChanged()
+        {
+            Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
+        }
+
+        private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Properties.Settings.Default.BingoMaxSizeX) || 
+                e.PropertyName == nameof(Properties.Settings.Default.BingoMaxSizeY) ||
+                e.PropertyName == nameof(Properties.Settings.Default.BingoBoardMaximumSize))
+            {
+                updateBingoMaximumSize();
+                _bingoControl.Invalidate();
+            }
+        }
+
+        private void updateBingoMaximumSize()
+        {
+            if (Properties.Settings.Default.BingoBoardMaximumSize && Properties.Settings.Default.BingoMaxSizeX > 0 && Properties.Settings.Default.BingoMaxSizeY > 0)
+            {
+                _bingoControl.MaximumSize = new Size(Properties.Settings.Default.BingoMaxSizeX, Properties.Settings.Default.BingoMaxSizeY);
+            }
+            else
+            {
+                _bingoControl.MaximumSize = new Size();
+            }
         }
 
         public override Color BackColor

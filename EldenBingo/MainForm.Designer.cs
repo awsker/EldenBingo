@@ -101,19 +101,20 @@
             this._lobbyPage.Controls.Add(this._lobbyControl);
             this._lobbyPage.Location = new System.Drawing.Point(30, 4);
             this._lobbyPage.Name = "_lobbyPage";
-            this._lobbyPage.Size = new System.Drawing.Size(913, 511);
+            this._lobbyPage.Size = new System.Drawing.Size(913, 583);
             this._lobbyPage.TabIndex = 1;
             this._lobbyPage.Text = "Lobby";
             this._lobbyPage.UseVisualStyleBackColor = true;
-            // 
+            //
             // _lobbyControl
-            // 
+            //
             this._lobbyControl.Client = null;
             this._lobbyControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this._lobbyControl.Location = new System.Drawing.Point(0, 0);
             this._lobbyControl.Name = "_lobbyControl";
             this._lobbyControl.Size = new System.Drawing.Size(913, 511);
             this._lobbyControl.TabIndex = 0;
+            //
             // 
             // _processMonitorStatusTextBox
             // 
@@ -246,6 +247,7 @@
             this._settingsButton.Text = "Settings";
             this._settingsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this._settingsButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this._settingsButton.Click += new System.EventHandler(this._settingsButton_Click);
             // 
             // _startGameButton
             // 
@@ -322,6 +324,7 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Elden Bingo";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.tabControl1.ResumeLayout(false);
             this._consolePage.ResumeLayout(false);

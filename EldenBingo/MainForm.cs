@@ -22,6 +22,13 @@ namespace EldenBingo
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
+            
+            if(Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
+            {
+                Width = Properties.Settings.Default.MainWindowSizeX;
+                Height = Properties.Settings.Default.MainWindowSizeY;
+            }
+            
             FormClosing += (o, e) =>
             {
                 _processHandler.Dispose();
@@ -34,7 +41,10 @@ namespace EldenBingo
             #if DEBUG
                 var server = new Server(NetConstants.DefaultPort);
                 server.Host();
-            #endif
+#endif
+
+            listenToSettingsChanged();
+            SizeChanged += mainForm_SizeChanged;
         }
 
         private async void MainForm_Load(object sender, EventArgs e)
@@ -44,8 +54,8 @@ namespace EldenBingo
             _consoleControl.Client = _client;
             _consoleControl.BackColor = c;
 
-            _lobbyControl.BackColor = c;
             _lobbyControl.Client = _client;
+            _lobbyControl.BackColor = c;
 
             tabControl1.TabPages.Remove(_lobbyPage);
 
@@ -61,6 +71,12 @@ namespace EldenBingo
             {
                 await initClientAsync(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
+        }
+
+        private void mainForm_SizeChanged(object? sender, EventArgs e)
+        {
+            Properties.Settings.Default.MainWindowSizeX = Width;
+            Properties.Settings.Default.MainWindowSizeY = Height;
         }
 
         private async Task tryStartingGameWithoutEAC()
@@ -112,21 +128,17 @@ namespace EldenBingo
             }
 
             _mapWindow = new MapWindow();
-            var windowX = Properties.Settings.Default.MapWindowX;
-            var windowY = Properties.Settings.Default.MapWindowY;
-            if(windowX >= 0 && windowY >= 0)
+            if(Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
             {
-                _mapWindow.Position = new SFML.System.Vector2i(windowX, windowY); 
+                _mapWindow.Position = new SFML.System.Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY); 
             } 
             else
             {
                 _mapWindow.Position = new SFML.System.Vector2i(Left + Width, Top);
             }
-            var windowWidth = Properties.Settings.Default.MapWindowWidth;
-            var windowHeight = Properties.Settings.Default.MapWindowHeight;
-            if(windowWidth >= 0 && windowHeight >= 0)
+            if(Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
             {
-                _mapWindow.Size = new SFML.System.Vector2u((uint)windowWidth, (uint)windowHeight);
+                _mapWindow.Size = new SFML.System.Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
             }
             _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
             
@@ -286,6 +298,21 @@ namespace EldenBingo
             client.RoomChanged += client_RoomChanged;
         }
 
+        private void listenToSettingsChanged()
+        {
+            Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
+        }
+
+        private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(Properties.Settings.Default.ControlBackColor))
+            {
+                BackColor = Properties.Settings.Default.ControlBackColor;
+                _consoleControl.BackColor = Properties.Settings.Default.ControlBackColor;
+                _lobbyControl.BackColor = Properties.Settings.Default.ControlBackColor;
+            }
+        }
+
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
             if (_client == null)
@@ -358,6 +385,21 @@ namespace EldenBingo
         private void _openMapButton_Click(object sender, EventArgs e)
         {
             openMapWindow();
+        }
+
+        private void _settingsButton_Click(object sender, EventArgs e)
+        {
+            var settingsDialog = new SettingsDialog();
+            var res = settingsDialog.ShowDialog(this);
+            if(res == DialogResult.OK)
+            {
+
+            }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Properties.Settings.Default.Save();
         }
     }
 }
