@@ -121,7 +121,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int MapWindowX {
             get {
                 return ((int)(this["MapWindowX"]));
@@ -133,7 +133,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int MapWindowY {
             get {
                 return ((int)(this["MapWindowY"]));
@@ -145,7 +145,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int MapWindowWidth {
             get {
                 return ((int)(this["MapWindowWidth"]));
@@ -157,7 +157,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int MapWindowHeight {
             get {
                 return ((int)(this["MapWindowHeight"]));
@@ -188,6 +188,90 @@ namespace EldenBingo.Properties {
             }
             set {
                 this["Team"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int BingoMaxSizeX {
+            get {
+                return ((int)(this["BingoMaxSizeX"]));
+            }
+            set {
+                this["BingoMaxSizeX"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int BingoMaxSizeY {
+            get {
+                return ((int)(this["BingoMaxSizeY"]));
+            }
+            set {
+                this["BingoMaxSizeY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool MapWindowCustomPosition {
+            get {
+                return ((bool)(this["MapWindowCustomPosition"]));
+            }
+            set {
+                this["MapWindowCustomPosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool MapWindowCustomSize {
+            get {
+                return ((bool)(this["MapWindowCustomSize"]));
+            }
+            set {
+                this["MapWindowCustomSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BingoBoardMaximumSize {
+            get {
+                return ((bool)(this["BingoBoardMaximumSize"]));
+            }
+            set {
+                this["BingoBoardMaximumSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int MainWindowSizeX {
+            get {
+                return ((int)(this["MainWindowSizeX"]));
+            }
+            set {
+                this["MainWindowSizeX"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int MainWindowSizeY {
+            get {
+                return ((int)(this["MainWindowSizeY"]));
+            }
+            set {
+                this["MainWindowSizeY"] = value;
             }
         }
     }
