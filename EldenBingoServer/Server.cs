@@ -7,6 +7,8 @@ namespace EldenBingoServer
 {
     public class Server
     {
+        const int MatchStartCountdown = 9999;
+
         private readonly IPAddress[] _ipAddress;
         private readonly int _port;
         private bool _hosting;
@@ -221,8 +223,8 @@ namespace EldenBingoServer
                             await sendPacketToClient(deniedPacket, client);
                             break;
                         }
-                        _rooms[roomName] = room = new ServerRoom(roomName, adminPass);
-                        room.Match.MatchTimerChanged += (o,e) => onMatchTimerChanged(room);
+                        _rooms[roomName] = room = new ServerRoom(roomName, adminPass, client);
+                        _rooms[roomName].TimerElapsed += (o,e) => onMatchTimerElapsed(room);
                         //Leave old room
                         await leaveUserRoom(client);
                         //Join new room
@@ -252,7 +254,7 @@ namespace EldenBingoServer
                             deniedReason = "Invalid nickname";
                         else if (room != null && room.Clients.Any(c => c.Nick == nick))
                             deniedReason = "Nickname already in use";
-                        else if (room != null && !string.IsNullOrWhiteSpace(adminPass) && adminPass != room.AdminPassword)
+                        else if (room != null && !string.IsNullOrWhiteSpace(adminPass) && !room.IsCorrectAdminPassword(adminPass))
                             deniedReason = "Wrong admin password";
                         if(deniedReason != null)
                         {
@@ -280,7 +282,8 @@ namespace EldenBingoServer
                         {
                             var coords = PacketHelper.ReadMapCoordinates(packet.DataBytes, ref offset);
                             var clientInfo = client.Room.GetClient(client.UserGuid);
-                            if (clientInfo != null)
+                            //Don't allow spectators to send coordinates
+                            if (clientInfo != null && !clientInfo.IsSpectator)
                             {
                                 var p = PacketHelperServer.CreateServerUserCoordinatesPacket(clientInfo.Guid, coords);
                                 await sendPacketToClients(p, getApplicableClientsForCoordinates(client.Room, clientInfo));
@@ -310,7 +313,7 @@ namespace EldenBingoServer
                             try
                             {
                                 client.Room.BoardGenerator = new BingoBoardGenerator(json);
-                                board = client.Room.BoardGenerator.CreateBingoBoard(0);
+                                board = client.Room.BoardGenerator.CreateBingoBoard(client.Room, 0);
                             }
                             catch (Exception e)
                             {
@@ -325,7 +328,7 @@ namespace EldenBingoServer
                         }
                         break;
                     }
-                case NetConstants.PacketTypes.ClientRanzomizeBoard:
+                case NetConstants.PacketTypes.ClientRandomizeBoard:
                     {
                         //Don't update bingo board if match is running
                         if (await confirm(client, admin: true, inRoom: true))
@@ -336,7 +339,7 @@ namespace EldenBingoServer
                             }
                             else if (await confirm(client, gameStarted: false))
                             {
-                                ServerBingoBoard? board = client.Room.BoardGenerator.CreateBingoBoard(0);
+                                ServerBingoBoard? board = client.Room.BoardGenerator.CreateBingoBoard(client.Room, 0);
                                 if (board != null)
                                 {
                                     await setRoomBingoBoard(client.Room, board);
@@ -366,17 +369,27 @@ namespace EldenBingoServer
                 case NetConstants.PacketTypes.ClientTryCheck:
                     {
                         if (client.Room?.Match?.Board is ServerBingoBoard board &&
-                            !client.IsSpectator &&
                             (client.Room.Match.MatchStatus == MatchStatus.Running || client.Room.Match.MatchStatus == MatchStatus.Paused))
                         {
                             int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
+                            var targetUser = PacketHelper.ReadGuid(packet.DataBytes, ref offset);
                             var user = client.Room.GetClient(client.UserGuid);
-                            if (user != null && board.UserClicked(i, user))
+                            if (user == null) //No matching user
+                                return;
+                            if (targetUser == client.UserGuid || //Setting my own count
+                                user.IsAdmin && user.IsSpectator) //Setting someone elses count as admin+spectator
                             {
-                                foreach (var recipient in client.Room.Clients)
+                                var userToSet = targetUser == client.UserGuid ? user : client.Room.GetClient(targetUser);
+                                if (userToSet == null)
+                                    return;
+
+                                if (board.UserClicked(i, user, userToSet))
                                 {
-                                    var p = PacketHelperServer.CreateBoardCheckStatusPacket(user.Guid, i, recipient, board);
-                                    await sendPacketToClient(p, recipient.Client);
+                                    foreach (var recipient in client.Room.Clients)
+                                    {
+                                        var p = PacketHelperServer.CreateBoardCheckStatusPacket(userToSet.Guid, i, recipient, board);
+                                        await sendPacketToClient(p, recipient.Client);
+                                    }
                                 }
                             }
                         }
@@ -399,21 +412,41 @@ namespace EldenBingoServer
                         }
                         break;
                     }
+                case NetConstants.PacketTypes.ClientSetCounter:
+                    {
+                        if (client.Room?.Match?.Board is ServerBingoBoard board && client.Room.Match.MatchStatus >= MatchStatus.Running)
+                        {
+                            int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
+                            int count = PacketHelper.ReadInt(packet.DataBytes, ref offset);
+                            var targetUser = PacketHelper.ReadGuid(packet.DataBytes, ref offset);
+                            var user = client.Room.GetClient(client.UserGuid);
+                            if (user == null) //No matching user
+                                return;
+                            if(targetUser == client.UserGuid || //Setting my own count
+                                user.IsAdmin && user.IsSpectator) //Setting someone elses count as admin+spectator
+                            {
+                                var userToSet = targetUser == client.UserGuid ? user : client.Room.GetClient(targetUser);
+                                if (userToSet == null || userToSet.IsSpectator)
+                                    return;
+
+                                if (board.UserChangeCount(i, userToSet, count))
+                                {
+                                    foreach (var recipient in client.Room.Clients)
+                                    {
+                                        var p = PacketHelperServer.CreateBoardCountStatusPacket(user.Guid, i, recipient, board);
+                                        await sendPacketToClient(p, recipient.Client);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
                 case NetConstants.PacketTypes.ClientDisconnect:
                     {
                         await dropClient(client);
                         break;
                     }
             }
-        }
-
-        private int colorBasedOnTeam(int color, int team, bool admin, bool spectator)
-        {
-            if (spectator)
-                return admin ? NetConstants.AdminSpectatorColor.ToArgb() : NetConstants.SpectatorColor.ToArgb();
-            else if (team > 0 && team <= NetConstants.DefaultPlayerColors.Length)
-                return NetConstants.DefaultPlayerColors[team - 1].Color.ToArgb();
-            return color;
         }
 
         private bool sameTeam(int team1, int team2)
@@ -521,10 +554,9 @@ namespace EldenBingoServer
         {
             if (client.Room != null)
                 await leaveUserRoom(client);
-            var admin = created || room.IsCorrectAdminPassword(adminPass);
-            color = colorBasedOnTeam(color, team, admin, spectator);
-            ClientInRoom clientInRoom = room.AddClient(client, nick, color, admin, team, spectator);
-
+            
+            ClientInRoom clientInRoom = room.AddClient(client, nick, adminPass, color, team, spectator);
+            
             //Only send new user to room if there are any other clients present
             if (room.NumClients > 1)
             {
@@ -553,8 +585,7 @@ namespace EldenBingoServer
         {
             string? error = null;
             var currentStatus = room.Match.MatchStatus;
-            var matchLive = currentStatus >= MatchStatus.Running && room.Match.MatchSeconds >= 0;
-            const int CountDown = 10;
+            var matchLive = currentStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
             switch (status)
             {
                 case MatchStatus.NotRunning:
@@ -575,9 +606,9 @@ namespace EldenBingoServer
                             break;
                         }
                         else if (currentStatus == MatchStatus.NotRunning || currentStatus == MatchStatus.Finished ||
-                            currentStatus == MatchStatus.Paused && room.Match.MatchSeconds < 0)
+                            currentStatus == MatchStatus.Paused && room.Match.MatchMilliseconds < 0)
                         {
-                            room.Match.UpdateMatchStatus(status, -CountDown, null); // 10 second countdown until match starts
+                            room.Match.UpdateMatchStatus(status, -MatchStartCountdown, null); // 10 second countdown until match starts
                             break;
                         }
                         error = "Match already started";
@@ -592,7 +623,7 @@ namespace EldenBingoServer
                         }
                         else if (currentStatus == MatchStatus.Paused && matchLive)
                         {
-                            room.Match.UpdateMatchStatus(status, room.Match.MatchSeconds, null);
+                            room.Match.UpdateMatchStatus(status, room.Match.MatchMilliseconds, null);
                             break;
                         }
                         if (currentStatus == MatchStatus.Running)
@@ -613,35 +644,37 @@ namespace EldenBingoServer
                             //If match has already started (Running) then unpause
                             if (matchLive)
                             {
-                                room.Match.UpdateMatchStatus(MatchStatus.Running, room.Match.MatchSeconds, null);
+                                room.Match.UpdateMatchStatus(MatchStatus.Running, room.Match.MatchMilliseconds, null);
                             }
                             //If still hasn't started, restart Starting countdown
                             else
                             {
-                                
-                                room.Match.UpdateMatchStatus(MatchStatus.Starting, -CountDown, null); // 10 second countdown until match starts
+                                room.Match.UpdateMatchStatus(MatchStatus.Starting, -MatchStartCountdown, null); // 10 second countdown until match starts
                             }
                             break;
                         }
                         else
                         {
-                            room.Match.UpdateMatchStatus(MatchStatus.Paused, room.Match.MatchSeconds, null);
+                            room.Match.UpdateMatchStatus(MatchStatus.Paused, room.Match.MatchMilliseconds, null);
                             break;
                         }
                     }
                 default:
                     {
-                        room.Match.UpdateMatchStatus(status, room.Match.MatchSeconds, null);
+                        room.Match.UpdateMatchStatus(status, room.Match.MatchMilliseconds, null);
                         break;
                     }
             }
-            if (error != null)
-                return (false, error);
+            sendMatchData(room);
+            return (error != null, error);
+        }
 
+        private async void sendMatchData(ServerRoom room)
+        {
             //Recalculate match live status
-            matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchSeconds >= 0;
+            bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
             var (adminSpectators, others) = splitClients(room, c => c.IsAdmin && c.IsSpectator);
-            
+
             foreach (var k in adminSpectators)
             {
                 //Admin spectators get the bingo board regardless of status
@@ -654,13 +687,12 @@ namespace EldenBingoServer
                 var nonAdminsPacket = matchLive ? new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytes(k)) : new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytesWithoutBoard());
                 await sendPacketToClient(nonAdminsPacket, k.Client);
             }
-            return (true, null);
         }
 
-        private async void onMatchTimerChanged(ServerRoom room)
+        private async void onMatchTimerElapsed(ServerRoom room)
         {
             //Start game when countdown reaches 0 
-            if (room.Match.MatchStatus == MatchStatus.Starting && room.Match.MatchSeconds >= 0)
+            if (room.Match.MatchStatus == MatchStatus.Starting)
             {
                 await setRoomMatchStatus(room, MatchStatus.Running);
             }
@@ -677,6 +709,7 @@ namespace EldenBingoServer
         {
             room.Match.Board = board;
             //await setRoomMatchStatus(room, MatchStatus.NotRunning);
+            sendMatchData(room);
         }
 
         private async Task sendPacketToAllClients(Packet p, bool onlyRegistered = false)

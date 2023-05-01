@@ -159,5 +159,15 @@ namespace EldenBingoCommon
             var coords = coordinates ?? default;
             return new Packet(NetConstants.PacketTypes.ClientCoordinates, coords.GetBytes());
         }
+
+        public static Packet CreateUserCheckPacket(byte index, Guid userClicked)
+        {
+            return new Packet(NetConstants.PacketTypes.ClientTryCheck, ConcatBytes(new byte[] { index }, userClicked.ToByteArray()));
+        }
+
+        public static Packet CreateUserSetCountPacket(byte index, int count, Guid userToSetFor)
+        {
+            return new Packet(NetConstants.PacketTypes.ClientSetCounter, ConcatBytes(new byte[] { index }, B.GetBytes(count), userToSetFor.ToByteArray()));
+        }
     }
 }

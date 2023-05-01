@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this._gridControl = new EldenBingo.UI.GridControl();
+            this._boardStatusLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // _gridControl
@@ -48,9 +49,21 @@
             this._gridControl.TabIndex = 0;
             this._gridControl.Text = "gridControl1";
             // 
+            // _boardStatusLabel
+            // 
+            this._boardStatusLabel.BackColor = System.Drawing.Color.Transparent;
+            this._boardStatusLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this._boardStatusLabel.Location = new System.Drawing.Point(0, 0);
+            this._boardStatusLabel.Name = "_boardStatusLabel";
+            this._boardStatusLabel.Size = new System.Drawing.Size(400, 400);
+            this._boardStatusLabel.TabIndex = 1;
+            this._boardStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this._boardStatusLabel.Click += new System.EventHandler(this._boardStatusLabel_Click);
+            // 
             // BingoControl
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.Controls.Add(this._boardStatusLabel);
             this.Controls.Add(this._gridControl);
             this.Name = "BingoControl";
             this.Size = new System.Drawing.Size(400, 400);
@@ -61,5 +74,6 @@
         #endregion
 
         private GridControl _gridControl;
+        private Label _boardStatusLabel;
     }
 }

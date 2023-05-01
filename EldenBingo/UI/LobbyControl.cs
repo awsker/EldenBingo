@@ -7,11 +7,45 @@ namespace EldenBingo.UI
     internal partial class LobbyControl : ClientUserControl
     {
         private int _adminHeight = 0;
+        private System.Timers.Timer? _timer;
+        private MatchStatus _lastMatchStatus;
+
+        private static LobbyControl _instance;
+
+        public static UserInRoom? CurrentlyOnBehalfOfUser
+        {
+            get
+            {
+                if (_instance == null || _instance.Client == null || _instance.Client.LocalUser == null)
+                    return null;
+
+                if (_instance.Client.LocalUser.IsAdmin != true || _instance.Client.LocalUser.IsSpectator != true)
+                    return _instance.Client.LocalUser;
+
+                var selectedClient = _instance._clientList.SelectedItem as UserInRoom;
+                return selectedClient ?? _instance.Client.LocalUser;
+            }
+        }
 
         public LobbyControl() : base()
         {
             InitializeComponent();
             _adminHeight = adminControl1.Height;
+            initHideLabel();
+            _instance = this;
+            
+        }
+
+        private void initHideLabel()
+        {
+            var ll = new LinkLabel() { Text = "(Hide)", AutoSize = true, Font = _adminInfoLabel.Font };
+            _adminInfoLabel.Controls.Add(ll);
+            ll.Location = new Point(_adminInfoLabel.Width - ll.Width, _adminInfoLabel.Height - ll.Height);
+            ll.Click += (o, e) =>
+            {
+                ll.Hide();
+                _adminInfoLabel.Hide();
+            };
         }
 
         public override Color BackColor
@@ -29,6 +63,7 @@ namespace EldenBingo.UI
         {
             _bingoControl.Client = Client;
             _clientList.Client = Client;
+            _scoreboardControl.Client = Client;
             if (adminControl1 != null)
             {
                 adminControl1.Client = Client;
@@ -52,23 +87,49 @@ namespace EldenBingo.UI
             if (e.PreviousRoom != null)
             {
                 e.PreviousRoom.Match.MatchStatusChanged -= match_MatchStatusChanged;
-                e.PreviousRoom.Match.MatchTimerChanged -= match_MatchTimerChanged;
             }
             showHideAdminControls();
             if (e.NewRoom != null)
             {
+                //Set this so it doesn't print the new value
+                _lastMatchStatus = e.NewRoom.Match.MatchStatus;
                 updateMatchStatus(e.NewRoom.Match.MatchStatus);
                 setMatchTimerLabel(e.NewRoom.Match.TimerString);
+                restartAndListenToTimer();
                 e.NewRoom.Match.MatchStatusChanged += match_MatchStatusChanged;
-                e.NewRoom.Match.MatchTimerChanged += match_MatchTimerChanged;
-                
             }
+        }
+
+        private void restartAndListenToTimer()
+        {
+            if (Client?.Room?.Match != null)
+                setMatchTimerLabel(Client.Room.Match.TimerString);
+
+            if (_timer != null)
+            {
+                _timer.Elapsed -= _timer_Elapsed;
+                _timer.Stop();
+            }
+            
+            _timer = new System.Timers.Timer();
+            _timer.Interval = 50;
+            _timer.Elapsed += _timer_Elapsed;
+            _timer.Start();
+        }
+
+        private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            if(Client?.Room?.Match != null)
+                setMatchTimerLabel(Client.Room.Match.TimerString);
         }
 
         private void match_MatchStatusChanged(object? sender, EventArgs e)
         {
-            if(Client?.Room != null)
+            if (Client?.Room != null)
+            {
                 updateMatchStatus(Client.Room.Match.MatchStatus);
+                restartAndListenToTimer();
+            }
         }
 
         private void match_MatchTimerChanged(object? sender, EventArgs e)
@@ -91,16 +152,10 @@ namespace EldenBingo.UI
                 Color? color = ccd.User?.ConvertedColor ?? null;
 
                 var square = Client.Room.Match.Board.Squares[ccd.Index];
-                var unmarked = square.Color == Color.Empty || square.Color.A < 255;
-                updateMatchLog(new[] { playerName, unmarked ? "unmarked" : "marked", square.Text },
+                updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
                                new Color?[] { color, null, color }, true);
             }
-            if(e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged && e.Object is MatchStatusData msd)
-            {
-                updateMatchLog(new[] { "Match status changed to ", Match.MatchStatusToString(msd.Match.MatchStatus, out var color2) },
-                               new Color?[] { null, color2 }, true);
-            }
-            if(e.PacketType == NetConstants.PacketTypes.ServerUserJoinedRoom && e.Object is UserJoinedLeftRoomData jrd)
+            if((e.PacketType == NetConstants.PacketTypes.ServerUserJoinedRoom || e.PacketType == NetConstants.PacketTypes.ServerUserLeftRoom) && e.Object is UserJoinedLeftRoomData jrd)
             {
                 updateMatchLog(new[] { jrd.User.Nick, jrd.Joined ? "joined":"left", "the lobby" },
                     new Color?[] {jrd.User.ConvertedColor, null, null }, true);
@@ -147,6 +202,12 @@ namespace EldenBingo.UI
             {
                 _matchStatusLabel.Text = Match.MatchStatusToString(status, out var color);
                 _matchStatusLabel.ForeColor = color;
+                if(_lastMatchStatus != status)
+                {
+                    updateMatchLog(new[] { "Match status changed to", Match.MatchStatusToString(status, out var color2) }, new Color?[] { null, color2 }, true);
+                }
+                _lastMatchStatus = status;
+                
             }
             if (InvokeRequired)
             {
@@ -177,6 +238,7 @@ namespace EldenBingo.UI
                 var isAdmin = Client?.LocalUser?.IsAdmin == true;
                 adminControl1.Visible = isAdmin;
                 adminControl1.Height = isAdmin ? _adminHeight : 0;
+                _adminInfoLabel.Visible = isAdmin && Client?.LocalUser?.IsSpectator == true;
             }
             if (InvokeRequired)
             {
@@ -184,6 +246,14 @@ namespace EldenBingo.UI
                 return;
             }
             showHide();
+        }
+
+        private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
+        {
+            var startPosY = _scoreboardControl.Bottom + 3;
+            var height = panel1.Height - startPosY;
+            _logBoxBorderPanel.Location = new Point(_logBoxBorderPanel.Location.X, startPosY);
+            _logBoxBorderPanel.Height = height;
         }
     }
 }

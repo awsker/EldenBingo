@@ -14,7 +14,15 @@ namespace EldenBingoCommon
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public System.Drawing.Color ConvertedColor => System.Drawing.Color.FromArgb(Color);
+        public System.Drawing.Color ConvertedColor
+        {
+            get
+            {
+                if (IsSpectator)
+                    return IsAdmin ? NetConstants.AdminSpectatorColor : NetConstants.SpectatorColor;
+                return Team == 0 || Team > NetConstants.DefaultPlayerColors.Length ? System.Drawing.Color.FromArgb(Color) : NetConstants.DefaultPlayerColors[Team - 1].Color;
+            }
+        }
 
         public UserInRoom(string nick, Guid guid, int color, bool isAdmin, int team, bool spectator)
         {

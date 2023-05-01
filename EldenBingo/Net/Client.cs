@@ -402,6 +402,7 @@ namespace EldenBingo
                     }
                 case NetConstants.PacketTypes.ServerBingoBoardCheckChanged:
                 case NetConstants.PacketTypes.ServerBingoBoardMarkChanged:
+                case NetConstants.PacketTypes.ServerBingoBoardCountChanged:
                     {
                         if (Room?.Match.Board != null)
                         {
@@ -410,8 +411,7 @@ namespace EldenBingo
                             int indexChanged = PacketHelper.ReadByte(packet.DataBytes, ref offset);
                             for(int i = 0; i < 25; ++i)
                             {
-                                Room.Match.Board.Squares[i].Color = Color.FromArgb(PacketHelper.ReadInt(packet.DataBytes, ref offset));
-                                Room.Match.Board.Squares[i].Marked = PacketHelper.ReadBoolean(packet.DataBytes, ref offset);
+                                Room.Match.Board.Squares[i].UpdateFromStatusBytes(packet.DataBytes, ref offset);
                             }
                             onIncomingData(packet.PacketType, new CheckChangedData(Room, user, indexChanged));
                         }

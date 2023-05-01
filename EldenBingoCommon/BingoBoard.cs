@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace EldenBingoCommon
+﻿namespace EldenBingoCommon
 {
     public class BingoBoard
     {
@@ -34,38 +32,34 @@ namespace EldenBingoCommon
         {
             return PacketHelper.ConcatBytes(Squares.Select(s => s.GetBytes()));
         }
-        
-        public Dictionary<Color, int> GetNumberOfCheckedSquaresPerColor(IEnumerable<Color> colors)
+
+        public virtual byte[] GetStatusBytes(UserInRoom user)
         {
-            var dict = colors.ToDictionary(c => c, c => 0);
-            foreach(var square in Squares)
-            {
-                if (dict.ContainsKey(square.Color))
-                    dict[square.Color]++;
-            }
-            return dict;
+            return PacketHelper.ConcatBytes(Squares.Select(s => s.GetStatusBytes()));
         }
     }
 
     public class BingoBoardSquare : INetSerializable
     {
+        public bool Checked => CheckOwner.Player != Guid.Empty;
         public string Text { get; init; }
         public string Tooltip { get; init; }
-        public Color Color { get; set; }
+        public PlayerTeam CheckOwner { get; set; }
         public bool Marked { get; set; }
+        public ColorCounter[] Counters { get; set; }
 
         public BingoBoardSquare(string text, string tooltip)
         {
             Text = text;
             Tooltip = tooltip;
+            Counters = new ColorCounter[0];
         }
 
         public BingoBoardSquare(byte[] buffer, ref int offset)
         {
             Text = PacketHelper.ReadString(buffer, ref offset);
             Tooltip = PacketHelper.ReadString(buffer, ref offset);
-            Color = Color.FromArgb(PacketHelper.ReadInt(buffer, ref offset));
-            Marked = PacketHelper.ReadBoolean(buffer, ref offset);
+            UpdateFromStatusBytes(buffer, ref offset);
         }
 
         public byte[] GetBytes()
@@ -73,8 +67,31 @@ namespace EldenBingoCommon
             return PacketHelper.ConcatBytes(
                 PacketHelper.GetStringBytes(Text),
                 PacketHelper.GetStringBytes(Tooltip),
-                BitConverter.GetBytes(Color.ToArgb()),
-                BitConverter.GetBytes(Marked));
+                CheckOwner.GetBytes(),
+                BitConverter.GetBytes(Marked), 
+                BitConverter.GetBytes(Counters.Length),
+                PacketHelper.ConcatBytes(Counters.Select(c => c.GetBytes()))
+            );
+        }
+
+        public byte[] GetStatusBytes()
+        {
+            return PacketHelper.ConcatBytes(
+               CheckOwner.GetBytes(),
+               BitConverter.GetBytes(Marked),
+               BitConverter.GetBytes(Counters.Length),
+               PacketHelper.ConcatBytes(Counters.Select(c => c.GetBytes()))
+           );
+        }
+
+        public void UpdateFromStatusBytes(byte[] buffer, ref int offset)
+        {
+            CheckOwner = new PlayerTeam(buffer, ref offset);
+            Marked = PacketHelper.ReadBoolean(buffer, ref offset);
+            int c = PacketHelper.ReadInt(buffer, ref offset);
+            Counters = new ColorCounter[c];
+            for (int i = 0; i < c; ++i)
+                Counters[i] = new ColorCounter(buffer, ref offset);
         }
 
         public override string ToString()

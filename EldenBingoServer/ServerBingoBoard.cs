@@ -1,73 +1,49 @@
 ﻿using EldenBingoCommon;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using static EldenBingoCommon.BingoBoardSquare;
 
 namespace EldenBingoServer
 {
     public class ServerBingoBoard : BingoBoard
     {
         public CheckStatus[] CheckStatus { get; init; }
-        public ServerBingoBoard(string[] squareTexts, string[] tooltips) : base(squareTexts, tooltips)
+        internal ServerRoom Room { get; init; }
+        internal ServerBingoBoard(ServerRoom room, string[] squareTexts, string[] tooltips) : base(squareTexts, tooltips)
         {
             CheckStatus = new CheckStatus[25];
+            Room = room;
             for (int i = 0; i < 25; ++i)
             {
                 CheckStatus[i] = new CheckStatus();
             }
         }
 
-        public void TransferSquareColors()
+        public void TransferSquareColors(UserInRoom user)
         {
             for (int i = 0; i < 25; ++i)
             {
                 var status = CheckStatus[i];
-                Squares[i].Color = status.Player == null ? Color.Empty : (status.Player.Team == 0 ?
-                    status.Player.ConvertedColor : NetConstants.DefaultPlayerColors[status.Player.Team - 1].Color);
-            }
-        }
-
-        public byte[] GetColorBytes(UserInRoom user)
-        {
-            byte[] buffer = new byte[25 * 5];
-            int offset = 0;
-            for(int i = 0; i < 25; ++i)
-            {
                 var sq = Squares[i];
-                var check = CheckStatus[i];
-                Array.Copy(BitConverter.GetBytes(sq.Color.ToArgb()), 0, buffer, offset, 4);
-                buffer[offset + 4] = check.IsMarked(user) ? (byte)1 : (byte)0;
-                offset += 5;
-            }
-            return buffer;
-        }
-
-        private void transferMarked(UserInRoom user)
-        {
-            for (int i = 0; i < 25; ++i)
-            {
-                var sq = Squares[i];
-                sq.Marked = CheckStatus[i].IsMarked(user);
+                sq.CheckOwner = status.Player == null ? new PlayerTeam() : new PlayerTeam(status.Player);
+                sq.Marked = status.IsMarked(user);
+                sq.Counters = status.GetCounters(user, Room.Clients);
             }
         }
 
         public override byte[] GetBytes(UserInRoom user)
         {
             //Update all squares to the correct color
-            TransferSquareColors();
-            transferMarked(user);
+            TransferSquareColors(user);
             return base.GetBytes(user);
         }
 
-        /*
-        public bool Uncheck(int i)
+        public override byte[] GetStatusBytes(UserInRoom user)
         {
-            if (i < 0 || i >= 25)
-                return false;
-            if (CheckStatus[i].Player == null)
-                return false;
-            CheckStatus[i].Uncheck();
-            return true;
+            //Update all squares to the correct color
+            TransferSquareColors(user);
+            return base.GetStatusBytes(user);
         }
-        */
 
         public bool ForceCheckedby(int i, UserInRoom user)
         {
@@ -81,29 +57,41 @@ namespace EldenBingoServer
             return true;
         }
 
-        public bool UserClicked(int i, UserInRoom user)
+        public bool UserClicked(int i, UserInRoom clicker, UserInRoom? onBehalfOf)
         {
             if (i < 0 || i >= 25)
                 return false;
 
             //Spectators that are not admins cannot click
-            if (user.IsSpectator && !user.IsAdmin)
+            if (clicker.IsSpectator && !clicker.IsAdmin)
+                return false;
+
+            //Only admins can click for other players
+            if (clicker != onBehalfOf && !clicker.IsAdmin)
                 return false;
 
             var check = CheckStatus[i];
-            var status = new CheckStatus();
-            status.Check(user);
             //Square not owned by any player or team, allow check
             if (check.Player == null)
             {
-                if (!user.IsSpectator)
+                if (onBehalfOf != null && !onBehalfOf.IsSpectator)
                 {
-                    check.Check(user);
+                    check.Check(onBehalfOf);
                     return true;
                 }
+                return false;
             }
-            //Square owned by this player or team, or user is admin, so allow it to be toggled off
-            else if(check.Color == status.Color || user.IsAdmin) 
+            if (clicker.IsSpectator && clicker.IsAdmin)
+            {
+                CheckStatus[i].Uncheck();
+                return true;
+            }
+            //No owner of the action
+            if (onBehalfOf == null)
+                return false;
+
+            //Square owned by this player or team -> allow it to be toggled off
+            if (check.Team == onBehalfOf.Team || check.Player != null && check.Player.Guid == onBehalfOf.Guid)
             {
                 CheckStatus[i].Uncheck();
                 return true;
@@ -129,40 +117,41 @@ namespace EldenBingoServer
             else
                 return check.Mark(user);
         }
+
+        public bool UserChangeCount(int i, UserInRoom user, int count)
+        {
+            if (i < 0 || i >= 25 || count == 0)
+                return false;
+            var check = CheckStatus[i];
+            var oldCount = check.GetCounter(user) ?? 0;
+            check.SetCounter(user, Math.Max(0, oldCount + count));
+            return true;
+        }
     }
 
     public class CheckStatus : IEquatable<CheckStatus>
     {
-        private struct PlayerTeam
-        {
-            public int Team;
-            public Guid Player;
-            public PlayerTeam(int team, Guid player)
-            {
-                Team = team;
-                Player = player;
-            }
-        }
-
         public DateTime Time { get; init; }
         public int Team => Player?.Team ?? 0;
         public UserInRoom? Player { get; set; }
         public Color Color { get; set; }
 
-        private IDictionary<Guid, PlayerTeam> MarkedBy { get; init; }
+        private ISet<PlayerTeam> MarkedBy { get; init; }
+        private IDictionary<PlayerTeam, int> CountersBy { get; init; }
 
         public CheckStatus()
         {
             Time = DateTime.Now;
             Player = null;
             Color = Color.Empty;
-            MarkedBy = new Dictionary<Guid, PlayerTeam>();
+            MarkedBy = new HashSet<PlayerTeam>();
+            CountersBy = new Dictionary<PlayerTeam, int>();
         }
 
         public void Check(UserInRoom user)
         {
             Player = user;
-            Color = (user.Team == 0 ? Color.FromArgb(user.Color) : NetConstants.DefaultPlayerColors[user.Team - 1].Color);
+            Color = user.ConvertedColor;
         }
 
         public void Uncheck()
@@ -178,44 +167,59 @@ namespace EldenBingoServer
 
         public bool Mark(UserInRoom user)
         {
-            var team = getTeamModifiedForMarking(user);
             //If no changes need to be made, return false
-            if (MarkedBy.TryGetValue(user.Guid, out var pt) && pt.Player == user.Guid && pt.Team == team)
-                return false;
-            Unmark(user);
-            MarkedBy[user.Guid] = new PlayerTeam(team, user.Guid);
-            return true;
+            return MarkedBy.Add(new PlayerTeam(user));
         }
 
         public bool Unmark(UserInRoom user)
         {
-            bool changed = false;
-            var team = getTeamModifiedForMarking(user);
-            if (team > 0)
-            {
-                foreach(var pt in MarkedBy.Values.ToList())
-                {
-                    //Remove all markings by players on the same team
-                    if (pt.Team == team)
-                    {
-                        MarkedBy.Remove(pt.Player);
-                        changed = true;
-                    }
-                }
-            }
-            changed |= MarkedBy.Remove(user.Guid);
-            return changed;
+            return MarkedBy.Remove(new PlayerTeam(user));
         }
 
         public bool IsMarked(UserInRoom user)
         {
-            var team = getTeamModifiedForMarking(user);
-            return MarkedBy.ContainsKey(user.Guid) || (team > 0 && MarkedBy.Values.Any(m => m.Team == team));
+            return MarkedBy.Contains(new PlayerTeam(user));
         }
 
-        private int getTeamModifiedForMarking(UserInRoom user)
+        public void SetCounter(UserInRoom user, int? counter)
         {
-            return user.IsSpectator ? 100 : user.Team;
+            if (user.IsSpectator)
+                return;
+
+            if (counter.HasValue)
+                CountersBy[new PlayerTeam(user)] = counter.Value;
+            else
+                CountersBy.Remove(new PlayerTeam(user));
+
+        }
+
+        public bool UnsetCounter(UserInRoom user)
+        {
+            return CountersBy.Remove(new PlayerTeam(user));
+        }
+
+        public int? GetCounter(UserInRoom user)
+        {
+            if(CountersBy.TryGetValue(new PlayerTeam(user), out int counter))
+            {
+                return counter;
+            }
+            return null;
+        }
+
+        public ColorCounter[] GetCounters(UserInRoom recipient, IEnumerable<UserInRoom> users)
+        {
+            var listOfPlayersAndTeams = PlayerTeam.GetPlayerTeams(users, out var teams);
+            var counters = new ColorCounter[listOfPlayersAndTeams.Count];
+            for(int i = 0; i < listOfPlayersAndTeams.Count; ++i)
+            {
+                var pt = listOfPlayersAndTeams[i];
+                if (!recipient.IsSpectator && recipient.Guid != pt.Player && recipient.Team != pt.Team)
+                    continue;
+                CountersBy.TryGetValue(pt, out int c);
+                counters[i] = new ColorCounter(pt.Color, c);
+            }
+            return counters;
         }
     }
 }
