@@ -2,6 +2,7 @@
 using EldenBingo.Net.DataContainers;
 using EldenBingo.UI;
 using EldenBingoCommon;
+using System.Diagnostics;
 
 namespace EldenBingo.GameInterop
 {
