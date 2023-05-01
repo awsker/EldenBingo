@@ -25,6 +25,7 @@ namespace EldenBingo.UI
         private static TextureData[,]? _textureData;
         private static Sprite _player;
         private static Sprite _playerIcon;
+        private static Sprite _roundTable;
         private static Shader? _shader;
         private static bool _disposeTexturesAfterThreadCompletes = false;
         private static int _imageMapWidth, _imageMapHeight;
@@ -32,6 +33,9 @@ namespace EldenBingo.UI
         const int MapWindowDefaultWidth = 640, MapWindowDefaultHeight = 640;
         const int MapSizeNativeX = 550, MapSizeNativeY = 550;
         const float FullMapWidth = 9645f, FullMapHeight = 9119f;
+
+        private readonly Vector2f RoundTableOffset = new Vector2f(113f + 50f, -113f - 50f);
+        private readonly RectangleF RoundTableRectangle = new RectangleF(2740f, 7510f, 200f, 200f);
 
         private static readonly SFML.Graphics.Font Font;
 
@@ -174,6 +178,9 @@ namespace EldenBingo.UI
                             //Draw part of the map that is inside the view bounds
                             drawMap(viewBounds);
 
+                            //Draw Round Table
+                            drawRoundTable();
+
                             //Draw all players
                             drawPlayers();
                         }
@@ -212,6 +219,17 @@ namespace EldenBingo.UI
                 }
             }
         }
+
+        private Vector2f getEntityPosition(CoordinateEntity ce)
+        {
+            var pos = new Vector2f(ce.X, ce.Y);
+            if(RoundTableRectangle.Contains(new PointF(ce.X, ce.Y))) 
+            {
+                var roundTableCoords = getRoundTablePosition();
+                pos = new Vector2f(roundTableCoords.X, roundTableCoords.Y);
+            }
+            return pos;
+        }
         
         private void updateCamera(float dt)
         {
@@ -227,8 +245,9 @@ namespace EldenBingo.UI
             {
                 if (_coordinateEntities.TryGetValue(CameraFollowTarget.Value, out var ent) && ent.ValidPosition)
                 {
-                    x = ent.X;
-                    y = ent.Y;
+                    var pos = getEntityPosition(ent);
+                    x = pos.X;
+                    y = pos.Y;
                     boundingBox = new FloatRect(x, y, 0f, 0f);
                 } 
                 else
@@ -243,11 +262,12 @@ namespace EldenBingo.UI
                 {
                     if (ent.ValidPosition)
                     {
+                        var pos = getEntityPosition(ent);
                         anyValid = true;
-                        x += ent.X;
-                        y += ent.Y;
+                        x += pos.X;
+                        y += pos.Y;
                         if (boundingBox.HasValue)
-                            boundingBox = boundingBox.Value.MaxBounds(new Vector2f(ent.X, ent.Y));
+                            boundingBox = boundingBox.Value.MaxBounds(new Vector2f(pos.X, pos.Y));
                         else
                             boundingBox = new FloatRect(x, y, 0f, 0f);
                     }
@@ -283,6 +303,33 @@ namespace EldenBingo.UI
             }
         }
 
+        private void drawRoundTable()
+        {
+            var imageFactor = getMapScaleFactors();
+            var trans = Transform.Identity;
+            var st = RenderStates.Default;
+            var rtPos = getRoundTablePosition();
+            trans.Translate(new Vector2f(rtPos.X * imageFactor.X, rtPos.Y * imageFactor.Y));
+            var scale = getRoundTableScale();
+            trans.Scale(scale, scale);
+            st.Transform = trans;
+            
+            _window.Draw(_roundTable, st);
+        }
+
+        private Vector2f getRoundTablePosition()
+        {
+            var scale = getRoundTableScale();
+            var pos = new Vector2f(0, FullMapHeight) + (RoundTableOffset * scale);
+            return new Vector2f(pos.X , pos.Y);
+        }
+
+        private float getRoundTableScale()
+        {
+            var scale = 0.5f * _camera.Zoom / _zoomDueToWindowSize;
+            return scale;
+        }
+
         private void drawPlayers()
         {
             var imageFactor = getMapScaleFactors();
@@ -292,6 +339,7 @@ namespace EldenBingo.UI
                 if (!ent.ValidPosition)
                     continue;
 
+                var pos = getEntityPosition(ent);
                 if (ShowPlayerNames && ent.NameTag != null)
                 {
                     var st2 = RenderStates.Default;
@@ -300,13 +348,13 @@ namespace EldenBingo.UI
                     var bounds = ent.NameTag.GetLocalBounds();
                     var width = bounds.Width * scale2;
                     var height = 15 * scale2;
-                    trans2.Translate(new Vector2f(ent.X * imageFactor.X - width * 0.5f, ent.Y * imageFactor.Y + height));
+                    trans2.Translate(new Vector2f(pos.X * imageFactor.X - width * 0.5f, pos.Y * imageFactor.Y + height));
                     trans2.Scale(scale2, scale2);
                     st2.Transform = trans2;
                     _window.Draw(ent.NameTag, st2);
                 }
                 var trans = Transform.Identity;
-                trans.Translate(new Vector2f(ent.X * imageFactor.X, ent.Y * imageFactor.Y));
+                trans.Translate(new Vector2f(pos.X * imageFactor.X, pos.Y * imageFactor.Y));
                 trans.Rotate(ent.Angle);
                 //Initial scale, scaled up to match window size
                 var scale = 0.38f / _zoomDueToWindowSize;
@@ -324,10 +372,10 @@ namespace EldenBingo.UI
 
                 _window.Draw(_player, st);
 
-                if(ent.CoordinateProvider is GameInterop.MapCoordinateProviderHandler.LocalCoordinateProvider)
+                if(ent.CoordinateProvider is MapCoordinateProviderHandler.LocalCoordinateProvider)
                 {
                     trans = Transform.Identity;
-                    trans.Translate(new Vector2f(ent.X * imageFactor.X, ent.Y * imageFactor.Y));
+                    trans.Translate(new Vector2f(pos.X * imageFactor.X, pos.Y * imageFactor.Y));
                     trans.Scale(scale, scale);
                     st = new RenderStates(BlendMode.Alpha, trans, _playerIcon.Texture, _shader);
                     _window.Draw(_playerIcon, st);
@@ -487,12 +535,12 @@ namespace EldenBingo.UI
                 _window.Draw(text);
                 _window.Display();
             }
-            initPlayerTexture();
+            initSprites();
             initMapTextures();
             _texturesLoaded = true;
         }
 
-        private void initPlayerTexture()
+        private void initSprites()
         {
             var pTex = new Texture("./Textures/player.png");
             _player = new Sprite(pTex);
@@ -500,6 +548,10 @@ namespace EldenBingo.UI
             var pIconTex = new Texture("./Textures/player-icon.png");
             _playerIcon = new Sprite(pIconTex);
             _playerIcon.Origin = new Vector2f(34f, 34f);
+            var rtTex = new Texture("./Textures/RoundTable.png");
+            rtTex.Smooth = true;
+            _roundTable = new Sprite(rtTex);
+            _roundTable.Origin = new Vector2f(113f, 113f);
             try
             {
                 _shader = SpriteShader.Create();
