@@ -33,22 +33,27 @@ namespace EldenBingoServer
 
         public static Packet CreateBoardCheckStatusPacket(Guid guid, int indexChecked, UserInRoom recipient, ServerBingoBoard board)
         {
-            var list = new List<byte[]>();
-            board.TransferSquareColors();
-            list.Add(guid.ToByteArray());
-            list.Add(new byte[] { (byte)indexChecked });
-            list.Add(board.GetColorBytes(recipient));
-            return new Packet(NetConstants.PacketTypes.ServerBingoBoardCheckChanged, PacketHelper.ConcatBytes(list));
+            return createBoardChangedPacket(NetConstants.PacketTypes.ServerBingoBoardCheckChanged, guid, indexChecked, recipient, board);
         }
 
         public static Packet CreateBoardMarkedStatusPacket(Guid guid, int indexMarked, UserInRoom recipient, ServerBingoBoard board)
         {
+            return createBoardChangedPacket(NetConstants.PacketTypes.ServerBingoBoardMarkChanged, guid, indexMarked, recipient, board);
+        }
+
+        public static Packet CreateBoardCountStatusPacket(Guid guid, int indexSet, UserInRoom recipient, ServerBingoBoard board)
+        {
+            return createBoardChangedPacket(NetConstants.PacketTypes.ServerBingoBoardCountChanged, guid, indexSet, recipient, board);
+        }
+
+        private static Packet createBoardChangedPacket(NetConstants.PacketTypes status, Guid guid, int indexMarked, UserInRoom recipient, ServerBingoBoard board)
+        {
             var list = new List<byte[]>();
-            board.TransferSquareColors();
+            board.TransferSquareColors(recipient);
             list.Add(guid.ToByteArray());
             list.Add(new byte[] { (byte)indexMarked });
-            list.Add(board.GetColorBytes(recipient));
-            return new Packet(NetConstants.PacketTypes.ServerBingoBoardMarkChanged, PacketHelper.ConcatBytes(list));
+            list.Add(board.GetStatusBytes(recipient));
+            return new Packet(status, PacketHelper.ConcatBytes(list));
         }
 
         public static Packet CreateServerUserCoordinatesPacket(Guid userGuid, MapCoordinates coordinates)

@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace EldenBingoServer
 {
-    internal class ClientModel : INetSerializable
+    public class ClientModel : INetSerializable
     {
         public bool IsRegistered { get; set; }
         public TcpClient TcpClient { get; init; }

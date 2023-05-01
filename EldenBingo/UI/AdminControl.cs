@@ -188,7 +188,7 @@ namespace EldenBingo.UI
                 return;
             }
             errorProvider1.SetError(_bingoJsonTextBox, null);
-            var p = new Packet(NetConstants.PacketTypes.ClientRanzomizeBoard, Array.Empty<byte>());
+            var p = new Packet(NetConstants.PacketTypes.ClientRandomizeBoard, Array.Empty<byte>());
             await Client.SendPacketToServer(p);
         }
 

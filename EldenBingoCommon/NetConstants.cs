@@ -18,10 +18,11 @@ namespace EldenBingoCommon
             ClientChat, //string
             ClientCoordinates, //MapCoordinates
             ClientBingoJson, //string (json)
-            ClientRanzomizeBoard, //(none)
+            ClientRandomizeBoard, //(none)
             ClientChangeMatchStatus, //byte
-            ClientTryCheck, //byte
+            ClientTryCheck, //byte, Guid
             ClientTryMark, //byte
+            ClientSetCounter, //byte, int, Guid
             ClientDisconnect, //(none)
             
             ServerRegisterAccepted, //string, Guid
@@ -36,6 +37,7 @@ namespace EldenBingoCommon
             ServerMatchStatusChanged, //Match
             ServerBingoBoardCheckChanged, //UserGuid, int
             ServerBingoBoardMarkChanged, //UserGuid, int
+            ServerBingoBoardCountChanged, //UserGuid, int
             ServerUserConnectionClosed, //(none)
             ServerShutdown, //(none)
         }
@@ -52,6 +54,14 @@ namespace EldenBingoCommon
             new ColorName(Color.FromArgb(112, 79, 41), "Brown"),
             new ColorName(Color.FromArgb(206, 199, 0), "Yellow")
         };
+
+        public static string GetTeamName(int team)
+        {
+            if (team <= 0 || team > DefaultPlayerColors.Length)
+                return "";
+
+            return DefaultPlayerColors[team - 1].Name + " Team";
+        }
 
         public static Color AdminSpectatorColor = Color.White;
         public static Color SpectatorColor = Color.LightGray;

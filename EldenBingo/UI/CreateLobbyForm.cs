@@ -42,8 +42,7 @@ namespace EldenBingo.UI
                     _teamComboBox.Items.Add(item.ToString());
                 else
                 {
-                    int i = ((int)item) - 1;
-                    _teamComboBox.Items.Add($"{NetConstants.DefaultPlayerColors[i].Name} Team");
+                    _teamComboBox.Items.Add(NetConstants.GetTeamName((int)item));
                 }
             }
             _teamComboBox.SelectedIndex = 0;

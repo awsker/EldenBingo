@@ -2,7 +2,7 @@
 
 namespace EldenBingoCommon
 {
-    public class Room<T> where T : UserInRoom 
+    public class Room<T> where T : UserInRoom
     {
         public string Name { get; init; }
         public Match Match { get; init; }
@@ -51,7 +51,7 @@ namespace EldenBingoCommon
 
         public virtual IEnumerable<T> GetClientsSorted()
         {
-            var cmp = new UserComparer();
+            var cmp = new UserComparer<T>();
             return clients.Values.OrderBy(u => u, cmp).ToList();
         }
 
@@ -60,33 +60,37 @@ namespace EldenBingoCommon
             return clients.TryGetValue(userGuid, out var user) ? user : null;
         }
 
-
-        private class UserComparer : IComparer<T>
+        public IList<(PlayerTeam, int)> GetCheckedSquaresPerPlayerTeam()
         {
-            public int Compare(T? x, T? y)
+            var list = new List<(PlayerTeam, int)>();
+            foreach (var pt in PlayerTeam.GetPlayerTeams(Clients, out _))
             {
-                var xval = 0;
-                var yval = 0;
-                if (x == null || y == null)
-                    return 0;
-                if (x.IsSpectator)
-                    xval += x.IsAdmin ? 1 : 1000;
-                else
-                    xval += x.Team * 10;
-                if (y.IsSpectator)
-                    yval += y.IsAdmin ? 1 : 1000;
-                else
-                    yval += y.Team * 10;
-                if (x.IsAdmin)
-                    xval -= 5;
-                if (y.IsAdmin)
-                    yval -= 5;
-
-                if (xval == yval) //Exact same rank, sort by nickname
-                    return x.Nick.CompareTo(y.Nick);
-                else return xval - yval;
+                list.Add(new(pt, 0));
             }
+            if (Match?.Board == null)
+            {
+                return list;
+            }
+            var dict = new Dictionary<PlayerTeam, int>();
+            foreach(var square in Match.Board.Squares.Where(s => s.Checked))
+            {
+                if(dict.TryGetValue(square.CheckOwner, out int c))
+                {
+                    dict[square.CheckOwner] = c + 1;
+                } 
+                else
+                {
+                    dict[square.CheckOwner] = 1;
+                }
+            }
+            for(int i = 0; i < list.Count; ++i)
+            {
+                if (dict.TryGetValue(list[i].Item1, out int c))
+                {
+                    list[i] = (list[i].Item1, c);
+                }
+            }
+            return list;
         }
-
     }
 }

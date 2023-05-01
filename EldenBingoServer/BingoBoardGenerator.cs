@@ -34,7 +34,7 @@ namespace EldenBingoServer
             }
         }
 
-        public ServerBingoBoard CreateBingoBoard(int seed)
+        public ServerBingoBoard CreateBingoBoard(ServerRoom room, int seed)
         {
             var random = seed == 0 ? new Random() : new Random(seed);
 
@@ -48,7 +48,7 @@ namespace EldenBingoServer
             }
             balanceBoard(tempList);
 
-            return new ServerBingoBoard(squares.Select(o => o.Text).ToArray(), squares.Select(o => o.Tooltip).ToArray());
+            return new ServerBingoBoard(room, squares.Select(o => o.Text).ToArray(), squares.Select(o => o.Tooltip).ToArray());
         }
 
         private void balanceBoard(IList<BingoJsonObj> squares)

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace EldenBingo.UI
+﻿namespace EldenBingo.UI
 {
     internal class ClientUserControl : UserControl
     {
