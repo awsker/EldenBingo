@@ -231,7 +231,7 @@
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Location = new System.Drawing.Point(237, 15);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(209, 218);
+            this.groupBox3.Size = new System.Drawing.Size(209, 103);
             this.groupBox3.TabIndex = 16;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Appearance";
@@ -240,7 +240,7 @@
             // 
             this._fontLinkLabel.AutoSize = true;
             this._fontLinkLabel.Font = new System.Drawing.Font("Lucida Sans Unicode", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this._fontLinkLabel.Location = new System.Drawing.Point(9, 78);
+            this._fontLinkLabel.Location = new System.Drawing.Point(9, 76);
             this._fontLinkLabel.Name = "_fontLinkLabel";
             this._fontLinkLabel.Size = new System.Drawing.Size(90, 20);
             this._fontLinkLabel.TabIndex = 6;
@@ -251,7 +251,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(9, 58);
+            this.label8.Location = new System.Drawing.Point(9, 56);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(102, 15);
             this.label8.TabIndex = 5;

@@ -322,5 +322,17 @@ namespace EldenBingo.Properties {
                 this["BingoFontStyle"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("12")]
+        public float BingoFontSize {
+            get {
+                return ((float)(this["BingoFontSize"]));
+            }
+            set {
+                this["BingoFontSize"] = value;
+            }
+        }
     }
 }

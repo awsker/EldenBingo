@@ -59,7 +59,9 @@ namespace EldenBingo.UI
 
         private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) || e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle))
+            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) || 
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle) || 
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize))
             {
                 recalculateFontSizeForSquares();
             }
@@ -74,20 +76,8 @@ namespace EldenBingo.UI
             var squareHeight = Squares[0].Height;
             var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
             _fontSize = minFont + (maxFont - minFont) * frac;
-
-            var ffName = Properties.Settings.Default.BingoFont;
-            Font? font = null;
-            if(!string.IsNullOrWhiteSpace(ffName))
-            {
-                var ff2 = new FontFamily(ffName);
-                font = new Font(ff2, _fontSize, (FontStyle)Properties.Settings.Default.BingoFontStyle);
-                if (font.Name != ffName)
-                    font = null;
-            }
-            if(font == null)
-                font = new Font(_boardStatusLabel.Font.FontFamily, _fontSize, FontStyle.Regular);
-            _boardStatusLabel.Font = new Font(font.FontFamily, _fontSize * 2f, font.Style);
-
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(_fontSize * 2f, defaultFont: Font);
+            var font = MainForm.GetFontFromSettings(_fontSize, defaultFont: Font);
             for (int i = 0; i < 25; ++i)
             {
                 Squares[i].Font = font;

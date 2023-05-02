@@ -1,6 +1,7 @@
 using EldenBingo.GameInterop;
 using EldenBingo.Net;
 using EldenBingo.Net.DataContainers;
+using EldenBingo.Properties;
 using EldenBingo.UI;
 using EldenBingoCommon;
 using EldenBingoServer;
@@ -18,7 +19,7 @@ namespace EldenBingo
         public MainForm()
         {
             InitializeComponent();
-            
+            Icon = Resources.icon;
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
@@ -404,6 +405,21 @@ namespace EldenBingo
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             Properties.Settings.Default.Save();
+        }
+
+        public static Font GetFontFromSettings(float size, float defaultSize = 12f, Font defaultFont = null)
+        {
+            var ffName = Properties.Settings.Default.BingoFont;
+            Font? font = null;
+            var scale = Properties.Settings.Default.BingoFontSize / defaultSize;
+            if (!string.IsNullOrWhiteSpace(ffName))
+            {
+                var ff2 = new FontFamily(ffName);
+                font = new Font(ff2, size * scale, (FontStyle)Properties.Settings.Default.BingoFontStyle);
+                if (font.Name == ffName)
+                    return font;
+            }
+            return defaultFont;
         }
     }
 }
