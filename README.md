@@ -13,7 +13,7 @@ This application makes it easier for running, administrating, spectating and str
 * Customize bingo board color/size/font
 
 # Hosting your own server
-Download and install the latest server binaries (not yet available) or download the regular application and open Settings, and then enable "Host bingo server on launch". 
+Download and install the latest server binaries (not yet available) or download the regular application and open Settings, and then enable "Host bingo server on launch".  
 ![host](https://user-images.githubusercontent.com/604653/235767838-ae5752a7-e9e7-4abb-a1d1-c8e6a59292aa.png)
 
 Remember to set-up the appropriate port forwarding.
@@ -24,8 +24,7 @@ Connect to a server by pressing the 'Connect' button in the top left corner. You
 After you've successfully connected to the server, you can create your own lobby or join an existing one. A 'Lobby' in this application is a private room where you can run your bingo game. Any player that wishes to connect to a lobby needs that lobby's room name. There is no lobby browser.
 
 ## Joining a lobby
-When joining (or creating) a lobby, you will be asked to input a nickname, a color and a team. If you join a team, the color will be set for you. In the 'Team' dropdown you can also select 'Spectator'. 
-
+When joining (or creating) a lobby, you will be asked to input a nickname, a color and a team. If you join a team, the color will be set for you. In the 'Team' dropdown you can also select 'Spectator'.  
 ![join_spectator](https://user-images.githubusercontent.com/604653/235772065-b161fd0c-87aa-41da-87b3-1542e5e1ce59.png)
 
 ## Creating a lobby
@@ -38,13 +37,11 @@ When you've joined a lobby as an administrator, the administrator tools will sho
 
 Once you've uploaded the file, a board is generated but will not be made visible to the players until the match is started. AdminSpectators can see the board and generate new boards if necessary.
 
-Use the match control buttons at the bottom to start, pause or stop the match.
-
+Use the match control buttons at the bottom to start, pause or stop the match.  
 ![admin-controls](https://user-images.githubusercontent.com/604653/235774234-1d690243-9827-4510-9e51-a0befd3f0b78.png)  
 
 # Viewing the map
-Click the 'Open Map'-button at the top to display the Map window. This OpenGL window will show a map over The Lands Between and the position of all the players on your team. As a spectator, you will be able to see all players simultaneously. The map will try to fit all players in view at the same time, but if you want to follow a specific player you can press ethe number keys on your keyboard (1-9). 0 will reset to 'Fit all'. Press the 'N' key to toggle name tags.
-
+Click the 'Open Map'-button at the top to display the Map window. This OpenGL window will show a map over The Lands Between and the position of all the players on your team. As a spectator, you will be able to see all players simultaneously. The map will try to fit all players in view at the same time, but if you want to follow a specific player you can press ethe number keys on your keyboard (1-9). 0 will reset to 'Fit all'. Press the 'N' key to toggle name tags.  
 ![mapview](https://user-images.githubusercontent.com/604653/235779143-aa708a4e-0443-49fb-96b7-b8c3dce73e67.png)  
 *Spectating two players*
 
