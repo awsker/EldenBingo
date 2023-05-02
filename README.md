@@ -1,5 +1,5 @@
 # Elden Bingo
-This application makes it easier for running, administrating, spectating and streaming Elden Ring Bingo races. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind.
+This application exists to make running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind.
 
 # Overview of Features
 * Host a server capable of running multiple bingo races at once
