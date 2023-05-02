@@ -1,7 +1,4 @@
 ﻿using EldenBingoCommon;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using static EldenBingoCommon.BingoBoardSquare;
 
 namespace EldenBingoServer
 {
@@ -25,7 +22,7 @@ namespace EldenBingoServer
             {
                 var status = CheckStatus[i];
                 var sq = Squares[i];
-                sq.CheckOwner = status.Player == null ? new PlayerTeam() : new PlayerTeam(status.Player);
+                sq.CheckOwner = status.CheckedBy ?? new PlayerTeam();
                 sq.Marked = status.IsMarked(user);
                 sq.Counters = status.GetCounters(user, Room.Clients);
             }
@@ -45,18 +42,6 @@ namespace EldenBingoServer
             return base.GetStatusBytes(user);
         }
 
-        public bool ForceCheckedby(int i, UserInRoom user)
-        {
-            if (i < 0 || i >= 25)
-                return false;
-            var status = new CheckStatus();
-            status.Check(user);
-            if (status.Equals(CheckStatus[i]))
-                return false;
-            CheckStatus[i] = status;
-            return true;
-        }
-
         public bool UserClicked(int i, UserInRoom clicker, UserInRoom? onBehalfOf)
         {
             if (i < 0 || i >= 25)
@@ -72,7 +57,7 @@ namespace EldenBingoServer
 
             var check = CheckStatus[i];
             //Square not owned by any player or team, allow check
-            if (check.Player == null)
+            if (check.CheckedBy == null)
             {
                 if (onBehalfOf != null && !onBehalfOf.IsSpectator)
                 {
@@ -91,7 +76,7 @@ namespace EldenBingoServer
                 return false;
 
             //Square owned by this player or team -> allow it to be toggled off
-            if (check.Team == onBehalfOf.Team || check.Player != null && check.Player.Guid == onBehalfOf.Guid)
+            if (check.CheckedBy.Value.Team == onBehalfOf.Team || check.CheckedBy.Value.Player == onBehalfOf.Guid)
             {
                 CheckStatus[i].Uncheck();
                 return true;
@@ -129,12 +114,10 @@ namespace EldenBingoServer
         }
     }
 
-    public class CheckStatus : IEquatable<CheckStatus>
+    public class CheckStatus
     {
         public DateTime Time { get; init; }
-        public int Team => Player?.Team ?? 0;
-        public UserInRoom? Player { get; set; }
-        public Color Color { get; set; }
+        public PlayerTeam? CheckedBy { get; set; }
 
         private ISet<PlayerTeam> MarkedBy { get; init; }
         private IDictionary<PlayerTeam, int> CountersBy { get; init; }
@@ -142,28 +125,20 @@ namespace EldenBingoServer
         public CheckStatus()
         {
             Time = DateTime.Now;
-            Player = null;
-            Color = Color.Empty;
+            CheckedBy = null;
             MarkedBy = new HashSet<PlayerTeam>();
             CountersBy = new Dictionary<PlayerTeam, int>();
         }
 
         public void Check(UserInRoom user)
         {
-            Player = user;
-            Color = user.ConvertedColor;
+            CheckedBy = new PlayerTeam(user);
         }
 
         public void Uncheck()
         {
-            Player = null;
-            Color = Color.Empty;
+            CheckedBy = null;
         }
-
-        public bool Equals(CheckStatus other)
-        {
-            return Player == other.Player;
-        } 
 
         public bool Mark(UserInRoom user)
         {

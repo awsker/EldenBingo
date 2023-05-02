@@ -109,7 +109,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20, 20, 44")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20, 20, 30")]
         public global::System.Drawing.Color ControlBackColor {
             get {
                 return ((global::System.Drawing.Color)(this["ControlBackColor"]));
@@ -272,6 +272,54 @@ namespace EldenBingo.Properties {
             }
             set {
                 this["MainWindowSizeY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int MapWindowLastWidth {
+            get {
+                return ((int)(this["MapWindowLastWidth"]));
+            }
+            set {
+                this["MapWindowLastWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int MapWindowLastHeight {
+            get {
+                return ((int)(this["MapWindowLastHeight"]));
+            }
+            set {
+                this["MapWindowLastHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BingoFont {
+            get {
+                return ((string)(this["BingoFont"]));
+            }
+            set {
+                this["BingoFont"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int BingoFontStyle {
+            get {
+                return ((int)(this["BingoFontStyle"]));
+            }
+            set {
+                this["BingoFontStyle"] = value;
             }
         }
     }

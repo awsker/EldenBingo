@@ -24,7 +24,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="ControlBackColor" Type="System.Drawing.Color" Scope="User">
-      <Value Profile="(Default)">20, 20, 44</Value>
+      <Value Profile="(Default)">20, 20, 30</Value>
     </Setting>
     <Setting Name="MapWindowX" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
@@ -64,6 +64,18 @@
     </Setting>
     <Setting Name="MainWindowSizeY" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="MapWindowLastWidth" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="MapWindowLastHeight" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="BingoFont" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="BingoFontStyle" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>
