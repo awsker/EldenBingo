@@ -463,6 +463,10 @@ namespace EldenBingo.UI
         private void onWindowResized(object? sender, SizeEventArgs e)
         {
             initCamera(_window);
+            
+            Properties.Settings.Default.MapWindowLastWidth = (int)_window.Size.X;
+            Properties.Settings.Default.MapWindowLastHeight = (int)_window.Size.Y;
+            Properties.Settings.Default.Save();
         }
 
         private void onWindowKeyPressed(object? sender, SFML.Window.KeyEventArgs e)

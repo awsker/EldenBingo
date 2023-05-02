@@ -38,6 +38,7 @@
             this._gridControl.BorderX = 2;
             this._gridControl.BorderY = 2;
             this._gridControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._gridControl.Font = new System.Drawing.Font("Lucida Sans Unicode", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this._gridControl.GridHeight = 5;
             this._gridControl.GridWidth = 5;
             this._gridControl.Location = new System.Drawing.Point(0, 0);

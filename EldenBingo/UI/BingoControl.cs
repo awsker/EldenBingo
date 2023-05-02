@@ -14,7 +14,7 @@ namespace EldenBingo.UI
 
         private BoardStatusEnum _boardStatus;
 
-        private string[] _boardStatusStrings = { "No board set", "Click to reveal...", "" };
+        private string[] _boardStatusStrings = { "No board set", "Click to reveal...", "Match Starting...", "" };
 
         public BingoControl() : base()
         {
@@ -35,14 +35,9 @@ namespace EldenBingo.UI
             Load += bingoControl_Load;
             SizeChanged += bingoControl_SizeChanged;
             _gridControl.SizeChanged += _gridControl_SizeChanged;
-            recalculateFontSizeForSquares();
-        }
+            Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
 
-        private void _gridControl_SizeChanged(object? sender, EventArgs e)
-        {
-            _boardStatusLabel.Location = new Point(_gridControl.Location.X + _gridControl.BorderX, _gridControl.Location.Y + _gridControl.BorderY);
-            _boardStatusLabel.Width = _gridControl.Width - _gridControl.BorderX * 2;
-            _boardStatusLabel.Height = _gridControl.Height - _gridControl.BorderY * 2;
+            recalculateFontSizeForSquares();
         }
 
         private void bingoControl_Load(object? sender, EventArgs e)
@@ -55,21 +50,48 @@ namespace EldenBingo.UI
             recalculateFontSizeForSquares();
         }
 
+        private void _gridControl_SizeChanged(object? sender, EventArgs e)
+        {
+            _boardStatusLabel.Location = new Point(_gridControl.Location.X + _gridControl.BorderX, _gridControl.Location.Y + _gridControl.BorderY);
+            _boardStatusLabel.Width = _gridControl.Width - _gridControl.BorderX * 2;
+            _boardStatusLabel.Height = _gridControl.Height - _gridControl.BorderY * 2;
+        }
+
+        private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) || e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle))
+            {
+                recalculateFontSizeForSquares();
+            }
+        }
+
         private void recalculateFontSizeForSquares()
         {
             const float minHeight = 1f;
             const float maxHeight = 200f;
             const float minFont = 1f;
-            const float maxFont = 18f;
+            const float maxFont = 20f;
             var squareHeight = Squares[0].Height;
             var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
             _fontSize = minFont + (maxFont - minFont) * frac;
 
+            var ffName = Properties.Settings.Default.BingoFont;
+            Font? font = null;
+            if(!string.IsNullOrWhiteSpace(ffName))
+            {
+                var ff2 = new FontFamily(ffName);
+                font = new Font(ff2, _fontSize, (FontStyle)Properties.Settings.Default.BingoFontStyle);
+                if (font.Name != ffName)
+                    font = null;
+            }
+            if(font == null)
+                font = new Font(_boardStatusLabel.Font.FontFamily, _fontSize, FontStyle.Regular);
+            _boardStatusLabel.Font = new Font(font.FontFamily, _fontSize * 2f, font.Style);
+
             for (int i = 0; i < 25; ++i)
             {
-                Squares[i].FontSize = _fontSize;
+                Squares[i].Font = font;
             }
-            _boardStatusLabel.Font = new Font(_boardStatusLabel.Font.FontFamily, _fontSize * 2f, FontStyle.Regular);
         }
 
         private async void square_MouseDown(object? sender, MouseEventArgs e)
@@ -236,7 +258,8 @@ namespace EldenBingo.UI
             {
                 if (match.Board == null)
                 {
-                    _boardStatus = BoardStatusEnum.NoBoard;
+                    _boardStatus = match.MatchStatus == MatchStatus.Starting ? BoardStatusEnum.MatchStarting : BoardStatusEnum.NoBoard;
+
                 }
                 else
                 {
@@ -292,18 +315,6 @@ namespace EldenBingo.UI
             }
 
             public int Index { get; init; }
-            internal float FontSize
-            {
-                get { return _fontSize; }
-                set
-                {
-                    if (_fontSize != value)
-                    {
-                        _fontSize = value;
-                        Invalidate();
-                    }
-                }
-            }
 
             public string ToolTip
             {
@@ -372,8 +383,25 @@ namespace EldenBingo.UI
                 // Call the OnPaint method of the base class.  
                 base.OnPaint(e);
                 // Call methods of the System.Drawing.Graphics object.
+                drawRectangle(e);
+
+                drawBingoText(e);
+
+                if (Marked)
+                    drawMarkedStar(e);
+
+                bool isChecked = _color.A == 255;
+                //If square is checked by any player, don't render counters
+                if (isChecked)
+                    return;
+
+                drawCounters(e);
+            }
+
+            private void drawRectangle(PaintEventArgs e)
+            {
                 var g = e.Graphics;
-                bool isChecked  = _color.A == 255;
+                bool isChecked = _color.A == 255;
                 var color = isChecked ? _color : BgColor;
 
                 if (_mouseOver)
@@ -384,35 +412,41 @@ namespace EldenBingo.UI
                         return Math.Min(255, c + Convert.ToInt32((255 - c) * factor));
                     }
                     color = Color.FromArgb(
-                        brighten(color.R, brightenFactor), 
-                        brighten(color.G, brightenFactor), 
+                        brighten(color.R, brightenFactor),
+                        brighten(color.G, brightenFactor),
                         brighten(color.B, brightenFactor)
                     );
                 }
                 var brush = new SolidBrush(color);
                 g.FillRectangle(brush, new Rectangle(0, 0, Width, Height));
-                var h = Convert.ToInt32(Height*0.4f) ; //Gradient in bottom 40%
+                var h = Convert.ToInt32(Height * 0.4f); //Gradient in bottom 40%
                 if (h > 0)
                 {
-                    var gradientColor = Color.FromArgb(72, 0, 0, 0);
+                    var gradientColor = Color.FromArgb(52, 0, 0, 0);
                     var gBrush = new LinearGradientBrush(new Point(0, Height - h - 1), new Point(0, Height), Color.Transparent, gradientColor);
                     g.FillRectangle(gBrush, new Rectangle(0, Height - h, Width, h));
                 }
+            }
+
+            private void drawBingoText(PaintEventArgs e)
+            {
                 var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
-                var f = new Font(Font.FontFamily, _fontSize);
                 var shadowRect = new Rectangle(ClientRectangle.X + 1, ClientRectangle.Y + 1, ClientRectangle.Width, ClientRectangle.Height);
                 var shadowColor = Color.FromArgb(128, 0, 0, 0);
-                TextRenderer.DrawText(e, Text, f, shadowRect, shadowColor, flags: flags);
-                TextRenderer.DrawText(e, Text, f, ClientRectangle, TextColor, flags: flags);
-                if(Marked)
-                {
-                    g.DrawImage(Properties.Resources.tinystar, new Point(0, 0));
-                }
-                //If square is checked by any player, don't render counters
-                if (isChecked)
-                    return;
-                var counterFont = new Font(Font.FontFamily, _fontSize * 1.2f);
+                TextRenderer.DrawText(e, Text, Font, shadowRect, shadowColor, flags: flags);
+                TextRenderer.DrawText(e, Text, Font, ClientRectangle, TextColor, flags: flags);
+            }
+
+            private void drawMarkedStar(PaintEventArgs e)
+            {
+                e.Graphics.DrawImage(Properties.Resources.tinystar, new Point(3, 3));
+            }
+
+            private void drawCounters(PaintEventArgs e)
+            {
+                var counterFont = new Font(Font.FontFamily, Font.Size * 1.2f);
                 var counterFlags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
+                var shadowColor = Color.FromArgb(128, 0, 0, 0);
                 for (int i = 0; i < _counters.Length; ++i)
                 {
                     var c = _counters[i];
@@ -420,7 +454,7 @@ namespace EldenBingo.UI
                         continue;
                     var size = TextRenderer.MeasureText(c.Counter.ToString(), counterFont);
                     int leftXPos;
-                    if(i == 0)
+                    if (i == 0)
                         leftXPos = 0;
                     else if (i == _counters.Length - 1)
                         leftXPos = Width - size.Width;
@@ -438,6 +472,7 @@ namespace EldenBingo.UI
         {
             NoBoard,
             BoardSetNotRevealed,
+            MatchStarting,
             BoardRevealed,
         }
 

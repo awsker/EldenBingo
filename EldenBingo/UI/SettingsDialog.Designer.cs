@@ -45,6 +45,8 @@
             this._bingoMaxXTextBox = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this._fontLinkLabel = new System.Windows.Forms.LinkLabel();
+            this.label8 = new System.Windows.Forms.Label();
             this._colorPanel = new System.Windows.Forms.Panel();
             this.label5 = new System.Windows.Forms.Label();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
@@ -223,6 +225,8 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this._fontLinkLabel);
+            this.groupBox3.Controls.Add(this.label8);
             this.groupBox3.Controls.Add(this._colorPanel);
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Location = new System.Drawing.Point(237, 15);
@@ -231,6 +235,27 @@
             this.groupBox3.TabIndex = 16;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Appearance";
+            // 
+            // _fontLinkLabel
+            // 
+            this._fontLinkLabel.AutoSize = true;
+            this._fontLinkLabel.Font = new System.Drawing.Font("Lucida Sans Unicode", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this._fontLinkLabel.Location = new System.Drawing.Point(9, 78);
+            this._fontLinkLabel.Name = "_fontLinkLabel";
+            this._fontLinkLabel.Size = new System.Drawing.Size(90, 20);
+            this._fontLinkLabel.TabIndex = 6;
+            this._fontLinkLabel.TabStop = true;
+            this._fontLinkLabel.Text = "FontName";
+            this._fontLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this._fontLinkLabel_LinkClicked);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(9, 58);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(102, 15);
+            this.label8.TabIndex = 5;
+            this.label8.Text = "Bingo Board Font:";
             // 
             // _colorPanel
             // 
@@ -379,5 +404,7 @@
         private RadioButton _mapPositionRelativeRadioButton;
         private TextBox _mapPositionXTextBox;
         private Label label7;
+        private LinkLabel _fontLinkLabel;
+        private Label label8;
     }
 }
