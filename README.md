@@ -34,7 +34,7 @@ When joining (or creating) a lobby, you will be asked to input a nickname, a col
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
 # Administrating a lobby
-You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only AdminSpectators (ie. a player that is both administrator and spectator) have special privileges (see AdminSpectators).
+You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only AdminSpectators (ie. a player that is both administrator and spectator) have special privileges (see [AdminSpectators](#adminspectators)).
 
 When you've joined a lobby as an administrator, the administrator tools will show under the bingo board. Use these tools to upload a Bingo .json file, following the same format as Bingo Brawlers and [BingoSync](https://bingosync.com). [Here is an example file](https://bingobrawlers.com/files/bingo-brawlers.json).
 
