@@ -57,10 +57,15 @@
             this._mapPositionRelativeRadioButton = new System.Windows.Forms.RadioButton();
             this._mapPositionXTextBox = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this._hostServerCheckBox = new System.Windows.Forms.CheckBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this._portTextBox = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
+            this.groupBox5.SuspendLayout();
             this.SuspendLayout();
             // 
             // _okButton
@@ -344,6 +349,44 @@
             this.label7.TabIndex = 1;
             this.label7.Text = "X:";
             // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this._portTextBox);
+            this.groupBox5.Controls.Add(this.label9);
+            this.groupBox5.Controls.Add(this._hostServerCheckBox);
+            this.groupBox5.Location = new System.Drawing.Point(237, 130);
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.Size = new System.Drawing.Size(209, 122);
+            this.groupBox5.TabIndex = 17;
+            this.groupBox5.TabStop = false;
+            this.groupBox5.Text = "Server";
+            // 
+            // _hostServerCheckBox
+            // 
+            this._hostServerCheckBox.AutoSize = true;
+            this._hostServerCheckBox.Location = new System.Drawing.Point(12, 28);
+            this._hostServerCheckBox.Name = "_hostServerCheckBox";
+            this._hostServerCheckBox.Size = new System.Drawing.Size(184, 19);
+            this._hostServerCheckBox.TabIndex = 18;
+            this._hostServerCheckBox.Text = "Host a bingo server on launch";
+            this._hostServerCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(12, 62);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(32, 15);
+            this.label9.TabIndex = 1;
+            this.label9.Text = "Port:";
+            // 
+            // _portTextBox
+            // 
+            this._portTextBox.Location = new System.Drawing.Point(50, 59);
+            this._portTextBox.Name = "_portTextBox";
+            this._portTextBox.Size = new System.Drawing.Size(61, 23);
+            this._portTextBox.TabIndex = 19;
+            // 
             // SettingsDialog
             // 
             this.AcceptButton = this._okButton;
@@ -351,6 +394,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this._cancelButton;
             this.ClientSize = new System.Drawing.Size(468, 395);
+            this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
@@ -371,6 +415,8 @@
             this.groupBox3.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -406,5 +452,9 @@
         private Label label7;
         private LinkLabel _fontLinkLabel;
         private Label label8;
+        private GroupBox groupBox5;
+        private TextBox _portTextBox;
+        private Label label9;
+        private CheckBox _hostServerCheckBox;
     }
 }

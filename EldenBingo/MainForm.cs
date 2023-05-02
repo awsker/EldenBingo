@@ -16,6 +16,8 @@ namespace EldenBingo
         private readonly Client _client;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
 
+        private Server?  _server = null;
+
         public MainForm()
         {
             InitializeComponent();
@@ -39,13 +41,23 @@ namespace EldenBingo
             };
             _client = new Client();
             addClientListeners(_client);
-            #if DEBUG
-                var server = new Server(NetConstants.DefaultPort);
-                server.Host();
-#endif
 
+
+            if (Properties.Settings.Default.HostServerOnLaunch)
+            {
+                hostServer();
+            }
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
+        }
+
+        private void hostServer()
+        {
+            if (_server == null)
+            {
+                _server = new Server(Properties.Settings.Default.Port);
+                _server.Host();
+            }
         }
 
         private async void MainForm_Load(object sender, EventArgs e)
@@ -310,11 +322,16 @@ namespace EldenBingo
 
         private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(Properties.Settings.Default.ControlBackColor))
+            if (e.PropertyName == nameof(Properties.Settings.Default.ControlBackColor))
             {
                 BackColor = Properties.Settings.Default.ControlBackColor;
                 _consoleControl.BackColor = Properties.Settings.Default.ControlBackColor;
                 _lobbyControl.BackColor = Properties.Settings.Default.ControlBackColor;
+            }
+            if (e.PropertyName == nameof(Properties.Settings.Default.HostServerOnLaunch))
+            {
+                if (_server == null && Properties.Settings.Default.HostServerOnLaunch)
+                    hostServer();
             }
         }
 

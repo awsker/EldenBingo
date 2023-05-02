@@ -32,6 +32,9 @@
             _fontLinkLabel.Font = MainForm.GetFontFromSettings(fontSize, defaultFont: _fontLinkLabel.Font);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
+
+            _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
+            _portTextBox.Text = Properties.Settings.Default.Port.ToString();
         }
 
         private bool saveSettings()
@@ -101,6 +104,17 @@
             Properties.Settings.Default.BingoFont = _fontLinkLabel.Font.FontFamily.Name;
             Properties.Settings.Default.BingoFontStyle = (int)_fontLinkLabel.Font.Style;
             Properties.Settings.Default.BingoFontSize = _fontLinkLabel.Font.Size;
+
+            Properties.Settings.Default.HostServerOnLaunch = _hostServerCheckBox.Checked;
+            if (int.TryParse(_portTextBox.Text, out int port))
+            {
+                Properties.Settings.Default.Port = port;
+            }
+            else
+            {
+                //Invalid port
+                return false;
+            }
 
             Properties.Settings.Default.Save();
             return true;
