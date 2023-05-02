@@ -42,7 +42,6 @@ namespace EldenBingo
             _client = new Client();
             addClientListeners(_client);
 
-
             if (Properties.Settings.Default.HostServerOnLaunch)
             {
                 hostServer();
@@ -79,7 +78,7 @@ namespace EldenBingo
 
             //Start looking for Elden Ring process
             _processHandler.StartScan();
-
+            
             if (Properties.Settings.Default.AutoConnect && !string.IsNullOrWhiteSpace(Properties.Settings.Default.ServerAddress))
             {
                 await initClientAsync(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
