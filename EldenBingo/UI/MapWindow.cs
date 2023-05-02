@@ -1,5 +1,6 @@
 ﻿using EldenBingo.GameInterop;
 using EldenBingo.Rendering;
+using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -133,7 +134,6 @@ namespace EldenBingo.UI
         private void renderLoop()
         {
             _running = true;
-            _texturesLoaded = false;
 
             if (_window == null)
                 initWindow();
@@ -340,19 +340,7 @@ namespace EldenBingo.UI
                     continue;
 
                 var pos = getEntityPosition(ent);
-                if (ShowPlayerNames && ent.NameTag != null)
-                {
-                    var st2 = RenderStates.Default;
-                    var trans2 = Transform.Identity;
-                    var scale2 = 0.5f * _camera.Zoom / _zoomDueToWindowSize;
-                    var bounds = ent.NameTag.GetLocalBounds();
-                    var width = bounds.Width * scale2;
-                    var height = 15 * scale2;
-                    trans2.Translate(new Vector2f(pos.X * imageFactor.X - width * 0.5f, pos.Y * imageFactor.Y + height));
-                    trans2.Scale(scale2, scale2);
-                    st2.Transform = trans2;
-                    _window.Draw(ent.NameTag, st2);
-                }
+                
                 var trans = Transform.Identity;
                 trans.Translate(new Vector2f(pos.X * imageFactor.X, pos.Y * imageFactor.Y));
                 trans.Rotate(ent.Angle);
@@ -379,6 +367,20 @@ namespace EldenBingo.UI
                     trans.Scale(scale, scale);
                     st = new RenderStates(BlendMode.Alpha, trans, _playerIcon.Texture, _shader);
                     _window.Draw(_playerIcon, st);
+                }
+
+                if (ShowPlayerNames && ent.NameTag != null)
+                {
+                    var st2 = RenderStates.Default;
+                    var trans2 = Transform.Identity;
+                    var scale2 = 0.5f * _camera.Zoom / _zoomDueToWindowSize;
+                    var bounds = ent.NameTag.GetLocalBounds();
+                    var width = bounds.Width * scale2;
+                    var height = 15 * scale2;
+                    trans2.Translate(new Vector2f(pos.X * imageFactor.X - width * 0.5f, pos.Y * imageFactor.Y + height));
+                    trans2.Scale(scale2, scale2);
+                    st2.Transform = trans2;
+                    _window.Draw(ent.NameTag, st2);
                 }
             }
         }
@@ -566,7 +568,7 @@ namespace EldenBingo.UI
 
         private Text initPlayerNameTag(string name)
         {
-            return new Text(name, Font, 30) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 2f };
+            return new Text(name, Font, 26) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 2f };
         }
 
         private void initMapTextures()

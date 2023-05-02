@@ -334,5 +334,17 @@ namespace EldenBingo.Properties {
                 this["BingoFontSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool HostServerOnLaunch {
+            get {
+                return ((bool)(this["HostServerOnLaunch"]));
+            }
+            set {
+                this["HostServerOnLaunch"] = value;
+            }
+        }
     }
 }
