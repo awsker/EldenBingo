@@ -29,14 +29,7 @@
             _bingoMaxXTextBox.Text = Properties.Settings.Default.BingoMaxSizeX.ToString();
             _bingoMaxYTextBox.Text = Properties.Settings.Default.BingoMaxSizeY.ToString();
 
-            var ffName = Properties.Settings.Default.BingoFont;
-            if (!string.IsNullOrWhiteSpace(ffName))
-            {
-                var ff2 = new FontFamily(ffName);
-                var font = new Font(ff2, fontSize, (FontStyle)Properties.Settings.Default.BingoFontStyle);
-                if (font.Name == ffName)
-                    _fontLinkLabel.Font = font;
-            }
+            _fontLinkLabel.Font = MainForm.GetFontFromSettings(fontSize, defaultFont: _fontLinkLabel.Font);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
         }
@@ -107,6 +100,7 @@
 
             Properties.Settings.Default.BingoFont = _fontLinkLabel.Font.FontFamily.Name;
             Properties.Settings.Default.BingoFontStyle = (int)_fontLinkLabel.Font.Style;
+            Properties.Settings.Default.BingoFontSize = _fontLinkLabel.Font.Size;
 
             Properties.Settings.Default.Save();
             return true;
@@ -143,7 +137,7 @@
             dialog.Font = _fontLinkLabel.Font;
             if(dialog.ShowDialog(this) == DialogResult.OK)
             {
-                _fontLinkLabel.Font = new Font(dialog.Font.FontFamily, fontSize, dialog.Font.Style);
+                _fontLinkLabel.Font = dialog.Font;
                 _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
             }
         }
