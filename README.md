@@ -1,5 +1,7 @@
 # Elden Bingo
 This application exists to make running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind.  
+
+
 ![eldenbingo-window](https://user-images.githubusercontent.com/604653/235782762-8af61e81-fd18-4ec0-87c8-e2893d895c85.png)  
 
 # Overview of Features
