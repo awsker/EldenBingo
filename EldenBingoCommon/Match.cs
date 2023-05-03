@@ -2,27 +2,36 @@
 
 namespace EldenBingoCommon
 {
+    public enum MatchStatus
+    {
+        NotRunning,
+        Starting,
+        Running,
+        Paused,
+        Finished
+    }
+
     public class Match
     {
-        public BingoBoard? Board { get; set; }
-        public MatchStatus MatchStatus { get; private set; }
-        public DateTime StatusChangedLocalDateTime { get; private set; }
-        public int ServerTimer { get; private set; }
+        public Match()
+        {
+            MatchStatus = MatchStatus.NotRunning;
+            ServerTimer = 0;
+            updateMatchStatus();
+        }
+
+        public Match(byte[] buffer, ref int offset)
+        {
+            MatchStatus = (MatchStatus)PacketHelper.ReadByte(buffer, ref offset);
+            ServerTimer = PacketHelper.ReadInt(buffer, ref offset);
+            var hasBoard = PacketHelper.ReadBoolean(buffer, ref offset);
+            if (hasBoard)
+                Board = new BingoBoard(buffer, ref offset);
+        }
 
         public event EventHandler? MatchStatusChanged;
-        //public event EventHandler? MatchTimerChanged;
 
-        //private System.Timers.Timer? _timer;
-
-        public bool Running => MatchStatus == MatchStatus.Starting || MatchStatus == MatchStatus.Running;
-
-        public int MatchSeconds
-        {
-            get
-            {
-                return Convert.ToInt32(Math.Floor(MatchMilliseconds / 1000d));
-            }
-        }
+        public BingoBoard? Board { get; set; }
 
         public int MatchMilliseconds
         {
@@ -32,6 +41,21 @@ namespace EldenBingoCommon
             }
         }
 
+        public int MatchSeconds
+        {
+            get
+            {
+                return Convert.ToInt32(Math.Floor(MatchMilliseconds / 1000d));
+            }
+        }
+
+        public MatchStatus MatchStatus { get; private set; }
+        public bool Running => MatchStatus == MatchStatus.Starting || MatchStatus == MatchStatus.Running;
+        public int ServerTimer { get; private set; }
+        public DateTime StatusChangedLocalDateTime { get; private set; }
+        //public event EventHandler? MatchTimerChanged;
+
+        //private System.Timers.Timer? _timer;
         public string TimerString
         {
             get
@@ -46,44 +70,36 @@ namespace EldenBingoCommon
                 seconds %= 3600;
                 var minutes = seconds / 60;
                 seconds %= 60;
-                return $"{(negative ? "-": string.Empty)}{hours.ToString("00")}:{minutes.ToString("00")}:{seconds.ToString("00")}";
+                return $"{(negative ? "-" : string.Empty)}{hours.ToString("00")}:{minutes.ToString("00")}:{seconds.ToString("00")}";
             }
         }
 
-        public Match()
+        public static string MatchStatusToString(MatchStatus status, out Color color)
         {
-            MatchStatus = MatchStatus.NotRunning;
-            ServerTimer = 0;
-            updateMatchStatus();
-        }
+            switch (status)
+            {
+                case MatchStatus.NotRunning:
+                    color = Color.CadetBlue;
+                    return "Not Running";
 
-        public Match(byte[] buffer, ref int offset)
-        {
-            MatchStatus = (MatchStatus)PacketHelper.ReadByte(buffer, ref offset);
-            ServerTimer = PacketHelper.ReadInt(buffer, ref offset);
-            var hasBoard = PacketHelper.ReadBoolean(buffer, ref offset);
-            if(hasBoard)
-                Board = new BingoBoard(buffer, ref offset);
-        }
+                case MatchStatus.Starting:
+                    color = Color.Orange;
+                    return "Starting...";
 
-        private void updateMatchStatus()
-        {
-            UpdateMatchStatus(MatchStatus, ServerTimer, Board);
-        }
+                case MatchStatus.Running:
+                    color = Color.Green;
+                    return "Running";
 
-        public void UpdateMatchStatus(MatchStatus status, int timer, BingoBoard? board = null)
-        {
-            ServerTimer = timer;
-            StatusChangedLocalDateTime = DateTime.Now;
-            MatchStatus = status;
-            if (board != null)
-                Board = board;
-            onMatchStatusChanged();
-        }
+                case MatchStatus.Paused:
+                    color = Color.CadetBlue;
+                    return "Paused";
 
-        private void onMatchStatusChanged()
-        {
-            MatchStatusChanged?.Invoke(this, EventArgs.Empty);
+                case MatchStatus.Finished:
+                    color = Color.CadetBlue;
+                    return "Match Finished";
+            }
+            color = Color.White;
+            return string.Empty;
         }
 
         public byte[] GetBytes(UserInRoom user)
@@ -103,39 +119,24 @@ namespace EldenBingoCommon
                 BitConverter.GetBytes(false)); //Don't include bingo board
         }
 
-        public static string MatchStatusToString(MatchStatus status, out Color color)
+        public void UpdateMatchStatus(MatchStatus status, int timer, BingoBoard? board = null)
         {
-            switch (status)
-            {
-                case MatchStatus.NotRunning:
-                    color = Color.CadetBlue;
-                    return "Not Running";
-                case MatchStatus.Starting:
-                    color = Color.Orange;
-                    return "Starting...";
-                case MatchStatus.Running:
-                    color = Color.Green;
-                    return "Running";
-                case MatchStatus.Paused:
-                    color = Color.CadetBlue;
-                    return "Paused";
-                case MatchStatus.Finished:
-                    color = Color.CadetBlue;
-                    return "Match Finished";
-            }
-            color = Color.White;
-            return string.Empty;
+            ServerTimer = timer;
+            StatusChangedLocalDateTime = DateTime.Now;
+            MatchStatus = status;
+            if (board != null)
+                Board = board;
+            onMatchStatusChanged();
+        }
+
+        private void onMatchStatusChanged()
+        {
+            MatchStatusChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void updateMatchStatus()
+        {
+            UpdateMatchStatus(MatchStatus, ServerTimer, Board);
         }
     }
-
-    public enum MatchStatus
-    {
-        NotRunning,
-        Starting,
-        Running,
-        Paused,
-        Finished
-    }
-
-    
 }

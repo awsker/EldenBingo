@@ -2,6 +2,18 @@
 {
     public class UserComparer<T> : IComparer<T> where T : UserInRoom
     {
+        public int Compare(T? x, T? y)
+        {
+            if (x == null || y == null)
+                return 0;
+            var xval = val(x);
+            var yval = val(y);
+
+            if (xval == yval) //Exact same rank, sort by nickname
+                return x.Nick.CompareTo(y.Nick);
+            else return xval - yval;
+        }
+
         private int val(T? x)
         {
             if (x == null)
@@ -14,18 +26,6 @@
             if (x.IsAdmin)
                 xval -= 5;
             return xval;
-        }
-
-        public int Compare(T? x, T? y)
-        {
-            if (x == null || y == null)
-                return 0;
-            var xval = val(x);
-            var yval = val(y);
-            
-            if (xval == yval) //Exact same rank, sort by nickname
-                return x.Nick.CompareTo(y.Nick);
-            else return xval - yval;
         }
     }
 }

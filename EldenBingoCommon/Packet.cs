@@ -4,13 +4,26 @@
     {
         public const int HeaderSize = 5;
 
-        public NetConstants.PacketTypes PacketType { get; }
-        public int DataSize { get; }
-        public byte[] Bytes { get; }
-
         private byte[]? _dataBytes = null;
 
-        public int TotalSize => HeaderSize + DataSize;
+        public Packet(byte[] buffer)
+        {
+            if (buffer.Length < HeaderSize)
+                throw new Exception("Invalid packet");
+            PacketType = (NetConstants.PacketTypes)buffer[0];
+            DataSize = BitConverter.ToInt32(buffer, 1);
+            Bytes = buffer;
+        }
+
+        public Packet(NetConstants.PacketTypes packetType, byte[] data)
+        {
+            PacketType = packetType;
+            DataSize = data.Length;
+            Bytes = createByteBufferWithHeader(packetType, DataSize);
+            data.CopyTo(Bytes, HeaderSize);
+        }
+
+        public byte[] Bytes { get; }
 
         public byte[] DataBytes
         {
@@ -26,22 +39,9 @@
             }
         }
 
-        public Packet(byte[] buffer)
-        {
-            if(buffer.Length < HeaderSize)
-                throw new Exception("Invalid packet");
-            PacketType = (NetConstants.PacketTypes) buffer[0];
-            DataSize = BitConverter.ToInt32(buffer, 1);
-            Bytes = buffer;
-        }
-
-        public Packet(NetConstants.PacketTypes packetType, byte[] data)
-        {
-            PacketType = packetType;
-            DataSize = data.Length;
-            Bytes = createByteBufferWithHeader(packetType, DataSize);
-            data.CopyTo(Bytes, HeaderSize);
-        }
+        public int DataSize { get; }
+        public NetConstants.PacketTypes PacketType { get; }
+        public int TotalSize => HeaderSize + DataSize;
 
         private byte[] createByteBufferWithHeader(NetConstants.PacketTypes packetType, int size)
         {

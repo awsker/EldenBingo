@@ -7,44 +7,92 @@ using System.Text.RegularExpressions;
 
 namespace EldenBingo.GameInterop
 {
+    public enum GameRunningStatus
+    {
+        NotRunning,
+        RunningWithEAC,
+        RunningWithoutEAC
+    }
+
     public class GameProcessHandler : IDisposable
     {
-        private Process? _gameProc = null;
-        private IntPtr _gameAccessHwnd = IntPtr.Zero;
-
-        private string? _steam_appid_path;
-        private bool _disposed;
-
-        /// <summary>
-        /// Path to logs file.
-        /// </summary>
-        private static string _path_logs;
+        private static readonly Color ErrorColor = Color.Red;
+        private static readonly Color IdleColor = Color.DarkGray;
+        private static readonly Color SuccessColor = Color.LightGreen;
+        private static readonly Color WorkingColor = Color.Orange;
 
         /// <summary>
         /// Determines if game is currently being started up.
         /// </summary>
         private static bool _startup = false;
 
-        private Thread? _scanGameThread;
         private readonly object _processLock = new object();
-        long _csMenuManAddress = -1L;
+        private long _csMenuManAddress = -1L;
+        private bool _disposed;
+        private IntPtr _gameAccessHwnd = IntPtr.Zero;
+        private Process? _gameProc = null;
         private MapCoordinates? _lastCoordinates;
+        private Thread? _scanGameThread;
+        private string? _steam_appid_path;
 
-        public event EventHandler<StatusEventArgs>? StatusChanged;
         public event EventHandler<MapCoordinateEventArgs>? CoordinatesChanged;
 
-        private static readonly Color IdleColor = Color.DarkGray;
-        private static readonly Color WorkingColor = Color.Orange;
-        private static readonly Color ErrorColor = Color.Red;
-        private static readonly Color SuccessColor = Color.LightGreen;
-
-        public void StartScan()
-        {
-            _scanGameThread = new Thread(gameProcessScan);
-            _scanGameThread.Start();
-        }
+        public event EventHandler<StatusEventArgs>? StatusChanged;
 
         public MapCoordinates? LastCoordinates => _lastCoordinates;
+
+        /// <summary>
+        /// Gets the install path of an application.
+        /// </summary>
+        /// <param name="p_name">The full name of the application from control panel.</param>
+        /// <returns>The folder the application is installed into.</returns>
+        public static string? GetApplicationPath(string p_name)
+        {
+            string? getInstallDir(RegistryKey host, string regKey)
+            {
+                RegistryKey? key = host.OpenSubKey(regKey);
+                if (key != null)
+                {
+                    foreach (string keyName in key.GetSubKeyNames())
+                    {
+                        RegistryKey? subkey = key.OpenSubKey(keyName);
+                        string? displayName = subkey?.GetValue("DisplayName") as string;
+                        if (subkey != null && displayName != null)
+                        {
+                            if (InstallDirCheck(displayName, p_name, subkey, out string? installDir))
+                                return installDir;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            string? key;
+            if ((key = getInstallDir(Registry.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
+                return key;
+
+            if ((key = getInstallDir(Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
+                return key;
+
+            if ((key = getInstallDir(Registry.LocalMachine, @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
+                return key;
+
+            // NOT FOUND
+            return null;
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
+            try
+            {
+                if (_steam_appid_path != null && File.Exists(_steam_appid_path))
+                {
+                    File.Delete(_steam_appid_path);
+                }
+            }
+            catch { }
+        }
 
         /// <summary>
         /// Check if game is running
@@ -164,45 +212,10 @@ namespace EldenBingo.GameInterop
             _startup = false;
         }
 
-
-        /// <summary>
-        /// Gets the install path of an application.
-        /// </summary>
-        /// <param name="p_name">The full name of the application from control panel.</param>
-        /// <returns>The folder the application is installed into.</returns>
-        public static string? GetApplicationPath(string p_name)
+        public void StartScan()
         {
-            string? getInstallDir(RegistryKey host, string regKey)
-            {
-                RegistryKey? key = host.OpenSubKey(regKey);
-                if (key != null)
-                {
-                    foreach (string keyName in key.GetSubKeyNames())
-                    {
-                        RegistryKey? subkey = key.OpenSubKey(keyName);
-                        string? displayName = subkey?.GetValue("DisplayName") as string;
-                        if (subkey != null && displayName != null)
-                        {
-                            if (InstallDirCheck(displayName, p_name, subkey, out string? installDir))
-                                return installDir;
-                        }
-                    }
-                }
-                return null;
-            }
-
-            string? key;
-            if ((key = getInstallDir(Registry.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
-                return key;
-
-            if ((key = getInstallDir(Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
-                return key;
-
-            if ((key = getInstallDir(Registry.LocalMachine, @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
-                return key;
-
-            // NOT FOUND
-            return null;
+            _scanGameThread = new Thread(gameProcessScan);
+            _scanGameThread.Start();
         }
 
         /*
@@ -227,12 +240,26 @@ namespace EldenBingo.GameInterop
         }*/
 
         /// <summary>
-        /// Checks if the user has called this application as administrator.
+        /// Logs messages to log file.
         /// </summary>
-        /// <returns>True if application is running as administrator.</returns>
-        private static bool IsAdministrator()
+        /// <param name="msg">The message to write to file.</param>
+        internal static void LogToFile(string msg)
         {
-            return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+            /*
+            string timedMsg = $"[{DateTime.Now:HH:mm:ss}] {msg}";
+            Debug.WriteLine(timedMsg);
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(_path_logs, true))
+                {
+                    writer.WriteLine(timedMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Writing to log file failed: {ex.Message}", Application.ProductName);
+            }
+            */
         }
 
         private static Process? GetGameProcess()
@@ -276,45 +303,13 @@ namespace EldenBingo.GameInterop
             return false;
         }
 
-        private bool IsEACRunning()
-        {
-            foreach (var sc in GetEACServices())
-            {
-                bool eacRunning = sc.Status == ServiceControllerStatus.Running ||
-                             sc.Status == ServiceControllerStatus.ContinuePending ||
-                             sc.Status == ServiceControllerStatus.StartPending;
-                if (eacRunning)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private ServiceController[] GetEACServices()
-        {
-            return ServiceController.GetServices().Where(service => service.ServiceName.Contains("EasyAntiCheat")).ToArray();
-        }
-
         /// <summary>
-        /// Open a prompt to let user choose game installation path.
+        /// Checks if the user has called this application as administrator.
         /// </summary>
-        /// <returns>The choosen file location.<returns>
-        private static string PromptForGamePath()
+        /// <returns>True if application is running as administrator.</returns>
+        private static bool IsAdministrator()
         {
-            MessageBox.Show("Couldn't find game installation path!\n\n" +
-                            "Please specify the installation path yourself...", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            string? gameExePath = OpenSelectFileDialog("Select eldenring.exe", "C:\\", new[] { "*.exe" }, new[] { "Elden Ring Executable" }, true);
-            if (string.IsNullOrEmpty(gameExePath) || !File.Exists(gameExePath))
-                Environment.Exit(0);
-            var fileInfo = FileVersionInfo.GetVersionInfo(gameExePath);
-            if (fileInfo?.FileDescription == null || !fileInfo.FileDescription.ToLower().Contains(GameData.PROCESS_DESCRIPTION))
-            {
-                MessageBox.Show("Invalid game file!", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                Environment.Exit(0);
-            }
-            Properties.Settings.Default.GameName = Path.GetFileNameWithoutExtension(gameExePath);
-            return gameExePath;
+            return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         /// <summary>
@@ -359,6 +354,57 @@ namespace EldenBingo.GameInterop
         }
 
         /// <summary>
+        /// Open a prompt to let user choose game installation path.
+        /// </summary>
+        /// <returns>The choosen file location.<returns>
+        private static string PromptForGamePath()
+        {
+            MessageBox.Show("Couldn't find game installation path!\n\n" +
+                            "Please specify the installation path yourself...", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            string? gameExePath = OpenSelectFileDialog("Select eldenring.exe", "C:\\", new[] { "*.exe" }, new[] { "Elden Ring Executable" }, true);
+            if (string.IsNullOrEmpty(gameExePath) || !File.Exists(gameExePath))
+                Environment.Exit(0);
+            var fileInfo = FileVersionInfo.GetVersionInfo(gameExePath);
+            if (fileInfo?.FileDescription == null || !fileInfo.FileDescription.ToLower().Contains(GameData.PROCESS_DESCRIPTION))
+            {
+                MessageBox.Show("Invalid game file!", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                Environment.Exit(0);
+            }
+            Properties.Settings.Default.GameName = Path.GetFileNameWithoutExtension(gameExePath);
+            return gameExePath;
+        }
+
+        private ServiceController[] GetEACServices()
+        {
+            return ServiceController.GetServices().Where(service => service.ServiceName.Contains("EasyAntiCheat")).ToArray();
+        }
+
+        private bool IsEACRunning()
+        {
+            foreach (var sc in GetEACServices())
+            {
+                bool eacRunning = sc.Status == ServiceControllerStatus.Running ||
+                             sc.Status == ServiceControllerStatus.ContinuePending ||
+                             sc.Status == ServiceControllerStatus.StartPending;
+                if (eacRunning)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Write a status to the status bar.
+        /// </summary>
+        /// <param name="text">The text to write.</param>
+        /// <param name="color">The color to use.</param>
+        private void UpdateStatus(string text, Color color)
+        {
+            StatusChanged?.Invoke(this, new StatusEventArgs(text, color));
+        }
+
+        /// <summary>
         /// Waits a set timeout for a process to appear.
         /// </summary>
         /// <param name="appName">The process to look for.</param>
@@ -383,60 +429,73 @@ namespace EldenBingo.GameInterop
             }
         }
 
-        /// <summary>
-        /// Write a status to the status bar.
-        /// </summary>
-        /// <param name="text">The text to write.</param>
-        /// <param name="color">The color to use.</param>
-        private void UpdateStatus(string text, Color color)
-        {
-            StatusChanged?.Invoke(this, new StatusEventArgs(text, color));
-        }
-
-        /// <summary>
-        /// Logs messages to log file.
-        /// </summary>
-        /// <param name="msg">The message to write to file.</param>
-        internal static void LogToFile(string msg)
-        {
-            /*
-            string timedMsg = $"[{DateTime.Now:HH:mm:ss}] {msg}";
-            Debug.WriteLine(timedMsg);
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(_path_logs, true))
-                {
-                    writer.WriteLine(timedMsg);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Writing to log file failed: {ex.Message}", Application.ProductName);
-            }
-            */
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-            try
-            {
-                if (_steam_appid_path != null && File.Exists(_steam_appid_path))
-                {
-                    File.Delete(_steam_appid_path);
-                }
-            }
-            catch { }
-        }
-
         #region Game process scanning
+
+        /// <summary>
+        /// Checks if an address is valid.
+        /// </summary>
+        /// <param name="address">The address (the pointer points to).</param>
+        /// <returns>True if (pointer points to a) valid address.</returns>
+        private static bool IsValidAddress(long address)
+        {
+            return address >= 0x10000 && address < 0x000F000000000000;
+        }
+
+        private void establishCSMenuManAddress()
+        {
+            try
+            {
+                _csMenuManAddress = resolveAddressFromAssembly(GameData.PATTERN_CSMENUMAN);
+            }
+            catch (Exception)
+            {
+                _csMenuManAddress = -1;
+            }
+        }
+
+        /// <summary>
+        /// Initialize PatternScanner and read all memory from process.
+        /// </summary>
+        /// <param name="hProcess">Handle to the process in whose memory pattern will be searched for.</param>
+        /// <param name="pModule">Module which will be searched for the pattern.</param>
+        private long findPatternInProcess(IntPtr hProcess, ProcessModule pModule, byte[] pattern, string mask)
+        {
+            long dwStart = processBaseAddress(pModule);
+            int nSize = pModule.ModuleMemorySize;
+
+            var bData = new byte[nSize];
+
+            if (!WinAPI.ReadProcessMemory(hProcess, dwStart, bData, (ulong)nSize, out IntPtr lpNumberOfBytesRead))
+            {
+                throw new Exception("Could not read memory in PatternScan()!");
+            }
+            if (lpNumberOfBytesRead.ToInt64() != nSize || bData == null || bData.Length == 0)
+            {
+                throw new Exception("ReadProcessMemory error in PatternScan()!");
+            }
+            return PatternScanLazySIMD.FindPattern(bData, pattern, mask);
+        }
+
+        private long followPointers(long startAddress, long[] offsets)
+        {
+            long currentAddr = startAddress;
+            foreach (var offset in offsets)
+            {
+                currentAddr += offset;
+                if (!IsValidAddress(currentAddr))
+                    return -1;
+                currentAddr = readPointer(currentAddr); //Follow reference pointer
+            }
+            return currentAddr;
+        }
+
         private void gameProcessScan()
         {
             UpdateStatus("Waiting for game...", IdleColor);
             //Keep count of how many coordinate polls returned the same coordinates as last time. After 10, send coordinates anyway
             int pollsSinceSend = 0;
             while (!_disposed)
-            { 
+            {
                 if (!_startup)
                 {
                     var process = GetGameProcess();
@@ -454,7 +513,7 @@ namespace EldenBingo.GameInterop
                     }
                     else //Process found
                     {
-                        if(IsEACRunning())
+                        if (IsEACRunning())
                         {
                             UpdateStatus("EAC is running...", ErrorColor);
                             continue;
@@ -467,12 +526,12 @@ namespace EldenBingo.GameInterop
                             resetCoordinates();
                             OpenGame();
                         }
-                        //If process was found 
-                        if(_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
+                        //If process was found
+                        if (_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
                         {
                             var coordinates = readPlayerCoordinates();
                             //Coordinates changed or 10 polls since last send
-                            if (_lastCoordinates.HasValue != coordinates.HasValue || 
+                            if (_lastCoordinates.HasValue != coordinates.HasValue ||
                                 _lastCoordinates.HasValue && coordinates.HasValue && !_lastCoordinates.Equals(coordinates.Value) ||
                                 pollsSinceSend >= 10)
                             {
@@ -493,15 +552,6 @@ namespace EldenBingo.GameInterop
                 }
                 Thread.Sleep(1000);
             }
-        }
-
-        private void resetCoordinates()
-        {
-            if(_lastCoordinates != null)
-            {
-                CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(null));
-            }
-            _lastCoordinates = null;
         }
 
         /// <summary>
@@ -543,8 +593,8 @@ namespace EldenBingo.GameInterop
                         return false;
                     }
                 }
-            } 
-            catch(Exception)
+            }
+            catch (Exception)
             {
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
@@ -553,16 +603,14 @@ namespace EldenBingo.GameInterop
             return true;
         }
 
-        private void establishCSMenuManAddress()
+        private long processBaseAddress(ProcessModule pModule)
         {
-            try
-            {
-                _csMenuManAddress = resolveAddressFromAssembly(GameData.PATTERN_CSMENUMAN);
-            }
-            catch (Exception)
-            {
-                _csMenuManAddress = -1;
-            }
+            long dwStart = 0;
+            if (IntPtr.Size == 4)
+                dwStart = (uint)pModule.BaseAddress;
+            else if (IntPtr.Size == 8)
+                dwStart = (long)pModule.BaseAddress;
+            return dwStart;
         }
 
         private MapCoordinates? readPlayerCoordinates()
@@ -595,18 +643,38 @@ namespace EldenBingo.GameInterop
                                 return null;
                             }
                         }
-                    } 
+                    }
                     else
                     {
                         _csMenuManAddress = -1;
                     }
-                } 
+                }
                 else
                 {
                     _csMenuManAddress = -1;
                 }
             }
             return null;
+        }
+
+        private long readPointer(long address)
+        {
+            byte[] buf = new byte[IntPtr.Size];
+
+            if (WinAPI.ReadProcessMemory(_gameAccessHwnd, address, buf, (ulong)IntPtr.Size, out _))
+            {
+                return IntPtr.Size == 4 ? BitConverter.ToInt32(buf) : BitConverter.ToInt64(buf);
+            }
+            return -1;
+        }
+
+        private void resetCoordinates()
+        {
+            if (_lastCoordinates != null)
+            {
+                CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(null));
+            }
+            _lastCoordinates = null;
         }
 
         private long resolveAddressFromAssembly(string pattern, int offset = 0)
@@ -621,74 +689,6 @@ namespace EldenBingo.GameInterop
             WinAPI.ReadProcessMemory(_gameAccessHwnd, address + 3, assm, 4, out _); //Only fetch the 4 address bytes
             var offsetFromAsm = BitConverter.ToUInt32(assm);
             return readPointer(address + offsetFromAsm + 7);
-        }
-
-
-        private long followPointers(long startAddress, long[] offsets)
-        {
-            long currentAddr = startAddress;
-            foreach (var offset in offsets)
-            {
-                currentAddr += offset;
-                if (!IsValidAddress(currentAddr))
-                    return -1;
-                currentAddr = readPointer(currentAddr); //Follow reference pointer
-            }
-            return currentAddr;
-        }
-
-        private long readPointer(long address)
-        {
-            byte[] buf = new byte[IntPtr.Size];
-
-            if (WinAPI.ReadProcessMemory(_gameAccessHwnd, address, buf, (ulong)IntPtr.Size, out _))
-            {
-                return IntPtr.Size == 4 ? BitConverter.ToInt32(buf) : BitConverter.ToInt64(buf);
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Checks if an address is valid.
-        /// </summary>
-        /// <param name="address">The address (the pointer points to).</param>
-        /// <returns>True if (pointer points to a) valid address.</returns>
-        private static bool IsValidAddress(long address)
-        {
-            return address >= 0x10000 && address < 0x000F000000000000;
-        }
-
-        private long processBaseAddress(ProcessModule pModule)
-        {
-            long dwStart = 0;
-            if (IntPtr.Size == 4)
-                dwStart = (uint)pModule.BaseAddress;
-            else if (IntPtr.Size == 8)
-                dwStart = (long)pModule.BaseAddress;
-            return dwStart;
-        }
-
-        /// <summary>
-        /// Initialize PatternScanner and read all memory from process.
-        /// </summary>
-        /// <param name="hProcess">Handle to the process in whose memory pattern will be searched for.</param>
-        /// <param name="pModule">Module which will be searched for the pattern.</param>
-        private long findPatternInProcess(IntPtr hProcess, ProcessModule pModule, byte[] pattern, string mask)
-        {
-            long dwStart = processBaseAddress(pModule);
-            int nSize = pModule.ModuleMemorySize;
-
-            var bData = new byte[nSize];
-
-            if (!WinAPI.ReadProcessMemory(hProcess, dwStart, bData, (ulong)nSize, out IntPtr lpNumberOfBytesRead))
-            {
-                throw new Exception("Could not read memory in PatternScan()!");
-            }
-            if (lpNumberOfBytesRead.ToInt64() != nSize || bData == null || bData.Length == 0)
-            {
-                throw new Exception("ReadProcessMemory error in PatternScan()!");
-            }
-            return PatternScanLazySIMD.FindPattern(bData, pattern, mask);
         }
 
         private (byte[], string) stringToByteArray(string szPattern)
@@ -714,13 +714,7 @@ namespace EldenBingo.GameInterop
                 throw new Exception("Pattern's bytes and szMask must be of the same size!");
             return (cbPattern, szMask);
         }
-#endregion
-    }
 
-    public enum GameRunningStatus
-    {
-        NotRunning,
-        RunningWithEAC,
-        RunningWithoutEAC
+        #endregion Game process scanning
     }
 }

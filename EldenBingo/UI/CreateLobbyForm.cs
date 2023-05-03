@@ -14,32 +14,12 @@ namespace EldenBingo.UI
             if (!create)
                 Text = "Join Lobby";
 
-            if(create && client != null)
+            if (create && client != null)
             {
                 client.IncomingData += client_IncomingData;
             }
             initTeamComboBox();
             loadSettings();
-            
-        }
-
-        public string Nickname
-        {
-            get { return _nicknameTextBox.Text; }
-            set { _nicknameTextBox.Text = value; }
-        }
-
-        public int Team
-        {
-            get { return _teamComboBox.SelectedIndex - 1; }
-            set { _teamComboBox.SelectedIndex = (int)value + 1; }
-        }
-
-
-        public string RoomName
-        {
-            get { return _roomNameTextBox.Text; }
-            set { _roomNameTextBox.Text = value; }
         }
 
         public string AdminPassword
@@ -48,12 +28,51 @@ namespace EldenBingo.UI
             set { _adminPasswordTextBox.Text = value; }
         }
 
+        public string Nickname
+        {
+            get { return _nicknameTextBox.Text; }
+            set { _nicknameTextBox.Text = value; }
+        }
+
+        public string RoomName
+        {
+            get { return _roomNameTextBox.Text; }
+            set { _roomNameTextBox.Text = value; }
+        }
+
+        public int Team
+        {
+            get { return _teamComboBox.SelectedIndex - 1; }
+            set { _teamComboBox.SelectedIndex = (int)value + 1; }
+        }
+
+        private void _cancelButton_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+
+        private void _createButton_Click(object sender, EventArgs e)
+        {
+            if (validate())
+            {
+                DialogResult = DialogResult.OK;
+                saveSettings();
+                Close();
+            }
+        }
+
         private void client_IncomingData(object? sender, ObjectEventArgs e)
         {
-            if(e.Object is AvailableRoomNameData d && RoomName == string.Empty)
+            if (e.Object is AvailableRoomNameData d && RoomName == string.Empty)
             {
                 RoomName = d.Name;
             }
+        }
+
+        private void CreateLobbyForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _client.IncomingData -= client_IncomingData;
         }
 
         private void initTeamComboBox()
@@ -64,11 +83,6 @@ namespace EldenBingo.UI
             }
             _teamComboBox.SelectedIndex = 0;
             _teamComboBox.SelectedIndexChanged += (o, e) => setPanelColor();
-        }
-
-        private void setPanelColor()
-        {
-            _colorPanel.BackColor = NetConstants.GetTeamColor(Team);
         }
 
         private void loadSettings()
@@ -83,14 +97,19 @@ namespace EldenBingo.UI
             Properties.Settings.Default.Team = Team;
             Properties.Settings.Default.Save();
         }
-        
+
+        private void setPanelColor()
+        {
+            _colorPanel.BackColor = NetConstants.GetTeamColor(Team);
+        }
+
         private bool validate()
         {
             if (string.IsNullOrWhiteSpace(_roomNameTextBox.Text))
             {
                 errorProvider1.SetError(_roomNameTextBox, "Room name not set");
                 return false;
-            } 
+            }
             else
             {
                 errorProvider1.SetError(_roomNameTextBox, null);
@@ -106,27 +125,6 @@ namespace EldenBingo.UI
                 errorProvider1.SetError(_nicknameTextBox, null);
             }
             return true;
-        }
-
-        private void CreateLobbyForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _client.IncomingData -= client_IncomingData;
-        }
-
-        private void _createButton_Click(object sender, EventArgs e)
-        {
-            if(validate())
-            {
-                DialogResult = DialogResult.OK;
-                saveSettings();
-                Close();
-            }
-        }
-
-        private void _cancelButton_Click(object sender, EventArgs e)
-        {
-            DialogResult = DialogResult.Cancel;
-            Close();
         }
     }
 }

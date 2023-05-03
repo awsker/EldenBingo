@@ -29,22 +29,36 @@ namespace EldenBingo.UI
             }
         }
 
-        protected virtual void ClientChanged() 
-        {
-            if (Client?.Room != null)
-                updateUsersList(Client.Room);
-        }
-
         protected virtual void AddClientListeners()
         {
             Client.IncomingData += client_IncomingData;
             Client.RoomChanged += client_RoomChanged;
         }
 
+        protected virtual void ClientChanged()
+        {
+            if (Client?.Room != null)
+                updateUsersList(Client.Room);
+        }
+
         protected virtual void RemoveClientListeners()
         {
             Client.IncomingData -= client_IncomingData;
             Client.RoomChanged -= client_RoomChanged;
+        }
+
+        private void clearUsersList()
+        {
+            void clear()
+            {
+                Items.Clear();
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(clear);
+                return;
+            }
+            clear();
         }
 
         private void client_IncomingData(object? sender, ObjectEventArgs e)
@@ -88,20 +102,6 @@ namespace EldenBingo.UI
                 return;
             }
             update();
-        }
-
-        private void clearUsersList()
-        {
-            void clear()
-            {
-                Items.Clear();
-            }
-            if (InvokeRequired)
-            {
-                BeginInvoke(clear);
-                return;
-            }
-            clear();
         }
     }
 }

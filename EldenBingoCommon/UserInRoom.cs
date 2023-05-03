@@ -5,24 +5,6 @@ namespace EldenBingoCommon
 {
     public class UserInRoom : INetSerializable, INotifyPropertyChanged
     {
-        public string Nick { get; set; }
-        public Guid Guid { get; set; }
-        public bool IsAdmin { get; init; }
-        public int Team { get; init; }
-        public bool IsSpectator => Team == -1;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public System.Drawing.Color Color
-        {
-            get
-            {
-                if (IsSpectator)
-                    return IsAdmin ? NetConstants.AdminSpectatorColor : NetConstants.SpectatorColor;
-                return NetConstants.GetTeamColor(Team);
-            }
-        }
-
         public UserInRoom(string nick, Guid guid, bool isAdmin, int team)
         {
             Nick = nick;
@@ -39,6 +21,24 @@ namespace EldenBingoCommon
             Team = PacketHelper.ReadInt(bytes, ref offset);
         }
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public System.Drawing.Color Color
+        {
+            get
+            {
+                if (IsSpectator)
+                    return IsAdmin ? NetConstants.AdminSpectatorColor : NetConstants.SpectatorColor;
+                return NetConstants.GetTeamColor(Team);
+            }
+        }
+
+        public Guid Guid { get; set; }
+        public bool IsAdmin { get; init; }
+        public bool IsSpectator => Team == -1;
+        public string Nick { get; set; }
+        public int Team { get; init; }
+
         public byte[] GetBytes()
         {
             var nickBytes = PacketHelper.GetStringBytes(Nick);
@@ -52,7 +52,7 @@ namespace EldenBingoCommon
         {
             var str = Nick;
             var suffix = new List<string>();
-            
+
             if (IsAdmin)
                 suffix.Add("Admin");
             if (IsSpectator)

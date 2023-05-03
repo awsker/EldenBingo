@@ -2,10 +2,10 @@
 {
     public partial class ColorPanel : Control
     {
-        public Color Color { get; init; }
         private Brush _brush;
         private Pen _mouseHoverPen;
         private bool _mouseOver;
+
         public ColorPanel(Color c)
         {
             Color = c;
@@ -23,12 +23,14 @@
             };
         }
 
+        public Color Color { get; init; }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
             var rect = new Rectangle(0, 0, Width, Height);
             e.Graphics.FillRectangle(_brush, rect);
-            if(_mouseOver)
+            if (_mouseOver)
             {
                 e.Graphics.DrawRectangle(_mouseHoverPen, new Rectangle(0, 0, Width - 1, Height - 1));
             }

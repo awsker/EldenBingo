@@ -6,8 +6,8 @@ namespace EldenBingo.Rendering
     public class Camera : ICamera
     {
         private Vector2f _position, _size;
-        private float _zoom = 1.0f;
         private View? _view;
+        private float _zoom = 1.0f;
 
         public Camera(Vector2f position, Vector2f size)
         {
@@ -62,8 +62,6 @@ namespace EldenBingo.Rendering
             }
         }
 
-        public void Update(float dt) { }
-
         public View GetView()
         {
             if (Changed || _view == null)
@@ -74,6 +72,8 @@ namespace EldenBingo.Rendering
             }
             return _view;
         }
-    }
 
+        public void Update(float dt)
+        { }
+    }
 }

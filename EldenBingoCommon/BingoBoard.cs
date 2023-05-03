@@ -2,8 +2,6 @@
 {
     public class BingoBoard
     {
-        public BingoBoardSquare[] Squares { get; init; }
-        
         public BingoBoard(string[] squareTexts, string[] tooltips)
         {
             if (squareTexts.Length != 25)
@@ -12,7 +10,7 @@
                 throw new ArgumentException("Needs exactly 25 tooltips");
 
             Squares = new BingoBoardSquare[25];
-            for(int i = 0; i < squareTexts.Length; ++i)
+            for (int i = 0; i < squareTexts.Length; ++i)
             {
                 Squares[i] = new BingoBoardSquare(squareTexts[i], tooltips[i]);
             }
@@ -27,7 +25,9 @@
                 Squares[i] = new BingoBoardSquare(buffer, ref offset);
             }
         }
-        
+
+        public BingoBoardSquare[] Squares { get; init; }
+
         public virtual byte[] GetBytes(UserInRoom user)
         {
             return PacketHelper.ConcatBytes(Squares.Select(s => s.GetBytes()));
@@ -41,23 +41,7 @@
 
     public class BingoBoardSquare : INetSerializable
     {
-        public bool Checked => Team.HasValue;
-        public string Text { get; init; }
-        public string Tooltip { get; init; }
-        public int? Team
-        {
-            get
-            {
-                return _checkOwner == 0 ? null : _checkOwner - 1;
-            }
-            set
-            {
-                _checkOwner = value == null ?  0 : value.Value + 1;
-            }
-        }
         private int _checkOwner;
-        public bool Marked { get; set; }
-        public TeamCounter[] Counters { get; set; }
 
         public BingoBoardSquare(string text, string tooltip)
         {
@@ -73,13 +57,32 @@
             UpdateFromStatusBytes(buffer, ref offset);
         }
 
+        public bool Checked => Team.HasValue;
+        public TeamCounter[] Counters { get; set; }
+        public bool Marked { get; set; }
+
+        public int? Team
+        {
+            get
+            {
+                return _checkOwner == 0 ? null : _checkOwner - 1;
+            }
+            set
+            {
+                _checkOwner = value == null ? 0 : value.Value + 1;
+            }
+        }
+
+        public string Text { get; init; }
+        public string Tooltip { get; init; }
+
         public byte[] GetBytes()
         {
             return PacketHelper.ConcatBytes(
                 PacketHelper.GetStringBytes(Text),
                 PacketHelper.GetStringBytes(Tooltip),
                 BitConverter.GetBytes(_checkOwner),
-                BitConverter.GetBytes(Marked), 
+                BitConverter.GetBytes(Marked),
                 BitConverter.GetBytes(Counters.Length),
                 PacketHelper.ConcatBytes(Counters.Select(c => c.GetBytes()))
             );
@@ -95,6 +98,11 @@
            );
         }
 
+        public override string ToString()
+        {
+            return Text;
+        }
+
         public void UpdateFromStatusBytes(byte[] buffer, ref int offset)
         {
             _checkOwner = PacketHelper.ReadInt(buffer, ref offset);
@@ -103,11 +111,6 @@
             Counters = new TeamCounter[c];
             for (int i = 0; i < c; ++i)
                 Counters[i] = new TeamCounter(buffer, ref offset);
-        }
-
-        public override string ToString()
-        {
-            return Text;
         }
     }
 }

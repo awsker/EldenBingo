@@ -2,8 +2,8 @@
 {
     public struct MapCoordinates : INetSerializable, IEquatable<MapCoordinates>
     {
-        public float X, Y, Angle;
         public bool IsUnderground;
+        public float X, Y, Angle;
 
         public MapCoordinates(float x, float y, bool underground, float angle)
         {
@@ -21,6 +21,11 @@
             Angle = PacketHelper.ReadFloat(bytes, ref offset);
         }
 
+        public bool Equals(MapCoordinates other)
+        {
+            return X == other.X && Y == other.Y && Angle == other.Angle && IsUnderground == other.IsUnderground;
+        }
+
         public byte[] GetBytes()
         {
             return PacketHelper.ConcatBytes(
@@ -29,11 +34,6 @@
                 BitConverter.GetBytes(IsUnderground),
                 BitConverter.GetBytes(Angle)
             );
-        }
-
-        public bool Equals(MapCoordinates other)
-        {
-            return X == other.X && Y == other.Y && Angle == other.Angle && IsUnderground == other.IsUnderground;
         }
 
         public override string ToString()

@@ -1,16 +1,18 @@
 ﻿using EldenBingoCommon;
+
 namespace EldenBingo.UI
 {
     public partial class ColorGridForm : Form
     {
-        public int SelectedIndex { get; set; }
-        public event EventHandler? ColorClicked;
-
         public ColorGridForm()
         {
             InitializeComponent();
             initGrid();
         }
+
+        public event EventHandler? ColorClicked;
+
+        public int SelectedIndex { get; set; }
 
         private void initGrid()
         {
@@ -32,7 +34,7 @@ namespace EldenBingo.UI
                 var panel = new ColorPanel(col.Color);
                 grid.Controls.Add(panel);
                 var temp = i;
-                panel.Click += (o,e) => panel_Click(temp);
+                panel.Click += (o, e) => panel_Click(temp);
             }
             Controls.Add(grid);
         }

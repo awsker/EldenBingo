@@ -2,8 +2,9 @@
 {
     public struct TeamCounter : IEquatable<TeamCounter>
     {
-        public int Team;
         public int Counter;
+        public int Team;
+
         public TeamCounter(int team, int counter = 0)
         {
             Team = team;
@@ -16,16 +17,16 @@
             Counter = PacketHelper.ReadInt(buffer, ref offset);
         }
 
+        public bool Equals(TeamCounter counter)
+        {
+            return Team == counter.Team && Counter == counter.Counter;
+        }
+
         public byte[] GetBytes()
         {
             return PacketHelper.ConcatBytes(
                 BitConverter.GetBytes(Team),
                 BitConverter.GetBytes(Counter));
-        }
-
-        public bool Equals(TeamCounter counter)
-        {
-            return Team == counter.Team && Counter == counter.Counter;
         }
     }
 }

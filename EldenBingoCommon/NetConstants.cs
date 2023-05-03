@@ -2,11 +2,40 @@
 
 namespace EldenBingoCommon
 {
+    public struct ColorName
+    {
+        public ColorName(Color color, string name)
+        {
+            Color = color;
+            Name = name;
+        }
+
+        public Color Color { get; init; }
+        public string Name { get; init; }
+    }
+
     public static class NetConstants
     {
+        public const int DefaultPort = 4501;
         public const string ServerRegisterString = "eldenbingo-server";
         public const string UserRegisterString = "hello";
-        public const int DefaultPort = 4501;
+
+        public static readonly ColorName[] TeamColors = new[]
+        {
+            new ColorName(Color.FromArgb(170, 16, 12), "Red"),
+            new ColorName(Color.FromArgb(9, 92, 168), "Blue"),
+            new ColorName(Color.FromArgb(40, 179, 16), "Green"),
+            new ColorName(Color.FromArgb(204, 104, 0), "Orange"),
+            new ColorName(Color.FromArgb(135, 35, 208), "Purple"),
+            new ColorName(Color.FromArgb(78, 204, 204), "Cyan"),
+            new ColorName(Color.FromArgb(237, 115, 216), "Pink"),
+            new ColorName(Color.FromArgb(112, 79, 41), "Brown"),
+            new ColorName(Color.FromArgb(196, 179, 0), "Yellow")
+        };
+
+        public static Color AdminSpectatorColor = Color.White;
+
+        public static Color SpectatorColor = Color.LightGray;
 
         public enum PacketTypes
         {
@@ -24,7 +53,7 @@ namespace EldenBingoCommon
             ClientTryMark, //byte
             ClientSetCounter, //byte, int, Guid
             ClientDisconnect, //(none)
-            
+
             ServerRegisterAccepted, //string, Guid
             ServerAvailableRoomName, //string
             ServerUserJoinedRoom, //UserInRoom
@@ -41,19 +70,6 @@ namespace EldenBingoCommon
             ServerUserConnectionClosed, //(none)
             ServerShutdown, //(none)
         }
-
-        public static readonly ColorName[] TeamColors = new[]
-        {
-            new ColorName(Color.FromArgb(170, 16, 12), "Red"),
-            new ColorName(Color.FromArgb(9, 92, 168), "Blue"),
-            new ColorName(Color.FromArgb(40, 179, 16), "Green"),
-            new ColorName(Color.FromArgb(204, 104, 0), "Orange"),
-            new ColorName(Color.FromArgb(135, 35, 208), "Purple"),
-            new ColorName(Color.FromArgb(78, 204, 204), "Cyan"),
-            new ColorName(Color.FromArgb(237, 115, 216), "Pink"),
-            new ColorName(Color.FromArgb(112, 79, 41), "Brown"),
-            new ColorName(Color.FromArgb(196, 179, 0), "Yellow")
-        };
 
         public static Color GetTeamColor(int team)
         {
@@ -72,20 +88,5 @@ namespace EldenBingoCommon
                 return TeamColors[team].Name + " Team";
             return String.Empty;
         }
-
-        public static Color AdminSpectatorColor = Color.White;
-        public static Color SpectatorColor = Color.LightGray;
-    }
-
-    public struct ColorName
-    {
-        public Color Color { get; init; }
-        public string Name { get; init; }
-        public ColorName(Color color, string name)
-        {
-            Color = color;
-            Name = name;
-        }
-           
     }
 }

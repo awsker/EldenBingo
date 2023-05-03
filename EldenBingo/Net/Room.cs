@@ -5,7 +5,7 @@ namespace EldenBingo.Net
     internal class Room : Room<UserInRoom>
     {
         public Room(string name) : base(name)
-        {}
+        { }
 
         public Room(byte[] buffer, ref int offset) : base(string.Empty)
         {

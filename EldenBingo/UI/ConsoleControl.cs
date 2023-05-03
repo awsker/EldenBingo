@@ -26,7 +26,7 @@ namespace EldenBingo.UI
 
         protected override void RemoveClientListeners()
         {
-            Client.StatusChanged  -= client_StatusChanged;
+            Client.StatusChanged -= client_StatusChanged;
         }
 
         private void client_StatusChanged(object? sender, StatusEventArgs e)

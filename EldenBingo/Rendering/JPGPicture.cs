@@ -3,12 +3,11 @@
     internal class JPEGPicture
     {
         private byte[] data;
-        private ushort m_width;
         private ushort m_height;
-
+        private ushort m_width;
         public byte[] Data { get => data; set => data = value; }
-        public ushort Width { get => m_width; set => m_width = value; }
         public ushort Height { get => m_height; set => m_height = value; }
+        public ushort Width { get => m_width; set => m_width = value; }
 
         public void GetJPEGSize()
         {

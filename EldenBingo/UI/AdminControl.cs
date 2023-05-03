@@ -11,10 +11,13 @@ namespace EldenBingo.UI
             InitializeComponent();
         }
 
-        private void AdminControl_Load(object sender, EventArgs e)
+        public override Color BackColor
         {
-            if (!DesignMode) {
-                _bingoJsonTextBox.Text = Properties.Settings.Default.LastBingoFile;
+            get => base.BackColor;
+            set
+            {
+                base.BackColor = value;
+                //_consoleTextBox.BackColor = value;
             }
         }
 
@@ -36,6 +39,57 @@ namespace EldenBingo.UI
             Client.Disconnected -= client_Disconnected;
         }
 
+        private void _browseJsonButton_Click(object sender, EventArgs e)
+        {
+            var file = _bingoJsonTextBox.Text;
+            var dir = Path.GetDirectoryName(file);
+            var dialog = new OpenFileDialog()
+            {
+                Filter = ".Json Files (*.json)|*.json|All Files (*.*)|*.*",
+                InitialDirectory = string.IsNullOrWhiteSpace(dir) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : dir,
+                FileName = string.IsNullOrWhiteSpace(file) || !File.Exists(file) ? string.Empty : _bingoJsonTextBox.Text,
+            };
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                _bingoJsonTextBox.Text = dialog.FileName;
+                Properties.Settings.Default.LastBingoFile = _bingoJsonTextBox.Text;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+        private async void _generateNewBoardButton_Click(object sender, EventArgs e)
+        {
+            await randomizeNewBoard();
+        }
+
+        private async void _pauseMatchButton_Click(object sender, EventArgs e)
+        {
+            await tryChangeMatchStatus(MatchStatus.Paused);
+        }
+
+        private async void _startMatchButton_Click(object sender, EventArgs e)
+        {
+            await tryChangeMatchStatus(MatchStatus.Starting);
+        }
+
+        private async void _stopMatchButton_Click(object sender, EventArgs e)
+        {
+            await tryChangeMatchStatus(MatchStatus.Finished);
+        }
+
+        private async void _uploadJsonButton_Click(object sender, EventArgs e)
+        {
+            await uploadJsonData(_bingoJsonTextBox.Text);
+        }
+
+        private void AdminControl_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                _bingoJsonTextBox.Text = Properties.Settings.Default.LastBingoFile;
+            }
+        }
+
         private void client_Connected(object? sender, EventArgs e)
         {
             updateButtonsStatus();
@@ -46,12 +100,21 @@ namespace EldenBingo.UI
             updateButtonsStatus();
         }
 
+        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        {
+            if (e.PacketType == NetConstants.PacketTypes.ServerToAdminStatusMessage &&
+                e.Object is AdminStatusMessageData messageData)
+            {
+                updateAdminStatusText(messageData.Message, Color.FromArgb(messageData.Color));
+            }
+        }
+
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
             updateButtonsStatus();
             if (e.PreviousRoom != null)
                 e.PreviousRoom.Match.MatchStatusChanged -= match_MatchStatusChanged;
-            if(e.NewRoom != null)
+            if (e.NewRoom != null)
                 e.NewRoom.Match.MatchStatusChanged += match_MatchStatusChanged;
         }
 
@@ -60,35 +123,30 @@ namespace EldenBingo.UI
             updateButtonsStatus();
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        private async Task randomizeNewBoard()
         {
-            if(e.PacketType == NetConstants.PacketTypes.ServerToAdminStatusMessage && 
-                e.Object is AdminStatusMessageData messageData)
+            if (Client?.Room == null)
             {
-                updateAdminStatusText(messageData.Message, Color.FromArgb(messageData.Color));
-            }
-        }
-
-        private void updateButtonsStatus()
-        {
-            void update()
-            {
-                var inRoom = Client?.Room != null;
-                var admin = inRoom && Client?.LocalUser?.IsAdmin == true;
-                var matchInProgress = inRoom && (Client.Room.Match.Running || Client.Room.Match.MatchStatus == MatchStatus.Paused);
-                _uploadJsonButton.Enabled = admin;
-                _startMatchButton.Enabled = admin && !matchInProgress;
-                _pauseMatchButton.Enabled = admin && matchInProgress;
-                if (admin)
-                    _pauseMatchButton.Text = Client.Room.Match.MatchStatus == MatchStatus.Paused ? "Unpause Match" : "Pause Match";
-                _stopMatchButton.Enabled = admin && matchInProgress;
-            }
-            if(InvokeRequired)
-            {
-                BeginInvoke(update);
+                errorProvider1.SetError(_generateNewBoardButton, "Not in a room");
                 return;
             }
-            update();
+            if (Client?.LocalUser?.IsAdmin != true)
+            {
+                errorProvider1.SetError(_generateNewBoardButton, "Not admin");
+                return;
+            }
+            errorProvider1.SetError(_bingoJsonTextBox, null);
+            var p = new Packet(NetConstants.PacketTypes.ClientRandomizeBoard, Array.Empty<byte>());
+            await Client.SendPacketToServer(p);
+        }
+
+        private async Task tryChangeMatchStatus(MatchStatus status)
+        {
+            if (Client == null)
+                return;
+
+            var p = new Packet(NetConstants.PacketTypes.ClientChangeMatchStatus, new[] { (byte)status });
+            await Client.SendPacketToServer(p);
         }
 
         private void updateAdminStatusText(string text, Color color)
@@ -106,41 +164,26 @@ namespace EldenBingo.UI
             update();
         }
 
-        public override Color BackColor
+        private void updateButtonsStatus()
         {
-            get => base.BackColor;
-            set
+            void update()
             {
-                base.BackColor = value;
-                //_consoleTextBox.BackColor = value;
+                var inRoom = Client?.Room != null;
+                var admin = inRoom && Client?.LocalUser?.IsAdmin == true;
+                var matchInProgress = inRoom && (Client.Room.Match.Running || Client.Room.Match.MatchStatus == MatchStatus.Paused);
+                _uploadJsonButton.Enabled = admin;
+                _startMatchButton.Enabled = admin && !matchInProgress;
+                _pauseMatchButton.Enabled = admin && matchInProgress;
+                if (admin)
+                    _pauseMatchButton.Text = Client.Room.Match.MatchStatus == MatchStatus.Paused ? "Unpause Match" : "Pause Match";
+                _stopMatchButton.Enabled = admin && matchInProgress;
             }
-        }
-
-        private void _browseJsonButton_Click(object sender, EventArgs e)
-        {
-            var file = _bingoJsonTextBox.Text;
-            var dir = Path.GetDirectoryName(file);
-            var dialog = new OpenFileDialog() {
-                Filter = ".Json Files (*.json)|*.json|All Files (*.*)|*.*",
-                InitialDirectory = string.IsNullOrWhiteSpace(dir) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : dir,
-                FileName = string.IsNullOrWhiteSpace(file) || !File.Exists(file) ? string.Empty : _bingoJsonTextBox.Text,
-            };
-            if(dialog.ShowDialog(this) == DialogResult.OK)
+            if (InvokeRequired)
             {
-                _bingoJsonTextBox.Text = dialog.FileName;
-                Properties.Settings.Default.LastBingoFile = _bingoJsonTextBox.Text;
-                Properties.Settings.Default.Save();
+                BeginInvoke(update);
+                return;
             }
-        }
-
-        private async void _uploadJsonButton_Click(object sender, EventArgs e)
-        {
-            await uploadJsonData(_bingoJsonTextBox.Text);
-        }
-
-        private async void _generateNewBoardButton_Click(object sender, EventArgs e)
-        {
-            await randomizeNewBoard();
+            update();
         }
 
         private async Task uploadJsonData(string file)
@@ -173,47 +216,6 @@ namespace EldenBingo.UI
             {
                 errorProvider1.SetError(_bingoJsonTextBox, $"Could not read file: {ex.Message}");
             }
-        }
-
-        private async Task randomizeNewBoard()
-        {
-            if (Client?.Room == null)
-            {
-                errorProvider1.SetError(_generateNewBoardButton, "Not in a room");
-                return;
-            }
-            if (Client?.LocalUser?.IsAdmin != true)
-            {
-                errorProvider1.SetError(_generateNewBoardButton, "Not admin");
-                return;
-            }
-            errorProvider1.SetError(_bingoJsonTextBox, null);
-            var p = new Packet(NetConstants.PacketTypes.ClientRandomizeBoard, Array.Empty<byte>());
-            await Client.SendPacketToServer(p);
-        }
-
-        private async void _startMatchButton_Click(object sender, EventArgs e)
-        {
-            await tryChangeMatchStatus(MatchStatus.Starting);
-        }
-
-        private async void _pauseMatchButton_Click(object sender, EventArgs e)
-        {
-            await tryChangeMatchStatus(MatchStatus.Paused);
-        }
-
-        private async void _stopMatchButton_Click(object sender, EventArgs e)
-        {
-            await tryChangeMatchStatus(MatchStatus.Finished);
-        }
-
-        private async Task tryChangeMatchStatus(MatchStatus status)
-        {
-            if (Client == null)
-                return;
-
-            var p = new Packet(NetConstants.PacketTypes.ClientChangeMatchStatus, new[] { (byte)status });
-            await Client.SendPacketToServer(p);
         }
     }
 }

@@ -2,18 +2,17 @@
 using EldenBingo.Net.DataContainers;
 using EldenBingo.UI;
 using EldenBingoCommon;
-using System.Diagnostics;
 
 namespace EldenBingo.GameInterop
 {
     internal class MapCoordinateProviderHandler
     {
-        private MapWindow _window;
         private Client _client;
         private GameProcessHandler _gameHandler;
         private LocalCoordinateProvider _localProvider;
-        private IDictionary<Guid, NetUserCoordinateProvider> _netProviders;
         private object _localProviderLock = new object();
+        private IDictionary<Guid, NetUserCoordinateProvider> _netProviders;
+        private MapWindow _window;
 
         public MapCoordinateProviderHandler(MapWindow window, GameProcessHandler processHandler, Client client)
         {
@@ -26,7 +25,7 @@ namespace EldenBingo.GameInterop
             _window.AddCoordinateProvider(_localProvider);
 
             _netProviders = new Dictionary<Guid, NetUserCoordinateProvider>();
-            
+
             initProviders(client);
             addClientListeners(client);
         }
@@ -36,19 +35,47 @@ namespace EldenBingo.GameInterop
             removeClientListeners(_client);
         }
 
+        private void _client_RoomChanged(object? sender, RoomChangedEventArgs e)
+        {
+            _localProvider.User = _client.LocalUser;
+        }
+
+        private void addClientListeners(Client client)
+        {
+            client.RoomChanged += _client_RoomChanged;
+            client.UsersChanged += client_UsersChanged;
+            client.IncomingData += client_IncomingData;
+        }
+
+        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        {
+            if (e.PacketType == NetConstants.PacketTypes.ServerUserCoordinates)
+            {
+                if (e.Object is CoordinateData coords && _netProviders.TryGetValue(coords.User.Guid, out var np))
+                {
+                    np.MapCoordinates = coords.Coordinates;
+                }
+            }
+        }
+
+        private void client_UsersChanged(object? sender, EventArgs e)
+        {
+            initProviders(_client);
+        }
+
         private void initProviders(Client client)
         {
-            if(client?.Room == null)
+            if (client?.Room == null)
             {
                 _netProviders.Clear();
                 return;
             }
             var notPresent = new HashSet<Guid>(_netProviders.Keys);
             //No reason to create coordinate providers for spectators
-            foreach(var user in client.Room.Clients.Where(u => !u.IsSpectator))
+            foreach (var user in client.Room.Clients.Where(u => !u.IsSpectator))
             {
                 //Don't create a net coordinate provider for myself
-                if(client.LocalUser != null && user.Guid == client.LocalUser.Guid)
+                if (client.LocalUser != null && user.Guid == client.LocalUser.Guid)
                     continue;
 
                 notPresent.Remove(user.Guid);
@@ -59,7 +86,7 @@ namespace EldenBingo.GameInterop
                     _window.AddCoordinateProvider(netUserProvider);
                 }
             }
-            if(notPresent.Any())
+            if (notPresent.Any())
             {
                 //Remove all clients that are no longer here
                 foreach (var g in notPresent)
@@ -70,63 +97,18 @@ namespace EldenBingo.GameInterop
             }
         }
 
-        private void addClientListeners(Client client)
-        {
-            client.RoomChanged += _client_RoomChanged;
-            client.UsersChanged += client_UsersChanged;
-            client.IncomingData += client_IncomingData;
-        }
-
         private void removeClientListeners(Client client)
         {
             client.RoomChanged -= _client_RoomChanged;
         }
 
-        private void _client_RoomChanged(object? sender, RoomChangedEventArgs e)
-        {
-            _localProvider.User = _client.LocalUser;
-        }
-
-        private void client_UsersChanged(object? sender, EventArgs e)
-        {
-            initProviders(_client);
-        }
-
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
-        {
-            if(e.PacketType == NetConstants.PacketTypes.ServerUserCoordinates)
-            {
-                if(e.Object is CoordinateData coords && _netProviders.TryGetValue(coords.User.Guid, out var np))
-                {
-                    np.MapCoordinates = coords.Coordinates;
-                }
-            }
-        }
-
         internal class LocalCoordinateProvider : ICoordinateProvider
         {
-            GameProcessHandler _processHandler;
-            private MapCoordinates? _lastCoordinates;
-
             private static readonly SFML.Graphics.Color DefaultColor = new SFML.Graphics.Color(240, 198, 53);
-
-            private object _userLock = new object();
+            private MapCoordinates? _lastCoordinates;
+            private GameProcessHandler _processHandler;
             private UserInRoom? _user;
-            public UserInRoom? User
-            {
-                get
-                {
-                    lock (_userLock)
-                        return _user;
-                }
-                set
-                {
-                    lock (_userLock)
-                    {
-                        _user = value;
-                    }
-                }
-            }
+            private object _userLock = new object();
 
             public LocalCoordinateProvider(GameProcessHandler processHandler)
             {
@@ -136,14 +118,23 @@ namespace EldenBingo.GameInterop
                 Changed = _lastCoordinates != null;
             }
 
-            private void _processHandler_CoordinatesChanged(object? sender, MapCoordinateEventArgs e)
+            public bool Changed { get; private set; }
+
+            public SFML.Graphics.Color Color
             {
-                MapCoordinates = e.Coordinates;
+                get
+                {
+                    lock (_userLock)
+                    {
+                        if (User == null)
+                            return DefaultColor;
+                        var c = User.Color;
+                        return new SFML.Graphics.Color(c.R, c.G, c.B);
+                    }
+                }
             }
 
             public Guid Guid { get; } = Guid.NewGuid();
-
-            public bool Changed { get; private set; }
 
             public MapCoordinates? MapCoordinates
             {
@@ -162,34 +153,56 @@ namespace EldenBingo.GameInterop
                 }
             }
 
-            public SFML.Graphics.Color Color
+            public string Name => string.Empty;
+
+            public UserInRoom? User
             {
                 get
                 {
                     lock (_userLock)
+                        return _user;
+                }
+                set
+                {
+                    lock (_userLock)
                     {
-                        if (User == null)
-                            return DefaultColor;
-                        var c = User.Color;
-                        return new SFML.Graphics.Color(c.R, c.G, c.B);
+                        _user = value;
                     }
                 }
             }
 
-            public string Name => string.Empty;
+            private void _processHandler_CoordinatesChanged(object? sender, MapCoordinateEventArgs e)
+            {
+                MapCoordinates = e.Coordinates;
+            }
         }
 
         internal class NetUserCoordinateProvider : ICoordinateProvider
         {
-            private UserInRoom _user;
             private MapCoordinates? _lastCoordinates;
+            private UserInRoom _user;
 
             public NetUserCoordinateProvider(UserInRoom user)
             {
                 _user = user;
             }
 
-            public Guid Guid {
+            public bool Changed { get; private set; }
+
+            public SFML.Graphics.Color Color
+            {
+                get
+                {
+                    lock (_user)
+                    {
+                        var col = _user.Color;
+                        return new SFML.Graphics.Color(col.R, col.B, col.B);
+                    }
+                }
+            }
+
+            public Guid Guid
+            {
                 get
                 {
                     lock (_user)
@@ -198,19 +211,6 @@ namespace EldenBingo.GameInterop
                     }
                 }
             }
-
-            public string Name
-            {
-                get
-                {
-                    lock (_user)
-                    {
-                        return _user.Nick;
-                    }
-                }
-            }
-
-            public bool Changed { get; private set; }
 
             public MapCoordinates? MapCoordinates
             {
@@ -229,14 +229,13 @@ namespace EldenBingo.GameInterop
                 }
             }
 
-            public SFML.Graphics.Color Color
+            public string Name
             {
                 get
                 {
                     lock (_user)
                     {
-                        var col = _user.Color;
-                        return new SFML.Graphics.Color(col.R, col.B, col.B);
+                        return _user.Nick;
                     }
                 }
             }

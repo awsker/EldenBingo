@@ -7,15 +7,6 @@
             InitializeComponent();
         }
 
-        public int Port
-        {
-            get { return int.Parse(_portTextBox.Text); }
-            set
-            {
-                _portTextBox.Text = value.ToString();
-            }
-        }
-
         public string Address
         {
             get { return _addressTextBox.Text; }
@@ -31,35 +22,19 @@
             set { _autoConnectCheckBox.Checked = value; }
         }
 
-        private void ConnectForm_Load(object sender, EventArgs e)
+        public int Port
         {
-            Address = Properties.Settings.Default.ServerAddress;
-            Port = Properties.Settings.Default.Port;
-            AutoConnect = Properties.Settings.Default.AutoConnect;
+            get { return int.Parse(_portTextBox.Text); }
+            set
+            {
+                _portTextBox.Text = value.ToString();
+            }
         }
 
-        private bool validate()
+        private void _cancelButton_Click(object sender, EventArgs e)
         {
-            if(string.IsNullOrWhiteSpace(_addressTextBox.Text))
-            {
-                errorProvider1.SetError(_addressTextBox, "Invalid address");
-                return false;
-            } 
-            else
-            {
-                errorProvider1.SetError(_addressTextBox, null);
-            }
-            if(!int.TryParse(_portTextBox.Text, out int p) || p < 1 || p > 65535)
-            {
-                errorProvider1.SetError(_portTextBox, "Invalid port");
-                return false;
-            } 
-            else
-            {
-                errorProvider1.SetError(_portTextBox, null);
-            }
-            return true;
-
+            DialogResult = DialogResult.Cancel;
+            Close();
         }
 
         private void _connectButton_Click(object sender, EventArgs e)
@@ -75,10 +50,34 @@
             }
         }
 
-        private void _cancelButton_Click(object sender, EventArgs e)
+        private void ConnectForm_Load(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
-            Close();
+            Address = Properties.Settings.Default.ServerAddress;
+            Port = Properties.Settings.Default.Port;
+            AutoConnect = Properties.Settings.Default.AutoConnect;
+        }
+
+        private bool validate()
+        {
+            if (string.IsNullOrWhiteSpace(_addressTextBox.Text))
+            {
+                errorProvider1.SetError(_addressTextBox, "Invalid address");
+                return false;
+            }
+            else
+            {
+                errorProvider1.SetError(_addressTextBox, null);
+            }
+            if (!int.TryParse(_portTextBox.Text, out int p) || p < 1 || p > 65535)
+            {
+                errorProvider1.SetError(_portTextBox, "Invalid port");
+                return false;
+            }
+            else
+            {
+                errorProvider1.SetError(_portTextBox, null);
+            }
+            return true;
         }
     }
 }

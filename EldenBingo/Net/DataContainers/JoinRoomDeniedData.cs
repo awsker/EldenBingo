@@ -2,10 +2,11 @@
 {
     internal class JoinRoomDeniedData
     {
-        public string Message { get; init; }
         public JoinRoomDeniedData(string message)
         {
             Message = message;
         }
+
+        public string Message { get; init; }
     }
 }

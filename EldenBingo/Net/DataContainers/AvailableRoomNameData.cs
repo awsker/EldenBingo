@@ -2,11 +2,11 @@
 {
     internal class AvailableRoomNameData
     {
-        public string Name { get; init; }
-
         public AvailableRoomNameData(string name)
         {
             Name = name;
         }
+
+        public string Name { get; init; }
     }
 }

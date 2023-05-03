@@ -4,14 +4,6 @@ namespace EldenBingoCommon
 {
     public class Room<T> where T : UserInRoom
     {
-        public string Name { get; init; }
-        public Match Match { get; init; }
-
-        protected ConcurrentDictionary<Guid, T> clients { get; init; }
-        public ICollection<T> Clients => clients.Values;
-
-        public int NumClients => clients.Count;
-
         public Room(string name)
         {
             Name = name;
@@ -19,46 +11,11 @@ namespace EldenBingoCommon
             Match = new Match();
         }
 
-        public virtual byte[] GetBytes(UserInRoom user)
-        {
-            var byteList = new List<byte[]>();
-            byteList.Add(PacketHelper.GetStringBytes(Name));
-            byteList.Add(BitConverter.GetBytes(NumClients));
-            foreach(var cl in Clients)
-            {
-                byteList.Add(cl.GetBytes());
-            }
-            var includeBoard = Match.MatchStatus >= MatchStatus.Running || user.IsAdmin && user.IsSpectator;
-            byteList.Add(includeBoard ? Match.GetBytes(user) : Match.GetBytesWithoutBoard());
-            return PacketHelper.ConcatBytes(byteList);
-        }
-
-        public virtual void AddClient(T user)
-        {
-            clients[user.Guid] = user;
-        }
-
-        public virtual bool RemoveClient(T client)
-        {
-            return clients.Remove(client.Guid, out _);
-        }
-
-        public T? RemoveClient(Guid guid)
-        {
-            clients.Remove(guid, out var obj);
-            return obj ?? null;
-        }
-
-        public virtual IEnumerable<T> GetClientsSorted()
-        {
-            var cmp = new UserComparer<T>();
-            return clients.Values.OrderBy(u => u, cmp).ToList();
-        }
-
-        public T? GetClient(Guid userGuid)
-        {
-            return clients.TryGetValue(userGuid, out var user) ? user : null;
-        }
+        public ICollection<T> Clients => clients.Values;
+        public Match Match { get; init; }
+        public string Name { get; init; }
+        public int NumClients => clients.Count;
+        protected ConcurrentDictionary<Guid, T> clients { get; init; }
 
         public static IList<(int, string)> GetPlayerTeams(IEnumerable<T> players)
         {
@@ -71,17 +28,32 @@ namespace EldenBingoCommon
                 var teamPlayers = team.ToList();
                 if (teamPlayers.Count == 1)
                     list.Add(new(team.Key, teamPlayers[0].Nick));
-                else if(teamPlayers.Count > 1)
+                else if (teamPlayers.Count > 1)
                     list.Add(new(team.Key, NetConstants.GetTeamName(team.Key)));
             }
 
             return list.OrderBy(pt => pt.Item1).ToList();
         }
 
-        public IList<(int, string)> GetPlayerTeams()
+        public virtual void AddClient(T user)
         {
-            return GetPlayerTeams(Clients);
+            clients[user.Guid] = user;
         }
+
+        public virtual byte[] GetBytes(UserInRoom user)
+        {
+            var byteList = new List<byte[]>();
+            byteList.Add(PacketHelper.GetStringBytes(Name));
+            byteList.Add(BitConverter.GetBytes(NumClients));
+            foreach (var cl in Clients)
+            {
+                byteList.Add(cl.GetBytes());
+            }
+            var includeBoard = Match.MatchStatus >= MatchStatus.Running || user.IsAdmin && user.IsSpectator;
+            byteList.Add(includeBoard ? Match.GetBytes(user) : Match.GetBytesWithoutBoard());
+            return PacketHelper.ConcatBytes(byteList);
+        }
+
         /// <summary>
         /// Get number of checked squares per team
         /// </summary>
@@ -98,18 +70,21 @@ namespace EldenBingoCommon
                 return list;
             }
             var dict = new Dictionary<int, int>();
-            foreach(var square in Match.Board.Squares.Where(s => s.Team.HasValue))
+            foreach (var square in Match.Board.Squares)
             {
-                if(dict.TryGetValue(square.Team.Value, out int c))
+                if (!square.Team.HasValue)
+                    continue;
+
+                if (dict.TryGetValue(square.Team.Value, out int c))
                 {
                     dict[square.Team.Value] = c + 1;
-                } 
+                }
                 else
                 {
                     dict[square.Team.Value] = 1;
                 }
             }
-            for(int i = 0; i < list.Count; ++i)
+            for (int i = 0; i < list.Count; ++i)
             {
                 if (dict.TryGetValue(list[i].Item1, out int c))
                 {
@@ -117,6 +92,33 @@ namespace EldenBingoCommon
                 }
             }
             return list;
+        }
+
+        public T? GetClient(Guid userGuid)
+        {
+            return clients.TryGetValue(userGuid, out var user) ? user : null;
+        }
+
+        public virtual IEnumerable<T> GetClientsSorted()
+        {
+            var cmp = new UserComparer<T>();
+            return clients.Values.OrderBy(u => u, cmp).ToList();
+        }
+
+        public IList<(int, string)> GetPlayerTeams()
+        {
+            return GetPlayerTeams(Clients);
+        }
+
+        public virtual bool RemoveClient(T client)
+        {
+            return clients.Remove(client.Guid, out _);
+        }
+
+        public T? RemoveClient(Guid guid)
+        {
+            clients.Remove(guid, out var obj);
+            return obj ?? null;
         }
     }
 }

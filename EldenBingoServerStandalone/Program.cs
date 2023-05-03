@@ -5,12 +5,18 @@ namespace EldenBingoServerStandalone
 {
     internal static class Program
     {
-        static void Main(string[] args)
+        private static void log(string text)
         {
-            int port = NetConstants.DefaultPort; 
-            if(args.Length > 0)
+            var timestamp = DateTime.Now.ToString();
+            File.AppendAllText("log.txt", $"[{timestamp}] {text}{Environment.NewLine}");
+        }
+
+        private static void Main(string[] args)
+        {
+            int port = NetConstants.DefaultPort;
+            if (args.Length > 0)
             {
-                if(!int.TryParse(args[0], out port))
+                if (!int.TryParse(args[0], out port))
                 {
                     Console.WriteLine("Invalid port");
                 }
@@ -34,12 +40,6 @@ namespace EldenBingoServerStandalone
             {
                 Environment.Exit(0);
             }
-        }
-        
-        private static void log(string text)
-        {
-            var timestamp = DateTime.Now.ToString();
-            File.AppendAllText("log.txt", $"[{timestamp}] {text}{Environment.NewLine}");
         }
     }
 }

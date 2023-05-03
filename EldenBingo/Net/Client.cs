@@ -8,9 +8,34 @@ namespace EldenBingo
 {
     public class Client
     {
-        private TcpClient? _tcp;
+        private static readonly Color ErrorColor = Color.Red;
+        private static readonly Color IdleColor = Color.Blue;
+        private static readonly Color SuccessColor = Color.Green;
+        private static readonly Color WorkingColor = Color.Orange;
         private CancellationTokenSource _cancelToken;
         private Room? _room;
+        private TcpClient? _tcp;
+
+        public Client()
+        {
+            _cancelToken = new CancellationTokenSource();
+        }
+
+        public event EventHandler? Connected;
+
+        public event EventHandler<StringEventArgs>? Disconnected;
+
+        public event EventHandler<ObjectEventArgs>? IncomingData;
+
+        public event EventHandler<StatusEventArgs>? StatusChanged;
+
+        public event EventHandler? UsersChanged;
+
+        internal event EventHandler<RoomChangedEventArgs>? RoomChanged;
+
+        public Guid ClientGuid { get; private set; }
+
+        public UserInRoom? LocalUser { get; private set; }
 
         internal Room? Room
         {
@@ -31,38 +56,6 @@ namespace EldenBingo
             }
         }
 
-        public event EventHandler? UsersChanged;
-        public event EventHandler<ObjectEventArgs>? IncomingData;
-        public event EventHandler? Connected;
-        internal event EventHandler<RoomChangedEventArgs>? RoomChanged;
-        public event EventHandler<StringEventArgs>? Disconnected;
-        public event EventHandler<StatusEventArgs>? StatusChanged;
-
-        public Guid ClientGuid { get; private set; }
-        public UserInRoom? LocalUser { get; private set; }
-
-        private static readonly Color IdleColor = Color.Blue;
-        private static readonly Color WorkingColor = Color.Orange;
-        private static readonly Color ErrorColor = Color.Red;
-        private static readonly Color SuccessColor = Color.Green;
-
-        public Client()
-        {
-            _cancelToken = new CancellationTokenSource();
-        }
-
-        public string GetConnectionStatusString()
-        {
-            if (!IsConnected)
-                return "Not connected";
-            if (_cancelToken.IsCancellationRequested)
-                return "Stopping...";
-            if (Room == null)
-                return "Connected - Not in a lobby";
-            else
-                return "Connected - Lobby: " + Room.Name;
-        }
-
         public static IPEndPoint? EndPointFromAddress(string address, int port, out string error)
         {
             error = string.Empty;
@@ -81,18 +74,17 @@ namespace EldenBingo
                 try
                 {
                     IPAddress[] addresses = Dns.GetHostAddresses(address);
-                    foreach(var ip in addresses)
+                    foreach (var ip in addresses)
                     {
-                        if(ip.ToString() == "::1")
+                        if (ip.ToString() == "::1")
                             continue;
                         var endpoint = new IPEndPoint(ip, port);
                         return endpoint;
                     }
                     error = $"Unable to resolve hostname {address}";
                     return null;
-
-                } 
-                catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     error = $"Unable to resolve hostname {address}: {e.Message}";
                 }
@@ -101,11 +93,26 @@ namespace EldenBingo
             return null;
         }
 
+        public string GetConnectionStatusString()
+        {
+            if (!IsConnected)
+                return "Not connected";
+            if (_cancelToken.IsCancellationRequested)
+                return "Stopping...";
+            if (Room == null)
+                return "Connected - Not in a lobby";
+            else
+                return "Connected - Lobby: " + Room.Name;
+        }
+
         #region Public properties
+
         public bool IsConnected => _tcp?.Connected == true;
-        #endregion
+
+        #endregion Public properties
 
         #region Public methods
+
         public async Task<bool> Connect(IPEndPoint ipEndpoint)
         {
             if (_tcp != null && _tcp.Connected)
@@ -138,16 +145,16 @@ namespace EldenBingo
             return _tcp.Connected;
         }
 
-        public async Task Disconnect()
-        {
-            await SendPacketToServer(new Packet(NetConstants.PacketTypes.ClientDisconnect, Array.Empty<byte>()));
-            _cancelToken.Cancel();
-        }
-
         public async Task CreateRoom(string roomName, string adminPass, string nickname, int team)
         {
             var p = PacketHelper.CreateCreateRoomPacket(roomName, adminPass, nickname, team);
             await SendPacketToServer(p);
+        }
+
+        public async Task Disconnect()
+        {
+            await SendPacketToServer(new Packet(NetConstants.PacketTypes.ClientDisconnect, Array.Empty<byte>()));
+            _cancelToken.Cancel();
         }
 
         public async Task JoinRoom(string roomName, string adminPass, string nickname, int team)
@@ -183,9 +190,9 @@ namespace EldenBingo
                 _cancelToken.Cancel();
                 onStatus($"Error sending message to server: {e.Message}", ErrorColor);
             }
-
         }
-        #endregion
+
+        #endregion Public methods
 
         #region Event helpers
 
@@ -204,11 +211,6 @@ namespace EldenBingo
             IncomingData?.Invoke(this, new ObjectEventArgs(packetType, o));
         }
 
-        private void onUsersChanged()
-        {
-            UsersChanged?.Invoke(this, EventArgs.Empty);
-        }
-
         private void onRoomChanged(Room? oldRoom)
         {
             RoomChanged?.Invoke(this, new RoomChangedEventArgs(oldRoom, Room));
@@ -219,53 +221,14 @@ namespace EldenBingo
             StatusChanged?.Invoke(this, new StatusEventArgs(message, color));
         }
 
-        #endregion
+        private void onUsersChanged()
+        {
+            UsersChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        #endregion Event helpers
 
         #region Private methods
-        private async Task run()
-        {
-            try
-            {
-                var registerPacket = PacketHelper.CreateUserRegistrationPacket();
-                await SendPacketToServer(registerPacket);
-                while (!_cancelToken.IsCancellationRequested)
-                {
-                    await waitForPacketAsync();
-                }
-            }
-            catch (Exception e)
-            {
-                _cancelToken.Cancel();
-                onStatus(e.Message, ErrorColor);
-            }
-            onDisconnected("Disconnected");
-            onStatus("Disconnected", IdleColor);
-            onComplete();
-        }
-
-        private async Task waitForPacketAsync()
-        {
-            var stream = _tcp.GetStream();
-            var size = _tcp.ReceiveBufferSize;
-            try
-            {
-                byte[] buffer = new byte[size];
-                await stream.ReadAsync(buffer.AsMemory(0, size), _cancelToken.Token);
-                await handleIncomingPacket(new Packet(buffer));
-            }
-            catch (IOException e)
-            {
-                _cancelToken.Cancel();
-                onStatus(e.Message, ErrorColor);
-            }
-            catch (OperationCanceledException)
-            { }
-            catch (Exception e)
-            {
-                //Allow work to continue for other exceptions
-                onStatus(e.Message, ErrorColor);
-            }
-        }
 
         private async Task handleIncomingPacket(Packet packet)
         {
@@ -334,10 +297,10 @@ namespace EldenBingo
                         //Joining room accepted
                         var incomingRoom = new Room(packet.DataBytes, ref offset);
                         var sameRoomAsBefore = Room != null && Room.Name == incomingRoom.Name;
-                       
+
                         //Store a reference to my own User
                         LocalUser = incomingRoom.GetClient(ClientGuid);
-                        
+
                         if (!sameRoomAsBefore)
                             onStatus($"Joined lobby '{incomingRoom.Name}'", SuccessColor);
 
@@ -388,7 +351,7 @@ namespace EldenBingo
                             var match = new Match(packet.DataBytes, ref offset);
                             Room.Match.UpdateMatchStatus(match.MatchStatus, match.ServerTimer, match.Board);
                             //Reset the board if no board received when status was changed to "Not running"
-                            if (match.Board == null && match.MatchStatus == MatchStatus.NotRunning) 
+                            if (match.Board == null && match.MatchStatus == MatchStatus.NotRunning)
                                 Room.Match.Board = null;
                             onIncomingData(packet.PacketType, new MatchStatusData(Room.Match));
                         }
@@ -403,7 +366,7 @@ namespace EldenBingo
                             var userGuid = PacketHelper.ReadGuid(packet.DataBytes, ref offset);
                             var user = Room.GetClient(userGuid);
                             int indexChanged = PacketHelper.ReadByte(packet.DataBytes, ref offset);
-                            for(int i = 0; i < 25; ++i)
+                            for (int i = 0; i < 25; ++i)
                             {
                                 Room.Match.Board.Squares[i].UpdateFromStatusBytes(packet.DataBytes, ref offset);
                             }
@@ -431,8 +394,52 @@ namespace EldenBingo
             _tcp = null;
             Room = null;
         }
-        #endregion
 
+        private async Task run()
+        {
+            try
+            {
+                var registerPacket = PacketHelper.CreateUserRegistrationPacket();
+                await SendPacketToServer(registerPacket);
+                while (!_cancelToken.IsCancellationRequested)
+                {
+                    await waitForPacketAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                _cancelToken.Cancel();
+                onStatus(e.Message, ErrorColor);
+            }
+            onDisconnected("Disconnected");
+            onStatus("Disconnected", IdleColor);
+            onComplete();
+        }
+
+        private async Task waitForPacketAsync()
+        {
+            var stream = _tcp.GetStream();
+            var size = _tcp.ReceiveBufferSize;
+            try
+            {
+                byte[] buffer = new byte[size];
+                await stream.ReadAsync(buffer.AsMemory(0, size), _cancelToken.Token);
+                await handleIncomingPacket(new Packet(buffer));
+            }
+            catch (IOException e)
+            {
+                _cancelToken.Cancel();
+                onStatus(e.Message, ErrorColor);
+            }
+            catch (OperationCanceledException)
+            { }
+            catch (Exception e)
+            {
+                //Allow work to continue for other exceptions
+                onStatus(e.Message, ErrorColor);
+            }
+        }
+
+        #endregion Private methods
     }
-
 }

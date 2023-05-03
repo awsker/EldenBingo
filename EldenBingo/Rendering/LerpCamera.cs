@@ -5,15 +5,13 @@ namespace EldenBingo.Rendering
 {
     public class LerpCamera : ICamera
     {
+        private const float DTCHANGE = 2.0f;
         private Vector2f _position, _size;
+        private bool _snap;
         private Vector2f _targetPosition;
-        private float _zoom;
         private float _targetZoom;
         private View? _view;
-
-        private bool _snap;
-
-        const float DTCHANGE = 2.0f;
+        private float _zoom;
 
         public LerpCamera(Vector2f position, Vector2f size, float zoom)
         {
@@ -22,11 +20,6 @@ namespace EldenBingo.Rendering
             _zoom = zoom;
             _targetZoom = zoom;
             Size = size;
-        }
-
-        public void Snap()
-        {
-            _snap = true;
         }
 
         /// <summary>
@@ -76,6 +69,22 @@ namespace EldenBingo.Rendering
             }
         }
 
+        public View GetView()
+        {
+            if (Changed || _view == null)
+            {
+                _view = new View(Position, Size);
+                _view.Zoom(_zoom);
+                Changed = false;
+            }
+            return _view;
+        }
+
+        public void Snap()
+        {
+            _snap = true;
+        }
+
         public void Update(float dt)
         {
             if (_snap)
@@ -93,17 +102,6 @@ namespace EldenBingo.Rendering
             }
         }
 
-        public View GetView()
-        {
-            if (Changed || _view == null)
-            {
-                _view = new View(Position, Size);
-                _view.Zoom(_zoom);
-                Changed = false;
-            }
-            return _view;
-        }
-
         private void snapToTarget()
         {
             _position = _targetPosition;
@@ -111,6 +109,5 @@ namespace EldenBingo.Rendering
             Changed = true;
             _snap = false;
         }
-
     }
 }

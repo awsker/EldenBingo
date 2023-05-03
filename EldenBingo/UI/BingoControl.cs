@@ -6,15 +6,12 @@ namespace EldenBingo.UI
 {
     internal partial class BingoControl : ClientUserControl
     {
-        private BingoSquareControl[] Squares;
-
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
-
         private BoardStatusEnum _boardStatus;
-        private bool _revealed = false;
-
         private string[] _boardStatusStrings = { "No board set", "Click to reveal...", "Match Starting...", "" };
+        private bool _revealed = false;
+        private BingoSquareControl[] Squares;
 
         public BingoControl() : base()
         {
@@ -38,106 +35,12 @@ namespace EldenBingo.UI
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
         }
 
-        private void bingoControl_Load(object? sender, EventArgs e)
+        private enum BoardStatusEnum
         {
-            _gridControl.UpdateGrid();
-            recalculateFontSizeForSquares();
-        }
-
-        private void bingoControl_SizeChanged(object? sender, EventArgs e)
-        {
-            recalculateFontSizeForSquares();
-        }
-
-        private void _gridControl_SizeChanged(object? sender, EventArgs e)
-        {
-            _boardStatusLabel.Location = new Point(_gridControl.Location.X + _gridControl.BorderX, _gridControl.Location.Y + _gridControl.BorderY);
-            _boardStatusLabel.Width = _gridControl.Width - _gridControl.BorderX * 2;
-            _boardStatusLabel.Height = _gridControl.Height - _gridControl.BorderY * 2;
-        }
-
-        private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
-                e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle) ||
-                e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize))
-            {
-                recalculateFontSizeForSquares();
-            }
-        }
-
-        private void recalculateFontSizeForSquares()
-        {
-            const float minHeight = 1f;
-            const float maxHeight = 200f;
-            const float minFont = 1f;
-            const float maxFont = 20f;
-            var squareHeight = Squares[0].Height;
-            var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
-            var fontSize = minFont + (maxFont - minFont) * frac;
-            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f);
-            var font = MainForm.GetFontFromSettings(Font, fontSize);
-            for (int i = 0; i < 25; ++i)
-            {
-                Squares[i].Font = font;
-            }
-        }
-
-        private async void square_MouseDown(object? sender, MouseEventArgs e)
-        {
-            if(Client == null || sender is not BingoSquareControl c) 
-                return;
-
-            if (e.Button == MouseButtons.Left)
-            {
-                //Must be in a room 
-                if (Client.Room?.Match?.Board != null)
-                {
-                    var userToSetFor = getUserToSetFor();
-                    if (userToSetFor == null)
-                        return;
-                    var p = PacketHelper.CreateUserCheckPacket((byte)c.Index, userToSetFor.Guid);
-                    await Client.SendPacketToServer(p);
-                }
-            }
-            if (e.Button == MouseButtons.Right)
-            {
-                //Must be in a room 
-                if (Client.Room?.Match?.Board != null)
-                {
-                    var p = new Packet(NetConstants.PacketTypes.ClientTryMark, new byte[] { (byte)c.Index });
-                    await Client.SendPacketToServer(p);
-                }
-            }
-        }
-
-        private async void square_MouseWheel(object? sender, MouseEventArgs e)
-        {
-            if (Client == null || sender is not BingoSquareControl c)
-                return;
-
-            if(e.Delta != 0)
-            {
-                //Must be in a room 
-                if (Client.Room?.Match?.Board != null)
-                {
-                    var userToSetFor = getUserToSetFor();
-                    if (userToSetFor == null || userToSetFor.IsSpectator)
-                        return;
-                    var change = Math.Max(-1, Math.Min(1, e.Delta));
-                    var p = PacketHelper.CreateUserSetCountPacket((byte)c.Index, change, userToSetFor.Guid);
-                    await Client.SendPacketToServer(p);
-                }
-            }
-        }
-
-        private UserInRoom? getUserToSetFor()
-        {
-            return LobbyControl.CurrentlyOnBehalfOfUser;
-        }
-
-        protected override void ClientChanged()
-        {
+            NoBoard,
+            BoardSetNotRevealed,
+            MatchStarting,
+            BoardRevealed,
         }
 
         protected override void AddClientListeners()
@@ -148,6 +51,9 @@ namespace EldenBingo.UI
             Client.IncomingData += client_IncomingData;
         }
 
+        protected override void ClientChanged()
+        {
+        }
 
         protected override void RemoveClientListeners()
         {
@@ -157,45 +63,33 @@ namespace EldenBingo.UI
             Client.IncomingData -= client_IncomingData;
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        private void _boardStatusLabel_Click(object sender, EventArgs e)
         {
-            //Checking and marking use the same type of data object, and contain the full board (colors and markings)
-            if ((e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged || 
-                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardMarkChanged ||
-                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCountChanged) &&
-                e.Object is CheckChangedData checkData)
+            if (_boardStatus == BoardStatusEnum.BoardSetNotRevealed)
             {
-                if (checkData.Room.Match.Board != null)
-                {
-                    setBoard(checkData.Room.Match.Board);
-                }
-                updateBoardStatus(checkData.Room.Match);
+                _revealed = true;
+                _boardStatus = BoardStatusEnum.BoardRevealed;
+                _boardStatusLabel.Text = _boardStatusStrings[(int)_boardStatus];
+                _boardStatusLabel.Visible = false;
             }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerJoinAcceptedRoomData &&
-                e.Object is JoinedRoomData roomData)
-            {
-                if (roomData.Room.Match.Board == null)
-                {
-                    clearBoard();
-                } 
-                else
-                {
-                    setBoard(roomData.Room.Match.Board);
-                }
-                updateBoardStatus(roomData.Room.Match);
-            }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged && e.Object is MatchStatusData match)
-            {
-                if (match.Match.Board == null)
-                {
-                    clearBoard();
-                }
-                else
-                {
-                    setBoard(match.Match.Board);
-                }
-                updateBoardStatus(match.Match);
-            }
+        }
+
+        private void _gridControl_SizeChanged(object? sender, EventArgs e)
+        {
+            _boardStatusLabel.Location = new Point(_gridControl.Location.X + _gridControl.BorderX, _gridControl.Location.Y + _gridControl.BorderY);
+            _boardStatusLabel.Width = _gridControl.Width - _gridControl.BorderX * 2;
+            _boardStatusLabel.Height = _gridControl.Height - _gridControl.BorderY * 2;
+        }
+
+        private void bingoControl_Load(object? sender, EventArgs e)
+        {
+            _gridControl.UpdateGrid();
+            recalculateFontSizeForSquares();
+        }
+
+        private void bingoControl_SizeChanged(object? sender, EventArgs e)
+        {
+            recalculateFontSizeForSquares();
         }
 
         private void clearBoard()
@@ -216,6 +110,79 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        {
+            //Checking and marking use the same type of data object, and contain the full board (colors and markings)
+            if ((e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged ||
+                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardMarkChanged ||
+                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCountChanged) &&
+                e.Object is CheckChangedData checkData)
+            {
+                if (checkData.Room.Match.Board != null)
+                {
+                    setBoard(checkData.Room.Match.Board);
+                }
+                updateBoardStatus(checkData.Room.Match);
+            }
+            else if (e.PacketType == NetConstants.PacketTypes.ServerJoinAcceptedRoomData &&
+                e.Object is JoinedRoomData roomData)
+            {
+                if (roomData.Room.Match.Board == null)
+                {
+                    clearBoard();
+                }
+                else
+                {
+                    setBoard(roomData.Room.Match.Board);
+                }
+                updateBoardStatus(roomData.Room.Match);
+            }
+            else if (e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged && e.Object is MatchStatusData match)
+            {
+                if (match.Match.Board == null)
+                {
+                    clearBoard();
+                }
+                else
+                {
+                    setBoard(match.Match.Board);
+                }
+                updateBoardStatus(match.Match);
+            }
+        }
+
+        private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle) ||
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize))
+            {
+                recalculateFontSizeForSquares();
+            }
+        }
+
+        private UserInRoom? getUserToSetFor()
+        {
+            return LobbyControl.CurrentlyOnBehalfOfUser;
+        }
+
+        private void recalculateFontSizeForSquares()
+        {
+            const float minHeight = 1f;
+            const float maxHeight = 200f;
+            const float minFont = 1f;
+            const float maxFont = 20f;
+            var squareHeight = Squares[0].Height;
+            var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
+            var fontSize = minFont + (maxFont - minFont) * frac;
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f);
+            var font = MainForm.GetFontFromSettings(Font, fontSize);
+            for (int i = 0; i < 25; ++i)
+            {
+                Squares[i].Font = font;
+            }
         }
 
         private void setBoard(BingoBoard board)
@@ -241,6 +208,54 @@ namespace EldenBingo.UI
             update();
         }
 
+        private async void square_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (Client == null || sender is not BingoSquareControl c)
+                return;
+
+            if (e.Button == MouseButtons.Left)
+            {
+                //Must be in a room
+                if (Client.Room?.Match?.Board != null)
+                {
+                    var userToSetFor = getUserToSetFor();
+                    if (userToSetFor == null)
+                        return;
+                    var p = PacketHelper.CreateUserCheckPacket((byte)c.Index, userToSetFor.Guid);
+                    await Client.SendPacketToServer(p);
+                }
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                //Must be in a room
+                if (Client.Room?.Match?.Board != null)
+                {
+                    var p = new Packet(NetConstants.PacketTypes.ClientTryMark, new byte[] { (byte)c.Index });
+                    await Client.SendPacketToServer(p);
+                }
+            }
+        }
+
+        private async void square_MouseWheel(object? sender, MouseEventArgs e)
+        {
+            if (Client == null || sender is not BingoSquareControl c)
+                return;
+
+            if (e.Delta != 0)
+            {
+                //Must be in a room
+                if (Client.Room?.Match?.Board != null)
+                {
+                    var userToSetFor = getUserToSetFor();
+                    if (userToSetFor == null || userToSetFor.IsSpectator)
+                        return;
+                    var change = Math.Max(-1, Math.Min(1, e.Delta));
+                    var p = PacketHelper.CreateUserSetCountPacket((byte)c.Index, change, userToSetFor.Guid);
+                    await Client.SendPacketToServer(p);
+                }
+            }
+        }
+
         private void updateBoardStatus(Match match)
         {
             void update()
@@ -248,7 +263,6 @@ namespace EldenBingo.UI
                 if (match.Board == null)
                 {
                     _boardStatus = match.MatchStatus == MatchStatus.Starting ? BoardStatusEnum.MatchStarting : BoardStatusEnum.NoBoard;
-
                 }
                 else
                 {
@@ -276,11 +290,10 @@ namespace EldenBingo.UI
         {
             private readonly ToolTip _toolTip;
             private Color _color;
-            private bool _marked;
             private TeamCounter[] _counters;
-
-            private bool _mouseOver;
             private float _fontSize;
+            private bool _marked;
+            private bool _mouseOver;
 
             public BingoSquareControl(int index, string text, string tooltip)
             {
@@ -303,17 +316,6 @@ namespace EldenBingo.UI
                 };
             }
 
-            public int Index { get; init; }
-
-            public string ToolTip
-            {
-                get { return _toolTip.GetToolTip(this); }
-                set {
-                    _toolTip.AutoPopDelay = 32766;
-                    _toolTip.SetToolTip(this, string.IsNullOrWhiteSpace(value) ? null : value);
-                }
-            }
-
             public Color Color
             {
                 get { return _color; }
@@ -322,19 +324,6 @@ namespace EldenBingo.UI
                     if (_color != value)
                     {
                         _color = value;
-                        Invalidate();
-                    }
-                }
-            }
-
-            public bool Marked
-            {
-                get { return _marked; }
-                set
-                {
-                    if (_marked != value)
-                    {
-                        _marked = value;
                         Invalidate();
                     }
                 }
@@ -353,7 +342,7 @@ namespace EldenBingo.UI
                     else
                     {
                         var changed = false;
-                        for(int i = 0; i < value.Length; ++i)
+                        for (int i = 0; i < value.Length; ++i)
                         {
                             if (!_counters[i].Equals(value[i]))
                             {
@@ -367,9 +356,34 @@ namespace EldenBingo.UI
                 }
             }
 
+            public int Index { get; init; }
+
+            public bool Marked
+            {
+                get { return _marked; }
+                set
+                {
+                    if (_marked != value)
+                    {
+                        _marked = value;
+                        Invalidate();
+                    }
+                }
+            }
+
+            public string ToolTip
+            {
+                get { return _toolTip.GetToolTip(this); }
+                set
+                {
+                    _toolTip.AutoPopDelay = 32766;
+                    _toolTip.SetToolTip(this, string.IsNullOrWhiteSpace(value) ? null : value);
+                }
+            }
+
             protected override void OnPaint(PaintEventArgs e)
             {
-                // Call the OnPaint method of the base class.  
+                // Call the OnPaint method of the base class.
                 base.OnPaint(e);
                 // Call methods of the System.Drawing.Graphics object.
                 drawRectangle(e);
@@ -385,6 +399,48 @@ namespace EldenBingo.UI
                     return;
 
                 drawCounters(e);
+            }
+
+            private void drawBingoText(PaintEventArgs e)
+            {
+                var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
+                var textUp = (int)(Font.Size * 0.2);
+                var textRect = new Rectangle(0, 0 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
+                var shadowRect = new Rectangle(1, 1 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
+                var shadowColor = Color.FromArgb(96, 0, 0, 0);
+                TextRenderer.DrawText(e, Text, Font, shadowRect, shadowColor, flags: flags);
+                TextRenderer.DrawText(e, Text, Font, textRect, TextColor, flags: flags);
+            }
+
+            private void drawCounters(PaintEventArgs e)
+            {
+                var counterFont = new Font(Font.FontFamily, Font.Size * 1.2f);
+                var counterFlags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
+                var shadowColor = Color.FromArgb(96, 0, 0, 0);
+                for (int i = 0; i < _counters.Length; ++i)
+                {
+                    var c = _counters[i];
+                    if (c.Counter == 0)
+                        continue;
+                    var size = TextRenderer.MeasureText(c.Counter.ToString(), counterFont);
+                    int leftXPos;
+                    if (i == 0)
+                        leftXPos = 0;
+                    else if (i == _counters.Length - 1)
+                        leftXPos = Width - size.Width;
+                    else
+                        leftXPos = Convert.ToInt32(Width / (i + 1f) - size.Width / 2f);
+
+                    int yPos = Height - size.Height;
+                    var color = NetConstants.GetTeamColor(c.Team);
+                    TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos + 1, yPos + 1, size.Width, size.Height), shadowColor, flags: counterFlags);
+                    TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos, yPos, size.Width, size.Height), color, flags: counterFlags);
+                }
+            }
+
+            private void drawMarkedStar(PaintEventArgs e)
+            {
+                e.Graphics.DrawImage(Properties.Resources.tinystar, new Point(3, 3));
             }
 
             private void drawRectangle(PaintEventArgs e)
@@ -415,67 +471,6 @@ namespace EldenBingo.UI
                     var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, gradientColor);
                     g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
                 }
-            }
-
-            private void drawBingoText(PaintEventArgs e)
-            {
-                var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
-                var textUp = (int)(Font.Size * 0.2);
-                var textRect = new Rectangle(0, 0 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
-                var shadowRect = new Rectangle(1, 1 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
-                var shadowColor = Color.FromArgb(96, 0, 0, 0);
-                TextRenderer.DrawText(e, Text, Font, shadowRect, shadowColor, flags: flags);
-                TextRenderer.DrawText(e, Text, Font, textRect, TextColor, flags: flags);
-            }
-
-            private void drawMarkedStar(PaintEventArgs e)
-            {
-                e.Graphics.DrawImage(Properties.Resources.tinystar, new Point(3, 3));
-            }
-
-            private void drawCounters(PaintEventArgs e)
-            {
-                var counterFont = new Font(Font.FontFamily, Font.Size * 1.2f);
-                var counterFlags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
-                var shadowColor = Color.FromArgb(96, 0, 0, 0);
-                for (int i = 0; i < _counters.Length; ++i)
-                {
-                    var c = _counters[i];
-                    if (c.Counter == 0)
-                        continue;
-                    var size = TextRenderer.MeasureText(c.Counter.ToString(), counterFont);
-                    int leftXPos;
-                    if (i == 0)
-                        leftXPos = 0;
-                    else if (i == _counters.Length - 1)
-                        leftXPos = Width - size.Width;
-                    else
-                        leftXPos = Convert.ToInt32(Width / (i + 1f) - size.Width / 2f);
-
-                    int yPos = Height - size.Height;
-                    var color = NetConstants.GetTeamColor(c.Team);
-                    TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos + 1, yPos + 1, size.Width, size.Height), shadowColor, flags: counterFlags);
-                    TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos, yPos, size.Width, size.Height), color, flags: counterFlags);
-                }
-            }
-        }
-
-        private enum BoardStatusEnum
-        {
-            NoBoard,
-            BoardSetNotRevealed,
-            MatchStarting,
-            BoardRevealed,
-        }
-
-        private void _boardStatusLabel_Click(object sender, EventArgs e)
-        {
-            if(_boardStatus == BoardStatusEnum.BoardSetNotRevealed)
-            {
-                _revealed = true;
-                _boardStatus = BoardStatusEnum.BoardRevealed;
-                _boardStatusLabel.Text = _boardStatusStrings[(int)_boardStatus];
-                _boardStatusLabel.Visible = false;
             }
         }
     }

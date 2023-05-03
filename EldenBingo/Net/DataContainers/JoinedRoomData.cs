@@ -2,10 +2,11 @@
 {
     internal class JoinedRoomData
     {
-        public Room Room { get; init; }
         public JoinedRoomData(Room room)
         {
             Room = room;
         }
+
+        public Room Room { get; init; }
     }
 }

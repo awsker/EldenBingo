@@ -4,7 +4,7 @@ namespace EldenBingoServer
 {
     public class BingoBoardGenerator
     {
-        readonly private IList<BingoJsonObj> _list;
+        private readonly IList<BingoJsonObj> _list;
 
         public BingoBoardGenerator(string json)
         {
@@ -28,7 +28,7 @@ namespace EldenBingoServer
                     elem.TryGetInt32(out weight);
                 _list.Add(new BingoJsonObj(text, tooltip, weight));
             }
-            if(_list.Count < 25)
+            if (_list.Count < 25)
             {
                 throw new ArgumentException("Json didn't contain at least 25 items", nameof(json));
             }
@@ -40,7 +40,7 @@ namespace EldenBingoServer
 
             var tempList = new List<BingoJsonObj>(_list);
             var squares = new BingoJsonObj[25];
-            for(int i = 0; i < 25; ++i)
+            for (int i = 0; i < 25; ++i)
             {
                 var r = random.Next(tempList.Count);
                 squares[i] = tempList[r];
@@ -58,16 +58,16 @@ namespace EldenBingoServer
 
         private struct BingoJsonObj
         {
-            public string Text { get; init; }
-            public string Tooltip { get; init; }
-            public int Weight { get; init; }
-
             public BingoJsonObj(string text, string? tooltip = null, int weight = 1)
             {
                 Text = text;
                 Tooltip = tooltip == null ? string.Empty : tooltip;
                 Weight = weight;
             }
+
+            public string Text { get; init; }
+            public string Tooltip { get; init; }
+            public int Weight { get; init; }
 
             public override string ToString()
             {

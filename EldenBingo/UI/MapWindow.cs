@@ -1,6 +1,5 @@
 ﻿using EldenBingo.GameInterop;
 using EldenBingo.Rendering;
-using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -9,46 +8,44 @@ namespace EldenBingo.UI
 {
     internal class MapWindow
     {
-        private RenderWindow? _window;
-        private Thread? _renderThread;
-        private bool _running;
-        private readonly object _renderLock = new object();
-
-        private Vector2u? _initSize;
-        private Vector2i? _initPosition;
-
-        private float _userZoom = 1.0f;
-
-        private readonly IDictionary<Guid, CoordinateEntity> _coordinateEntities;
-        private readonly IList<Guid> _guids;
-
-        private static bool _texturesLoaded;
-        private static TextureData[,]? _textureData;
-        private static Sprite _player;
-        private static Sprite _playerIcon;
-        private static Sprite _roundTable;
-        private static Shader? _shader;
+        private const float FullMapWidth = 9645f, FullMapHeight = 9119f;
+        private const int MapSizeNativeX = 550, MapSizeNativeY = 550;
+        private const int MapWindowDefaultWidth = 640, MapWindowDefaultHeight = 640;
+        private static readonly SFML.Graphics.Font Font;
         private static bool _disposeTexturesAfterThreadCompletes = false;
         private static int _imageMapWidth, _imageMapHeight;
-
-        const int MapWindowDefaultWidth = 640, MapWindowDefaultHeight = 640;
-        const int MapSizeNativeX = 550, MapSizeNativeY = 550;
-        const float FullMapWidth = 9645f, FullMapHeight = 9119f;
-
+        private static Sprite? _player;
+        private static Sprite? _playerIcon;
+        private static Sprite? _roundTable;
+        private static Shader? _shader;
+        private static TextureData[,]? _textureData;
+        private static bool _texturesLoaded;
+        private readonly IDictionary<Guid, CoordinateEntity> _coordinateEntities;
+        private readonly IList<Guid> _guids;
+        private readonly object _renderLock = new object();
         private readonly Vector2f RoundTableOffset = new Vector2f(113f + 50f, -113f - 50f);
         private readonly RectangleF RoundTableRectangle = new RectangleF(2740f, 7510f, 200f, 200f);
-
-        private static readonly SFML.Graphics.Font Font;
-
-        public bool ShowPlayerNames { get; set; } = true;
-
         private ICamera? _camera;
         private Guid? _cameraTarget;
+        private Vector2i? _initPosition;
+        private Vector2u? _initSize;
+        private Thread? _renderThread;
+        private bool _running;
+        private float _userZoom = 1.0f;
+        private RenderWindow? _window;
+        private float _zoomDueToWindowSize;
 
         //Init static variables
         static MapWindow()
         {
             Font = new SFML.Graphics.Font("LibraSans.ttf");
+        }
+
+        public MapWindow()
+        {
+            _coordinateEntities = new Dictionary<Guid, CoordinateEntity>();
+            _guids = new List<Guid>();
+            _camera = null;
         }
 
         /// <summary>
@@ -69,29 +66,6 @@ namespace EldenBingo.UI
                 }
             }
         }
-        private float _zoomDueToWindowSize;
-
-        public MapWindow()
-        {
-            _coordinateEntities = new Dictionary<Guid, CoordinateEntity>();
-            _guids = new List<Guid>();
-            _camera = null;
-        }
-
-        public Vector2u Size
-        {
-            get
-            {
-                return _window?.Size ?? _initSize.GetValueOrDefault();
-            }
-            set
-            {
-                if (_window == null)
-                    _initSize = value;
-                else
-                    _window.Size = value;
-            }
-        }
 
         public Vector2i Position
         {
@@ -108,10 +82,21 @@ namespace EldenBingo.UI
             }
         }
 
-        public void Show()
+        public bool ShowPlayerNames { get; set; } = true;
+
+        public Vector2u Size
         {
-            _renderThread = new Thread(renderLoop);
-            _renderThread.Start();
+            get
+            {
+                return _window?.Size ?? _initSize.GetValueOrDefault();
+            }
+            set
+            {
+                if (_window == null)
+                    _initSize = value;
+                else
+                    _window.Size = value;
+            }
         }
 
         public void AddCoordinateProvider(ICoordinateProvider p)
@@ -120,178 +105,40 @@ namespace EldenBingo.UI
             _guids.Add(p.Guid);
         }
 
+        public void DisposeStaticTextureData()
+        {
+            _disposeTexturesAfterThreadCompletes = true;
+        }
+
         public void RemoveCoordinateProvider(Guid g)
         {
             _coordinateEntities.Remove(g);
             _guids.Remove(g);
         }
-        
+
+        public void Show()
+        {
+            _renderThread = new Thread(renderLoop);
+            _renderThread.Start();
+        }
+
         public void Stop()
         {
             _running = false;
         }
 
-        private void renderLoop()
+        private void disposeStaticTextureData()
         {
-            _running = true;
-
-            if (_window == null)
-                initWindow();
-            if(!_texturesLoaded)
-                initAllTextures();
-
-            //InitCamera must be done after textures are initialized because it needs
-            //the size of the map images to calculate zoom factors
-            initCamera(_window);
-
-            if (_window == null)
-                throw new Exception("Window not created");
             if (_textureData == null)
-                throw new Exception("Textures not loaded");
-            try
-            {
-                Clock clock = new Clock();
-                while (_running && _window.IsOpen)
-                {
-                    _window.DispatchEvents();
-                    Time elapsed = clock.Restart();
-
-                    update(elapsed.AsSeconds());
-                    
-                    lock (_renderLock)
-                    {
-                        //Clear window with black
-                        _window.Clear(SFML.Graphics.Color.Black);
-                        SFML.Graphics.View view;
-                        if (_camera == null)
-                            view = _window.GetView();
-                        else
-                        {
-                            view = _camera.GetView();
-                            _window.SetView(view);
-                        }
-                        //Get the view bounds of the current view
-                        var viewBounds = getViewBounds(view);
-
-                        if (_texturesLoaded)
-                        {
-                            //Draw part of the map that is inside the view bounds
-                            drawMap(viewBounds);
-
-                            //Draw Round Table
-                            drawRoundTable();
-
-                            //Draw all players
-                            drawPlayers();
-                        }
-                        _window.Display();
-                    }
-                }
-            } 
-            finally
-            {
-                if (_disposeTexturesAfterThreadCompletes)
-                    disposeStaticTextureData();
-            }
-        }
-
-        private void update(float dt)
-        {
-            updateCamera(dt);
-
-            foreach (var ent in _coordinateEntities.Values)
-            {
-                lock (ent.CoordinateProvider)
-                {
-                    if (ent.CoordinateProvider.Changed)
-                    {
-                        var newCoords = ent.CoordinateProvider.MapCoordinates;
-                        if (newCoords.HasValue && newCoords.Value.X > 0 && newCoords.Value.Y > 0)
-                        {
-                            ent.SetNewTarget(newCoords.Value.X, newCoords.Value.Y, newCoords.Value.Angle, newCoords.Value.IsUnderground, 0.1f);
-                        } 
-                        else
-                        {
-                            ent.SetNewTargetInvalid();
-                        }
-                    }
-                    ent.Update(dt);
-                }
-            }
-        }
-
-        private Vector2f getEntityPosition(CoordinateEntity ce)
-        {
-            var pos = new Vector2f(ce.X, ce.Y);
-            if(RoundTableRectangle.Contains(new PointF(ce.X, ce.Y))) 
-            {
-                var roundTableCoords = getRoundTablePosition();
-                pos = new Vector2f(roundTableCoords.X, roundTableCoords.Y);
-            }
-            return pos;
-        }
-        
-        private void updateCamera(float dt)
-        {
-            if (_camera == null)
                 return;
 
-            _camera.Update(dt);
+            _player?.Dispose();
+            _player?.Texture?.Dispose();
 
-            //Midpoint coordinates
-            float x = 0f, y = 0f;
-            FloatRect? boundingBox = null;
-            if (CameraFollowTarget.HasValue)
+            foreach (var tex in _textureData)
             {
-                if (_coordinateEntities.TryGetValue(CameraFollowTarget.Value, out var ent) && ent.ValidPosition)
-                {
-                    var pos = getEntityPosition(ent);
-                    x = pos.X;
-                    y = pos.Y;
-                    boundingBox = new FloatRect(x, y, 0f, 0f);
-                } 
-                else
-                {
-                    return;
-                }
+                tex?.Dispose();
             }
-            else 
-            {
-                bool anyValid = false;
-                foreach (var ent in _coordinateEntities.Values)
-                {
-                    if (ent.ValidPosition)
-                    {
-                        var pos = getEntityPosition(ent);
-                        anyValid = true;
-                        x += pos.X;
-                        y += pos.Y;
-                        if (boundingBox.HasValue)
-                            boundingBox = boundingBox.Value.MaxBounds(new Vector2f(pos.X, pos.Y));
-                        else
-                            boundingBox = new FloatRect(x, y, 0f, 0f);
-                    }
-                }
-                if (anyValid && boundingBox.HasValue)
-                {
-                    x = boundingBox.Value.Left + boundingBox.Value.Width * 0.5f;
-                    y = boundingBox.Value.Top + boundingBox.Value.Height * 0.5f;
-                }
-                else
-                {
-                    return;
-                }
-            }
-            float zoom = _zoomDueToWindowSize;
-            if (boundingBox.HasValue)
-            {
-                var tempZoom = Math.Max(_zoomDueToWindowSize, Math.Max((float)boundingBox.Value.Width / _window.Size.X, (float)boundingBox.Value.Height / _window.Size.Y));
-                boundingBox = boundingBox.Value.Extrude(100f * tempZoom); //Extend the bounding box 100 map units in all directions, so the players aren't drawn at the window edge
-                zoom = Math.Max(_zoomDueToWindowSize, Math.Max((float)boundingBox.Value.Width / _window.Size.X, (float)boundingBox.Value.Height / _window.Size.Y));
-            }
-            var imageScaleFactors = getMapScaleFactors(); //Scale camera position with map image size, in case user has a lower resolution map
-            _camera.Position = new Vector2f(x * imageScaleFactors.X, y * imageScaleFactors.Y);
-            _camera.Zoom = zoom * _userZoom; 
         }
 
         private void drawMap(FloatRect viewBounds)
@@ -301,33 +148,6 @@ namespace EldenBingo.UI
                 if (texData.Sprite.GetGlobalBounds().Intersects(viewBounds))
                     _window.Draw(texData.Sprite);
             }
-        }
-
-        private void drawRoundTable()
-        {
-            var imageFactor = getMapScaleFactors();
-            var trans = Transform.Identity;
-            var st = RenderStates.Default;
-            var rtPos = getRoundTablePosition();
-            trans.Translate(new Vector2f(rtPos.X * imageFactor.X, rtPos.Y * imageFactor.Y));
-            var scale = getRoundTableScale();
-            trans.Scale(scale, scale);
-            st.Transform = trans;
-            
-            _window.Draw(_roundTable, st);
-        }
-
-        private Vector2f getRoundTablePosition()
-        {
-            var scale = getRoundTableScale();
-            var pos = new Vector2f(0, FullMapHeight) + (RoundTableOffset * scale);
-            return new Vector2f(pos.X , pos.Y);
-        }
-
-        private float getRoundTableScale()
-        {
-            var scale = 0.5f * _camera.Zoom / _zoomDueToWindowSize;
-            return scale;
         }
 
         private void drawPlayers()
@@ -340,7 +160,7 @@ namespace EldenBingo.UI
                     continue;
 
                 var pos = getEntityPosition(ent);
-                
+
                 var trans = Transform.Identity;
                 trans.Translate(new Vector2f(pos.X * imageFactor.X, pos.Y * imageFactor.Y));
                 trans.Rotate(ent.Angle);
@@ -360,7 +180,7 @@ namespace EldenBingo.UI
 
                 _window.Draw(_player, st);
 
-                if(ent.CoordinateProvider is MapCoordinateProviderHandler.LocalCoordinateProvider)
+                if (ent.CoordinateProvider is MapCoordinateProviderHandler.LocalCoordinateProvider)
                 {
                     trans = Transform.Identity;
                     trans.Translate(new Vector2f(pos.X * imageFactor.X, pos.Y * imageFactor.Y));
@@ -373,7 +193,7 @@ namespace EldenBingo.UI
                 {
                     var st2 = RenderStates.Default;
                     var trans2 = Transform.Identity;
-                    var scale2 = 0.5f * _camera.Zoom / _zoomDueToWindowSize;
+                    var scale2 = 0.5f * (_camera == null ? 1f : _camera.Zoom) / _zoomDueToWindowSize;
                     var bounds = ent.NameTag.GetLocalBounds();
                     var width = bounds.Width * scale2;
                     var height = 15 * scale2;
@@ -385,9 +205,47 @@ namespace EldenBingo.UI
             }
         }
 
+        private void drawRoundTable()
+        {
+            var imageFactor = getMapScaleFactors();
+            var trans = Transform.Identity;
+            var st = RenderStates.Default;
+            var rtPos = getRoundTablePosition();
+            trans.Translate(new Vector2f(rtPos.X * imageFactor.X, rtPos.Y * imageFactor.Y));
+            var scale = getRoundTableScale();
+            trans.Scale(scale, scale);
+            st.Transform = trans;
+
+            _window.Draw(_roundTable, st);
+        }
+
+        private Vector2f getEntityPosition(CoordinateEntity ce)
+        {
+            var pos = new Vector2f(ce.X, ce.Y);
+            if (RoundTableRectangle.Contains(new PointF(ce.X, ce.Y)))
+            {
+                var roundTableCoords = getRoundTablePosition();
+                pos = new Vector2f(roundTableCoords.X, roundTableCoords.Y);
+            }
+            return pos;
+        }
+
         private Vector2f getMapScaleFactors()
         {
             return new Vector2f(_imageMapWidth / FullMapWidth, _imageMapHeight / FullMapHeight);
+        }
+
+        private Vector2f getRoundTablePosition()
+        {
+            var scale = getRoundTableScale();
+            var pos = new Vector2f(0, FullMapHeight) + (RoundTableOffset * scale);
+            return new Vector2f(pos.X, pos.Y);
+        }
+
+        private float getRoundTableScale()
+        {
+            var scale = 0.5f * _camera.Zoom / _zoomDueToWindowSize;
+            return scale;
         }
 
         private FloatRect getViewBounds(SFML.Graphics.View view)
@@ -398,132 +256,6 @@ namespace EldenBingo.UI
             rt.Width = view.Size.X;
             rt.Height = view.Size.Y;
             return rt;
-        }
-
-        private void initWindow()
-        {
-            if (_window != null)
-            {
-                unlistenWindowEvents(_window);
-            }
-            _window = new RenderWindow(new VideoMode(_initSize?.X ?? MapWindowDefaultWidth, _initSize?.Y ?? MapWindowDefaultHeight), "Map View", Styles.Default);
-            if (_initPosition.HasValue)
-                _window.Position = _initPosition.Value;
-            _window.SetVerticalSyncEnabled(true);
-            _window.SetFramerateLimit(60);
-            listenWindowEvents(_window);
-        }
-
-        private void initCamera(Window window)
-        {
-            var imageScale = getMapScaleFactors();
-
-            var previousZoom = _zoomDueToWindowSize;
-            _zoomDueToWindowSize = Math.Max((float)MapSizeNativeX / window.Size.X, (float)MapSizeNativeY / window.Size.Y);
-
-            //If no previous camera set, start camera at middle of map
-            if (_camera == null)
-            {
-                _camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f * imageScale.X, FullMapHeight * 0.5f * imageScale.Y), new Vector2f(window.Size.X, window.Size.Y), 1.0f);
-            }
-            //Copy position and zoom from previous camera
-            else
-            {
-                
-                _camera = new LerpCamera(_camera.Position, new Vector2f(window.Size.X, window.Size.Y), _camera.Zoom * _zoomDueToWindowSize / previousZoom);
-            }
-        }
-
-        private void listenWindowEvents(RenderWindow window)
-        {
-            window.Closed += onWindowClosed;
-            window.Resized += onWindowResized;
-            window.KeyPressed += onWindowKeyPressed;
-            window.MouseWheelScrolled += onMouseWheelScrolled;
-            window.MouseButtonPressed += onMouseButtonPressed;
-        }
-
-        private void unlistenWindowEvents(RenderWindow window)
-        {
-            window.Closed -= onWindowClosed;
-            window.Resized -= onWindowResized;
-            window.KeyPressed -= onWindowKeyPressed;
-            window.MouseWheelScrolled -= onMouseWheelScrolled;
-            window.MouseButtonPressed -= onMouseButtonPressed;
-        }
-
-        private void onWindowClosed(object? sender, EventArgs e)
-        {
-            if (sender is RenderWindow w)
-            {
-                unlistenWindowEvents(w);
-                w.Close();
-                _running = false;
-            }
-        }
-
-        private void onWindowResized(object? sender, SizeEventArgs e)
-        {
-            initCamera(_window);
-            
-            Properties.Settings.Default.MapWindowLastWidth = (int)_window.Size.X;
-            Properties.Settings.Default.MapWindowLastHeight = (int)_window.Size.Y;
-            Properties.Settings.Default.Save();
-        }
-
-        private void onWindowKeyPressed(object? sender, SFML.Window.KeyEventArgs e)
-        {
-            if (_camera == null)
-                return;
-
-
-            if (e.Code == Keyboard.Key.N)
-            {
-                ShowPlayerNames = !ShowPlayerNames;
-            }
-
-            void followPlayer(int? i)
-            {
-                if(i.HasValue)
-                {
-                    if(i >= 0 && i < _guids.Count)
-                    {
-                        CameraFollowTarget = _guids[i.Value];
-                    }
-                }
-                else
-                {
-                    CameraFollowTarget = null;
-                }
-            }
-
-            if(e.Code == Keyboard.Key.Num0 || e.Code == Keyboard.Key.Numpad0)
-            {
-                followPlayer(null);
-            }
-            else if(e.Code >= Keyboard.Key.Num1 && e.Code <= Keyboard.Key.Num9) 
-            {
-                followPlayer(e.Code - Keyboard.Key.Num1);
-            }
-
-            if (e.Code >= Keyboard.Key.Numpad1 && e.Code <= Keyboard.Key.Numpad9)
-            {
-                followPlayer(e.Code - Keyboard.Key.Numpad1);
-            }
-        }
-
-        private void onMouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
-        {
-            var change = _userZoom * 0.12f;
-            if (e.Delta > 0f)
-                _userZoom = Math.Max(1f, _userZoom - change);
-            if (e.Delta < 0f)
-                _userZoom = Math.Min(10f, _userZoom + change);
-        }
-
-        private void onMouseButtonPressed(object? sender, MouseButtonEventArgs e)
-        {
-            //throw new NotImplementedException();
         }
 
         private void initAllTextures()
@@ -543,32 +275,23 @@ namespace EldenBingo.UI
             _texturesLoaded = true;
         }
 
-        private void initSprites()
+        private void initCamera(Window window)
         {
-            var pTex = new Texture("./Textures/player.png");
-            _player = new Sprite(pTex);
-            _player.Origin = new Vector2f(33f, 86f);
-            var pIconTex = new Texture("./Textures/player-icon.png");
-            _playerIcon = new Sprite(pIconTex);
-            _playerIcon.Origin = new Vector2f(34f, 34f);
-            var rtTex = new Texture("./Textures/RoundTable.png");
-            rtTex.Smooth = true;
-            _roundTable = new Sprite(rtTex);
-            _roundTable.Origin = new Vector2f(113f, 113f);
-            try
-            {
-                _shader = SpriteShader.Create();
-            }
-            catch (Exception)
-            {
-                _shader = null;
-            }
-            
-        }
+            var imageScale = getMapScaleFactors();
 
-        private Text initPlayerNameTag(string name)
-        {
-            return new Text(name, Font, 26) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 2f };
+            var previousZoom = _zoomDueToWindowSize;
+            _zoomDueToWindowSize = Math.Max((float)MapSizeNativeX / window.Size.X, (float)MapSizeNativeY / window.Size.Y);
+
+            //If no previous camera set, start camera at middle of map
+            if (_camera == null)
+            {
+                _camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f * imageScale.X, FullMapHeight * 0.5f * imageScale.Y), new Vector2f(window.Size.X, window.Size.Y), 1.0f);
+            }
+            //Copy position and zoom from previous camera
+            else
+            {
+                _camera = new LerpCamera(_camera.Position, new Vector2f(window.Size.X, window.Size.Y), _camera.Zoom * _zoomDueToWindowSize / previousZoom);
+            }
         }
 
         private void initMapTextures()
@@ -605,71 +328,294 @@ namespace EldenBingo.UI
             _imageMapHeight = currY;
         }
 
-        public  void DisposeStaticTextureData()
+        private Text initPlayerNameTag(string name)
         {
-            _disposeTexturesAfterThreadCompletes = true;
+            return new Text(name, Font, 26) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 2f };
         }
 
-        private void disposeStaticTextureData()
+        private void initSprites()
         {
-            if (_textureData == null)
+            var pTex = new Texture("./Textures/player.png");
+            _player = new Sprite(pTex);
+            _player.Origin = new Vector2f(33f, 86f);
+            var pIconTex = new Texture("./Textures/player-icon.png");
+            _playerIcon = new Sprite(pIconTex);
+            _playerIcon.Origin = new Vector2f(34f, 34f);
+            var rtTex = new Texture("./Textures/RoundTable.png");
+            rtTex.Smooth = true;
+            _roundTable = new Sprite(rtTex);
+            _roundTable.Origin = new Vector2f(113f, 113f);
+            try
+            {
+                _shader = SpriteShader.Create();
+            }
+            catch (Exception)
+            {
+                _shader = null;
+            }
+        }
+
+        private void initWindow()
+        {
+            if (_window != null)
+            {
+                unlistenWindowEvents(_window);
+            }
+            _window = new RenderWindow(new VideoMode(_initSize?.X ?? MapWindowDefaultWidth, _initSize?.Y ?? MapWindowDefaultHeight), "Map View", Styles.Default);
+            if (_initPosition.HasValue)
+                _window.Position = _initPosition.Value;
+            _window.SetVerticalSyncEnabled(true);
+            _window.SetFramerateLimit(60);
+            listenWindowEvents(_window);
+        }
+
+        private void listenWindowEvents(RenderWindow window)
+        {
+            window.Closed += onWindowClosed;
+            window.Resized += onWindowResized;
+            window.KeyPressed += onWindowKeyPressed;
+            window.MouseWheelScrolled += onMouseWheelScrolled;
+            window.MouseButtonPressed += onMouseButtonPressed;
+        }
+
+        private void onMouseButtonPressed(object? sender, MouseButtonEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void onMouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
+        {
+            var change = _userZoom * 0.12f;
+            if (e.Delta > 0f)
+                _userZoom = Math.Max(1f, _userZoom - change);
+            if (e.Delta < 0f)
+                _userZoom = Math.Min(10f, _userZoom + change);
+        }
+
+        private void onWindowClosed(object? sender, EventArgs e)
+        {
+            if (sender is RenderWindow w)
+            {
+                unlistenWindowEvents(w);
+                w.Close();
+                _running = false;
+            }
+        }
+
+        private void onWindowKeyPressed(object? sender, SFML.Window.KeyEventArgs e)
+        {
+            if (_camera == null)
                 return;
 
-            _player?.Dispose();
-            _player?.Texture?.Dispose();
-
-            foreach (var tex in _textureData)
+            if (e.Code == Keyboard.Key.N)
             {
-                tex?.Dispose();
+                ShowPlayerNames = !ShowPlayerNames;
+            }
+
+            void followPlayer(int? i)
+            {
+                if (i.HasValue)
+                {
+                    if (i >= 0 && i < _guids.Count)
+                    {
+                        CameraFollowTarget = _guids[i.Value];
+                    }
+                }
+                else
+                {
+                    CameraFollowTarget = null;
+                }
+            }
+
+            if (e.Code == Keyboard.Key.Num0 || e.Code == Keyboard.Key.Numpad0)
+            {
+                followPlayer(null);
+            }
+            else if (e.Code >= Keyboard.Key.Num1 && e.Code <= Keyboard.Key.Num9)
+            {
+                followPlayer(e.Code - Keyboard.Key.Num1);
+            }
+
+            if (e.Code >= Keyboard.Key.Numpad1 && e.Code <= Keyboard.Key.Numpad9)
+            {
+                followPlayer(e.Code - Keyboard.Key.Numpad1);
             }
         }
 
-        private class TextureData : IDisposable
+        private void onWindowResized(object? sender, SizeEventArgs e)
         {
-            public int GridX, GridY;
-            public int Width, Height;
-            public Vector2f Position;
-            public string Filename;
-            public Texture Texture;
-            public Sprite Sprite;
+            initCamera(_window);
 
-            public TextureData(int x, int y, int w, int h, string fn, Texture texture)
+            Properties.Settings.Default.MapWindowLastWidth = (int)_window.Size.X;
+            Properties.Settings.Default.MapWindowLastHeight = (int)_window.Size.Y;
+            Properties.Settings.Default.Save();
+        }
+
+        private void renderLoop()
+        {
+            _running = true;
+
+            if (_window == null)
+                initWindow();
+            if (!_texturesLoaded)
+                initAllTextures();
+
+            //InitCamera must be done after textures are initialized because it needs
+            //the size of the map images to calculate zoom factors
+            initCamera(_window);
+
+            if (_window == null)
+                throw new Exception("Window not created");
+            if (_textureData == null)
+                throw new Exception("Textures not loaded");
+            try
             {
-                GridX = x;
-                GridY = y;
-                Width = w;
-                Height = h;
-                Filename = fn;
-                Texture = texture;
-                Sprite = new Sprite(texture);
-            }
+                Clock clock = new Clock();
+                while (_running && _window.IsOpen)
+                {
+                    _window.DispatchEvents();
+                    Time elapsed = clock.Restart();
 
-            public void InitSpriteWithPosition(float worldXPos, float worldYPos) {
-                Position = new Vector2f(worldXPos, worldYPos);
-                Sprite.Position = Position;
-            }
+                    update(elapsed.AsSeconds());
 
-            public void Dispose()
+                    lock (_renderLock)
+                    {
+                        //Clear window with black
+                        _window.Clear(SFML.Graphics.Color.Black);
+                        SFML.Graphics.View view;
+                        if (_camera == null)
+                            view = _window.GetView();
+                        else
+                        {
+                            view = _camera.GetView();
+                            _window.SetView(view);
+                        }
+                        //Get the view bounds of the current view
+                        var viewBounds = getViewBounds(view);
+
+                        if (_texturesLoaded)
+                        {
+                            //Draw part of the map that is inside the view bounds
+                            drawMap(viewBounds);
+
+                            //Draw Round Table
+                            drawRoundTable();
+
+                            //Draw all players
+                            drawPlayers();
+                        }
+                        _window.Display();
+                    }
+                }
+            }
+            finally
             {
-                Sprite?.Dispose();
-                Texture?.Dispose();
+                if (_disposeTexturesAfterThreadCompletes)
+                    disposeStaticTextureData();
             }
         }
-        
+
+        private void unlistenWindowEvents(RenderWindow window)
+        {
+            window.Closed -= onWindowClosed;
+            window.Resized -= onWindowResized;
+            window.KeyPressed -= onWindowKeyPressed;
+            window.MouseWheelScrolled -= onMouseWheelScrolled;
+            window.MouseButtonPressed -= onMouseButtonPressed;
+        }
+
+        private void update(float dt)
+        {
+            updateCamera(dt);
+
+            foreach (var ent in _coordinateEntities.Values)
+            {
+                lock (ent.CoordinateProvider)
+                {
+                    if (ent.CoordinateProvider.Changed)
+                    {
+                        var newCoords = ent.CoordinateProvider.MapCoordinates;
+                        if (newCoords.HasValue && newCoords.Value.X > 0 && newCoords.Value.Y > 0)
+                        {
+                            ent.SetNewTarget(newCoords.Value.X, newCoords.Value.Y, newCoords.Value.Angle, newCoords.Value.IsUnderground, 0.1f);
+                        }
+                        else
+                        {
+                            ent.SetNewTargetInvalid();
+                        }
+                    }
+                    ent.Update(dt);
+                }
+            }
+        }
+
+        private void updateCamera(float dt)
+        {
+            if (_camera == null)
+                return;
+
+            _camera.Update(dt);
+
+            //Midpoint coordinates
+            float x = 0f, y = 0f;
+            FloatRect? boundingBox = null;
+            if (CameraFollowTarget.HasValue)
+            {
+                if (_coordinateEntities.TryGetValue(CameraFollowTarget.Value, out var ent) && ent.ValidPosition)
+                {
+                    var pos = getEntityPosition(ent);
+                    x = pos.X;
+                    y = pos.Y;
+                    boundingBox = new FloatRect(x, y, 0f, 0f);
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                bool anyValid = false;
+                foreach (var ent in _coordinateEntities.Values)
+                {
+                    if (ent.ValidPosition)
+                    {
+                        var pos = getEntityPosition(ent);
+                        anyValid = true;
+                        x += pos.X;
+                        y += pos.Y;
+                        if (boundingBox.HasValue)
+                            boundingBox = boundingBox.Value.MaxBounds(new Vector2f(pos.X, pos.Y));
+                        else
+                            boundingBox = new FloatRect(x, y, 0f, 0f);
+                    }
+                }
+                if (anyValid && boundingBox.HasValue)
+                {
+                    x = boundingBox.Value.Left + boundingBox.Value.Width * 0.5f;
+                    y = boundingBox.Value.Top + boundingBox.Value.Height * 0.5f;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            float zoom = _zoomDueToWindowSize;
+            if (boundingBox.HasValue)
+            {
+                var tempZoom = Math.Max(_zoomDueToWindowSize, Math.Max((float)boundingBox.Value.Width / _window.Size.X, (float)boundingBox.Value.Height / _window.Size.Y));
+                boundingBox = boundingBox.Value.Extrude(100f * tempZoom); //Extend the bounding box 100 map units in all directions, so the players aren't drawn at the window edge
+                zoom = Math.Max(_zoomDueToWindowSize, Math.Max((float)boundingBox.Value.Width / _window.Size.X, (float)boundingBox.Value.Height / _window.Size.Y));
+            }
+            var imageScaleFactors = getMapScaleFactors(); //Scale camera position with map image size, in case user has a lower resolution map
+            _camera.Position = new Vector2f(x * imageScaleFactors.X, y * imageScaleFactors.Y);
+            _camera.Zoom = zoom * _userZoom;
+        }
+
         private class CoordinateEntity
         {
-            public string Name { get; }
-            public ICoordinateProvider CoordinateProvider { get; init; }
-            public float X { get; private set; }
-            public float Y { get; private set; }
-            public float Angle { get; private set; }
-            public bool Underground { get; private set; }
-            public bool ValidPosition { get; private set; }
-
             private float _targetX, _targetY, _targetAngle, _previousX, _previousY, _previousAngle, _interpTime, _angleDiff;
             private float _timeLeftToInterpolate = 0f;
-
-            public Text? NameTag { get; set; } = null;
 
             public CoordinateEntity(ICoordinateProvider provider)
             {
@@ -686,28 +632,14 @@ namespace EldenBingo.UI
                 Name = provider.Name;
             }
 
-            public void Update(float dt)
-            {
-                _timeLeftToInterpolate = Math.Max(0, _timeLeftToInterpolate - dt);
-                if (_interpTime > 0 && _timeLeftToInterpolate > 0)
-                {
-                    var frac = _timeLeftToInterpolate / _interpTime;
-                    X = frac * _previousX + (1f - frac) * _targetX;
-                    Y = frac * _previousY + (1f - frac) * _targetY;
-                    Angle = _previousAngle + _angleDiff * (1-frac);
-                } 
-                else
-                {
-                    X = _targetX;
-                    Y = _targetY;
-                    Angle = _targetAngle;
-                }
-            }
-
-            public void SetNewTargetInvalid()
-            {
-                ValidPosition = false;
-            }
+            public float Angle { get; private set; }
+            public ICoordinateProvider CoordinateProvider { get; init; }
+            public string Name { get; }
+            public Text? NameTag { get; set; } = null;
+            public bool Underground { get; private set; }
+            public bool ValidPosition { get; private set; }
+            public float X { get; private set; }
+            public float Y { get; private set; }
 
             public void SetNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
             {
@@ -733,6 +665,29 @@ namespace EldenBingo.UI
                 Underground = underground;
             }
 
+            public void SetNewTargetInvalid()
+            {
+                ValidPosition = false;
+            }
+
+            public void Update(float dt)
+            {
+                _timeLeftToInterpolate = Math.Max(0, _timeLeftToInterpolate - dt);
+                if (_interpTime > 0 && _timeLeftToInterpolate > 0)
+                {
+                    var frac = _timeLeftToInterpolate / _interpTime;
+                    X = frac * _previousX + (1f - frac) * _targetX;
+                    Y = frac * _previousY + (1f - frac) * _targetY;
+                    Angle = _previousAngle + _angleDiff * (1 - frac);
+                }
+                else
+                {
+                    X = _targetX;
+                    Y = _targetY;
+                    Angle = _targetAngle;
+                }
+            }
+
             private float convertAngle(float degreeAngle)
             {
                 return degreeAngle;
@@ -741,6 +696,39 @@ namespace EldenBingo.UI
             private double dist(float x1, float y1, float x2, float y2)
             {
                 return Math.Sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+            }
+        }
+
+        private class TextureData : IDisposable
+        {
+            public string Filename;
+            public int GridX, GridY;
+            public Vector2f Position;
+            public Sprite Sprite;
+            public Texture Texture;
+            public int Width, Height;
+
+            public TextureData(int x, int y, int w, int h, string fn, Texture texture)
+            {
+                GridX = x;
+                GridY = y;
+                Width = w;
+                Height = h;
+                Filename = fn;
+                Texture = texture;
+                Sprite = new Sprite(texture);
+            }
+
+            public void Dispose()
+            {
+                Sprite?.Dispose();
+                Texture?.Dispose();
+            }
+
+            public void InitSpriteWithPosition(float worldXPos, float worldYPos)
+            {
+                Position = new Vector2f(worldXPos, worldYPos);
+                Sprite.Position = Position;
             }
         }
     }

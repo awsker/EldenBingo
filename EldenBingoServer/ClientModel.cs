@@ -5,14 +5,6 @@ namespace EldenBingoServer
 {
     public class ClientModel : INetSerializable
     {
-        public bool IsRegistered { get; set; }
-        public TcpClient TcpClient { get; init; }
-        public Guid UserGuid { get; init; }
-
-        public ServerRoom? Room { get; set; }
-
-        public CancellationTokenSource CancellationToken { get; init; }
-
         public ClientModel(TcpClient client)
         {
             TcpClient = client;
@@ -20,16 +12,7 @@ namespace EldenBingoServer
             CancellationToken = new CancellationTokenSource();
         }
 
-        public byte[] GetBytes()
-        {
-            return PacketHelper.ConcatBytes(UserGuid.ToByteArray());
-        }
-
-        public void Stop()
-        {
-            CancellationToken.Cancel();
-            TcpClient.Close();
-        }
+        public CancellationTokenSource CancellationToken { get; init; }
 
         public bool IsAdmin
         {
@@ -42,6 +25,8 @@ namespace EldenBingoServer
             }
         }
 
+        public bool IsRegistered { get; set; }
+
         public bool IsSpectator
         {
             get
@@ -51,7 +36,21 @@ namespace EldenBingoServer
                 var clientInRoom = Room.GetClient(UserGuid);
                 return clientInRoom == null ? false : clientInRoom.IsSpectator;
             }
+        }
 
+        public ServerRoom? Room { get; set; }
+        public TcpClient TcpClient { get; init; }
+        public Guid UserGuid { get; init; }
+
+        public byte[] GetBytes()
+        {
+            return PacketHelper.ConcatBytes(UserGuid.ToByteArray());
+        }
+
+        public void Stop()
+        {
+            CancellationToken.Cancel();
+            TcpClient.Close();
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
 using B = System.BitConverter;
 
 namespace EldenBingoCommon
@@ -31,6 +30,7 @@ namespace EldenBingoCommon
             }
             return buffer;
         }
+
         /*
         public static byte[] ConcatPackets(IEnumerable<INetSerializable> stuff)
         {
@@ -48,78 +48,11 @@ namespace EldenBingoCommon
             return ConcatBytes(data);
         }
         */
-        public static byte[] GetStringBytes(string text)
-        {
-            var textBytes = Encoding.UTF8.GetBytes(text);
-            return ConcatBytes(B.GetBytes(textBytes.Length), textBytes);
-        }
 
-        public static string ReadString(byte[] buffer, ref int offset)
+        public static Packet CreateCoordinatesPacket(MapCoordinates? coordinates)
         {
-            var numBytes = B.ToInt32(buffer, offset);
-            var o = offset + 4;
-            offset += 4 + numBytes;
-            return Encoding.UTF8.GetString(buffer, o, numBytes);
-        }
-
-        public static int ReadInt(byte[] buffer, ref int offset)
-        {
-            var o = offset;
-            offset += sizeof(int);
-            return B.ToInt32(buffer, o);
-        }
-
-        public static uint ReadUInt(byte[] buffer, ref int offset)
-        {
-            var o = offset;
-            offset += sizeof(uint);
-            return B.ToUInt32(buffer, o);
-        }
-
-
-        public static Guid ReadGuid(byte[] buffer, ref int offset)
-        {
-            const int GuidSize = 16;
-            var buff = new byte[GuidSize];
-            Array.Copy(buffer, offset, buff, 0, GuidSize);
-            offset += GuidSize;
-            return new Guid(buff);
-        }
-
-        public static bool ReadBoolean(byte[] buffer, ref int offset)
-        {
-            var o = offset;
-            offset += 1;
-            return B.ToBoolean(buffer, o);
-        }
-
-        public static float ReadFloat(byte[] buffer, ref int offset)
-        {
-            var o = offset;
-            offset += sizeof(float);
-            return B.ToSingle(buffer, o);
-        }
-
-        public static byte ReadByte(byte[] buffer, ref int offset)
-        {
-            var o = offset;
-            offset += 1;
-            return buffer[o];
-        }
-
-        public static UserInRoom ReadUserInRoom(byte[] buffer, ref int offset)
-        {
-            return new UserInRoom(buffer, ref offset);
-        }
-
-        public static MapCoordinates ReadMapCoordinates(byte[] buffer, ref int offset)
-        {
-            return new MapCoordinates(buffer, ref offset);
-        }
-
-        public static Packet CreateUserRegistrationPacket()
-        {
-            return new Packet(NetConstants.PacketTypes.ClientRegister, GetStringBytes(NetConstants.UserRegisterString));
+            var coords = coordinates ?? default;
+            return new Packet(NetConstants.PacketTypes.ClientCoordinates, coords.GetBytes());
         }
 
         public static Packet CreateCreateRoomPacket(string room, string adminPass, string nick, int team)
@@ -128,7 +61,7 @@ namespace EldenBingoCommon
             var adminPassBytes = GetStringBytes(adminPass);
             var nickBytes = GetStringBytes(nick);
             var teamBytes = B.GetBytes(team);
-            return new Packet(NetConstants.PacketTypes.ClientRequestCreateRoom, 
+            return new Packet(NetConstants.PacketTypes.ClientRequestCreateRoom,
                 ConcatBytes(roomBytes, adminPassBytes,
                 nickBytes, teamBytes));
         }
@@ -144,26 +77,93 @@ namespace EldenBingoCommon
                 nickBytes, teamBytes));
         }
 
+        public static Packet CreateUserCheckPacket(byte index, Guid userClicked)
+        {
+            return new Packet(NetConstants.PacketTypes.ClientTryCheck, ConcatBytes(new byte[] { index }, userClicked.ToByteArray()));
+        }
+
+        public static Packet CreateUserRegistrationPacket()
+        {
+            return new Packet(NetConstants.PacketTypes.ClientRegister, GetStringBytes(NetConstants.UserRegisterString));
+        }
+
+        public static Packet CreateUserSetCountPacket(byte index, int count, Guid userToSetFor)
+        {
+            return new Packet(NetConstants.PacketTypes.ClientSetCounter, ConcatBytes(new byte[] { index }, B.GetBytes(count), userToSetFor.ToByteArray()));
+        }
+
         public static Packet CreateUserToServerChatMessage(string text)
         {
             var data = GetStringBytes(text);
             return new Packet(NetConstants.PacketTypes.ClientChat, data);
         }
 
-        public static Packet CreateCoordinatesPacket(MapCoordinates? coordinates)
+        public static byte[] GetStringBytes(string text)
         {
-            var coords = coordinates ?? default;
-            return new Packet(NetConstants.PacketTypes.ClientCoordinates, coords.GetBytes());
+            var textBytes = Encoding.UTF8.GetBytes(text);
+            return ConcatBytes(B.GetBytes(textBytes.Length), textBytes);
         }
 
-        public static Packet CreateUserCheckPacket(byte index, Guid userClicked)
+        public static bool ReadBoolean(byte[] buffer, ref int offset)
         {
-            return new Packet(NetConstants.PacketTypes.ClientTryCheck, ConcatBytes(new byte[] { index }, userClicked.ToByteArray()));
+            var o = offset;
+            offset += 1;
+            return B.ToBoolean(buffer, o);
         }
 
-        public static Packet CreateUserSetCountPacket(byte index, int count, Guid userToSetFor)
+        public static byte ReadByte(byte[] buffer, ref int offset)
         {
-            return new Packet(NetConstants.PacketTypes.ClientSetCounter, ConcatBytes(new byte[] { index }, B.GetBytes(count), userToSetFor.ToByteArray()));
+            var o = offset;
+            offset += 1;
+            return buffer[o];
+        }
+
+        public static float ReadFloat(byte[] buffer, ref int offset)
+        {
+            var o = offset;
+            offset += sizeof(float);
+            return B.ToSingle(buffer, o);
+        }
+
+        public static Guid ReadGuid(byte[] buffer, ref int offset)
+        {
+            const int GuidSize = 16;
+            var buff = new byte[GuidSize];
+            Array.Copy(buffer, offset, buff, 0, GuidSize);
+            offset += GuidSize;
+            return new Guid(buff);
+        }
+
+        public static int ReadInt(byte[] buffer, ref int offset)
+        {
+            var o = offset;
+            offset += sizeof(int);
+            return B.ToInt32(buffer, o);
+        }
+
+        public static MapCoordinates ReadMapCoordinates(byte[] buffer, ref int offset)
+        {
+            return new MapCoordinates(buffer, ref offset);
+        }
+
+        public static string ReadString(byte[] buffer, ref int offset)
+        {
+            var numBytes = B.ToInt32(buffer, offset);
+            var o = offset + 4;
+            offset += 4 + numBytes;
+            return Encoding.UTF8.GetString(buffer, o, numBytes);
+        }
+
+        public static uint ReadUInt(byte[] buffer, ref int offset)
+        {
+            var o = offset;
+            offset += sizeof(uint);
+            return B.ToUInt32(buffer, o);
+        }
+
+        public static UserInRoom ReadUserInRoom(byte[] buffer, ref int offset)
+        {
+            return new UserInRoom(buffer, ref offset);
         }
     }
 }

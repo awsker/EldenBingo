@@ -14,8 +14,15 @@ namespace EldenBingo.UI
             SizeChanged += scoreboardControl_SizeChanged;
         }
 
-        protected override void ClientChanged()
+        public override Font Font
         {
+            get { return base.Font; }
+            set
+            {
+                base.Font = value;
+                foreach (var row in _rows)
+                    row.Font = value;
+            }
         }
 
         protected override void AddClientListeners()
@@ -24,6 +31,10 @@ namespace EldenBingo.UI
                 return;
 
             Client.IncomingData += client_IncomingData;
+        }
+
+        protected override void ClientChanged()
+        {
         }
 
         protected override void RemoveClientListeners()
@@ -56,7 +67,14 @@ namespace EldenBingo.UI
             {
                 updateRows();
             }
+        }
 
+        private void scoreboardControl_SizeChanged(object? sender, EventArgs e)
+        {
+            foreach (var row in _rows)
+            {
+                row.Width = Width;
+            }
         }
 
         private void updateRows()
@@ -97,38 +115,19 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void scoreboardControl_SizeChanged(object? sender, EventArgs e)
-        {
-            foreach (var row in _rows)
-            {
-                row.Width = Width;
-            }
-        }
-
-        public override Font Font
-        {
-            get { return base.Font; }
-            set
-            {
-                base.Font = value;
-                foreach (var row in _rows)
-                    row.Font = value; 
-            }
-        }
-
         internal class ScoreboardRowControl : Control
         {
-            public int Team { get; set; }
-            public string CounterText { get; set; }
-            public string NameText { get; set; }
-            public Color Color { get; set; }
-
             public ScoreboardRowControl()
             {
                 NameText = "";
                 CounterText = "0";
                 Color = Color.Empty;
             }
+
+            public Color Color { get; set; }
+            public string CounterText { get; set; }
+            public string NameText { get; set; }
+            public int Team { get; set; }
 
             public void Update(int team, string name, string counter)
             {

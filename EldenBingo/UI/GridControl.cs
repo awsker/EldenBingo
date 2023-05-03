@@ -2,14 +2,14 @@
 {
     internal class GridControl : Control
     {
-        private int _gridWidth = 3;
-        private int _gridHeight = 3;
-        private int _paddingX = 2;
-        private int _paddingY = 2;
+        private float _aspectRatio;
         private int _borderX = 2;
         private int _borderY = 2;
+        private int _gridHeight = 3;
+        private int _gridWidth = 3;
+        private int _paddingX = 2;
+        private int _paddingY = 2;
 
-        private float _aspectRatio;
         public GridControl() : base()
         {
             Resize += gridControl_Resize; ;
@@ -18,24 +18,33 @@
             fixAspectRatio();
         }
 
-        public void SetAspectRatio(float asp)
-        {
-            _aspectRatio = asp;
-        }
-
-        public bool MaintainAspectRatio { get; set; } = false;
-
-        public int GridWidth
+        public int BorderX
         {
             get
             {
-                return _gridWidth;
+                return _borderX;
             }
             set
             {
-                if (value != _gridWidth)
+                if (value != _borderX)
                 {
-                    _gridWidth = value;
+                    _borderX = value;
+                    updateSubControlsPositionAndSize();
+                }
+            }
+        }
+
+        public int BorderY
+        {
+            get
+            {
+                return _borderY;
+            }
+            set
+            {
+                if (value != _borderY)
+                {
+                    _borderY = value;
                     updateSubControlsPositionAndSize();
                 }
             }
@@ -56,6 +65,24 @@
                 }
             }
         }
+
+        public int GridWidth
+        {
+            get
+            {
+                return _gridWidth;
+            }
+            set
+            {
+                if (value != _gridWidth)
+                {
+                    _gridWidth = value;
+                    updateSubControlsPositionAndSize();
+                }
+            }
+        }
+
+        public bool MaintainAspectRatio { get; set; } = false;
 
         public int PaddingX
         {
@@ -89,36 +116,9 @@
             }
         }
 
-        public int BorderX
+        public void SetAspectRatio(float asp)
         {
-            get
-            {
-                return _borderX;
-            }
-            set
-            {
-                if (value != _borderX)
-                {
-                    _borderX = value;
-                    updateSubControlsPositionAndSize();
-                }
-            }
-        }
-
-        public int BorderY
-        {
-            get
-            {
-                return _borderY;
-            }
-            set
-            {
-                if (value != _borderY)
-                {
-                    _borderY = value;
-                    updateSubControlsPositionAndSize();
-                }
-            }
+            _aspectRatio = asp;
         }
 
         public void UpdateGrid()
@@ -159,6 +159,12 @@
             return true;
         }
 
+        private void gridControl_ControlAdded(object? sender, ControlEventArgs e)
+        {
+            fixAspectRatio();
+            updateSubControlsPositionAndSize();
+        }
+
         private void gridControl_Resize(object? sender, EventArgs e)
         {
             if (fixAspectRatio())
@@ -171,12 +177,6 @@
                 updateSubControlsPositionAndSize();
         }
 
-        private void gridControl_ControlAdded(object? sender, ControlEventArgs e)
-        {
-            fixAspectRatio();
-            updateSubControlsPositionAndSize();
-        }
-
         private void updateSubControlsPositionAndSize()
         {
             var w = Width;
@@ -187,7 +187,7 @@
             var squaresTotalHeight = (h - PaddingY * (GridHeight - 1) - 2 * BorderY);
             var sqrWidth = squaresTotalWidth / GridWidth;
             var sqrHeight = squaresTotalHeight / GridHeight;
-            
+
             var totalSquares = GridWidth * GridHeight;
             for (int i = 0; i < Controls.Count; ++i)
             {
