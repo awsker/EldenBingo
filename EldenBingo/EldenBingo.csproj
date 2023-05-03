@@ -14,18 +14,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>none</DebugType>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Map\**" />
-    <EmbeddedResource Remove="Map\**" />
-    <None Remove="Map\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="icon.ico" />
@@ -351,10 +345,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Bingo\" />
   </ItemGroup>
 
   <ItemGroup>

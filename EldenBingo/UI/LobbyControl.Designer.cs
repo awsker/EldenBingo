@@ -93,8 +93,8 @@
             // 
             this.panel1.Controls.Add(this._scoreboardControl);
             this.panel1.Controls.Add(this._logBoxBorderPanel);
-            this.panel1.Controls.Add(this._matchStatusLabel);
             this.panel1.Controls.Add(this._timerLabel);
+            this.panel1.Controls.Add(this._matchStatusLabel);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel1.Location = new System.Drawing.Point(581, 0);
             this.panel1.Name = "panel1";
@@ -157,7 +157,7 @@
             // 
             this._timerLabel.Font = new System.Drawing.Font("Segoe UI", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this._timerLabel.ForeColor = System.Drawing.Color.White;
-            this._timerLabel.Location = new System.Drawing.Point(6, 30);
+            this._timerLabel.Location = new System.Drawing.Point(6, 23);
             this._timerLabel.Name = "_timerLabel";
             this._timerLabel.Size = new System.Drawing.Size(243, 60);
             this._timerLabel.TabIndex = 6;

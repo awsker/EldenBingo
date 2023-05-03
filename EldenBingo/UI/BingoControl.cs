@@ -36,7 +36,7 @@ namespace EldenBingo.UI
             SizeChanged += bingoControl_SizeChanged;
             _gridControl.SizeChanged += _gridControl_SizeChanged;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
-
+            
             recalculateFontSizeForSquares();
         }
 
@@ -59,8 +59,8 @@ namespace EldenBingo.UI
 
         private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) || 
-                e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle) || 
+            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle) ||
                 e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize))
             {
                 recalculateFontSizeForSquares();
