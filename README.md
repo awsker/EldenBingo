@@ -27,7 +27,7 @@ Connect to a server by pressing the 'Connect' button in the top left corner. You
 After you've successfully connected to the server, you can create your own lobby or join an existing one. A 'Lobby' in this application is a private room where you can run your bingo game. Any player that wishes to connect to a lobby needs that lobby's room name. There is no lobby browser.
 
 ## Joining a lobby
-When joining (or creating) a lobby, you will be asked to input a nickname, a color and a team. If you join a team, the color will be set for you. In the 'Team' dropdown you can also select 'Spectator'.  
+When joining (or creating) a lobby, you will be asked to input a nickname and select a team. In the 'Team' dropdown you can also select 'Spectator'.  
 ![join_spectator](https://user-images.githubusercontent.com/604653/235904929-2adf97ee-e6c4-4fc3-a8c7-586c383453d1.png)
 
 ## Creating a lobby
