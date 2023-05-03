@@ -11,7 +11,7 @@ This application exists to make running, administrating, spectating and streamin
 * Watch your teammates' positions live on the built in map of The Lands Between, or see everyone as a spectator
 * Matches can be started, paused and stopped by the referees
 * Squares can be checked/unchecked by players or by referees on behalf of players
-* Mark squares with stars with right click to coordinate your plans with your teammates
+* Right click to mark squares with stars, visible to everyone on the team
 * Scroll Wheel up/down over a square allows players or referees to keep track of their progress of a square. This progress can only be seen by teammates or spectators, but not by opposing players/teams
 * Customize bingo board color/size/font
 
@@ -28,7 +28,7 @@ After you've successfully connected to the server, you can create your own lobby
 
 ## Joining a lobby
 When joining (or creating) a lobby, you will be asked to input a nickname, a color and a team. If you join a team, the color will be set for you. In the 'Team' dropdown you can also select 'Spectator'.  
-![join_spectator](https://user-images.githubusercontent.com/604653/235772065-b161fd0c-87aa-41da-87b3-1542e5e1ce59.png)
+![join_spectator](https://user-images.githubusercontent.com/604653/235904929-2adf97ee-e6c4-4fc3-a8c7-586c383453d1.png)
 
 ## Creating a lobby
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
@@ -57,10 +57,8 @@ The application will try to detect a running instance of EldenRing.exe. You can 
 * Mouse wheel up/down - Increase/decrease the count of this square. The counter is useful for squares that have a set number of tasks that need to be completed, where it's easy to lose track of your progress. The counter is only visible to your own team and spectators.
 
 # AdminSpectators
-As an AdminSpectator, you are basically the referee of the match. You can view the generated bingo board before the game has started, and generate new boards. If you mark a player in the client list, you can perform board actions on behalf of that player, like checking/unchecking squares and incrementing/decrementing the count of a square. 
-
+As an AdminSpectator, you are basically the referee of the match. You can view the generated bingo board before the game has started, and generate new boards. If you mark a player in the client list, you can perform board actions on behalf of that player, like checking/unchecking squares and incrementing/decrementing the count of a square.  
 ![counters](https://user-images.githubusercontent.com/604653/235781324-d6e7f488-9c25-4920-b6be-682e061e8987.png)  
-*Keeping track of progress*
 
 # Settings
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software.
