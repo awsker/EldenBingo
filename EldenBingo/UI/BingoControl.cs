@@ -36,13 +36,12 @@ namespace EldenBingo.UI
             SizeChanged += bingoControl_SizeChanged;
             _gridControl.SizeChanged += _gridControl_SizeChanged;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
-            
-            recalculateFontSizeForSquares();
         }
 
         private void bingoControl_Load(object? sender, EventArgs e)
         {
             _gridControl.UpdateGrid();
+            recalculateFontSizeForSquares();
         }
 
         private void bingoControl_SizeChanged(object? sender, EventArgs e)
