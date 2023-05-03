@@ -12,8 +12,8 @@ namespace EldenBingoCommon
         {
             ClientRegister, //string
             ClientRequestRoomName, //string
-            ClientRequestCreateRoom, //string, string, string, int, int, bool
-            ClientRequestJoinRoom, //string, string, string, int, int, bool
+            ClientRequestCreateRoom, //string, string, string, int, bool
+            ClientRequestJoinRoom, //string, string, string, int, bool
             ClientRequestLeaveRoom, //(none)
             ClientChat, //string
             ClientCoordinates, //MapCoordinates
@@ -42,7 +42,7 @@ namespace EldenBingoCommon
             ServerShutdown, //(none)
         }
 
-        public static readonly ColorName[] DefaultPlayerColors = new[]
+        public static readonly ColorName[] TeamColors = new[]
         {
             new ColorName(Color.FromArgb(180, 10, 0), "Red"),
             new ColorName(Color.FromArgb(0, 86, 179), "Blue"),
@@ -55,12 +55,22 @@ namespace EldenBingoCommon
             new ColorName(Color.FromArgb(206, 199, 0), "Yellow")
         };
 
+        public static Color GetTeamColor(int team)
+        {
+            if (team == -1)
+                return SpectatorColor;
+            if (team >= 0 && team < TeamColors.Length)
+                return TeamColors[team].Color;
+            return Color.Empty;
+        }
+
         public static string GetTeamName(int team)
         {
-            if (team <= 0 || team > DefaultPlayerColors.Length)
-                return "";
-
-            return DefaultPlayerColors[team - 1].Name + " Team";
+            if (team == -1)
+                return "Spectator";
+            if (team >= 0 && team < TeamColors.Length)
+                return TeamColors[team].Name + " Team";
+            return String.Empty;
         }
 
         public static Color AdminSpectatorColor = Color.White;

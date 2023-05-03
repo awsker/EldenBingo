@@ -3,7 +3,7 @@ namespace EldenBingo.UI
 {
     public partial class ColorGridForm : Form
     {
-        public Color? SelectedColor { get; private set; }
+        public int SelectedIndex { get; set; }
         public event EventHandler ColorClicked;
 
         public ColorGridForm()
@@ -26,23 +26,22 @@ namespace EldenBingo.UI
                 BackColor = Color.Black,
             };
 
-            for (int i = 0; i < NetConstants.DefaultPlayerColors.Length; ++i)
+            for (int i = 0; i < NetConstants.TeamColors.Length; ++i)
             {
-                var col = NetConstants.DefaultPlayerColors[i];
+                var col = NetConstants.TeamColors[i];
                 var panel = new ColorPanel(col.Color);
                 grid.Controls.Add(panel);
-                panel.Click += panel_Click;
+                var temp = i;
+                panel.Click += (o,e) => panel_Click(temp);
             }
             Controls.Add(grid);
         }
 
-        private void panel_Click(object? sender, EventArgs e)
+        private void panel_Click(int index)
         {
-            if(sender is ColorPanel cp) {
-                SelectedColor = cp.Color;
-                DialogResult = DialogResult.OK;
-                ColorClicked?.Invoke(this, EventArgs.Empty);
-            }
+            SelectedIndex = index;
+            DialogResult = DialogResult.OK;
+            ColorClicked?.Invoke(this, EventArgs.Empty);
         }
     }
 }

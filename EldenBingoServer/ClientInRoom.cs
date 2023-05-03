@@ -5,7 +5,7 @@ namespace EldenBingoServer
     public class ClientInRoom : UserInRoom
     {
         public ClientModel Client { get; init; }
-        public ClientInRoom(ClientModel client, string nick, Guid guid, int color, bool isAdmin, int team, bool isSpectator) : base(nick, guid, color, isAdmin, team, isSpectator)
+        public ClientInRoom(ClientModel client, string nick, Guid guid, bool isAdmin, int team) : base(nick, guid, isAdmin, team)
         {
             Client = client;
         }

@@ -144,21 +144,15 @@ namespace EldenBingo
             _cancelToken.Cancel();
         }
 
-        public async Task CreateRoom(string roomName, string adminPass, string nickname, int color, Team team)
+        public async Task CreateRoom(string roomName, string adminPass, string nickname, int team)
         {
-            bool spectator = team == Team.Spectator;
-            int teamI = team == Team.Spectator ? 0 : (int)team;
-
-            var p = PacketHelper.CreateCreateRoomPacket(roomName, adminPass, nickname, color, teamI, spectator);
+            var p = PacketHelper.CreateCreateRoomPacket(roomName, adminPass, nickname, team);
             await SendPacketToServer(p);
         }
 
-        public async Task JoinRoom(string roomName, string adminPass, string nickname, int color, Team team)
+        public async Task JoinRoom(string roomName, string adminPass, string nickname, int team)
         {
-            bool spectator = team == Team.Spectator;
-            int teamI = team == Team.Spectator ? 0 : (int)team;
-
-            var p = PacketHelper.CreateJoinRoomPacket(roomName, adminPass, nickname, color, teamI, spectator);
+            var p = PacketHelper.CreateJoinRoomPacket(roomName, adminPass, nickname, team);
             await SendPacketToServer(p);
         }
 

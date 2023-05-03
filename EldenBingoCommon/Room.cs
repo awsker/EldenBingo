@@ -60,34 +60,60 @@ namespace EldenBingoCommon
             return clients.TryGetValue(userGuid, out var user) ? user : null;
         }
 
-        public IList<(PlayerTeam, int)> GetCheckedSquaresPerPlayerTeam()
+        public static IList<(int, string)> GetPlayerTeams(IEnumerable<T> players)
         {
-            var list = new List<(PlayerTeam, int)>();
-            foreach (var pt in PlayerTeam.GetPlayerTeams(Clients, out _))
+            var teams = players.ToLookup(p => p.Team);
+            var list = new List<(int, string)>();
+            foreach (var team in teams)
             {
-                list.Add(new(pt, 0));
+                if (team.Key == -1)
+                    continue;
+                var teamPlayers = team.ToList();
+                if (teamPlayers.Count == 1)
+                    list.Add(new(team.Key, teamPlayers[0].Nick));
+                else if(teamPlayers.Count > 1)
+                    list.Add(new(team.Key, NetConstants.GetTeamName(team.Key)));
+            }
+
+            return list.OrderBy(pt => pt.Item1).ToList();
+        }
+
+        public IList<(int, string)> GetPlayerTeams()
+        {
+            return GetPlayerTeams(Clients);
+        }
+        /// <summary>
+        /// Get number of checked squares per team
+        /// </summary>
+        /// <returns>Team, TeamName, Count</returns>
+        public IList<(int, string, int)> GetCheckedSquaresPerTeam()
+        {
+            var list = new List<(int, string, int)>();
+            foreach (var pt in GetPlayerTeams())
+            {
+                list.Add(new(pt.Item1, pt.Item2, 0));
             }
             if (Match?.Board == null)
             {
                 return list;
             }
-            var dict = new Dictionary<PlayerTeam, int>();
-            foreach(var square in Match.Board.Squares.Where(s => s.Checked))
+            var dict = new Dictionary<int, int>();
+            foreach(var square in Match.Board.Squares.Where(s => s.Team.HasValue))
             {
-                if(dict.TryGetValue(square.CheckOwner, out int c))
+                if(dict.TryGetValue(square.Team.Value, out int c))
                 {
-                    dict[square.CheckOwner] = c + 1;
+                    dict[square.Team.Value] = c + 1;
                 } 
                 else
                 {
-                    dict[square.CheckOwner] = 1;
+                    dict[square.Team.Value] = 1;
                 }
             }
             for(int i = 0; i < list.Count; ++i)
             {
                 if (dict.TryGetValue(list[i].Item1, out int c))
                 {
-                    list[i] = (list[i].Item1, c);
+                    list[i] = (list[i].Item1, list[i].Item2, c);
                 }
             }
             return list;

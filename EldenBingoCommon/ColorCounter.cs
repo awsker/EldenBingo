@@ -1,33 +1,31 @@
-﻿using System.Drawing;
-
-namespace EldenBingoCommon
+﻿namespace EldenBingoCommon
 {
-    public struct ColorCounter : IEquatable<ColorCounter>
+    public struct TeamCounter : IEquatable<TeamCounter>
     {
-        public Color Color;
+        public int Team;
         public int Counter;
-        public ColorCounter(Color c, int counter = 0)
+        public TeamCounter(int team, int counter = 0)
         {
-            Color = c;
+            Team = team;
             Counter = counter;
         }
 
-        public ColorCounter(byte[] buffer, ref int offset)
+        public TeamCounter(byte[] buffer, ref int offset)
         {
-            Color = Color.FromArgb(PacketHelper.ReadInt(buffer, ref offset));
+            Team = PacketHelper.ReadInt(buffer, ref offset);
             Counter = PacketHelper.ReadInt(buffer, ref offset);
         }
 
         public byte[] GetBytes()
         {
             return PacketHelper.ConcatBytes(
-                BitConverter.GetBytes(Color.ToArgb()),
+                BitConverter.GetBytes(Team),
                 BitConverter.GetBytes(Counter));
         }
 
-        public bool Equals(ColorCounter counter)
+        public bool Equals(TeamCounter counter)
         {
-            return Color == counter.Color && Counter == counter.Counter;
+            return Team == counter.Team && Counter == counter.Counter;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace EldenBingo.UI
             e.DrawBackground();
             if (e.Index >= 0 && e.Index < Items.Count)
             {
-                var brush = ((RichListBox)sender).Items[e.Index] is UserInRoom item ? new SolidBrush(item.ConvertedColor) : new SolidBrush(ForeColor);
+                var brush = ((RichListBox)sender).Items[e.Index] is UserInRoom item ? new SolidBrush(item.Color) : new SolidBrush(ForeColor);
                 e.Graphics.DrawString(((ListBox)sender).Items[e.Index].ToString(),
                       e.Font, brush, e.Bounds, StringFormat.GenericDefault);
             }
