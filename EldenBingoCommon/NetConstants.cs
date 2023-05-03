@@ -44,15 +44,15 @@ namespace EldenBingoCommon
 
         public static readonly ColorName[] TeamColors = new[]
         {
-            new ColorName(Color.FromArgb(180, 10, 0), "Red"),
-            new ColorName(Color.FromArgb(0, 86, 179), "Blue"),
+            new ColorName(Color.FromArgb(170, 16, 12), "Red"),
+            new ColorName(Color.FromArgb(9, 92, 168), "Blue"),
             new ColorName(Color.FromArgb(40, 179, 16), "Green"),
             new ColorName(Color.FromArgb(204, 104, 0), "Orange"),
             new ColorName(Color.FromArgb(135, 35, 208), "Purple"),
             new ColorName(Color.FromArgb(78, 204, 204), "Cyan"),
             new ColorName(Color.FromArgb(237, 115, 216), "Pink"),
             new ColorName(Color.FromArgb(112, 79, 41), "Brown"),
-            new ColorName(Color.FromArgb(206, 199, 0), "Yellow")
+            new ColorName(Color.FromArgb(196, 179, 0), "Yellow")
         };
 
         public static Color GetTeamColor(int team)

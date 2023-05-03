@@ -7,7 +7,7 @@ namespace EldenBingoServer
 {
     public class Server
     {
-        const int MatchStartCountdown = 9999;
+        const int MatchStartCountdown = 99;
 
         private readonly IPAddress[] _ipAddress;
         private readonly int _port;
