@@ -4,7 +4,7 @@ namespace EldenBingo.UI
     public partial class ColorGridForm : Form
     {
         public int SelectedIndex { get; set; }
-        public event EventHandler ColorClicked;
+        public event EventHandler? ColorClicked;
 
         public ColorGridForm()
         {

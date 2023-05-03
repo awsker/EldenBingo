@@ -544,7 +544,7 @@ namespace EldenBingo.GameInterop
                     }
                 }
             } 
-            catch(Exception e)
+            catch(Exception)
             {
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;

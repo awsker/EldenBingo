@@ -7,7 +7,8 @@ namespace EldenBingoServer
 {
     public class Server
     {
-        const int MatchStartCountdown = 99;
+        //10 seconds countdown before match starts
+        const int MatchStartCountdown = 9999;
 
         private readonly IPAddress[] _ipAddress;
         private readonly int _port;
@@ -698,7 +699,7 @@ namespace EldenBingoServer
         private async Task setRoomBingoBoard(ServerRoom room, ServerBingoBoard board)
         {
             room.Match.Board = board;
-            //await setRoomMatchStatus(room, MatchStatus.NotRunning);
+            await setRoomMatchStatus(room, MatchStatus.NotRunning);
             sendMatchData(room);
         }
 

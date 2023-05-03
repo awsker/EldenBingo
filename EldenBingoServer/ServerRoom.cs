@@ -10,12 +10,12 @@ namespace EldenBingoServer
         public DateTime CreateTime { get; init; }
         private Guid _creatorGuid;
         private string? _creatorIp;
-        private string _creatorName;
+        private string? _creatorName;
         private System.Timers.Timer? _timer;
 
-        public BingoBoardGenerator BoardGenerator { get; set; }
+        public BingoBoardGenerator? BoardGenerator { get; set; }
 
-        public event EventHandler<EventArgs> TimerElapsed;
+        public event EventHandler? TimerElapsed;
 
         public ServerRoom(string name, string adminPassword, ClientModel creator): base(name)
         {

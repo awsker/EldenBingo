@@ -7,7 +7,6 @@ namespace EldenBingo.UI
     internal partial class BingoControl : ClientUserControl
     {
         private BingoSquareControl[] Squares;
-        private float _fontSize;
 
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
@@ -76,9 +75,9 @@ namespace EldenBingo.UI
             const float maxFont = 20f;
             var squareHeight = Squares[0].Height;
             var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
-            _fontSize = minFont + (maxFont - minFont) * frac;
-            _boardStatusLabel.Font = MainForm.GetFontFromSettings(_fontSize * 2f, defaultFont: Font);
-            var font = MainForm.GetFontFromSettings(_fontSize, defaultFont: Font);
+            var fontSize = minFont + (maxFont - minFont) * frac;
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f);
+            var font = MainForm.GetFontFromSettings(Font, fontSize);
             for (int i = 0; i < 25; ++i)
             {
                 Squares[i].Font = font;

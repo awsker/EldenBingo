@@ -421,7 +421,7 @@ namespace EldenBingo
             Properties.Settings.Default.Save();
         }
 
-        public static Font GetFontFromSettings(float size, float defaultSize = 12f, Font defaultFont = null)
+        public static Font GetFontFromSettings(Font defaultFont, float size, float defaultSize = 12f)
         {
             var ffName = Properties.Settings.Default.BingoFont;
             Font? font = null;

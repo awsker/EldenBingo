@@ -29,7 +29,7 @@
             _bingoMaxXTextBox.Text = Properties.Settings.Default.BingoMaxSizeX.ToString();
             _bingoMaxYTextBox.Text = Properties.Settings.Default.BingoMaxSizeY.ToString();
 
-            _fontLinkLabel.Font = MainForm.GetFontFromSettings(fontSize, defaultFont: _fontLinkLabel.Font);
+            _fontLinkLabel.Font = MainForm.GetFontFromSettings(_fontLinkLabel.Font, fontSize);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
 
