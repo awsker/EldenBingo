@@ -1,6 +1,5 @@
 # Elden Bingo
-This application exists to make running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind.  
-
+This application makes running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind. It's built on .NET 6.0, so requires that the [runtimes](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.16-windows-x64-installer) are installed.
 
 ![eldenbingo-window](https://user-images.githubusercontent.com/604653/235782762-8af61e81-fd18-4ec0-87c8-e2893d895c85.png)  
 
@@ -36,7 +35,7 @@ When creating a lobby you can enter any Room name you want, or use the one that 
 # Administrating a lobby
 You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only AdminSpectators (ie. a player that is both administrator and spectator) have special privileges (see [AdminSpectators](#adminspectators)).
 
-When you've joined a lobby as an administrator, the administrator tools will show under the bingo board. Use these tools to upload a Bingo .json file, following the same format as Bingo Brawlers and [BingoSync](https://bingosync.com). [Here is an example file](https://bingobrawlers.com/files/bingo-brawlers.json).
+When you've joined a lobby as an administrator, the administrator tools will show under the bingo board. Use these tools to upload a Bingo .json file, following the same format as Bingo Brawlers and BingoSync. [Here is an example file](https://bingobrawlers.com/files/bingo-brawlers.json).
 
 Once you've uploaded the file, a board is generated but will not be made visible to the players until the match is started. AdminSpectators can see the board and generate new boards if necessary.
 
@@ -62,3 +61,6 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 
 # Settings
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
+
+# Credits
+Button images shamelessly borrowed from [EldenRingMap](https://eldenringmap.com), drawn by [Caio Razera](https://dcaier.artstation.com/)
