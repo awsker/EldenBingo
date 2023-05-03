@@ -49,7 +49,7 @@ Click the 'Open Map'-button at the top to display the Map window. This OpenGL wi
 *Spectating two players*
 
 ## Showing up on the map
-The application will try to detect a running instance of EldenRing.exe. You can also press the 'Start Elden Ring' button in the top right corner to have the application start Elden Ring without Easy Anti-Cheat enabled. This is required for the application to be able to read the game memory and fetch your current position.
+The application will try to detect a running instance of EldenRing.exe. You can also press the 'Start Elden Ring' button in the top right corner to have the application start Elden Ring without Easy Anti-Cheat enabled. This is required for the application to be able to read the game memory and fetch your current position. It will always show the map of the overworld, even if players are underground. Players underground will be rendered as slightly transparent.
 
 # Bingo board controls
 * Left click - Check or uncheck a square for you/your team. Visible for everyone.
