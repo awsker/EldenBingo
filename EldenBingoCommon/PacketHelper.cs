@@ -122,30 +122,26 @@ namespace EldenBingoCommon
             return new Packet(NetConstants.PacketTypes.ClientRegister, GetStringBytes(NetConstants.UserRegisterString));
         }
 
-        public static Packet CreateCreateRoomPacket(string room, string adminPass, string nick, int color, int team, bool spectator)
+        public static Packet CreateCreateRoomPacket(string room, string adminPass, string nick, int team)
         {
             var roomBytes = GetStringBytes(room);
             var adminPassBytes = GetStringBytes(adminPass);
             var nickBytes = GetStringBytes(nick);
-            var colorBytes = B.GetBytes(color);
             var teamBytes = B.GetBytes(team);
-            var spectatorByte = B.GetBytes(spectator);
             return new Packet(NetConstants.PacketTypes.ClientRequestCreateRoom, 
                 ConcatBytes(roomBytes, adminPassBytes,
-                nickBytes, colorBytes, teamBytes, spectatorByte));
+                nickBytes, teamBytes));
         }
 
-        public static Packet CreateJoinRoomPacket(string room, string adminPass, string nick, int color, int team, bool spectator)
+        public static Packet CreateJoinRoomPacket(string room, string adminPass, string nick, int team)
         {
             var roomBytes = GetStringBytes(room);
             var adminPassBytes = GetStringBytes(adminPass);
             var nickBytes = GetStringBytes(nick);
-            var colorBytes = B.GetBytes(color);
             var teamBytes = B.GetBytes(team);
-            var spectatorByte = B.GetBytes(spectator);
             return new Packet(NetConstants.PacketTypes.ClientRequestJoinRoom,
                 ConcatBytes(roomBytes, adminPassBytes,
-                nickBytes, colorBytes, teamBytes, spectatorByte));
+                nickBytes, teamBytes));
         }
 
         public static Packet CreateUserToServerChatMessage(string text)

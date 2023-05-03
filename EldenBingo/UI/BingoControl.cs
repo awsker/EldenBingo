@@ -13,6 +13,7 @@ namespace EldenBingo.UI
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
 
         private BoardStatusEnum _boardStatus;
+        private bool _revealed = false;
 
         private string[] _boardStatusStrings = { "No board set", "Click to reveal...", "Match Starting...", "" };
 
@@ -228,7 +229,7 @@ namespace EldenBingo.UI
                     var s = board.Squares[i];
                     Squares[i].Text = s.Text;
                     Squares[i].ToolTip = s.Tooltip;
-                    Squares[i].Color = s.CheckOwner.Player == Guid.Empty ? Color.Empty : s.CheckOwner.Color;
+                    Squares[i].Color = s.Team.HasValue ? NetConstants.GetTeamColor(s.Team.Value) : Color.Empty;
                     Squares[i].Marked = s.Marked;
                     Squares[i].Counters = s.Counters;
                     Squares[i].Invalidate();
@@ -263,7 +264,7 @@ namespace EldenBingo.UI
                     }
                 }
                 _boardStatusLabel.Text = _boardStatusStrings[(int)_boardStatus];
-                _boardStatusLabel.Visible = _boardStatus < BoardStatusEnum.BoardRevealed;
+                _boardStatusLabel.Visible = !_revealed && _boardStatus < BoardStatusEnum.BoardRevealed;
             }
             if (InvokeRequired)
             {
@@ -278,7 +279,7 @@ namespace EldenBingo.UI
             private readonly ToolTip _toolTip;
             private Color _color;
             private bool _marked;
-            private ColorCounter[] _counters;
+            private TeamCounter[] _counters;
 
             private bool _mouseOver;
             private float _fontSize;
@@ -290,7 +291,7 @@ namespace EldenBingo.UI
                 Text = text;
                 _toolTip = new ToolTip();
                 ToolTip = tooltip;
-                _counters = new ColorCounter[0];
+                _counters = new TeamCounter[0];
                 var control = this;
                 MouseEnter += (o, e) =>
                 {
@@ -341,7 +342,7 @@ namespace EldenBingo.UI
                 }
             }
 
-            public ColorCounter[] Counters
+            public TeamCounter[] Counters
             {
                 get { return _counters; }
                 set
@@ -409,22 +410,24 @@ namespace EldenBingo.UI
                 }
                 var brush = new SolidBrush(color);
                 g.FillRectangle(brush, new Rectangle(0, 0, Width, Height));
-                var h = Convert.ToInt32(Height * 0.4f); //Gradient in bottom 40%
-                if (h > 0)
+                //var h = Convert.ToInt32(Height * 0.9f); //Gradient in bottom 40%
+                //if (h > 0)
                 {
-                    var gradientColor = Color.FromArgb(52, 0, 0, 0);
-                    var gBrush = new LinearGradientBrush(new Point(0, Height - h - 1), new Point(0, Height), Color.Transparent, gradientColor);
-                    g.FillRectangle(gBrush, new Rectangle(0, Height - h, Width, h));
+                    var gradientColor = isChecked ? Color.FromArgb(25, 255, 255, 255) : Color.FromArgb(40, 0, 0, 0);
+                    var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, gradientColor);
+                    g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
                 }
             }
 
             private void drawBingoText(PaintEventArgs e)
             {
                 var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
-                var shadowRect = new Rectangle(ClientRectangle.X + 1, ClientRectangle.Y + 1, ClientRectangle.Width, ClientRectangle.Height);
-                var shadowColor = Color.FromArgb(128, 0, 0, 0);
+                var textUp = (int)(Font.Size * 0.2);
+                var textRect = new Rectangle(0, 0 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
+                var shadowRect = new Rectangle(1, 1 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
+                var shadowColor = Color.FromArgb(96, 0, 0, 0);
                 TextRenderer.DrawText(e, Text, Font, shadowRect, shadowColor, flags: flags);
-                TextRenderer.DrawText(e, Text, Font, ClientRectangle, TextColor, flags: flags);
+                TextRenderer.DrawText(e, Text, Font, textRect, TextColor, flags: flags);
             }
 
             private void drawMarkedStar(PaintEventArgs e)
@@ -436,7 +439,7 @@ namespace EldenBingo.UI
             {
                 var counterFont = new Font(Font.FontFamily, Font.Size * 1.2f);
                 var counterFlags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
-                var shadowColor = Color.FromArgb(128, 0, 0, 0);
+                var shadowColor = Color.FromArgb(96, 0, 0, 0);
                 for (int i = 0; i < _counters.Length; ++i)
                 {
                     var c = _counters[i];
@@ -452,8 +455,9 @@ namespace EldenBingo.UI
                         leftXPos = Convert.ToInt32(Width / (i + 1f) - size.Width / 2f);
 
                     int yPos = Height - size.Height;
+                    var color = NetConstants.GetTeamColor(c.Team);
                     TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos + 1, yPos + 1, size.Width, size.Height), shadowColor, flags: counterFlags);
-                    TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos, yPos, size.Width, size.Height), c.Color, flags: counterFlags);
+                    TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos, yPos, size.Width, size.Height), color, flags: counterFlags);
                 }
             }
         }
@@ -470,6 +474,7 @@ namespace EldenBingo.UI
         {
             if(_boardStatus == BoardStatusEnum.BoardSetNotRevealed)
             {
+                _revealed = true;
                 _boardStatus = BoardStatusEnum.BoardRevealed;
                 _boardStatusLabel.Text = _boardStatusStrings[(int)_boardStatus];
                 _boardStatusLabel.Visible = false;

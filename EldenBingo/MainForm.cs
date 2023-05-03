@@ -217,7 +217,6 @@ namespace EldenBingo
                     form.RoomName,
                     form.AdminPassword,
                     form.Nickname,
-                    form.Color.ToArgb() | 0xFF << 24,
                     form.Team);
             }
         }
@@ -236,7 +235,6 @@ namespace EldenBingo
                     form.RoomName,
                     form.AdminPassword,
                     form.Nickname,
-                    form.Color.ToArgb() | 0xFF << 24,
                     form.Team);
             }
         }

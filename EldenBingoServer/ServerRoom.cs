@@ -44,14 +44,14 @@ namespace EldenBingoServer
                 name == _creatorName && _creatorIp != null && _creatorIp == getClientIp(client);
         }
 
-        public ClientInRoom AddClient(ClientModel client, string nick, string adminPass, int color, int team, bool spectator)
+        public ClientInRoom AddClient(ClientModel client, string nick, string adminPass, int team)
         {
             client.Room = this;
             
             if (_creatorGuid == client.UserGuid)
                 _creatorName = nick;
             bool admin = IsAdminByDefault(client, nick) || IsCorrectAdminPassword(adminPass);
-            var cl = new ClientInRoom(client, nick, client.UserGuid, color, admin, team, spectator);
+            var cl = new ClientInRoom(client, nick, client.UserGuid, admin, team);
             
             AddClient(cl);
             return cl;

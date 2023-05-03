@@ -41,18 +41,29 @@
 
     public class BingoBoardSquare : INetSerializable
     {
-        public bool Checked => CheckOwner.Player != Guid.Empty;
+        public bool Checked => Team.HasValue;
         public string Text { get; init; }
         public string Tooltip { get; init; }
-        public PlayerTeam CheckOwner { get; set; }
+        public int? Team
+        {
+            get
+            {
+                return _checkOwner == 0 ? null : _checkOwner - 1;
+            }
+            set
+            {
+                _checkOwner = value == null ?  0 : value.Value + 1;
+            }
+        }
+        private int _checkOwner;
         public bool Marked { get; set; }
-        public ColorCounter[] Counters { get; set; }
+        public TeamCounter[] Counters { get; set; }
 
         public BingoBoardSquare(string text, string tooltip)
         {
             Text = text;
             Tooltip = tooltip;
-            Counters = new ColorCounter[0];
+            Counters = new TeamCounter[0];
         }
 
         public BingoBoardSquare(byte[] buffer, ref int offset)
@@ -67,7 +78,7 @@
             return PacketHelper.ConcatBytes(
                 PacketHelper.GetStringBytes(Text),
                 PacketHelper.GetStringBytes(Tooltip),
-                CheckOwner.GetBytes(),
+                BitConverter.GetBytes(_checkOwner),
                 BitConverter.GetBytes(Marked), 
                 BitConverter.GetBytes(Counters.Length),
                 PacketHelper.ConcatBytes(Counters.Select(c => c.GetBytes()))
@@ -77,7 +88,7 @@
         public byte[] GetStatusBytes()
         {
             return PacketHelper.ConcatBytes(
-               CheckOwner.GetBytes(),
+               BitConverter.GetBytes(_checkOwner),
                BitConverter.GetBytes(Marked),
                BitConverter.GetBytes(Counters.Length),
                PacketHelper.ConcatBytes(Counters.Select(c => c.GetBytes()))
@@ -86,12 +97,12 @@
 
         public void UpdateFromStatusBytes(byte[] buffer, ref int offset)
         {
-            CheckOwner = new PlayerTeam(buffer, ref offset);
+            _checkOwner = PacketHelper.ReadInt(buffer, ref offset);
             Marked = PacketHelper.ReadBoolean(buffer, ref offset);
             int c = PacketHelper.ReadInt(buffer, ref offset);
-            Counters = new ColorCounter[c];
+            Counters = new TeamCounter[c];
             for (int i = 0; i < c; ++i)
-                Counters[i] = new ColorCounter(buffer, ref offset);
+                Counters[i] = new TeamCounter(buffer, ref offset);
         }
 
         public override string ToString()

@@ -22,8 +22,8 @@ namespace EldenBingoServer
             {
                 var status = CheckStatus[i];
                 var sq = Squares[i];
-                sq.CheckOwner = status.CheckedBy ?? new PlayerTeam();
-                sq.Marked = status.IsMarked(user);
+                sq.Team = status.CheckedBy;
+                sq.Marked = status.IsMarked(user.Team);
                 sq.Counters = status.GetCounters(user, Room.Clients);
             }
         }
@@ -61,7 +61,7 @@ namespace EldenBingoServer
             {
                 if (onBehalfOf != null && !onBehalfOf.IsSpectator)
                 {
-                    check.Check(onBehalfOf);
+                    check.Check(onBehalfOf.Team);
                     return true;
                 }
                 return false;
@@ -75,8 +75,8 @@ namespace EldenBingoServer
             if (onBehalfOf == null)
                 return false;
 
-            //Square owned by this player or team -> allow it to be toggled off
-            if (check.CheckedBy.Value.Team == onBehalfOf.Team || check.CheckedBy.Value.Player == onBehalfOf.Guid)
+            //Square owned by this player's team -> allow it to be toggled off
+            if (check.CheckedBy.Value == onBehalfOf.Team)
             {
                 CheckStatus[i].Uncheck();
                 return true;
@@ -97,10 +97,10 @@ namespace EldenBingoServer
                 return false;
 
             var check = CheckStatus[i];
-            if (check.IsMarked(user))
-                return check.Unmark(user);
+            if (check.IsMarked(user.Team))
+                return check.Unmark(user.Team);
             else
-                return check.Mark(user);
+                return check.Mark(user.Team);
         }
 
         public bool UserChangeCount(int i, UserInRoom user, int count)
@@ -108,8 +108,10 @@ namespace EldenBingoServer
             if (i < 0 || i >= 25 || count == 0)
                 return false;
             var check = CheckStatus[i];
-            var oldCount = check.GetCounter(user) ?? 0;
-            check.SetCounter(user, Math.Max(0, oldCount + count));
+            var oldCount = check.GetCounter(user.Team) ?? 0;
+            if (user.IsSpectator)
+                return false;
+            check.SetCounter(user.Team, Math.Max(0, oldCount + count));
             return true;
         }
     }
@@ -117,22 +119,23 @@ namespace EldenBingoServer
     public class CheckStatus
     {
         public DateTime Time { get; init; }
-        public PlayerTeam? CheckedBy { get; set; }
+        public int? CheckedBy { get; set; }
 
-        private ISet<PlayerTeam> MarkedBy { get; init; }
-        private IDictionary<PlayerTeam, int> CountersBy { get; init; }
+        private ISet<int> MarkedBy { get; init; }
+        private IDictionary<int, int> CountersBy { get; init; }
 
         public CheckStatus()
         {
             Time = DateTime.Now;
             CheckedBy = null;
-            MarkedBy = new HashSet<PlayerTeam>();
-            CountersBy = new Dictionary<PlayerTeam, int>();
+            MarkedBy = new HashSet<int>();
+            CountersBy = new Dictionary<int, int>();
         }
 
-        public void Check(UserInRoom user)
+        public void Check(int team)
         {
-            CheckedBy = new PlayerTeam(user);
+            if (team >= 0)
+                CheckedBy = team;
         }
 
         public void Uncheck()
@@ -140,59 +143,58 @@ namespace EldenBingoServer
             CheckedBy = null;
         }
 
-        public bool Mark(UserInRoom user)
+        public bool Mark(int team)
         {
             //If no changes need to be made, return false
-            return MarkedBy.Add(new PlayerTeam(user));
+            return MarkedBy.Add(team);
         }
 
-        public bool Unmark(UserInRoom user)
+        public bool Unmark(int team)
         {
-            return MarkedBy.Remove(new PlayerTeam(user));
+            return MarkedBy.Remove(team);
         }
 
-        public bool IsMarked(UserInRoom user)
+        public bool IsMarked(int team)
         {
-            return MarkedBy.Contains(new PlayerTeam(user));
+            return MarkedBy.Contains(team);
         }
 
-        public void SetCounter(UserInRoom user, int? counter)
+        public void SetCounter(int team, int? counter)
         {
-            if (user.IsSpectator)
+            if (team < 0)
                 return;
 
             if (counter.HasValue)
-                CountersBy[new PlayerTeam(user)] = counter.Value;
+                CountersBy[team] = counter.Value;
             else
-                CountersBy.Remove(new PlayerTeam(user));
-
+                CountersBy.Remove(team);
         }
 
-        public bool UnsetCounter(UserInRoom user)
+        public bool UnsetCounter(int team)
         {
-            return CountersBy.Remove(new PlayerTeam(user));
+            return CountersBy.Remove(team);
         }
 
-        public int? GetCounter(UserInRoom user)
+        public int? GetCounter(int team)
         {
-            if(CountersBy.TryGetValue(new PlayerTeam(user), out int counter))
+            if(CountersBy.TryGetValue(team, out int counter))
             {
                 return counter;
             }
             return null;
         }
 
-        public ColorCounter[] GetCounters(UserInRoom recipient, IEnumerable<UserInRoom> users)
+        public TeamCounter[] GetCounters(UserInRoom recipient, IEnumerable<UserInRoom> users)
         {
-            var listOfPlayersAndTeams = PlayerTeam.GetPlayerTeams(users, out var teams);
-            var counters = new ColorCounter[listOfPlayersAndTeams.Count];
-            for(int i = 0; i < listOfPlayersAndTeams.Count; ++i)
+            var listOfTeams = Room<UserInRoom>.GetPlayerTeams(users);
+            var counters = new TeamCounter[listOfTeams.Count];
+            for(int i = 0; i < listOfTeams.Count; ++i)
             {
-                var pt = listOfPlayersAndTeams[i];
-                if (!recipient.IsSpectator && recipient.Guid != pt.Player && recipient.Team != pt.Team)
+                var team = listOfTeams[i];
+                if (!recipient.IsSpectator && recipient.Team != team.Item1)
                     continue;
-                CountersBy.TryGetValue(pt, out int c);
-                counters[i] = new ColorCounter(pt.Color, c);
+                CountersBy.TryGetValue(team.Item1, out int c);
+                counters[i] = new TeamCounter(team.Item1, c);
             }
             return counters;
         }

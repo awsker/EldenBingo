@@ -7,52 +7,45 @@ namespace EldenBingoCommon
     {
         public string Nick { get; set; }
         public Guid Guid { get; set; }
-        public int Color { get; set; }
         public bool IsAdmin { get; init; }
         public int Team { get; init; }
-        public bool IsSpectator { get; init; }
+        public bool IsSpectator => Team == -1;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public System.Drawing.Color ConvertedColor
+        public System.Drawing.Color Color
         {
             get
             {
                 if (IsSpectator)
                     return IsAdmin ? NetConstants.AdminSpectatorColor : NetConstants.SpectatorColor;
-                return Team == 0 || Team > NetConstants.DefaultPlayerColors.Length ? System.Drawing.Color.FromArgb(Color) : NetConstants.DefaultPlayerColors[Team - 1].Color;
+                return NetConstants.GetTeamColor(Team);
             }
         }
 
-        public UserInRoom(string nick, Guid guid, int color, bool isAdmin, int team, bool spectator)
+        public UserInRoom(string nick, Guid guid, bool isAdmin, int team)
         {
             Nick = nick;
             Guid = guid;
-            Color = color;
             IsAdmin = isAdmin;
             Team = team;
-            IsSpectator = spectator;
         }
 
         public UserInRoom(byte[] bytes, ref int offset)
         {
             Nick = PacketHelper.ReadString(bytes, ref offset);
             Guid = PacketHelper.ReadGuid(bytes, ref offset);
-            Color = PacketHelper.ReadInt(bytes, ref offset);
             IsAdmin = PacketHelper.ReadBoolean(bytes, ref offset);
             Team = PacketHelper.ReadInt(bytes, ref offset);
-            IsSpectator = PacketHelper.ReadBoolean(bytes, ref offset);
         }
 
         public byte[] GetBytes()
         {
             var nickBytes = PacketHelper.GetStringBytes(Nick);
             var guidBytes = Guid.ToByteArray();
-            var colorBytes = BitConverter.GetBytes(Color);
             var adminByte = BitConverter.GetBytes(IsAdmin);
             var teamBytes = BitConverter.GetBytes(Team);
-            var spectatorByte = BitConverter.GetBytes(IsSpectator);
-            return PacketHelper.ConcatBytes(nickBytes, guidBytes, colorBytes, adminByte, teamBytes, spectatorByte);
+            return PacketHelper.ConcatBytes(nickBytes, guidBytes, adminByte, teamBytes);
         }
 
         public override string ToString()
@@ -60,8 +53,6 @@ namespace EldenBingoCommon
             var str = Nick;
             var suffix = new List<string>();
             
-            if (!IsSpectator && Team != 0)
-                suffix.Add($"Team {Team}");
             if (IsAdmin)
                 suffix.Add("Admin");
             if (IsSpectator)

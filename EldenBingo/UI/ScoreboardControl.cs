@@ -65,16 +65,20 @@ namespace EldenBingo.UI
             {
                 Controls.Clear();
                 _rows.Clear();
+
+                if (_room == null)
+                    return;
+
                 var currentY = 0;
                 const int rowHeight = 25;
                 const int rowPaddingBottom = 3;
-                foreach (var user in _room.GetCheckedSquaresPerPlayerTeam())
+                foreach (var teamCount in _room.GetCheckedSquaresPerTeam())
                 {
                     var control = new ScoreboardRowControl();
-                    var pt = user.Item1;
-                    control.Color = pt.Color;
-                    control.CounterText = user.Item2.ToString();
-                    control.NameText = pt.Team == 0 ? _room.GetClient(pt.Player)?.Nick ?? "Unknown" : NetConstants.GetTeamName(pt.Team);
+                    var team = teamCount.Item1;
+                    control.Color = NetConstants.GetTeamColor(team);
+                    control.CounterText = teamCount.Item3.ToString();
+                    control.NameText = teamCount.Item2;
                     control.Width = Width;
                     control.Height = rowHeight;
                     control.Font = Font;
@@ -114,7 +118,7 @@ namespace EldenBingo.UI
 
         internal class ScoreboardRowControl : Control
         {
-            public PlayerTeam PlayerTeam { get; set; }
+            public int Team { get; set; }
             public string CounterText { get; set; }
             public string NameText { get; set; }
             public Color Color { get; set; }
@@ -126,11 +130,11 @@ namespace EldenBingo.UI
                 Color = Color.Empty;
             }
 
-            public void Update(PlayerTeam pt, string name, string counter)
+            public void Update(int team, string name, string counter)
             {
                 NameText = name;
                 CounterText = counter;
-                Color = pt.Color;
+                Color = NetConstants.GetTeamColor(team);
             }
 
             protected override void OnPaint(PaintEventArgs e)

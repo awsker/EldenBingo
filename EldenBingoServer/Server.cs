@@ -7,7 +7,7 @@ namespace EldenBingoServer
 {
     public class Server
     {
-        const int MatchStartCountdown = 9999;
+        const int MatchStartCountdown = 99;
 
         private readonly IPAddress[] _ipAddress;
         private readonly int _port;
@@ -206,9 +206,7 @@ namespace EldenBingoServer
                         var roomName = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim().ToUpper();
                         var adminPass = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
                         var nick = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
-                        var color = PacketHelper.ReadInt(packet.DataBytes, ref offset) | (0xFF << 24);
                         var team = PacketHelper.ReadInt(packet.DataBytes, ref offset);
-                        var spectator = PacketHelper.ReadBoolean(packet.DataBytes, ref offset);
                         string? deniedReason = null;
                         ServerRoom? room = null;
                         if (string.IsNullOrWhiteSpace(roomName))
@@ -230,7 +228,7 @@ namespace EldenBingoServer
                         //Join new room
                         if (room != null)
                         {
-                            await joinUserRoom(client, nick, color, adminPass, team, spectator, room, created: true);
+                            await joinUserRoom(client, nick, adminPass, team, room, created: true);
                         }
                         break;
                     }
@@ -239,9 +237,7 @@ namespace EldenBingoServer
                         var roomName = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim().ToUpper();
                         var adminPass = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim(); 
                         var nick = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
-                        var color = PacketHelper.ReadInt(packet.DataBytes, ref offset) | (0xFF << 24);
                         var team = PacketHelper.ReadInt(packet.DataBytes, ref offset);
-                        var spectator = PacketHelper.ReadBoolean(packet.DataBytes, ref offset);
                         string? deniedReason = null;
                         ServerRoom? room = null;
                         if(string.IsNullOrWhiteSpace(roomName))
@@ -267,7 +263,7 @@ namespace EldenBingoServer
                         //Join new room
                         if (room != null)
                         {
-                            await joinUserRoom(client, nick, color, adminPass, team, spectator, room, created: false);
+                            await joinUserRoom(client, nick, adminPass, team, room, created: false);
                         }
                         break;
                     }
@@ -449,12 +445,6 @@ namespace EldenBingoServer
             }
         }
 
-        private bool sameTeam(int team1, int team2)
-        {
-            //Same team if not on team 0 (Team.None) and have the same team number
-            return team1 != 0 && team2 != 0 && team1 == team2;
-        }
-
         private async Task<bool> confirm(ClientModel client, bool? admin = null, bool? spectator = null, bool? inRoom = null, bool? hasBingoBoard = null, bool? gameStarted = null)
         {
             if(admin.HasValue)
@@ -532,7 +522,7 @@ namespace EldenBingoServer
                 return Enumerable.Empty<ClientModel>();
 
             //Send coordinates to spectators or players on the same team
-            return room.Clients.Where(c => c.Guid != sender.Guid && (c.IsSpectator || sameTeam(c.Team, sender.Team))).Select(cp => cp.Client);
+            return room.Clients.Where(c => c.Guid != sender.Guid && (c.IsSpectator || c.Team == sender.Team)).Select(cp => cp.Client);
         }
 
         private string generateAvailableRoomName()
@@ -550,12 +540,12 @@ namespace EldenBingoServer
             return roomName;
         }
 
-        private async Task joinUserRoom(ClientModel client, string nick, int color, string adminPass, int team, bool spectator, ServerRoom room, bool created = false)
+        private async Task joinUserRoom(ClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
         {
             if (client.Room != null)
                 await leaveUserRoom(client);
             
-            ClientInRoom clientInRoom = room.AddClient(client, nick, adminPass, color, team, spectator);
+            ClientInRoom clientInRoom = room.AddClient(client, nick, adminPass, team);
             
             //Only send new user to room if there are any other clients present
             if (room.NumClients > 1)
