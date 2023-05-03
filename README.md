@@ -61,4 +61,4 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 ![counters](https://user-images.githubusercontent.com/604653/235781324-d6e7f488-9c25-4920-b6be-682e061e8987.png)  
 
 # Settings
-The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software.
+The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
