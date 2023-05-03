@@ -2,6 +2,8 @@
 This application makes running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind. It's built on .NET 6.0, so requires that the [runtimes](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.16-windows-x64-installer) are installed.
 
 ![eldenbingo-window](https://user-images.githubusercontent.com/604653/235782762-8af61e81-fd18-4ec0-87c8-e2893d895c85.png)  
+![mapview](https://user-images.githubusercontent.com/604653/235779143-aa708a4e-0443-49fb-96b7-b8c3dce73e67.png)  
+*Spectating two players*
 
 # Overview of Features
 * Host a server capable of running multiple bingo races at once
@@ -15,7 +17,7 @@ This application makes running, administrating, spectating and streaming Elden R
 * Customize bingo board color/size/font
 
 # Hosting your own server
-Download and install the latest server binaries (not yet available) or download the regular application and open Settings, and then enable "Host bingo server on launch".  
+Download and install the latest [server binaries](https://github.com/awsker/EldenBingo/releases/tag/Server) or download the regular application and open Settings, and then enable "Host bingo server on launch".  
 ![host](https://user-images.githubusercontent.com/604653/235767838-ae5752a7-e9e7-4abb-a1d1-c8e6a59292aa.png)
 
 Remember to set-up the appropriate port forwarding.
@@ -44,8 +46,6 @@ Use the match control buttons at the bottom to start, pause or stop the match.
 
 # Viewing the map
 Click the 'Open Map'-button at the top to display the Map window. This OpenGL window will show a map over The Lands Between and the position of all the players on your team. As a spectator, you will be able to see all players simultaneously. The map will try to fit all players in view at the same time, but if you want to follow a specific player you can press ethe number keys on your keyboard (1-9). 0 will reset to 'Fit all'. Press the 'N' key to toggle name tags.  
-![mapview](https://user-images.githubusercontent.com/604653/235779143-aa708a4e-0443-49fb-96b7-b8c3dce73e67.png)  
-*Spectating two players*
 
 ## Showing up on the map
 The application will try to detect a running instance of EldenRing.exe. You can also press the 'Start Elden Ring' button in the top right corner to have the application start Elden Ring without Easy Anti-Cheat enabled. This is required for the application to be able to read the game memory and fetch your current position. It will always show the map of the overworld, even if players are underground. Players underground will be rendered as slightly transparent.
