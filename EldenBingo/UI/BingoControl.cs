@@ -291,7 +291,6 @@ namespace EldenBingo.UI
             private readonly ToolTip _toolTip;
             private Color _color;
             private TeamCounter[] _counters;
-            private float _fontSize;
             private bool _marked;
             private bool _mouseOver;
 
@@ -403,13 +402,36 @@ namespace EldenBingo.UI
 
             private void drawBingoText(PaintEventArgs e)
             {
+                const int textUp = 3;
                 var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
-                var textUp = (int)(Font.Size * 0.2);
+                var f = Font;
+                Size size = TextRenderer.MeasureText(Text, f, new Size(ClientRectangle.Width, ClientRectangle.Height));
+                while (size.Width > ClientRectangle.Width || size.Height > ClientRectangle.Height + textUp)
+                {
+                    f = new Font(Font.FontFamily, f.Size - .2f, Font.Style);
+                    size = TextRenderer.MeasureText(Text, f, new Size(ClientRectangle.Width, ClientRectangle.Height), flags);
+                }
                 var textRect = new Rectangle(0, 0 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
                 var shadowRect = new Rectangle(1, 1 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
                 var shadowColor = Color.FromArgb(96, 0, 0, 0);
-                TextRenderer.DrawText(e, Text, Font, shadowRect, shadowColor, flags: flags);
-                TextRenderer.DrawText(e, Text, Font, textRect, TextColor, flags: flags);
+                TextRenderer.DrawText(e, Text, f, shadowRect, shadowColor, flags);
+                TextRenderer.DrawText(e, Text, f, textRect, TextColor, flags);
+            }
+
+            private static string? findLongestWord(Graphics g, string text, Font font)
+            {
+                string? longest = null;
+                float longestLength = 0f;
+                foreach(var word in text.Split(" "))
+                {
+                    var len = g.MeasureString(word, font);
+                    if(len.Width > longestLength)
+                    {
+                        longest = word;
+                        longestLength = len.Width;
+                    }
+                }
+                return longest;
             }
 
             private void drawCounters(PaintEventArgs e)
