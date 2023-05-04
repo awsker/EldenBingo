@@ -277,6 +277,7 @@ namespace EldenBingo
             if (_server == null)
             {
                 _server = new Server(Properties.Settings.Default.Port);
+                _server.StatusChanged += server_StatusChanged;
                 _server.Host();
             }
         }
@@ -381,6 +382,11 @@ namespace EldenBingo
             client.IncomingData -= client_IncomingData;
             client.StatusChanged -= client_StatusChanged;
             client.RoomChanged -= client_RoomChanged;
+        }
+
+        private void server_StatusChanged(object? sender, StatusEventArgs e)
+        {
+            _consoleControl.PrintToConsole(e.Status, e.Color);
         }
 
         private async Task tryStartingGameWithoutEAC()

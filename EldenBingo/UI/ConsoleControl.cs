@@ -3,7 +3,7 @@
 namespace EldenBingo.UI
 {
     internal partial class ConsoleControl : ClientUserControl
-    {
+    {        
         public ConsoleControl() : base()
         {
             InitializeComponent();
@@ -31,10 +31,10 @@ namespace EldenBingo.UI
 
         private void client_StatusChanged(object? sender, StatusEventArgs e)
         {
-            printToConsole(e.Status, e.Color, true);
+            PrintToConsole(e.Status, e.Color, true);
         }
 
-        private void printToConsole(string text, Color color, bool timestamp = true)
+        public void PrintToConsole(string text, Color color, bool timestamp = true)
         {
             void printAction()
             {

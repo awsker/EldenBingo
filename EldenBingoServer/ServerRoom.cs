@@ -16,7 +16,7 @@ namespace EldenBingoServer
             AdminPassword = adminPassword;
             CreateTime = DateTime.Now;
             _creatorGuid = creator.UserGuid;
-            _creatorIp = getClientIp(creator);
+            _creatorIp = Server.GetClientIp(creator);
             Match.MatchStatusChanged += match_MatchStatusChanged;
         }
 
@@ -43,7 +43,7 @@ namespace EldenBingoServer
         public bool IsAdminByDefault(ClientModel client, string name)
         {
             return client.UserGuid == _creatorGuid ||
-                name == _creatorName && _creatorIp != null && _creatorIp == getClientIp(client);
+                name == _creatorName && _creatorIp != null && _creatorIp == Server.GetClientIp(client);
         }
 
         public bool IsCorrectAdminPassword(string pass)
@@ -61,13 +61,6 @@ namespace EldenBingoServer
         {
             TimerElapsed?.Invoke(_timer, EventArgs.Empty);
             stopTimer();
-        }
-
-        private string? getClientIp(ClientModel client)
-        {
-            if (client.TcpClient.Client.RemoteEndPoint is IPEndPoint ip)
-                return ip.Address.ToString();
-            return null;
         }
 
         private void match_MatchStatusChanged(object? sender, EventArgs e)

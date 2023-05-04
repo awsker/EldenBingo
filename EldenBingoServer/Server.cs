@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using System.Collections.Concurrent;
+using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,7 +9,9 @@ namespace EldenBingoServer
     public class Server
     {
         //10 seconds countdown before match starts
-        private const int MatchStartCountdown = 9999;
+        private const int MatchStartCountdown = 99;
+
+        private static readonly Color StatusColor = Color.CornflowerBlue;
 
         private readonly ConcurrentBag<ClientModel> _clients;
         private readonly IPAddress[] _ipAddress;
@@ -31,6 +34,8 @@ namespace EldenBingoServer
 
         public event EventHandler<StringEventArgs>? OnError;
 
+        public event EventHandler<StatusEventArgs>? StatusChanged;
+
         #region Public properties
 
         public IPAddress[] IPAddresses
@@ -42,6 +47,13 @@ namespace EldenBingoServer
         #endregion Public properties
 
         #region Public methods
+
+        public static string? GetClientIp(ClientModel client)
+        {
+            if (client.TcpClient.Client.RemoteEndPoint is IPEndPoint ip)
+                return ip.Address.ToString();
+            return string.Empty;
+        }
 
         public void Host()
         {
@@ -58,6 +70,7 @@ namespace EldenBingoServer
                 thread.Start();
             }
             _hosting = true;
+            onStatus($"Hosting server on port {_port}", StatusColor);
         }
 
         public async void Stop()
@@ -73,6 +86,7 @@ namespace EldenBingoServer
                 tcp.Stop();
             }
             _cancelToken.Cancel();
+            onStatus($"Stopped server", StatusColor);
         }
 
         #endregion Public methods
@@ -543,6 +557,11 @@ namespace EldenBingoServer
             }
         }
 
+        private void onStatus(string message, Color color)
+        {
+            StatusChanged?.Invoke(this, new StatusEventArgs(message, color));
+        }
+
         private async void runTcpListener(IPAddress ip)
         {
             try
@@ -578,7 +597,7 @@ namespace EldenBingoServer
             await sendPacketToClient(p, client);
         }
 
-        private async void sendMatchData(ServerRoom room)
+        private async Task sendMatchData(ServerRoom room)
         {
             //Recalculate match live status
             bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
@@ -649,7 +668,6 @@ namespace EldenBingoServer
         {
             room.Match.Board = board;
             await setRoomMatchStatus(room, MatchStatus.NotRunning);
-            sendMatchData(room);
         }
 
         private async Task<(bool, string?)> setRoomMatchStatus(ServerRoom room, MatchStatus status)
@@ -736,7 +754,7 @@ namespace EldenBingoServer
                         break;
                     }
             }
-            sendMatchData(room);
+            await sendMatchData(room);
             return (error != null, error);
         }
 

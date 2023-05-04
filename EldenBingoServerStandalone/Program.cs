@@ -23,9 +23,15 @@ namespace EldenBingoServerStandalone
             }
             var server = new Server(port);
             server.OnError += server_onError;
+            server.StatusChanged += server_StatusChanged;
             server.Host();
-            Console.WriteLine($"Hosting Elden Bingo server on port {port}");
+            
             Thread.Sleep(Timeout.Infinite);
+        }
+
+        private static void server_StatusChanged(object? sender, StatusEventArgs e)
+        {
+            Console.WriteLine(e.Status);
         }
 
         private static void server_onError(object? sender, StringEventArgs e)
