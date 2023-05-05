@@ -478,7 +478,7 @@ namespace EldenBingo.UI
                 var brush = new SolidBrush(color);
                 g.FillRectangle(brush, new Rectangle(0, 0, Width, Height));
 
-                var gradientColor = /*isChecked ? Color.FromArgb(25, 255, 255, 255) :*/Color.FromArgb(40, 0, 0, 0);
+                var gradientColor = isChecked ? Color.FromArgb(35, 0, 0, 0) : Color.FromArgb(50, 0, 0, 0);
                 var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), gradientColor, Color.Transparent);
                 g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
                 
