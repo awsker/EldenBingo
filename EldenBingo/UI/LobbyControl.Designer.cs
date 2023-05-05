@@ -35,8 +35,8 @@
             this._scoreboardControl = new EldenBingo.UI.ScoreboardControl();
             this._logBoxBorderPanel = new System.Windows.Forms.Panel();
             this._logTextBox = new EldenBingo.UI.RichTextBoxCustom();
-            this._matchStatusLabel = new System.Windows.Forms.Label();
             this._timerLabel = new System.Windows.Forms.Label();
+            this._matchStatusLabel = new System.Windows.Forms.Label();
             this.adminControl1 = new EldenBingo.UI.AdminControl();
             this._clientList = new EldenBingo.UI.ClientListControl();
             this._adminInfoLabel = new System.Windows.Forms.Label();
@@ -141,6 +141,17 @@
             this._logTextBox.TabIndex = 8;
             this._logTextBox.Text = "";
             // 
+            // _timerLabel
+            // 
+            this._timerLabel.Font = new System.Drawing.Font("Segoe UI", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this._timerLabel.ForeColor = System.Drawing.Color.White;
+            this._timerLabel.Location = new System.Drawing.Point(6, 30);
+            this._timerLabel.Name = "_timerLabel";
+            this._timerLabel.Size = new System.Drawing.Size(243, 53);
+            this._timerLabel.TabIndex = 6;
+            this._timerLabel.Text = "00:00:00";
+            this._timerLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
             // _matchStatusLabel
             // 
             this._matchStatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -152,17 +163,6 @@
             this._matchStatusLabel.Size = new System.Drawing.Size(264, 23);
             this._matchStatusLabel.TabIndex = 7;
             this._matchStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // _timerLabel
-            // 
-            this._timerLabel.Font = new System.Drawing.Font("Segoe UI", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this._timerLabel.ForeColor = System.Drawing.Color.White;
-            this._timerLabel.Location = new System.Drawing.Point(6, 23);
-            this._timerLabel.Name = "_timerLabel";
-            this._timerLabel.Size = new System.Drawing.Size(243, 60);
-            this._timerLabel.TabIndex = 6;
-            this._timerLabel.Text = "00:00:00";
-            this._timerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // adminControl1
             // 

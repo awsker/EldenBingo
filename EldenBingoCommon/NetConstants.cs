@@ -24,8 +24,8 @@ namespace EldenBingoCommon
         {
             new ColorName(Color.FromArgb(170, 16, 12), "Red"),
             new ColorName(Color.FromArgb(9, 92, 168), "Blue"),
-            new ColorName(Color.FromArgb(40, 179, 16), "Green"),
-            new ColorName(Color.FromArgb(204, 104, 0), "Orange"),
+            new ColorName(Color.FromArgb(5, 149, 15), "Green"),
+            new ColorName(Color.FromArgb(193, 112, 0), "Orange"),
             new ColorName(Color.FromArgb(135, 35, 208), "Purple"),
             new ColorName(Color.FromArgb(78, 204, 204), "Cyan"),
             new ColorName(Color.FromArgb(237, 115, 216), "Pink"),
@@ -77,6 +77,15 @@ namespace EldenBingoCommon
                 return SpectatorColor;
             if (team >= 0 && team < TeamColors.Length)
                 return TeamColors[team].Color;
+            return Color.Empty;
+        }
+
+        public static Color GetTeamColorBright(int team)
+        {
+            if (team == -1)
+                return SpectatorColor.Brighten(0.2f);
+            if (team >= 0 && team < TeamColors.Length)
+                return TeamColors[team].Color.Brighten(0.2f);
             return Color.Empty;
         }
 

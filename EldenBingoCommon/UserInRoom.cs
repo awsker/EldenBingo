@@ -27,9 +27,19 @@ namespace EldenBingoCommon
         {
             get
             {
-                if (IsSpectator)
-                    return IsAdmin ? NetConstants.AdminSpectatorColor : NetConstants.SpectatorColor;
+                if (IsSpectator && IsAdmin)
+                    return NetConstants.AdminSpectatorColor;
                 return NetConstants.GetTeamColor(Team);
+            }
+        }
+
+        public System.Drawing.Color ColorBright
+        {
+            get
+            {
+                if (IsSpectator && IsAdmin)
+                    return NetConstants.AdminSpectatorColor;
+                return NetConstants.GetTeamColorBright(Team);
             }
         }
 

@@ -103,7 +103,7 @@ namespace EldenBingo.UI
                     return;
 
                 var playerName = ccd.User?.Nick ?? "Unknown";
-                Color? color = ccd.User?.Color;
+                Color? color = ccd.User?.ColorBright;
 
                 var square = Client.Room.Match.Board.Squares[ccd.Index];
                 updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
@@ -112,7 +112,7 @@ namespace EldenBingo.UI
             if ((e.PacketType == NetConstants.PacketTypes.ServerUserJoinedRoom || e.PacketType == NetConstants.PacketTypes.ServerUserLeftRoom) && e.Object is UserJoinedLeftRoomData jrd)
             {
                 updateMatchLog(new[] { jrd.User.Nick, jrd.Joined ? "joined" : "left", "the lobby" },
-                    new Color?[] { jrd.User.Color, null, null }, true);
+                    new Color?[] { jrd.User.ColorBright, null, null }, true);
             }
         }
 

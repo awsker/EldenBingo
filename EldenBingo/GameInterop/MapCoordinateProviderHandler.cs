@@ -128,7 +128,7 @@ namespace EldenBingo.GameInterop
                     {
                         if (User == null)
                             return DefaultColor;
-                        var c = User.Color;
+                        var c = User.ColorBright;
                         return new SFML.Graphics.Color(c.R, c.G, c.B);
                     }
                 }
@@ -195,7 +195,7 @@ namespace EldenBingo.GameInterop
                 {
                     lock (_user)
                     {
-                        var col = _user.Color;
+                        var col = _user.ColorBright;
                         return new SFML.Graphics.Color(col.R, col.B, col.B);
                     }
                 }

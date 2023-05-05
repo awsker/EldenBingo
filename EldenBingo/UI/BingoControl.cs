@@ -454,7 +454,7 @@ namespace EldenBingo.UI
                         leftXPos = Convert.ToInt32(Width / (i + 1f) - size.Width / 2f);
 
                     int yPos = Height - size.Height;
-                    var color = NetConstants.GetTeamColor(c.Team);
+                    var color = NetConstants.GetTeamColorBright(c.Team);
                     TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos + 1, yPos + 1, size.Width, size.Height), shadowColor, flags: counterFlags);
                     TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos, yPos, size.Width, size.Height), color, flags: counterFlags);
                 }
@@ -473,26 +473,15 @@ namespace EldenBingo.UI
 
                 if (_mouseOver)
                 {
-                    const float brightenFactor = 0.07f;
-                    int brighten(int c, float factor)
-                    {
-                        return Math.Min(255, c + Convert.ToInt32((255 - c) * factor));
-                    }
-                    color = Color.FromArgb(
-                        brighten(color.R, brightenFactor),
-                        brighten(color.G, brightenFactor),
-                        brighten(color.B, brightenFactor)
-                    );
+                    color = color.Brighten(0.14f);
                 }
                 var brush = new SolidBrush(color);
                 g.FillRectangle(brush, new Rectangle(0, 0, Width, Height));
-                //var h = Convert.ToInt32(Height * 0.9f); //Gradient in bottom 40%
-                //if (h > 0)
-                {
-                    var gradientColor = isChecked ? Color.FromArgb(25, 255, 255, 255) : Color.FromArgb(40, 0, 0, 0);
-                    var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, gradientColor);
-                    g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
-                }
+
+                var gradientColor = /*isChecked ? Color.FromArgb(25, 255, 255, 255) :*/Color.FromArgb(40, 0, 0, 0);
+                var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), gradientColor, Color.Transparent);
+                g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
+                
             }
         }
     }

@@ -96,6 +96,7 @@ namespace EldenBingo.UI
                     var team = teamCount.Item1;
                     control.Color = NetConstants.GetTeamColor(team);
                     control.CounterText = teamCount.Item3.ToString();
+                    control.TextColor = NetConstants.GetTeamColorBright(team);
                     control.NameText = teamCount.Item2;
                     control.Width = Width;
                     control.Height = rowHeight;
@@ -126,6 +127,7 @@ namespace EldenBingo.UI
 
             public Color Color { get; set; }
             public string CounterText { get; set; }
+            public Color TextColor { get; set; }
             public string NameText { get; set; }
             public int Team { get; set; }
 
@@ -134,6 +136,7 @@ namespace EldenBingo.UI
                 NameText = name;
                 CounterText = counter;
                 Color = NetConstants.GetTeamColor(team);
+                TextColor = NetConstants.GetTeamColorBright(team);
             }
 
             protected override void OnPaint(PaintEventArgs e)
@@ -150,7 +153,7 @@ namespace EldenBingo.UI
                 g.FillRectangle(new SolidBrush(Color), rect);
                 g.DrawRectangle(new Pen(Color.FromArgb(96, 0, 0, 0)), new Rectangle(0, 0, Math.Max(squareWidth, measure.Width + padding) - 1, Math.Min(Height, measure.Height + padding - 1)));
                 TextRenderer.DrawText(e, CounterText, Font, rect, Color.White, flags: TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-                TextRenderer.DrawText(e, NameText, Font, nameRect, Color, flags: TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+                TextRenderer.DrawText(e, NameText, Font, nameRect, TextColor, flags: TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
         }
     }
