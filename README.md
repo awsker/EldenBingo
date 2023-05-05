@@ -17,7 +17,7 @@ This application makes running, administrating, spectating and streaming Elden R
 * Customize bingo board color/size/font
 
 # Hosting your own server
-Download and install the latest [server binaries](https://github.com/awsker/EldenBingo/releases/tag/Server) or download the regular application and open Settings, and then enable "Host bingo server on launch".  
+Download and install the latest [server binaries](https://github.com/awsker/EldenBingo/releases/) or download the regular application and open Settings, and then enable "Host bingo server on launch".  
 ![host](https://user-images.githubusercontent.com/604653/235767838-ae5752a7-e9e7-4abb-a1d1-c8e6a59292aa.png)
 
 Remember to set-up the appropriate port forwarding.
