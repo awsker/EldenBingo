@@ -2,76 +2,83 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static EldenBingo.GameInterop.MapCoordinateProviderHandler;
 
 namespace EldenBingo.Rendering
 {
-    public class MapWindow2 : SimpleGameWindow
+    public class MapWindow : SimpleGameWindow
     {
         public const float FullMapWidth = 9645f, FullMapHeight = 9119f;
         public static readonly RectangleF RoundTableRectangle = new RectangleF(2740f, 7510f, 200f, 200f);
         private const uint MapWindowDefaultWidth = 640, MapWindowDefaultHeight = 640;
-        private const float MapViewportWidth = 750f, MapViewportHeight = 750f;
+        
 
         private EldenRingMapDrawable _map;
         private RoundTableDrawable _roundTable;
-        private readonly IDictionary<Guid, PlayerDrawable> _players;
-        private readonly IList<Guid> _guidsInOrder;
+        private readonly ISet<Guid> _guids;
+        public IList<PlayerDrawable> Players { get; init; }
 
         private static readonly SFML.Graphics.Font Font;
 
         public LerpCamera Camera { get; init; }
         private CameraController _cameraController;
 
-        public static MapWindow2? Instance { get; private set; }
+        public static MapWindow? Instance { get; private set; }
 
         public bool ShowPlayerNames { get; set; } = true;
 
-        static MapWindow2()
+        static MapWindow()
         {
             Font = new SFML.Graphics.Font("LibraSans.ttf");
         }
 
-        public MapWindow2() : this(MapWindowDefaultWidth, MapWindowDefaultHeight)
+        public MapWindow() : this(MapWindowDefaultWidth, MapWindowDefaultHeight)
         { }
 
-        public MapWindow2(uint width, uint height) : base("Map Window", width, height)
+        public MapWindow(uint width, uint height) : base("Map Window", width, height)
         {
             Instance = this;
-            _players = new Dictionary<Guid, PlayerDrawable>();
-            _guidsInOrder = new List<Guid>();
+            _guids = new HashSet<Guid>();
+            Players = new List<PlayerDrawable>();
 
             Camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f, FullMapHeight * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
             _cameraController = new CameraController(this, Camera);
 
             AddGameObject(_cameraController);
             loadMap();
-            updateCameraSize();
-
-            var player = new MockUserCoordinateProvider("Asker", System.Drawing.Color.Red, new EldenBingoCommon.MapCoordinates(FullMapWidth * 0.5f, FullMapHeight * 0.5f, false, 15f));
-
-            AddCoordinateProvider(player);
         }
 
         public void AddCoordinateProvider(ICoordinateProvider p)
         {
-            if (!_players.ContainsKey(p.Guid))
+            if (!_guids.Contains(p.Guid))
             {
                 var player = new PlayerDrawable(this, p, _roundTable);
                 AddGameObject(player);
-                _players[p.Guid] = player;
-                _guidsInOrder.Add(p.Guid);
+                _guids.Add(p.Guid);
+                Players.Add(player);
             }
         }
 
         public void RemoveCoordinateProvider(Guid g)
         {
-            if (_players.TryGetValue(g, out var player))
+            if (_guids.Contains(g))
             {
-                RemoveGameObject(player);
-                _players.Remove(g);
-                _guidsInOrder.Remove(g);
+                for (int i = 0; i < Players.Count; ++i)
+                {
+                    var p = Players[i];
+                    if (p.Guid == g)
+                    {
+                        RemoveGameObject(p);
+                        if (_cameraController.CameraFollowTarget == p)
+                        {
+                            _cameraController.CameraMode = CameraMode.FitAll;
+                        }
+                    
+                        Players.RemoveAt(i);
+                        break;
+                    }
+                }
             }
+            _guids.Remove(g);
         }
 
         public void DisposeStaticTextureData()
@@ -85,6 +92,7 @@ namespace EldenBingo.Rendering
             InitializingDrawables += onInitializingDrawables;
             BeforeDraw += onBeforeDraw;
             Resized += onWindowResized;
+            KeyPressed += onKeyPressed;
         }
 
         protected override void UnlistenToEvents()
@@ -101,7 +109,6 @@ namespace EldenBingo.Rendering
             _roundTable = new RoundTableDrawable(this);
             AddGameObject(_roundTable);
         }
-
 
         private void onInitializingDrawables(object? sender, EventArgs e)
         {
@@ -122,18 +129,17 @@ namespace EldenBingo.Rendering
 
         private void onWindowResized(object? sender, SizeEventArgs e)
         {
-            updateCameraSize();
-
             Properties.Settings.Default.MapWindowLastWidth = (int)Size.X;
             Properties.Settings.Default.MapWindowLastHeight = (int)Size.Y;
             Properties.Settings.Default.Save();
         }
 
-        private void updateCameraSize()
+        private void onKeyPressed(object? sender, SFML.Window.KeyEventArgs e)
         {
-            var factor = Math.Max(MapViewportWidth / Size.X, MapViewportHeight / Size.Y);
-            Camera.Size = new Vector2f(Size.X * factor, Size.Y * factor);
+            if (e.Code == Keyboard.Key.N)
+            {
+                ShowPlayerNames = !ShowPlayerNames;
+            }
         }
-
     }
 }

@@ -20,9 +20,9 @@ namespace EldenBingo.Rendering
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            if (!_texturesLoaded || _textureData == null || MapWindow2.Instance == null)
+            if (!_texturesLoaded || _textureData == null || MapWindow.Instance == null)
                 return;
-            var viewBounds = MapWindow2.Instance.GetViewBounds();
+            var viewBounds = MapWindow.Instance.GetViewBounds();
             foreach (var texData in _textureData)
             {
                 if (texData.Sprite.GetGlobalBounds().Intersects(viewBounds))
@@ -76,7 +76,7 @@ namespace EldenBingo.Rendering
                 ImageHeight += _textureData[0, y].Height;
             }
 
-            var factors = new Vector2f(ImageWidth / MapWindow2.FullMapWidth, ImageHeight / MapWindow2.FullMapHeight);
+            var factors = new Vector2f(ImageWidth / MapWindow.FullMapWidth, ImageHeight / MapWindow.FullMapHeight);
             uint currX = 0, currY;
             for (int x = 0; x < _textureData.GetLength(0); ++x)
             {

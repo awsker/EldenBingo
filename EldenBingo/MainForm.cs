@@ -16,7 +16,7 @@ namespace EldenBingo
         private readonly Client _client;
         private readonly GameProcessHandler _processHandler;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
-        private MapWindow2? _mapWindow2;
+        private MapWindow? _mapWindow;
         private Thread? _mapWindowThread;
         private Server? _server = null;
 
@@ -37,8 +37,8 @@ namespace EldenBingo
             FormClosing += (o, e) =>
             {
                 _processHandler.Dispose();
-                _mapWindow2?.DisposeStaticTextureData();
-                _mapWindow2?.Stop();
+                _mapWindow?.DisposeStaticTextureData();
+                _mapWindow?.Stop();
                 _client?.Disconnect();
             };
             _client = new Client();
@@ -371,17 +371,17 @@ namespace EldenBingo
                 {
                     windowSize = new Vector2u(500, 500);
                 }
-                _mapWindow2 = new MapWindow2(windowSize.X, windowSize.Y);
+                _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
                 if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
                 {
-                    _mapWindow2.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                    _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
                 }
                 else
                 {
-                    _mapWindow2.Position = new Vector2i(Left + Width, Top);
+                    _mapWindow.Position = new Vector2i(Left + Width, Top);
                 }
-                //_mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
-                _mapWindow2.Start();
+                _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
+                _mapWindow.Start();
             });
             _mapWindowThread.Start();
         }

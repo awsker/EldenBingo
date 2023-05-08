@@ -8,13 +8,13 @@ namespace EldenBingo.Rendering
     {
         private static readonly Sprite _playerArrowSprite;
         private static readonly Sprite _playerIconSprite;
-        private static readonly Shader _shader;
+        private static readonly Shader? _shader;
         private static readonly SFML.Graphics.Font Font;
 
         private float _targetX, _targetY, _targetAngle, _previousX, _previousY, _previousAngle, _interpTime, _angleDiff;
         private float _timeLeftToInterpolate = 0f;
 
-        private MapWindow2 _window;
+        private MapWindow _window;
         private ICoordinateProvider _coordinateProvider;
         private RoundTableDrawable _roundTable;
 
@@ -41,7 +41,7 @@ namespace EldenBingo.Rendering
             }
         }
 
-        public PlayerDrawable(MapWindow2 window, ICoordinateProvider provider, RoundTableDrawable roundTable)
+        public PlayerDrawable(MapWindow window, ICoordinateProvider provider, RoundTableDrawable roundTable)
         {
             _window = window;
             _coordinateProvider = provider;
@@ -49,7 +49,7 @@ namespace EldenBingo.Rendering
             if (provider.MapCoordinates.HasValue)
             {
                 var c = provider.MapCoordinates.Value;
-                SetNewTarget(c.X, c.Y, c.Angle, c.IsUnderground, 0f);
+                setNewTarget(c.X, c.Y, c.Angle, c.IsUnderground, 0f);
             }
             else
             {
@@ -62,6 +62,7 @@ namespace EldenBingo.Rendering
 
         public bool Enabled { get; set; } = true;
         public bool Visible { get; set; } = true;
+        public Guid Guid => _coordinateProvider.Guid;
 
         public float Angle { get; private set; }
         public string Name { get; private set; }
@@ -71,7 +72,7 @@ namespace EldenBingo.Rendering
         public float X { get; private set; }
         public float Y { get; private set; }
 
-        public void SetNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
+        private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
         {
             ValidPosition = true;
             _previousX = X;
@@ -95,13 +96,20 @@ namespace EldenBingo.Rendering
             Underground = underground;
         }
 
-        public void SetNewTargetInvalid()
-        {
-            ValidPosition = false;
-        }
-
         public void Update(float dt)
         {
+            if(_coordinateProvider.Changed)
+            {
+                var newCoords = _coordinateProvider.MapCoordinates;
+                if (newCoords.HasValue && newCoords.Value.X > 0 && newCoords.Value.Y > 0)
+                {
+                    setNewTarget(newCoords.Value.X, newCoords.Value.Y, newCoords.Value.Angle, newCoords.Value.IsUnderground, 0.1f);
+                }
+                else
+                {
+                    ValidPosition = false;
+                }
+            }
             _timeLeftToInterpolate = Math.Max(0, _timeLeftToInterpolate - dt);
             if (_interpTime > 0 && _timeLeftToInterpolate > 0)
             {
@@ -168,7 +176,7 @@ namespace EldenBingo.Rendering
         public Vector2f GetConvertedPosition()
         {
             var pos = new Vector2f(X, Y);
-            if (MapWindow2.RoundTableRectangle.Contains(new PointF(X, Y)))
+            if (MapWindow.RoundTableRectangle.Contains(new PointF(X, Y)))
             {
                 return _roundTable.Position;
             }
@@ -184,7 +192,7 @@ namespace EldenBingo.Rendering
         {
             _playerArrowSprite.Dispose();
             _playerIconSprite.Dispose();
-            _shader.Dispose();
+            _shader?.Dispose();
         }
 
         private float convertAngle(float degreeAngle)

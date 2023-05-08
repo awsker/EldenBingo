@@ -12,9 +12,9 @@ namespace EldenBingo.GameInterop
         private LocalCoordinateProvider _localProvider;
         private object _localProviderLock = new object();
         private IDictionary<Guid, NetUserCoordinateProvider> _netProviders;
-        private MapWindow2 _window;
+        private MapWindow _window;
 
-        public MapCoordinateProviderHandler(MapWindow2 window, GameProcessHandler processHandler, Client client)
+        public MapCoordinateProviderHandler(MapWindow window, GameProcessHandler processHandler, Client client)
         {
             _window = window;
             _gameHandler = processHandler;
