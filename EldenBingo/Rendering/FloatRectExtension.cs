@@ -5,6 +5,9 @@ namespace EldenBingo.Rendering
 {
     public static class FloatRectExtension
     {
+        public static float Right(this FloatRect rect)
+        { return rect.Left + rect.Width; }
+
         public static float Bottom(this FloatRect rect)
         { return rect.Top + rect.Height; }
 
@@ -32,8 +35,5 @@ namespace EldenBingo.Rendering
             maxY = Math.Max(r1.Bottom(), pos.Y);
             return new FloatRect(minX, minY, maxX - minX, maxY - minY);
         }
-
-        public static float Right(this FloatRect rect)
-        { return rect.Left + rect.Width; }
     }
 }

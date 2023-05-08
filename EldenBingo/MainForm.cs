@@ -2,9 +2,11 @@ using EldenBingo.GameInterop;
 using EldenBingo.Net;
 using EldenBingo.Net.DataContainers;
 using EldenBingo.Properties;
+using EldenBingo.Rendering;
 using EldenBingo.UI;
 using EldenBingoCommon;
 using EldenBingoServer;
+using SFML.System;
 using System.Security.Principal;
 
 namespace EldenBingo
@@ -15,6 +17,7 @@ namespace EldenBingo
         private readonly GameProcessHandler _processHandler;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
         private MapWindow? _mapWindow;
+        private Thread? _mapWindowThread;
         private Server? _server = null;
 
         public MainForm()
@@ -344,32 +347,43 @@ namespace EldenBingo
 
         private void openMapWindow()
         {
+            if (_mapWindowThread?.ThreadState == ThreadState.Running)
+                return;
+
             if (_mapCoordinateProviderHandler != null)
             {
                 _mapCoordinateProviderHandler.Dispose();
                 _mapCoordinateProviderHandler = null;
             }
 
-            _mapWindow = new MapWindow();
-            if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
+            _mapWindowThread = new Thread(() =>
             {
-                _mapWindow.Position = new SFML.System.Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
-            }
-            else
-            {
-                _mapWindow.Position = new SFML.System.Vector2i(Left + Width, Top);
-            }
-            if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
-            {
-                _mapWindow.Size = new SFML.System.Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
-            }
-            else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
-            {
-                _mapWindow.Size = new SFML.System.Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
-            }
-            _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
-
-            _mapWindow.Show();
+                Vector2u windowSize;
+                if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
+                {
+                    windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
+                }
+                else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
+                {
+                    windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
+                }
+                else
+                {
+                    windowSize = new Vector2u(500, 500);
+                }
+                _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
+                if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
+                {
+                    _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                }
+                else
+                {
+                    _mapWindow.Position = new Vector2i(Left + Width, Top);
+                }
+                _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
+                _mapWindow.Start();
+            });
+            _mapWindowThread.Start();
         }
 
         private void removeClientListeners(Client? client)

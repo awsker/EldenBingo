@@ -9,7 +9,7 @@ namespace EldenBingoServer
     public class Server
     {
         //10 seconds countdown before match starts
-        private const int MatchStartCountdown = 99;
+        private const int MatchStartCountdown = 9999;
 
         private static readonly Color StatusColor = Color.CornflowerBlue;
 

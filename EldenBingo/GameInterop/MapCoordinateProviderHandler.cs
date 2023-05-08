@@ -1,6 +1,6 @@
 ﻿using EldenBingo.Net;
 using EldenBingo.Net.DataContainers;
-using EldenBingo.UI;
+using EldenBingo.Rendering;
 using EldenBingoCommon;
 
 namespace EldenBingo.GameInterop
@@ -239,6 +239,33 @@ namespace EldenBingo.GameInterop
                     }
                 }
             }
+        }
+
+        internal class MockUserCoordinateProvider : ICoordinateProvider
+        {
+            private string _name;
+            private Color _color;
+            private MapCoordinates _coordinates;
+            private Guid _guid;
+            
+
+            public MockUserCoordinateProvider(string name, Color color, MapCoordinates coordinates)
+            {
+                _name = name;
+                _color = color;
+                _coordinates = coordinates;
+                _guid = Guid.NewGuid();
+            }
+
+            public bool Changed => true;
+
+            public SFML.Graphics.Color Color => new SFML.Graphics.Color(_color.R, _color.B, _color.B);
+
+            public Guid Guid => _guid;
+
+            public MapCoordinates? MapCoordinates => _coordinates;
+
+            public string Name => _name;
         }
     }
 }

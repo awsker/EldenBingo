@@ -72,7 +72,34 @@
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
+
+            _mapSizeCustomRadioButton.CheckedChanged += (_, _) => updateSizeEnable();
+            _mapPositionCustomRadioButton.CheckedChanged += (_, _) => updatePositionEnable();
+            _bingoCustomMaxSizeRadioButton.CheckedChanged += (_, _) => updateMaxSizeEnable();
+
+            updateSizeEnable();
+            updatePositionEnable();
+            updateMaxSizeEnable();
         }
+
+        private void updateSizeEnable()
+        {
+            _mapSizeCustomXTextBox.Enabled = _mapSizeCustomRadioButton.Checked;
+            _mapSizeCustomYTextBox.Enabled = _mapSizeCustomRadioButton.Checked;
+        }
+
+        private void updatePositionEnable()
+        {
+            _mapPositionXTextBox.Enabled = _mapPositionCustomRadioButton.Checked;
+            _mapPositionYTextBox.Enabled = _mapPositionCustomRadioButton.Checked;
+        }
+
+        private void updateMaxSizeEnable()
+        {
+            _bingoMaxXTextBox.Enabled = _bingoCustomMaxSizeRadioButton.Checked;
+            _bingoMaxYTextBox.Enabled = _bingoCustomMaxSizeRadioButton.Checked;
+        }
+
 
         private bool saveSettings()
         {
