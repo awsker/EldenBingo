@@ -25,7 +25,8 @@ namespace EldenBingo.UI
         private readonly object _renderLock = new object();
         private readonly Vector2f RoundTableOffset = new Vector2f(113f + 50f, -113f - 50f);
         private readonly RectangleF RoundTableRectangle = new RectangleF(2740f, 7510f, 200f, 200f);
-        private ICamera? _camera;
+
+        private LerpCamera? _camera;
         private Guid? _cameraTarget;
         private Vector2i? _initPosition;
         private Vector2u? _initSize;
@@ -59,7 +60,7 @@ namespace EldenBingo.UI
                 if (_cameraTarget != value)
                 {
                     _cameraTarget = value;
-                    if (_camera is LerpCamera lerp)
+                    if (_camera is LerpCamera lerp && _cameraTarget.HasValue)
                     {
                         lerp.Snap();
                     }
@@ -279,7 +280,7 @@ namespace EldenBingo.UI
         {
             var imageScale = getMapScaleFactors();
 
-            var previousZoom = _zoomDueToWindowSize;
+            var previousWindowZoom = _zoomDueToWindowSize;
             _zoomDueToWindowSize = Math.Max((float)MapSizeNativeX / window.Size.X, (float)MapSizeNativeY / window.Size.Y);
 
             //If no previous camera set, start camera at middle of map
@@ -290,7 +291,8 @@ namespace EldenBingo.UI
             //Copy position and zoom from previous camera
             else
             {
-                _camera = new LerpCamera(_camera.Position, new Vector2f(window.Size.X, window.Size.Y), _camera.Zoom * _zoomDueToWindowSize / previousZoom);
+                _camera.Size = new Vector2f(window.Size.X, window.Size.Y);
+                _camera.Zoom = _camera.Zoom * _zoomDueToWindowSize / previousWindowZoom;
             }
         }
 

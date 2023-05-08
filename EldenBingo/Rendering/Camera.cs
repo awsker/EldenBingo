@@ -62,6 +62,8 @@ namespace EldenBingo.Rendering
             }
         }
 
+        public bool Enabled => throw new NotImplementedException();
+
         public View GetView()
         {
             if (Changed || _view == null)

@@ -28,6 +28,11 @@ namespace EldenBingo.Rendering
         public bool Changed { get; private set; }
 
         /// <summary>
+        /// True if this camera is enabled and should update
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
         /// Center position of camera
         /// </summary>
         public virtual Vector2f Position
@@ -74,10 +79,16 @@ namespace EldenBingo.Rendering
             if (Changed || _view == null)
             {
                 _view = new View(Position, Size);
-                _view.Zoom(_zoom);
+                _view.Zoom(Zoom);
                 Changed = false;
             }
             return _view;
+        }
+
+        public void StopLerp()
+        {
+            _targetZoom = _zoom;
+            _targetPosition = _position;
         }
 
         public void Snap()
@@ -93,7 +104,7 @@ namespace EldenBingo.Rendering
             }
             else
             {
-                //Never slerp past the target
+                //Never lerp past the target
                 var d = (float)Math.Min(1.0, DTCHANGE * dt);
 
                 _position += (_targetPosition - _position) * d;

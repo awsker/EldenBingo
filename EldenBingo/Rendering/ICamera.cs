@@ -2,7 +2,7 @@
 
 namespace EldenBingo.Rendering
 {
-    public interface ICamera
+    public interface ICamera : IUpdateable
     {
         public bool Changed { get; }
         public Vector2f Position { get; set; }
@@ -10,7 +10,5 @@ namespace EldenBingo.Rendering
         public float Zoom { get; set; }
 
         public SFML.Graphics.View GetView();
-
-        public void Update(float dt);
     }
 }
