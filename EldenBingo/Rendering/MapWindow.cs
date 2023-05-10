@@ -81,11 +81,6 @@ namespace EldenBingo.Rendering
             _guids.Remove(g);
         }
 
-        public void DisposeStaticTextureData()
-        {
-            DisposeDrawables = true;
-        }
-
         protected override void ListenToEvents()
         {
             base.ListenToEvents();
@@ -93,6 +88,7 @@ namespace EldenBingo.Rendering
             BeforeDraw += onBeforeDraw;
             Resized += onWindowResized;
             KeyPressed += onKeyPressed;
+            DisposingDrawables += onDisposingDrawables;
         }
 
         protected override void UnlistenToEvents()
@@ -140,6 +136,13 @@ namespace EldenBingo.Rendering
             {
                 ShowPlayerNames = !ShowPlayerNames;
             }
+        }
+
+        private void onDisposingDrawables(object? sender, EventArgs e)
+        {
+            EldenRingMapDrawable.DisposeStatic();
+            RoundTableDrawable.DisposeStatic();
+            PlayerDrawable.DisposeStatic();
         }
     }
 }

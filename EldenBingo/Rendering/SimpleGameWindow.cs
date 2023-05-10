@@ -10,7 +10,7 @@ namespace EldenBingo.Rendering
         protected IList<IDrawable> Drawables;
         protected bool Running { get; set; }
 
-        private Thread? _renderThread;
+        protected bool _disposeDrawables;
 
         public EventHandler? InitializingDrawables;
         public EventHandler? DisposingDrawables;
@@ -18,8 +18,6 @@ namespace EldenBingo.Rendering
         public EventHandler? AfterUpdate;
         public EventHandler? BeforeDraw;
         public EventHandler? AfterDraw;
-
-        public bool DisposeDrawables { get; set; }
 
         public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) : 
             base(new SFML.Window.VideoMode(width, height), title, styles)
@@ -74,7 +72,7 @@ namespace EldenBingo.Rendering
             if (go is IDrawable draw)
             {
                 Drawables.Remove(draw);
-                if(DisposeDrawables)
+                if(_disposeDrawables)
                     draw.Dispose();
             }
             GameObjects.Add(go);
@@ -98,16 +96,13 @@ namespace EldenBingo.Rendering
             {
                 Running = false;
 
-                if (DisposeDrawables)
+                if (_disposeDrawables)
                 {
                     DisposingDrawables?.Invoke(this, EventArgs.Empty);
                     foreach (var draw in Drawables)
                     {
                         draw.Dispose();
                     }
-                    EldenRingMapDrawable.DisposeStatic();
-                    RoundTableDrawable.DisposeStatic();
-                    PlayerDrawable.DisposeStatic();
                 }
                 Close();
             }
@@ -163,6 +158,11 @@ namespace EldenBingo.Rendering
             rt.Width = view.Size.X;
             rt.Height = view.Size.Y;
             return rt;
+        }
+
+        public void DisposeDrawablesOnExit()
+        {
+            _disposeDrawables = true;
         }
 
         private void onWindowClosed(object? sender, EventArgs e)
