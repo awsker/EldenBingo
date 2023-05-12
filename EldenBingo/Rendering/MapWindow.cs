@@ -1,30 +1,33 @@
 ﻿using EldenBingo.GameInterop;
+using EldenBingo.Rendering.Drawables;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
 namespace EldenBingo.Rendering
 {
+    public enum ToolMode
+    {
+        Draw,
+        Erase
+    }
+
     public class MapWindow : SimpleGameWindow
     {
         public const float FullMapWidth = 9645f, FullMapHeight = 9119f;
         public static readonly RectangleF RoundTableRectangle = new RectangleF(2740f, 7510f, 200f, 200f);
         private const uint MapWindowDefaultWidth = 640, MapWindowDefaultHeight = 640;
-        
-
-        private EldenRingMapDrawable _map;
-        private RoundTableDrawable _roundTable;
-        private readonly ISet<Guid> _guids;
-        public IList<PlayerDrawable> Players { get; init; }
 
         private static readonly SFML.Graphics.Font Font;
-
-        public LerpCamera Camera { get; init; }
+        private readonly ISet<Guid> _guids;
+        private EldenRingMapDrawable _map;
+        private RoundTableDrawable _roundTable;
         private CameraController _cameraController;
+        private LineLayer _lineLayer;
+        private RenderLayer _hudLayer;
 
-        public static MapWindow? Instance { get; private set; }
-
-        public bool ShowPlayerNames { get; set; } = true;
+        public bool MouseLeftHeld { get; private set; }
+        public bool MouseRightHeld { get; private set; }
 
         static MapWindow()
         {
@@ -38,14 +41,37 @@ namespace EldenBingo.Rendering
         {
             Instance = this;
             _guids = new HashSet<Guid>();
+
             Players = new List<PlayerDrawable>();
 
             Camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f, FullMapHeight * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
             _cameraController = new CameraController(this, Camera);
 
             AddGameObject(_cameraController);
-            loadMap();
+
+            _map = new EldenRingMapDrawable();
+            AddGameObject(_map);
+
+            _roundTable = new RoundTableDrawable(this);
+            AddGameObject(_roundTable);
+
+            _lineLayer = new LineLayer(this);
+            AddGameObject(_lineLayer);
+
+            _hudLayer = new RenderLayer(this);
+            _hudLayer.Visible = false;
+            AddGameObject(_hudLayer);
+            /*
+            var text = new TextDrawable("Test", Font);
+            _hudLayer.CustomView = new SFML.Graphics.View(new FloatRect(0, 0, 400, 400));
+            _hudLayer.AddGameObject(text);*/
         }
+
+        public static MapWindow? Instance { get; private set; }
+        public IList<PlayerDrawable> Players { get; init; }
+        public LerpCamera Camera { get; init; }
+        public bool ShowPlayerNames { get; set; } = true;
+        public ToolMode ToolMode { get; set; }
 
         public void AddCoordinateProvider(ICoordinateProvider p)
         {
@@ -72,7 +98,7 @@ namespace EldenBingo.Rendering
                         {
                             _cameraController.CameraMode = CameraMode.FitAll;
                         }
-                    
+
                         Players.RemoveAt(i);
                         break;
                     }
@@ -86,24 +112,25 @@ namespace EldenBingo.Rendering
             base.ListenToEvents();
             InitializingDrawables += onInitializingDrawables;
             BeforeDraw += onBeforeDraw;
+            AfterDraw += onAfterDraw;
             Resized += onWindowResized;
             KeyPressed += onKeyPressed;
             DisposingDrawables += onDisposingDrawables;
+            MouseButtonPressed += onMousePressed;
+            MouseButtonReleased += onMouseReleased;
         }
 
         protected override void UnlistenToEvents()
         {
             base.ListenToEvents();
             InitializingDrawables -= onInitializingDrawables;
-        }
-
-        private void loadMap()
-        {
-            _map = new EldenRingMapDrawable();
-            AddGameObject(_map);
-
-            _roundTable = new RoundTableDrawable(this);
-            AddGameObject(_roundTable);
+            BeforeDraw -= onBeforeDraw;
+            AfterDraw -= onAfterDraw;
+            Resized -= onWindowResized;
+            KeyPressed -= onKeyPressed;
+            DisposingDrawables -= onDisposingDrawables;
+            MouseButtonPressed -= onMousePressed;
+            MouseButtonReleased -= onMouseReleased;
         }
 
         private void onInitializingDrawables(object? sender, EventArgs e)
@@ -119,8 +146,13 @@ namespace EldenBingo.Rendering
 
         private void onBeforeDraw(object? sender, EventArgs e)
         {
-            if (Camera.Changed)
-                SetView(Camera.GetView());
+            SetView(Camera.GetView());
+        }
+
+        private void onAfterDraw(object? sender, EventArgs e)
+        {
+            //Draw HUD last
+            Draw(_hudLayer);
         }
 
         private void onWindowResized(object? sender, SizeEventArgs e)
@@ -136,6 +168,14 @@ namespace EldenBingo.Rendering
             {
                 ShowPlayerNames = !ShowPlayerNames;
             }
+            if (e.Code == Keyboard.Key.Z)
+            {
+                _lineLayer.UndoLastLine();
+            }
+            if (e.Code == Keyboard.Key.C)
+            {
+                _lineLayer.ClearLines();
+            }
         }
 
         private void onDisposingDrawables(object? sender, EventArgs e)
@@ -143,6 +183,27 @@ namespace EldenBingo.Rendering
             EldenRingMapDrawable.DisposeStatic();
             RoundTableDrawable.DisposeStatic();
             PlayerDrawable.DisposeStatic();
+        }
+
+
+        private void onMousePressed(object? sender, MouseButtonEventArgs e)
+        {
+            if (e.Button == Mouse.Button.Left)
+            {
+                MouseLeftHeld = true;
+            }
+            if (e.Button == Mouse.Button.Right)
+            {
+                MouseRightHeld = false;
+            }
+        }
+
+        private void onMouseReleased(object? sender, MouseButtonEventArgs e)
+        {
+            if (e.Button == Mouse.Button.Left)
+                MouseLeftHeld = false;
+            if (e.Button == Mouse.Button.Right)
+                MouseRightHeld = false;
         }
     }
 }

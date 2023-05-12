@@ -10,7 +10,7 @@ namespace EldenBingo.Rendering
         protected IList<IDrawable> Drawables;
         protected bool Running { get; set; }
 
-        protected bool _disposeDrawables;
+        public bool DisposeDrawables { get; private set; }
 
         public EventHandler? InitializingDrawables;
         public EventHandler? DisposingDrawables;
@@ -24,9 +24,6 @@ namespace EldenBingo.Rendering
         {
             SetVerticalSyncEnabled(true);
             SetFramerateLimit(60);
-
-            //Deactivate this context, will be reactivated on the render thread
-            SetActive(false);
 
             GameObjects = new HashSet<object>();
             Updateables = new List<IUpdateable>();
@@ -72,7 +69,7 @@ namespace EldenBingo.Rendering
             if (go is IDrawable draw)
             {
                 Drawables.Remove(draw);
-                if(_disposeDrawables)
+                if(DisposeDrawables)
                     draw.Dispose();
             }
             GameObjects.Add(go);
@@ -96,7 +93,7 @@ namespace EldenBingo.Rendering
             {
                 Running = false;
 
-                if (_disposeDrawables)
+                if (DisposeDrawables)
                 {
                     DisposingDrawables?.Invoke(this, EventArgs.Empty);
                     foreach (var draw in Drawables)
@@ -129,12 +126,11 @@ namespace EldenBingo.Rendering
                     var rect = draw.GetBoundingBox();
                     if (rect != null && !viewBounds.Intersects(rect.Value))
                         continue;
-
-                    var st = RenderStates.Default;
-                    Draw(draw, st);
+                    
+                    Draw(draw);
                 }
-                Display();
                 AfterDraw?.Invoke(this, EventArgs.Empty);
+                Display();
             }
         }
 
@@ -162,7 +158,7 @@ namespace EldenBingo.Rendering
 
         public void DisposeDrawablesOnExit()
         {
-            _disposeDrawables = true;
+            DisposeDrawables = true;
         }
 
         private void onWindowClosed(object? sender, EventArgs e)

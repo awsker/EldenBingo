@@ -2,7 +2,7 @@
 using SFML.System;
 using SFML.Window;
 
-namespace EldenBingo.Rendering
+namespace EldenBingo.Rendering.Drawables
 {
     public enum CameraMode
     {
@@ -141,7 +141,7 @@ namespace EldenBingo.Rendering
                 _camera.Position = new Vector2f(x, y);
                 var zoom = Math.Max(1f, Math.Max(boundingBox.Value.Width / _camera.Size.X, boundingBox.Value.Height / _camera.Size.Y));
                 setZoom(zoom);
-            } 
+            }
             else
             {
                 return;
@@ -218,7 +218,7 @@ namespace EldenBingo.Rendering
 
         private void onMouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
         {
-            if (_mouseLeftHeld)
+            if (_mouseRightHeld)
                 return;
             var change = _userZoom * 0.12f;
             if (e.Delta > 0f)
@@ -234,19 +234,19 @@ namespace EldenBingo.Rendering
 
             if (e.Button == Mouse.Button.Left)
             {
-                CameraMode = CameraMode.FreeCam;
                 _mouseLeftHeld = true;
             }
             if (e.Button == Mouse.Button.Right)
+            {
+                CameraMode = CameraMode.FreeCam;
                 _mouseRightHeld = true;
+            }
         }
 
         private void onMouseReleased(object? sender, MouseButtonEventArgs e)
         {
             if (e.Button == Mouse.Button.Left)
-            {
                 _mouseLeftHeld = false;
-            }
             if (e.Button == Mouse.Button.Right)
                 _mouseRightHeld = false;
         }
@@ -254,7 +254,8 @@ namespace EldenBingo.Rendering
         private void onMouseMoved(object? sender, MouseMoveEventArgs e)
         {
             var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
-            if (_mouseLeftHeld && CameraMode == CameraMode.FreeCam)
+
+            if (Enabled && _mouseRightHeld && CameraMode == CameraMode.FreeCam)
             {
                 var diff = _lastMouseWorldPosition - pos;
                 _camera.Position += diff;
@@ -272,11 +273,6 @@ namespace EldenBingo.Rendering
         private float getZoom()
         {
             return _lastZoom * (CameraMode == CameraMode.FitAll ? Math.Max(1.0f, _userZoom) : _userZoom);
-        }
-
-        private float getUserZoomFromCamera(LerpCamera lerp)
-        {
-            return _userZoom * (lerp.Zoom / getZoom());
         }
 
         private void onWindowClosed(object? sender, EventArgs e)

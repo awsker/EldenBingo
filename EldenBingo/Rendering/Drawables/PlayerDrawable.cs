@@ -2,7 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 
-namespace EldenBingo.Rendering
+namespace EldenBingo.Rendering.Drawables
 {
     public class PlayerDrawable : IDrawable, IUpdateable
     {
