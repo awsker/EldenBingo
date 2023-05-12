@@ -44,11 +44,25 @@ Once you've uploaded the file, a board is generated but will not be made visible
 Use the match control buttons at the bottom to start, pause or stop the match.  
 ![admin-controls](https://user-images.githubusercontent.com/604653/235774234-1d690243-9827-4510-9e51-a0befd3f0b78.png)  
 
-# Viewing the map
-Click the 'Open Map'-button at the top to display the Map window. This OpenGL window will show a map over The Lands Between and the position of all the players on your team. As a spectator, you will be able to see all players simultaneously. The map will try to fit all players in view at the same time, but if you want to follow a specific player you can press the number keys on your keyboard (1-9). 0 will reset to 'Fit all'. Press the 'N' key to toggle name tags.  
+# Map View
+Click the 'Open Map'-button at the top to display the Map window. This OpenGL window will show a map over The Lands Between and the position of all the players on your team. As a spectator, you will be able to see all players simultaneously. The map will try to fit all players in view at the same time.
 
 ## Showing up on the map
 The application will try to detect a running instance of EldenRing.exe. You can also press the 'Start Elden Ring' button in the top right corner to have the application start Elden Ring without Easy Anti-Cheat enabled. This is required for the application to be able to read the game memory and fetch your current position. It will always show the map of the overworld, even if players are underground. Players underground will be rendered as slightly transparent.
+
+## Drawing on the map
+You can use the right mouse button to draw on the map. This is meant for live streaming, and is completely client side at the moment. 
+![telestrator](https://github.com/awsker/EldenBingo/assets/604653/98aa472b-fffd-48d4-9420-aba1b8df25b4)
+
+## Map Controls
+* Left Click - Pan the map (stops following players)
+* Right Click - Draw on the map
+* Mouse wheel - Zoom in and out
+* N - Toggle name tags visibility
+* Z - Undo last line drawn
+* C - Clear all lines
+* F - Fit all players in view
+* 1-9 - Follow a specific player
 
 # Bingo board controls
 * Left click - Check or uncheck a square for you/your team. Visible for everyone.
