@@ -7,8 +7,8 @@ namespace EldenBingo.Rendering.Game
     {
         public bool Visible { get; set; } = true;
         
-        public uint ImageWidth { get; private set; }
-        public uint ImageHeight { get; private set; }
+        public static uint ImageWidth { get; private set; }
+        public static uint ImageHeight { get; private set; }
 
         private static TextureData[,]? _textureData;
         private static bool _texturesLoaded;
