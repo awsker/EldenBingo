@@ -1,6 +1,6 @@
 ﻿using SFML.Graphics;
 
-namespace EldenBingo.Rendering.Drawables
+namespace EldenBingo.Rendering.Game
 {
     public static class OutlineShader
     {

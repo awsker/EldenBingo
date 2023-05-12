@@ -3,12 +3,10 @@ using SFML.Graphics.Glsl;
 using SFML.System;
 using SFML.Window;
 
-namespace EldenBingo.Rendering.Drawables
+namespace EldenBingo.Rendering.Game
 {
     public class LineLayer : RenderLayer
     {
-        private bool _mouseLeftHeld;
-        private bool _mouseRightHeld;
         private Vector2f _lastMouseWorldPosition;
         private MapWindow _mapWindow;
 
@@ -38,8 +36,11 @@ namespace EldenBingo.Rendering.Drawables
         {
             base.ListenToWindowEvents();
             Window.BeforeDraw += window_BeforeDraw;
-            Window.MouseButtonPressed += onMousePressed;
-            Window.MouseButtonReleased += onMouseReleased;
+            if (Window is MapWindow mv)
+            {
+                mv.InputHandler.ActionJustPressed += inputHandler_ActionJustPressed;
+                mv.InputHandler.ActionJustReleased += inputHandler_ActionJustReleased;
+            }
             Window.MouseMoved += onMouseMoved;
         }
 
@@ -47,8 +48,6 @@ namespace EldenBingo.Rendering.Drawables
         {
             base.UnlistenToWindowEvents();
             Window.BeforeDraw -= window_BeforeDraw;
-            Window.MouseButtonPressed -= onMousePressed;
-            Window.MouseButtonReleased -= onMouseReleased;
             Window.MouseMoved -= onMouseMoved;
         }
 
@@ -58,47 +57,40 @@ namespace EldenBingo.Rendering.Drawables
             Shader?.SetUniform("outlinecolor", new Vec4(0f, 0f, 0f, 1f));
         }
 
-        private void onMousePressed(object? sender, MouseButtonEventArgs e)
+        private void inputHandler_ActionJustPressed(object? sender, UIActionEvent e)
         {
-            _lastMouseWorldPosition = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
-
-            if (e.Button == Mouse.Button.Left)
+            if (Enabled && e.Action == UIActions.Draw && _mapWindow.ToolMode == ToolMode.Draw)
             {
-                _mouseLeftHeld = true;
-                if (Enabled && _mapWindow.ToolMode == ToolMode.Draw)
+                if (_currentLine == null && e.MousePosition.HasValue)
                 {
-                    if(_currentLine == null)
-                    {
-                        _currentLine = new Line(DrawColor, _lastMouseWorldPosition);
-                        _lines.Add(_currentLine);
-                        AddGameObject(_currentLine);
-                    }
+                    _lastMouseWorldPosition = screenToWorldCoordinates(e.MousePosition.Value);
+                    _currentLine = new Line(DrawColor, _lastMouseWorldPosition);
+                    _lines.Add(_currentLine);
+                    AddGameObject(_currentLine);
                 }
-            }
-            if (e.Button == Mouse.Button.Right)
-            {
-                _mouseRightHeld = true;
             }
         }
 
-        private void onMouseReleased(object? sender, MouseButtonEventArgs e)
+        private void inputHandler_ActionJustReleased(object? sender, UIActionEvent e)
         {
-            if (e.Button == Mouse.Button.Left)
+            if (Enabled && e.Action == UIActions.Draw && _mapWindow.ToolMode == ToolMode.Draw)
             {
-                _mouseLeftHeld = false;
                 _currentLine = null;
             }
-            if (e.Button == Mouse.Button.Right)
-                _mouseRightHeld = false;
         }
 
         private void onMouseMoved(object? sender, MouseMoveEventArgs e)
         {
             var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
 
-            if (Enabled && _mapWindow.ToolMode == ToolMode.Draw && _mouseLeftHeld && _currentLine != null)
+            if (Enabled && _mapWindow.ToolMode == ToolMode.Draw && _currentLine != null)
             {
-                _currentLine.AddPoint(pos);
+
+                if (_mapWindow.InputHandler.GetFramesHeld(UIActions.Draw) > 0)
+                    _currentLine.AddPoint(pos);
+                //No longer holding, so released when the window wasn't in focus
+                else
+                    _currentLine = null;
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿using EldenBingo.GameInterop;
-using EldenBingo.Rendering.Drawables;
+using EldenBingo.Rendering.Game;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -29,6 +29,8 @@ namespace EldenBingo.Rendering
         public bool MouseLeftHeld { get; private set; }
         public bool MouseRightHeld { get; private set; }
 
+        public InputHandler InputHandler { get; init; }
+
         static MapWindow()
         {
             Font = new SFML.Graphics.Font("LibraSans.ttf");
@@ -43,6 +45,8 @@ namespace EldenBingo.Rendering
             _guids = new HashSet<Guid>();
 
             Players = new List<PlayerDrawable>();
+            InputHandler = new InputHandler(this);
+            AddGameObject(InputHandler);
 
             Camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f, FullMapHeight * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
             _cameraController = new CameraController(this, Camera);

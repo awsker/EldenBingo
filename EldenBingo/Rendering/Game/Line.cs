@@ -1,7 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 
-namespace EldenBingo.Rendering.Drawables
+namespace EldenBingo.Rendering.Game
 {
     public class Line : Transformable, IDrawable
     {

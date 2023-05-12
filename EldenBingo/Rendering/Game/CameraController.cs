@@ -2,7 +2,7 @@
 using SFML.System;
 using SFML.Window;
 
-namespace EldenBingo.Rendering.Drawables
+namespace EldenBingo.Rendering.Game
 {
     public enum CameraMode
     {
@@ -21,8 +21,6 @@ namespace EldenBingo.Rendering.Drawables
         private ICamera _camera;
         private float _lastZoom;
         private float _userZoom;
-        private bool _mouseLeftHeld;
-        private bool _mouseRightHeld;
         private Vector2f _lastMouseWorldPosition;
 
         public CameraController(MapWindow window, ICamera camera)
@@ -151,10 +149,8 @@ namespace EldenBingo.Rendering.Drawables
         private void listenToWindowEvents(MapWindow window)
         {
             window.Resized += onWindowResized;
-            window.KeyPressed += onKeyPressed;
-            window.MouseWheelScrolled += onMouseWheelScrolled;
-            window.MouseButtonPressed += onMousePressed;
-            window.MouseButtonReleased += onMouseReleased;
+            window.InputHandler.ActionJustPressed += inputHandler_ActionPressed;
+            window.InputHandler.FollowPlayerPressed += inputHandler_FollowPlayerPressed;
             window.MouseMoved += onMouseMoved;
             window.Closed += onWindowClosed;
         }
@@ -162,9 +158,8 @@ namespace EldenBingo.Rendering.Drawables
         private void unlistenToWindowEvents(MapWindow window)
         {
             window.Resized -= onWindowResized;
-            window.MouseWheelScrolled -= onMouseWheelScrolled;
-            window.MouseButtonPressed -= onMousePressed;
-            window.MouseButtonReleased -= onMouseReleased;
+            window.InputHandler.ActionJustPressed -= inputHandler_ActionPressed;
+            window.InputHandler.FollowPlayerPressed -= inputHandler_FollowPlayerPressed;
             window.MouseMoved -= onMouseMoved;
             window.Closed -= onWindowClosed;
         }
@@ -174,41 +169,45 @@ namespace EldenBingo.Rendering.Drawables
             updateCameraSize();
         }
 
-        private void onKeyPressed(object? sender, SFML.Window.KeyEventArgs e)
+        private void inputHandler_ActionPressed(object? sender, UIActionEvent e)
         {
-            void followPlayer(int? i)
+            switch (e.Action)
             {
-                if (i.HasValue)
-                {
-                    lock (_window.Players)
+                case UIActions.FitAllPlayers:
+                    followPlayer(null);
+                    break;
+                case UIActions.ZoomIn:
+                case UIActions.ZoomOut:
+                    if (_window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0)
+                        break;
+                    var zoomChange = _userZoom * 0.12f;
+                    if (e.Action == UIActions.ZoomIn)
                     {
-                        if (i >= 0 && i < _window.Players.Count)
-                        {
-                            CameraFollowTarget = _window.Players[i.Value];
-                        }
+                        _userZoom = Math.Max(0.5f, _userZoom - zoomChange);
+                        _camera.Zoom = getZoom();
                     }
-                }
-                else
-                {
-                    CameraFollowTarget = null;
-                    CameraMode = CameraMode.FitAll;
-                }
-            }
-
-            if (e.Code == Keyboard.Key.Num0 || e.Code == Keyboard.Key.Numpad0)
-            {
-                followPlayer(null);
-            }
-            else if (e.Code >= Keyboard.Key.Num1 && e.Code <= Keyboard.Key.Num9)
-            {
-                followPlayer(e.Code - Keyboard.Key.Num1);
-            }
-
-            if (e.Code >= Keyboard.Key.Numpad1 && e.Code <= Keyboard.Key.Numpad9)
-            {
-                followPlayer(e.Code - Keyboard.Key.Numpad1);
+                    else if (e.Action == UIActions.ZoomOut)
+                    {
+                        _userZoom = Math.Max(0.5f, _userZoom + zoomChange);
+                        _camera.Zoom = getZoom();
+                    }
+                    break;
+                case UIActions.MoveMap:
+                    if (e.MousePosition.HasValue)
+                    {
+                        _lastMouseWorldPosition = screenToWorldCoordinates(e.MousePosition.Value);
+                        CameraMode = CameraMode.FreeCam;
+                    }
+                    break;
             }
         }
+
+        private void inputHandler_FollowPlayerPressed(object? sender, FollowPlayerEvent e)
+        {
+            if (e.PlayerIndex >= 0)
+                followPlayer(e.PlayerIndex);
+        }
+
 
         private void updateCameraSize()
         {
@@ -216,46 +215,30 @@ namespace EldenBingo.Rendering.Drawables
             _camera.Size = new Vector2f(_window.Size.X * factor, _window.Size.Y * factor);
         }
 
-        private void onMouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
+        private void followPlayer(int? i)
         {
-            if (_mouseRightHeld)
-                return;
-            var change = _userZoom * 0.12f;
-            if (e.Delta > 0f)
-                _userZoom = Math.Max(0.5f, _userZoom - change);
-            if (e.Delta < 0f)
-                _userZoom = Math.Min(12f, _userZoom + change);
-            _camera.Zoom = getZoom();
-        }
-
-        private void onMousePressed(object? sender, MouseButtonEventArgs e)
-        {
-            _lastMouseWorldPosition = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
-
-            if (e.Button == Mouse.Button.Left)
+            if (i.HasValue)
             {
-                _mouseLeftHeld = true;
+                lock (_window.Players)
+                {
+                    if (i >= 0 && i < _window.Players.Count)
+                    {
+                        CameraFollowTarget = _window.Players[i.Value];
+                    }
+                }
             }
-            if (e.Button == Mouse.Button.Right)
+            else
             {
-                CameraMode = CameraMode.FreeCam;
-                _mouseRightHeld = true;
+                CameraFollowTarget = null;
+                CameraMode = CameraMode.FitAll;
             }
-        }
-
-        private void onMouseReleased(object? sender, MouseButtonEventArgs e)
-        {
-            if (e.Button == Mouse.Button.Left)
-                _mouseLeftHeld = false;
-            if (e.Button == Mouse.Button.Right)
-                _mouseRightHeld = false;
         }
 
         private void onMouseMoved(object? sender, MouseMoveEventArgs e)
         {
             var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
 
-            if (Enabled && _mouseRightHeld && CameraMode == CameraMode.FreeCam)
+            if (Enabled && _window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0 && CameraMode == CameraMode.FreeCam)
             {
                 var diff = _lastMouseWorldPosition - pos;
                 _camera.Position += diff;

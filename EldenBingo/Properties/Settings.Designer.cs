@@ -334,5 +334,17 @@ namespace EldenBingo.Properties {
                 this["HostServerOnLaunch"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FlipMouseButtons {
+            get {
+                return ((bool)(this["FlipMouseButtons"]));
+            }
+            set {
+                this["FlipMouseButtons"] = value;
+            }
+        }
     }
 }
