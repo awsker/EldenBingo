@@ -51,7 +51,7 @@ Click the 'Open Map'-button at the top to display the Map window. This OpenGL wi
 The application will try to detect a running instance of EldenRing.exe. You can also press the 'Start Elden Ring' button in the top right corner to have the application start Elden Ring without Easy Anti-Cheat enabled. This is required for the application to be able to read the game memory and fetch your current position. It will always show the map of the overworld, even if players are underground. Players underground will be rendered as slightly transparent.
 
 ## Drawing on the map
-You can use the right mouse button to draw on the map. This is meant for live streaming, and is completely client side at the moment. 
+You can use the right mouse button to draw on the map. This is meant for live streaming, and is completely client side at the moment.  
 ![telestrator](https://github.com/awsker/EldenBingo/assets/604653/98aa472b-fffd-48d4-9420-aba1b8df25b4)
 
 ## Map Controls
