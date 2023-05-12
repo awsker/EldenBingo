@@ -10,7 +10,7 @@ namespace EldenBingo.Rendering
         protected IList<IDrawable> Drawables;
         protected bool Running { get; set; }
 
-        private Thread? _renderThread;
+        public bool DisposeDrawables { get; private set; }
 
         public EventHandler? InitializingDrawables;
         public EventHandler? DisposingDrawables;
@@ -19,16 +19,11 @@ namespace EldenBingo.Rendering
         public EventHandler? BeforeDraw;
         public EventHandler? AfterDraw;
 
-        public bool DisposeDrawables { get; set; }
-
         public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) : 
             base(new SFML.Window.VideoMode(width, height), title, styles)
         {
             SetVerticalSyncEnabled(true);
             SetFramerateLimit(60);
-
-            //Deactivate this context, will be reactivated on the render thread
-            SetActive(false);
 
             GameObjects = new HashSet<object>();
             Updateables = new List<IUpdateable>();
@@ -105,9 +100,6 @@ namespace EldenBingo.Rendering
                     {
                         draw.Dispose();
                     }
-                    EldenRingMapDrawable.DisposeStatic();
-                    RoundTableDrawable.DisposeStatic();
-                    PlayerDrawable.DisposeStatic();
                 }
                 Close();
             }
@@ -134,12 +126,11 @@ namespace EldenBingo.Rendering
                     var rect = draw.GetBoundingBox();
                     if (rect != null && !viewBounds.Intersects(rect.Value))
                         continue;
-
-                    var st = RenderStates.Default;
-                    Draw(draw, st);
+                    
+                    Draw(draw);
                 }
-                Display();
                 AfterDraw?.Invoke(this, EventArgs.Empty);
+                Display();
             }
         }
 
@@ -163,6 +154,11 @@ namespace EldenBingo.Rendering
             rt.Width = view.Size.X;
             rt.Height = view.Size.Y;
             return rt;
+        }
+
+        public void DisposeDrawablesOnExit()
+        {
+            DisposeDrawables = true;
         }
 
         private void onWindowClosed(object? sender, EventArgs e)

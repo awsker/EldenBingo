@@ -2,7 +2,7 @@
 using SFML.System;
 using SFML.Window;
 
-namespace EldenBingo.Rendering
+namespace EldenBingo.Rendering.Game
 {
     public enum CameraMode
     {
@@ -21,8 +21,6 @@ namespace EldenBingo.Rendering
         private ICamera _camera;
         private float _lastZoom;
         private float _userZoom;
-        private bool _mouseLeftHeld;
-        private bool _mouseRightHeld;
         private Vector2f _lastMouseWorldPosition;
 
         public CameraController(MapWindow window, ICamera camera)
@@ -141,7 +139,7 @@ namespace EldenBingo.Rendering
                 _camera.Position = new Vector2f(x, y);
                 var zoom = Math.Max(1f, Math.Max(boundingBox.Value.Width / _camera.Size.X, boundingBox.Value.Height / _camera.Size.Y));
                 setZoom(zoom);
-            } 
+            }
             else
             {
                 return;
@@ -151,10 +149,8 @@ namespace EldenBingo.Rendering
         private void listenToWindowEvents(MapWindow window)
         {
             window.Resized += onWindowResized;
-            window.KeyPressed += onKeyPressed;
-            window.MouseWheelScrolled += onMouseWheelScrolled;
-            window.MouseButtonPressed += onMousePressed;
-            window.MouseButtonReleased += onMouseReleased;
+            window.InputHandler.ActionJustPressed += inputHandler_ActionPressed;
+            window.InputHandler.FollowPlayerPressed += inputHandler_FollowPlayerPressed;
             window.MouseMoved += onMouseMoved;
             window.Closed += onWindowClosed;
         }
@@ -162,9 +158,8 @@ namespace EldenBingo.Rendering
         private void unlistenToWindowEvents(MapWindow window)
         {
             window.Resized -= onWindowResized;
-            window.MouseWheelScrolled -= onMouseWheelScrolled;
-            window.MouseButtonPressed -= onMousePressed;
-            window.MouseButtonReleased -= onMouseReleased;
+            window.InputHandler.ActionJustPressed -= inputHandler_ActionPressed;
+            window.InputHandler.FollowPlayerPressed -= inputHandler_FollowPlayerPressed;
             window.MouseMoved -= onMouseMoved;
             window.Closed -= onWindowClosed;
         }
@@ -174,41 +169,45 @@ namespace EldenBingo.Rendering
             updateCameraSize();
         }
 
-        private void onKeyPressed(object? sender, SFML.Window.KeyEventArgs e)
+        private void inputHandler_ActionPressed(object? sender, UIActionEvent e)
         {
-            void followPlayer(int? i)
+            switch (e.Action)
             {
-                if (i.HasValue)
-                {
-                    lock (_window.Players)
+                case UIActions.FitAllPlayers:
+                    followPlayer(null);
+                    break;
+                case UIActions.ZoomIn:
+                case UIActions.ZoomOut:
+                    if (_window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0)
+                        break;
+                    var zoomChange = _userZoom * 0.12f;
+                    if (e.Action == UIActions.ZoomIn)
                     {
-                        if (i >= 0 && i < _window.Players.Count)
-                        {
-                            CameraFollowTarget = _window.Players[i.Value];
-                        }
+                        _userZoom = Math.Max(0.5f, _userZoom - zoomChange);
+                        _camera.Zoom = getZoom();
                     }
-                }
-                else
-                {
-                    CameraFollowTarget = null;
-                    CameraMode = CameraMode.FitAll;
-                }
-            }
-
-            if (e.Code == Keyboard.Key.Num0 || e.Code == Keyboard.Key.Numpad0)
-            {
-                followPlayer(null);
-            }
-            else if (e.Code >= Keyboard.Key.Num1 && e.Code <= Keyboard.Key.Num9)
-            {
-                followPlayer(e.Code - Keyboard.Key.Num1);
-            }
-
-            if (e.Code >= Keyboard.Key.Numpad1 && e.Code <= Keyboard.Key.Numpad9)
-            {
-                followPlayer(e.Code - Keyboard.Key.Numpad1);
+                    else if (e.Action == UIActions.ZoomOut)
+                    {
+                        _userZoom = Math.Max(0.5f, _userZoom + zoomChange);
+                        _camera.Zoom = getZoom();
+                    }
+                    break;
+                case UIActions.MoveMap:
+                    if (e.MousePosition.HasValue)
+                    {
+                        _lastMouseWorldPosition = screenToWorldCoordinates(e.MousePosition.Value);
+                        CameraMode = CameraMode.FreeCam;
+                    }
+                    break;
             }
         }
+
+        private void inputHandler_FollowPlayerPressed(object? sender, FollowPlayerEvent e)
+        {
+            if (e.PlayerIndex >= 0)
+                followPlayer(e.PlayerIndex);
+        }
+
 
         private void updateCameraSize()
         {
@@ -216,45 +215,30 @@ namespace EldenBingo.Rendering
             _camera.Size = new Vector2f(_window.Size.X * factor, _window.Size.Y * factor);
         }
 
-        private void onMouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
+        private void followPlayer(int? i)
         {
-            if (_mouseLeftHeld)
-                return;
-            var change = _userZoom * 0.12f;
-            if (e.Delta > 0f)
-                _userZoom = Math.Max(0.5f, _userZoom - change);
-            if (e.Delta < 0f)
-                _userZoom = Math.Min(12f, _userZoom + change);
-            _camera.Zoom = getZoom();
-        }
-
-        private void onMousePressed(object? sender, MouseButtonEventArgs e)
-        {
-            _lastMouseWorldPosition = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
-
-            if (e.Button == Mouse.Button.Left)
+            if (i.HasValue)
             {
-                CameraMode = CameraMode.FreeCam;
-                _mouseLeftHeld = true;
+                lock (_window.Players)
+                {
+                    if (i >= 0 && i < _window.Players.Count)
+                    {
+                        CameraFollowTarget = _window.Players[i.Value];
+                    }
+                }
             }
-            if (e.Button == Mouse.Button.Right)
-                _mouseRightHeld = true;
-        }
-
-        private void onMouseReleased(object? sender, MouseButtonEventArgs e)
-        {
-            if (e.Button == Mouse.Button.Left)
+            else
             {
-                _mouseLeftHeld = false;
+                CameraFollowTarget = null;
+                CameraMode = CameraMode.FitAll;
             }
-            if (e.Button == Mouse.Button.Right)
-                _mouseRightHeld = false;
         }
 
         private void onMouseMoved(object? sender, MouseMoveEventArgs e)
         {
             var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
-            if (_mouseLeftHeld && CameraMode == CameraMode.FreeCam)
+
+            if (Enabled && _window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0 && CameraMode == CameraMode.FreeCam)
             {
                 var diff = _lastMouseWorldPosition - pos;
                 _camera.Position += diff;
@@ -272,11 +256,6 @@ namespace EldenBingo.Rendering
         private float getZoom()
         {
             return _lastZoom * (CameraMode == CameraMode.FitAll ? Math.Max(1.0f, _userZoom) : _userZoom);
-        }
-
-        private float getUserZoomFromCamera(LerpCamera lerp)
-        {
-            return _userZoom * (lerp.Zoom / getZoom());
         }
 
         private void onWindowClosed(object? sender, EventArgs e)

@@ -58,20 +58,23 @@
             this._mapPositionXTextBox = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this._hostServerCheckBox = new System.Windows.Forms.CheckBox();
-            this.label9 = new System.Windows.Forms.Label();
             this._portTextBox = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this._hostServerCheckBox = new System.Windows.Forms.CheckBox();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this._swapMouseButtons = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox5.SuspendLayout();
+            this.groupBox6.SuspendLayout();
             this.SuspendLayout();
             // 
             // _okButton
             // 
             this._okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._okButton.Location = new System.Drawing.Point(300, 360);
+            this._okButton.Location = new System.Drawing.Point(290, 352);
             this._okButton.Name = "_okButton";
             this._okButton.Size = new System.Drawing.Size(75, 23);
             this._okButton.TabIndex = 12;
@@ -82,7 +85,7 @@
             // _cancelButton
             // 
             this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(381, 360);
+            this._cancelButton.Location = new System.Drawing.Point(371, 352);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
             this._cancelButton.TabIndex = 13;
@@ -167,9 +170,9 @@
             this.groupBox2.Controls.Add(this._bingoNoMaxSizeRadioButton);
             this.groupBox2.Controls.Add(this._bingoMaxXTextBox);
             this.groupBox2.Controls.Add(this.label4);
-            this.groupBox2.Location = new System.Drawing.Point(12, 245);
+            this.groupBox2.Location = new System.Drawing.Point(12, 239);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 103);
+            this.groupBox2.Size = new System.Drawing.Size(200, 104);
             this.groupBox2.TabIndex = 11;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Bingo Board Max Size";
@@ -356,10 +359,26 @@
             this.groupBox5.Controls.Add(this._hostServerCheckBox);
             this.groupBox5.Location = new System.Drawing.Point(237, 130);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(209, 122);
+            this.groupBox5.Size = new System.Drawing.Size(209, 90);
             this.groupBox5.TabIndex = 17;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Server";
+            // 
+            // _portTextBox
+            // 
+            this._portTextBox.Location = new System.Drawing.Point(50, 59);
+            this._portTextBox.Name = "_portTextBox";
+            this._portTextBox.Size = new System.Drawing.Size(61, 23);
+            this._portTextBox.TabIndex = 19;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(12, 62);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(32, 15);
+            this.label9.TabIndex = 1;
+            this.label9.Text = "Port:";
             // 
             // _hostServerCheckBox
             // 
@@ -371,21 +390,24 @@
             this._hostServerCheckBox.Text = "Host a bingo server on launch";
             this._hostServerCheckBox.UseVisualStyleBackColor = true;
             // 
-            // label9
+            // groupBox6
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(12, 62);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(32, 15);
-            this.label9.TabIndex = 1;
-            this.label9.Text = "Port:";
+            this.groupBox6.Controls.Add(this._swapMouseButtons);
+            this.groupBox6.Location = new System.Drawing.Point(237, 228);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(209, 115);
+            this.groupBox6.TabIndex = 20;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "Map Input";
             // 
-            // _portTextBox
+            // _swapMouseButtons
             // 
-            this._portTextBox.Location = new System.Drawing.Point(50, 59);
-            this._portTextBox.Name = "_portTextBox";
-            this._portTextBox.Size = new System.Drawing.Size(61, 23);
-            this._portTextBox.TabIndex = 19;
+            this._swapMouseButtons.Location = new System.Drawing.Point(9, 22);
+            this._swapMouseButtons.Name = "_swapMouseButtons";
+            this._swapMouseButtons.Size = new System.Drawing.Size(194, 36);
+            this._swapMouseButtons.TabIndex = 1;
+            this._swapMouseButtons.Text = "Swap mouse buttons              (Left = Draw, Right = Pan)";
+            this._swapMouseButtons.UseVisualStyleBackColor = true;
             // 
             // SettingsDialog
             // 
@@ -393,7 +415,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(468, 395);
+            this.ClientSize = new System.Drawing.Size(458, 387);
+            this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
@@ -417,6 +440,7 @@
             this.groupBox4.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
+            this.groupBox6.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -456,5 +480,7 @@
         private TextBox _portTextBox;
         private Label label9;
         private CheckBox _hostServerCheckBox;
+        private GroupBox groupBox6;
+        private CheckBox _swapMouseButtons;
     }
 }

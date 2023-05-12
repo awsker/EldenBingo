@@ -37,7 +37,7 @@ namespace EldenBingo
             FormClosing += (o, e) =>
             {
                 _processHandler.Dispose();
-                _mapWindow?.DisposeStaticTextureData();
+                _mapWindow?.DisposeDrawablesOnExit();
                 _mapWindow?.Stop();
                 _client?.Disconnect();
             };

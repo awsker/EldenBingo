@@ -77,6 +77,8 @@
             _mapPositionCustomRadioButton.CheckedChanged += (_, _) => updatePositionEnable();
             _bingoCustomMaxSizeRadioButton.CheckedChanged += (_, _) => updateMaxSizeEnable();
 
+            _swapMouseButtons.Checked = Properties.Settings.Default.FlipMouseButtons;
+
             updateSizeEnable();
             updatePositionEnable();
             updateMaxSizeEnable();
@@ -179,6 +181,8 @@
                 //Invalid port
                 return false;
             }
+
+            Properties.Settings.Default.FlipMouseButtons = _swapMouseButtons.Checked;
 
             Properties.Settings.Default.Save();
             return true;
