@@ -19,6 +19,7 @@ namespace EldenBingo
         private MapWindow? _mapWindow;
         private Thread? _mapWindowThread;
         private Server? _server = null;
+        private string _lastRoom = string.Empty;
 
         public MainForm()
         {
@@ -121,6 +122,7 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, false);
+            form.RoomName = _lastRoom;
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 await _client.JoinRoom(
@@ -235,6 +237,10 @@ namespace EldenBingo
 
             void update()
             {
+                if(_client.Room != null)
+                {
+                    _lastRoom = _client.Room.Name;
+                }
                 if (_client.Room != null && _lobbyPage.Parent == null)
                 {
                     tabControl1.TabPages.Add(_lobbyPage);

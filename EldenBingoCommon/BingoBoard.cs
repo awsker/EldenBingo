@@ -19,25 +19,19 @@
             Squares = new BingoBoardSquare[25];
             for (int i = 0; i < squareTexts.Length; ++i)
             {
-                Squares[i] = new BingoBoardSquare(squareTexts[i], tooltips[i], new BingoSquareStatus());
+                Squares[i] = new BingoBoardSquare(squareTexts[i], tooltips[i], null, false, Array.Empty<TeamCounter>());
             }
         }
 
         public BingoBoardSquare[] Squares { get; init; }
     }
 
-    public record struct BingoBoardSquare(string Text, string Tooltip, BingoSquareStatus Status)
+    public record struct BingoBoardSquare(string Text, string Tooltip, int? Team, bool Marked, TeamCounter[] Counters)
     {
-        public bool Checked => Status.Team.HasValue;
-        public int? Team => Status.Team;
-        public bool Marked => Status.Marked;
-        public TeamCounter[] Counters => Status.Counters;
-
+        public bool Checked = Team.HasValue;
         public override string ToString()
         {
             return Text;
         }
     }
-
-    public record struct BingoSquareStatus(int? Team, bool Marked, TeamCounter[] Counters);
 }

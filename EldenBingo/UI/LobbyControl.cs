@@ -141,6 +141,7 @@ namespace EldenBingo.UI
             {
                 e.PreviousRoom.Match.MatchStatusChanged -= match_MatchStatusChanged;
             }
+            clearMatchLog();
             showHideAdminControls();
             if (e.NewRoom != null)
             {
@@ -273,6 +274,21 @@ namespace EldenBingo.UI
         {
             _bingoControl.Size = new Size(panel2.Width - 10, panel2.Height - 10);
         }
+
+        private void clearMatchLog()
+        {
+            void update()
+            {
+                _logTextBox.Clear();
+            }
+            if(InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
+        }
+
 
         private void updateMatchLog(string[] text, Color?[] color, bool timestamp)
         {

@@ -100,13 +100,13 @@ namespace EldenBingoServer
         public CheckStatus[] CheckStatus { get; init; }
         internal ServerRoom Room { get; init; }
 
-        public BingoSquareStatus[] GetSquareDataForUser(UserInRoom user)
+        public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {
-            var squares = new BingoSquareStatus[25];
+            var squares = new BingoBoardSquare[25];
             for (int i = 0; i < 25; ++i)
             {
                 var status = CheckStatus[i];
-                squares[i] = new BingoSquareStatus(status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
+                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
             }
             return squares;
         }

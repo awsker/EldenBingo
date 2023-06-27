@@ -5,7 +5,7 @@ namespace EldenBingoCommon
     #region Server to client
     public record ServerRoomNameSuggestion(string RoomName);
     public record ServerCreateRoomDenied(string Reason);
-    public record ServerJoinRoomAccepted(string RoomName, UserInRoom[] Users);
+    public record ServerJoinRoomAccepted(string RoomName, UserInRoom[] Users, MatchStatus MatchStatus, int Timer);
     public record ServerJoinRoomDenied(string Reason);
     public record ServerUserJoinedRoom(UserInRoom User);
     public record ServerUserLeftRoom(UserInRoom User);
@@ -14,16 +14,10 @@ namespace EldenBingoCommon
     public record ServerUserChat(Guid UserGuid, string Message);
     public record ServerMatchStatusUpdate(MatchStatus MatchStatus, int Timer);
     public record ServerEntireBingoBoardUpdate(BingoBoardSquare[] Squares);
-    public record ServerBingoBoardStatusUpdate(BingoSquareStatus[] BoardStatus);
+    //public record ServerBingoBoardStatusUpdate(BingoSquareStatus[] BoardStatus);
     public record ServerUserChecked(Guid UserGuid, int Index, int? TeamChecked);
     public record ServerUserMarked(Guid UserGuid, int Index, bool Marked);
     public record ServerUserSetCounter(Guid UserGuid, int Index, TeamCounter[] Counters);
-
-    /*
-    public record MatchStatusUpdated(MatchStatus MatchStatus, int ServerTimer);
-    public record BingoSquareText(string[] SquareTexts);
-    public record BingoTooltipText(string[] Tooltips);
-    public record BingoCheckStatus(bool[] Checked);*/
     #endregion
 
     #region Client to server

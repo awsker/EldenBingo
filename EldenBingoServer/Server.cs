@@ -348,15 +348,8 @@ namespace EldenBingoServer
 
                     if (board.UserClicked(tryCheck.Index, userInfo, userToSet))
                     {
-                        var tasks = new List<Task>();
-                        foreach (var recipient in sender.Room.Users)
-                        {
-                            var boardSquares = createBoardStatusPacket(board, recipient);
-                            var userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, boardSquares.BoardStatus[tryCheck.Index].Team);
-                            var task = SendPacketToClient(new Packet(boardSquares, userCheck), recipient.Client);
-                            tasks.Add(task);
-                        }
-                        await Task.WhenAll(tasks);
+                        var userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, board.CheckStatus[tryCheck.Index].CheckedBy);
+                        await sendPacketToRoom(new Packet(userCheck), sender.Room);
                     }
                 }
             }
@@ -375,15 +368,9 @@ namespace EldenBingoServer
 
                 if (board.UserMarked(tryMark.Index, userInfo))
                 {
-                    var tasks = new List<Task>();
                     //Send marking to all players on the same team
-                    foreach (var recipient in sender.Room.Users.Where(u => u.Team == userInfo.Team))
-                    {
-                        var boardSquares = createBoardStatusPacket(board, recipient);
-                        var task = SendPacketToClient(new Packet(boardSquares), recipient.Client);
-                        tasks.Add(task);
-                    }
-                    await Task.WhenAll(tasks.ToArray());
+                    var userMarked = new ServerUserMarked(userInfo.Guid, tryMark.Index, board.CheckStatus[tryMark.Index].IsMarked(userInfo.Team));
+                    await SendPacketToClients(new Packet(userMarked), sender.Room.Users.Where(u => u.Team == userInfo.Team).Select(c => c.Client));
                 }
             }
         }
@@ -412,8 +399,8 @@ namespace EldenBingoServer
                         var tasks = new List<Task>();
                         foreach (var recipient in sender.Room.Users)
                         {
-                            var boardSquares = createBoardStatusPacket(board, recipient);
-                            var task = SendPacketToClient(new Packet(boardSquares), recipient.Client);
+                            var userCounter = new ServerUserSetCounter(userInfo.Guid, trySetCounter.Index, board.CheckStatus[trySetCounter.Index].GetCounters(recipient, sender.Room.Users));
+                            var task = SendPacketToClient(new Packet(userCounter), recipient.Client);
                             tasks.Add(task);
                         }
                         await Task.WhenAll(tasks);
@@ -427,15 +414,16 @@ namespace EldenBingoServer
             var squareData = board.GetSquareDataForUser(user);
             var boardCopy = new BingoBoard(board.Squares);
             for (int i = 0; i < 25; ++i)
-                boardCopy.Squares[i].Status = squareData[i];
+                boardCopy.Squares[i] = squareData[i];
             return new ServerEntireBingoBoardUpdate(boardCopy.Squares);
         }
 
+        /*
         private ServerBingoBoardStatusUpdate createBoardStatusPacket(ServerBingoBoard board, UserInRoom user)
         {
             var squareData = board.GetSquareDataForUser(user);
             return new ServerBingoBoardStatusUpdate(squareData);
-        }
+        }*/
 
         private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
         {
@@ -447,22 +435,24 @@ namespace EldenBingoServer
             //Only send new user to room if there are any other clients present
             if (room.NumUsers > 1)
             {
+                //Send the user as a UserInRoom (we don't want to a BingoClientInRoom since this type is unrecognized by the client)
                 var user = new UserInRoom(clientInRoom);
                 var joinPacket = new ServerUserJoinedRoom(user);
                 //Send join message to all clients already in the room
                 await sendPacketToRoomExcept(new Packet(joinPacket), room, client.ClientGuid);
             }
+
+            //Construct a list of all users as UserInRoom and send these (we don't want to send the users as BingoClientInRoom since this type is unrecognized by the client)
             var currentUsers = new List<UserInRoom>();
             foreach(var user in room.Users)
             {
                 currentUsers.Add(new UserInRoom(user));
             }
-            var joinAccepted = new ServerJoinRoomAccepted(room.Name, currentUsers.ToArray());
-            var matchStatus = new ServerMatchStatusUpdate(room.Match.MatchStatus, room.Match.ServerTimer);
-            var packet = new Packet(joinAccepted, matchStatus);
-            if (room.Match.Board != null)
+            var joinAccepted = new ServerJoinRoomAccepted(room.Name, currentUsers.ToArray(), room.Match.MatchStatus, room.Match.MatchMilliseconds);
+            var packet = new Packet(joinAccepted);
+            if (room.Match.Board is ServerBingoBoard board)
             {
-                packet.AddObject(new ServerEntireBingoBoardUpdate(room.Match.Board.Squares));
+                packet.AddObject(createEntireBoardPacket(board, clientInRoom));
             }
             //Send all users currently present in the room to the new client
             await SendPacketToClient(packet, client);
@@ -505,7 +495,7 @@ namespace EldenBingoServer
             bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
             var (adminSpectators, others) = splitClients(room, c => c.IsAdmin && c.IsSpectator);
 
-            var matchStatus = new ServerMatchStatusUpdate(room.Match.MatchStatus, room.Match.ServerTimer);
+            var matchStatus = new ServerMatchStatusUpdate(room.Match.MatchStatus, room.Match.MatchMilliseconds);
             if (room.Match?.Board is not ServerBingoBoard board)
                 return;
 

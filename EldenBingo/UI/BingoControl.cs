@@ -1,4 +1,5 @@
-﻿using EldenBingoCommon;
+﻿using EldenBingo.Net;
+using EldenBingoCommon;
 using Neto.Shared;
 using System.Drawing.Drawing2D;
 
@@ -48,11 +49,11 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
+            Client.OnRoomChanged += onRoomChanged;
             Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerUserMarked>(userMarked);
             Client.AddListener<ServerUserSetCounter>(userSetCounter);
             Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
-            Client.AddListener<ServerBingoBoardStatusUpdate>(bingoBoardStatusUpdate);
             Client.AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
 
@@ -61,48 +62,15 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
+            Client.OnRoomChanged -= onRoomChanged;
             Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerUserMarked>(userMarked);
             Client.RemoveListener<ServerUserSetCounter>(userSetCounter);
             Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
-            Client.RemoveListener<ServerBingoBoardStatusUpdate>(bingoBoardStatusUpdate);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
 
-        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
-        {
-            if (Client?.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < 25)
-            {
-                var status = Client.BingoBoard.Squares[userCheckedArgs.Index].Status;
-                status.Team = userCheckedArgs.TeamChecked;
-                Client.BingoBoard.Squares[userCheckedArgs.Index].Status = status;
-                setBoard(Client.BingoBoard);
-            }
-        }
-
-        private void userMarked(ClientModel? _, ServerUserMarked userMarkedArgs)
-        {
-            if (Client?.BingoBoard != null && userMarkedArgs.Index >= 0 && userMarkedArgs.Index < 25)
-            {
-                var status = Client.BingoBoard.Squares[userMarkedArgs.Index].Status;
-                status.Marked = userMarkedArgs.Marked;
-                Client.BingoBoard.Squares[userMarkedArgs.Index].Status = status;
-                setBoard(Client.BingoBoard);
-            }
-        }
-
-        private void userSetCounter(ClientModel? _, ServerUserSetCounter userCounterArgs)
-        {
-            if (Client?.BingoBoard != null && userCounterArgs.Index >= 0 && userCounterArgs.Index < 25)
-            {
-                var status = Client.BingoBoard.Squares[userCounterArgs.Index].Status;
-                status.Counters = userCounterArgs.Counters;
-                Client.BingoBoard.Squares[userCounterArgs.Index].Status = status;
-                setBoard(Client.BingoBoard);
-            }
-        }
-
-        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
+        private void onRoomChanged(object? sender, RoomChangedEventArgs e)
         {
             if (Client?.BingoBoard == null)
             {
@@ -114,20 +82,47 @@ namespace EldenBingo.UI
             }
         }
 
-        private void bingoBoardStatusUpdate(ClientModel? _, ServerBingoBoardStatusUpdate boardUpdate)
+        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
         {
-            if (Client?.BingoBoard != null)
+            if (Client?.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < 25)
             {
-                //Ignore data if incorrect size
-                if (boardUpdate.BoardStatus.Length != 25)
-                    return;
+                var status = Client.BingoBoard.Squares[userCheckedArgs.Index];
+                status.Team = userCheckedArgs.TeamChecked;
+                Client.BingoBoard.Squares[userCheckedArgs.Index] = status;
+                updateSquare(Client.BingoBoard, userCheckedArgs.Index);
+            }
+        }
 
-                var board = Client.BingoBoard;
-                for (int i = 0; i < 25; ++i)
-                {
-                    board.Squares[i].Status = boardUpdate.BoardStatus[i];
-                }
-                setBoard(Client.BingoBoard);
+        private void userMarked(ClientModel? _, ServerUserMarked userMarkedArgs)
+        {
+            if (Client?.BingoBoard != null && userMarkedArgs.Index >= 0 && userMarkedArgs.Index < 25)
+            {
+                var status = Client.BingoBoard.Squares[userMarkedArgs.Index];
+                status.Marked = userMarkedArgs.Marked;
+                Client.BingoBoard.Squares[userMarkedArgs.Index] = status;
+                updateSquare(Client.BingoBoard, userMarkedArgs.Index);
+            }
+        }
+
+        private void userSetCounter(ClientModel? _, ServerUserSetCounter userCounterArgs)
+        {
+            if (Client?.BingoBoard != null && userCounterArgs.Index >= 0 && userCounterArgs.Index < 25)
+            {
+                var status = Client.BingoBoard.Squares[userCounterArgs.Index];
+                status.Counters = userCounterArgs.Counters;
+                Client.BingoBoard.Squares[userCounterArgs.Index] = status;
+                updateSquare(Client.BingoBoard, userCounterArgs.Index);
+            }
+        }
+
+        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
+        {
+            if (Client?.BingoBoard == null)
+            {
+                clearBoard();
+            }
+            if (Client?.Room?.Match != null)
+            {
                 updateBoardStatus(Client.Room.Match);
             }
         }
@@ -229,13 +224,7 @@ namespace EldenBingo.UI
             {
                 for (int i = 0; i < 25; ++i)
                 {
-                    var s = board.Squares[i];
-                    Squares[i].Text = s.Text;
-                    Squares[i].ToolTip = s.Tooltip;
-                    Squares[i].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
-                    Squares[i].Marked = s.Marked;
-                    Squares[i].Counters = s.Counters;
-                    Squares[i].Invalidate();
+                    updateSquare(board, i);
                 }
             }
             if (InvokeRequired)
@@ -244,6 +233,17 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        private void updateSquare(BingoBoard board, int index)
+        {
+            var s = board.Squares[index];
+            Squares[index].Text = s.Text;
+            Squares[index].ToolTip = s.Tooltip;
+            Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
+            Squares[index].Marked = s.Marked;
+            Squares[index].Counters = s.Counters;
+            Invalidate(Squares[index].ClientRectangle);
         }
 
         private async void square_MouseDown(object? sender, MouseEventArgs e)
