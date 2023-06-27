@@ -23,7 +23,7 @@ void main()
 uniform vec4 tint;
 void main()
 {
-    vec4 color = gl_Color; 
+    vec4 color = gl_Color;
     color.a *= min(1f, (1f - length(gl_TexCoord[0].xy)) * 5);
     gl_FragColor = color * tint;
 }";
@@ -88,6 +88,11 @@ void main()
             target.Draw(_buffer, states);
         }
 
+        public new void Dispose()
+        {
+            _buffer?.Dispose();
+        }
+
         private void generateVertexBuffers()
         {
             var vertices = new List<Vertex>();
@@ -146,11 +151,6 @@ void main()
             _buffer.Update(vertices.ToArray());
 
             _changed = false;
-        }
-
-        public new void Dispose()
-        {
-            _buffer?.Dispose();
         }
 
         private IList<Vertex> createFan(Vector2f pos, Vector2f normal1, Vector2f normal2, int parts)

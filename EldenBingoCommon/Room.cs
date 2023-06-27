@@ -7,15 +7,15 @@ namespace EldenBingoCommon
         public Room(string name)
         {
             Name = name;
-            clients = new ConcurrentDictionary<Guid, T>();
+            UsersDict = new ConcurrentDictionary<Guid, T>();
             Match = new Match();
         }
 
-        public ICollection<T> Clients => clients.Values;
+        public ICollection<T> Users => UsersDict.Values;
         public Match Match { get; init; }
         public string Name { get; init; }
-        public int NumClients => clients.Count;
-        protected ConcurrentDictionary<Guid, T> clients { get; init; }
+        public int NumUsers => UsersDict.Count;
+        protected ConcurrentDictionary<Guid, T> UsersDict { get; init; }
 
         public static IList<(int, string)> GetPlayerTeams(IEnumerable<T> players)
         {
@@ -29,17 +29,17 @@ namespace EldenBingoCommon
                 if (teamPlayers.Count == 1)
                     list.Add(new(team.Key, teamPlayers[0].Nick));
                 else if (teamPlayers.Count > 1)
-                    list.Add(new(team.Key, NetConstants.GetTeamName(team.Key)));
+                    list.Add(new(team.Key, BingoConstants.GetTeamName(team.Key)));
             }
 
             return list.OrderBy(pt => pt.Item1).ToList();
         }
 
-        public virtual void AddClient(T user)
+        public virtual void AddUser(T user)
         {
-            clients[user.Guid] = user;
+            UsersDict[user.Guid] = user;
         }
-
+        /*
         public virtual byte[] GetBytes(UserInRoom user)
         {
             var byteList = new List<byte[]>();
@@ -52,7 +52,7 @@ namespace EldenBingoCommon
             var includeBoard = Match.MatchStatus >= MatchStatus.Running || user.IsAdmin && user.IsSpectator;
             byteList.Add(includeBoard ? Match.GetBytes(user) : Match.GetBytesWithoutBoard());
             return PacketHelper.ConcatBytes(byteList);
-        }
+        }*/
 
         /// <summary>
         /// Get number of checked squares per team
@@ -94,30 +94,30 @@ namespace EldenBingoCommon
             return list;
         }
 
-        public T? GetClient(Guid userGuid)
+        public T? GetUser(Guid userGuid)
         {
-            return clients.TryGetValue(userGuid, out var user) ? user : null;
+            return UsersDict.TryGetValue(userGuid, out var user) ? user : null;
         }
 
         public virtual IEnumerable<T> GetClientsSorted()
         {
             var cmp = new UserComparer<T>();
-            return clients.Values.OrderBy(u => u, cmp).ToList();
+            return UsersDict.Values.OrderBy(u => u, cmp).ToList();
         }
 
         public IList<(int, string)> GetPlayerTeams()
         {
-            return GetPlayerTeams(Clients);
+            return GetPlayerTeams(Users);
         }
 
-        public virtual bool RemoveClient(T client)
+        public virtual bool RemoveUser(T client)
         {
-            return clients.Remove(client.Guid, out _);
+            return UsersDict.Remove(client.Guid, out _);
         }
 
-        public T? RemoveClient(Guid guid)
+        public T? RemoveUser(Guid guid)
         {
-            clients.Remove(guid, out var obj);
+            UsersDict.Remove(guid, out var obj);
             return obj ?? null;
         }
     }

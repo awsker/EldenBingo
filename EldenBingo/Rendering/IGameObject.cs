@@ -6,6 +6,7 @@
         public bool Visible { get; }
 
         public void Update(float dt);
+
         public void Draw(float dt);
     }
 }

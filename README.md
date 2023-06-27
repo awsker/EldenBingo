@@ -55,9 +55,9 @@ You can use the right mouse button to draw on the map. This is meant for live st
 ![telestrator](https://github.com/awsker/EldenBingo/assets/604653/98aa472b-fffd-48d4-9420-aba1b8df25b4)
 
 ## Map Controls
-* Left click - Pan the map (stops following players)
-* Right click - Draw on the map
-* Mouse wheel up/down - Zoom in and out
+* Left Click - Pan the map (stops following players)
+* Right Click - Draw on the map
+* Mouse wheel - Zoom in and out
 * N - Toggle name tags visibility
 * Z - Undo last line drawn
 * C - Clear all lines

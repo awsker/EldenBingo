@@ -56,7 +56,7 @@ namespace EldenBingo.Rendering.Game
                 ValidPosition = false;
             }
             Name = provider.Name;
-            if(!string.IsNullOrWhiteSpace(Name))
+            if (!string.IsNullOrWhiteSpace(Name))
                 NameTag = new Text(Name, Font, 26) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 2f };
         }
 
@@ -72,33 +72,16 @@ namespace EldenBingo.Rendering.Game
         public float X { get; private set; }
         public float Y { get; private set; }
 
-        private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
+        public static void DisposeStatic()
         {
-            ValidPosition = true;
-            _previousX = X;
-            _previousY = Y;
-            _previousAngle = Angle;
-            _targetX = x;
-            _targetY = y;
-            _targetAngle = convertAngle(angle);
-            if (dist(_previousX, _previousY, _targetX, _targetY) > 10)
-            {
-                //Distance > 10, Teleport instead of interpolate
-                _interpTime = 0;
-                _timeLeftToInterpolate = 0;
-            }
-            else
-            {
-                _angleDiff = (_targetAngle - Angle + 540) % 360 - 180;
-                _interpTime = interpolationTime;
-                _timeLeftToInterpolate = interpolationTime;
-            }
-            Underground = underground;
+            _playerArrowSprite.Dispose();
+            _playerIconSprite.Dispose();
+            _shader?.Dispose();
         }
 
         public void Update(float dt)
         {
-            if(_coordinateProvider.Changed)
+            if (_coordinateProvider.Changed)
             {
                 var newCoords = _coordinateProvider.MapCoordinates;
                 if (newCoords.HasValue && newCoords.Value.X > 0 && newCoords.Value.Y > 0)
@@ -188,11 +171,28 @@ namespace EldenBingo.Rendering.Game
             NameTag?.Dispose();
         }
 
-        public static void DisposeStatic()
+        private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
         {
-            _playerArrowSprite.Dispose();
-            _playerIconSprite.Dispose();
-            _shader?.Dispose();
+            ValidPosition = true;
+            _previousX = X;
+            _previousY = Y;
+            _previousAngle = Angle;
+            _targetX = x;
+            _targetY = y;
+            _targetAngle = convertAngle(angle);
+            if (dist(_previousX, _previousY, _targetX, _targetY) > 10)
+            {
+                //Distance > 10, Teleport instead of interpolate
+                _interpTime = 0;
+                _timeLeftToInterpolate = 0;
+            }
+            else
+            {
+                _angleDiff = (_targetAngle - Angle + 540) % 360 - 180;
+                _interpTime = interpolationTime;
+                _timeLeftToInterpolate = interpolationTime;
+            }
+            Underground = underground;
         }
 
         private float convertAngle(float degreeAngle)

@@ -6,21 +6,34 @@ namespace EldenBingo.Rendering
 {
     public class RenderLayer : IUpdateable, IDrawable
     {
+        protected SimpleGameWindow Window;
+        protected ISet<object> GameObjects;
+        protected IList<IUpdateable> Updateables;
+        protected IList<IDrawable> Drawables;
         private RenderTexture _renderTex;
         private Sprite _renderSprite;
         private SFML.Graphics.View _renderView;
         private SFML.Graphics.View? _customView;
         private Vector2f _customViewInitialSize;
 
-        protected SimpleGameWindow Window;
-        protected ISet<object> GameObjects;
-        protected IList<IUpdateable> Updateables;
-        protected IList<IDrawable> Drawables;
+        public RenderLayer(SimpleGameWindow window)
+        {
+            Window = window;
+
+            _renderTex = new RenderTexture(window.Size.X, window.Size.Y);
+            _renderSprite = new Sprite(_renderTex.Texture);
+            _renderView = new SFML.Graphics.View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            GameObjects = new HashSet<object>();
+            Updateables = new List<IUpdateable>();
+            Drawables = new List<IDrawable>();
+            ListenToWindowEvents();
+        }
 
         public bool Enabled { get; set; } = true;
         public bool Visible { get; set; } = true;
 
         public Shader? Shader { get; set; }
+
         public SFML.Graphics.View? CustomView
         {
             get { return _customView; }
@@ -29,19 +42,6 @@ namespace EldenBingo.Rendering
                 _customView = value;
                 _customViewInitialSize = _customView?.Size ?? new Vector2f();
             }
-        }
-
-        public RenderLayer(SimpleGameWindow window)
-        {
-            Window = window;
-            
-            _renderTex = new RenderTexture(window.Size.X, window.Size.Y);
-            _renderSprite = new Sprite(_renderTex.Texture);
-            _renderView = new SFML.Graphics.View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
-            GameObjects = new HashSet<object>();
-            Updateables = new List<IUpdateable>();
-            Drawables = new List<IDrawable>();
-            ListenToWindowEvents();
         }
 
         public IReadOnlyCollection<object> GetGameObjects()

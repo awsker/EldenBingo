@@ -1,11 +1,11 @@
 using EldenBingo.GameInterop;
 using EldenBingo.Net;
-using EldenBingo.Net.DataContainers;
 using EldenBingo.Properties;
 using EldenBingo.Rendering;
 using EldenBingo.UI;
 using EldenBingoCommon;
 using EldenBingoServer;
+using Neto.Shared;
 using SFML.System;
 using System.Security.Principal;
 
@@ -91,8 +91,7 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, true);
-            var req = new Packet(NetConstants.PacketTypes.ClientRequestRoomName, Array.Empty<byte>());
-            await _client.SendPacketToServer(req);
+            _ = _client.RequestRoomName();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 await _client.CreateRoom(
@@ -122,8 +121,6 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, false);
-            var req = new Packet(NetConstants.PacketTypes.ClientRequestRoomName, Array.Empty<byte>());
-            await _client.SendPacketToServer(req);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 await _client.JoinRoom(
@@ -156,8 +153,13 @@ namespace EldenBingo
         {
             if (_client?.IsConnected == true && _client.Room != null && _client?.LocalUser?.IsSpectator == false)
             {
-                var coordinatesPacket = PacketHelper.CreateCoordinatesPacket(e.Coordinates);
-                _ = _client.SendPacketToServer(coordinatesPacket);
+                ClientCoordinates coords;
+                if (e.Coordinates.HasValue)
+                    coords = new ClientCoordinates(e.Coordinates.Value.X, e.Coordinates.Value.Y, e.Coordinates.Value.Angle, e.Coordinates.Value.IsUnderground);
+                else
+                    coords = new ClientCoordinates(0, 0, 0, false);
+                
+                _ = _client.SendPacketToServer(new Packet(coords));
             }
         }
 
@@ -198,9 +200,12 @@ namespace EldenBingo
 
             client.Connected += client_Connected;
             client.Disconnected += client_Disconnected;
-            client.IncomingData += client_IncomingData;
-            client.StatusChanged += client_StatusChanged;
-            client.RoomChanged += client_RoomChanged;
+            client.OnStatus += client_OnStatus;
+            client.OnError += client_OnError;
+            client.OnRoomChanged += client_RoomChanged;
+
+            client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
         }
 
         private void client_Connected(object? sender, EventArgs e)
@@ -213,16 +218,14 @@ namespace EldenBingo
             updateButtonAvailability();
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
         {
-            if (e.Object is JoinedRoomData roomData)
-            {
-                updateButtonAvailability();
-            }
-            if (e.Object is JoinRoomDeniedData)
-            {
-                updateButtonAvailability();
-            }
+            updateButtonAvailability();
+        }
+
+        private void joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinRoomDeniedArgs)
+        {
+            updateButtonAvailability();
         }
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
@@ -252,10 +255,20 @@ namespace EldenBingo
             update();
         }
 
-        private void client_StatusChanged(object? sender, StatusEventArgs e)
+        private void client_OnStatus(object? sender, StringEventArgs e)
         {
             BeginInvoke(new Action(() =>
             {
+                _consoleControl.PrintToConsole(e.Message, Color.LightBlue);
+                _clientStatusTextBox.Text = _client.GetConnectionStatusString();
+            }));
+        }
+
+        private void client_OnError(object? sender, StringEventArgs e)
+        {
+            BeginInvoke(new Action(() =>
+            {
+                _consoleControl.PrintToConsole(e.Message, Color.Red);
                 _clientStatusTextBox.Text = _client.GetConnectionStatusString();
             }));
         }
@@ -280,7 +293,8 @@ namespace EldenBingo
             if (_server == null)
             {
                 _server = new Server(Properties.Settings.Default.Port);
-                _server.StatusChanged += server_StatusChanged;
+                _server.OnStatus += server_OnStatus;
+                _server.OnError += server_OnError;
                 _server.Host();
             }
         }
@@ -317,7 +331,6 @@ namespace EldenBingo
         {
             var c = Properties.Settings.Default.ControlBackColor;
 
-            _consoleControl.Client = _client;
             _consoleControl.BackColor = c;
 
             _lobbyControl.Client = _client;
@@ -393,14 +406,19 @@ namespace EldenBingo
 
             client.Connected -= client_Connected;
             client.Disconnected -= client_Disconnected;
-            client.IncomingData -= client_IncomingData;
-            client.StatusChanged -= client_StatusChanged;
-            client.RoomChanged -= client_RoomChanged;
+            client.OnRoomChanged -= client_RoomChanged;
+            client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            client.RemoveListener<ServerJoinRoomDenied>(joinRoomDenied);
         }
 
-        private void server_StatusChanged(object? sender, StatusEventArgs e)
+        private void server_OnStatus(object? sender, StringEventArgs e)
         {
-            _consoleControl.PrintToConsole(e.Status, e.Color);
+            _consoleControl.PrintToConsole(e.Message, Color.Orange);
+        }
+
+        private void server_OnError(object? sender, StringEventArgs e)
+        {
+            _consoleControl.PrintToConsole(e.Message, Color.Red);
         }
 
         private async Task tryStartingGameWithoutEAC()

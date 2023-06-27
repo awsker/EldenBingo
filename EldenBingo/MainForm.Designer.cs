@@ -89,7 +89,6 @@
             // 
             // _consoleControl
             // 
-            this._consoleControl.Client = null;
             this._consoleControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this._consoleControl.Location = new System.Drawing.Point(0, 0);
             this._consoleControl.Name = "_consoleControl";

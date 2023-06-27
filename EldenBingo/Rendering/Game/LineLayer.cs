@@ -13,8 +13,6 @@ namespace EldenBingo.Rendering.Game
         private Line? _currentLine;
         private List<Line> _lines;
 
-        public System.Drawing.Color DrawColor { get; set; } = System.Drawing.Color.White;
-
         public LineLayer(MapWindow window) : base(window)
         {
             _mapWindow = window;
@@ -22,14 +20,39 @@ namespace EldenBingo.Rendering.Game
             Shader = OutlineShader.Create();
         }
 
+        public System.Drawing.Color DrawColor { get; set; } = System.Drawing.Color.White;
+
         public override void Draw(RenderTarget target, RenderStates states)
         {
             var zoom = Math.Pow(_mapWindow.Camera.Zoom, 0.75);
-            foreach(var line in GameObjects.OfType<Line>())
+            foreach (var line in GameObjects.OfType<Line>())
             {
                 line.Width = 5f * (float)zoom;
             }
             base.Draw(target, states);
+        }
+
+        public void UndoLastLine()
+        {
+            if (_lines.Count == 0)
+                return;
+
+            var line = _lines[_lines.Count - 1];
+            if (_currentLine != null)
+                _currentLine = null;
+
+            _lines.RemoveAt(_lines.Count - 1);
+            RemoveGameObject(line);
+            line.Dispose();
+        }
+
+        public void ClearLines()
+        {
+            foreach (var line in _lines)
+            {
+                RemoveGameObject(line);
+                line.Dispose();
+            }
         }
 
         protected override void ListenToWindowEvents()
@@ -85,7 +108,6 @@ namespace EldenBingo.Rendering.Game
 
             if (Enabled && _mapWindow.ToolMode == ToolMode.Draw && _currentLine != null)
             {
-
                 if (_mapWindow.InputHandler.GetFramesHeld(UIActions.Draw) > 0)
                     _currentLine.AddPoint(pos);
                 //No longer holding, so released when the window wasn't in focus
@@ -98,29 +120,5 @@ namespace EldenBingo.Rendering.Game
         {
             return Window.MapPixelToCoords(screenCoords);
         }
-
-        public void UndoLastLine()
-        {
-            if (_lines.Count == 0)
-                return;
-
-            var line = _lines[_lines.Count - 1];
-            if (_currentLine != null)
-                _currentLine = null;
-
-            _lines.RemoveAt(_lines.Count - 1);
-            RemoveGameObject(line);
-            line.Dispose();
-        }
-
-        public void ClearLines()
-        {
-            foreach (var line in _lines)
-            {
-                RemoveGameObject(line);
-                line.Dispose();
-            }
-        }
-
     }
 }

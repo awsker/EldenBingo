@@ -5,13 +5,22 @@ namespace EldenBingo.Rendering.Game
 {
     public class EldenRingMapDrawable : IDrawable
     {
-        public bool Visible { get; set; } = true;
-        
-        public static uint ImageWidth { get; private set; }
-        public static uint ImageHeight { get; private set; }
-
         private static TextureData[,]? _textureData;
         private static bool _texturesLoaded;
+        public static uint ImageWidth { get; private set; }
+        public static uint ImageHeight { get; private set; }
+        public bool Visible { get; set; } = true;
+
+        public static void DisposeStatic()
+        {
+            if (_textureData != null)
+            {
+                foreach (var texData in _textureData)
+                {
+                    texData.Dispose();
+                }
+            }
+        }
 
         public void Init()
         {
@@ -33,17 +42,6 @@ namespace EldenBingo.Rendering.Game
         public FloatRect? GetBoundingBox()
         {
             return new FloatRect(new Vector2f(0f, 0f), new Vector2f(ImageWidth, ImageHeight));
-        }
-
-        public static void DisposeStatic()
-        {
-            if (_textureData != null)
-            {
-                foreach (var texData in _textureData)
-                {
-                    texData.Dispose();
-                }
-            }
         }
 
         private void initMapTextures()

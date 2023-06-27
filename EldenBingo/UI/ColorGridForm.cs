@@ -28,9 +28,9 @@ namespace EldenBingo.UI
                 BackColor = Color.Black,
             };
 
-            for (int i = 0; i < NetConstants.TeamColors.Length; ++i)
+            for (int i = 0; i < BingoConstants.TeamColors.Length; ++i)
             {
-                var col = NetConstants.TeamColors[i];
+                var col = BingoConstants.TeamColors[i];
                 var panel = new ColorPanel(col.Color);
                 grid.Controls.Add(panel);
                 var temp = i;

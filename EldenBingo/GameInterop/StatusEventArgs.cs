@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace EldenBingoCommon
+﻿namespace EldenBingo
 {
     public class StatusEventArgs : EventArgs
     {
@@ -10,7 +8,7 @@ namespace EldenBingoCommon
             Color = color;
         }
 
-        public Color Color { get; private set; }
         public string Status { get; private set; }
+        public Color Color { get; private set; }
     }
 }

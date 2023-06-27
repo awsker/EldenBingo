@@ -1,10 +1,10 @@
 ﻿using EldenBingoCommon;
-using System.Net;
+using Neto.Shared;
 using System.Timers;
 
 namespace EldenBingoServer
 {
-    public class ServerRoom : Room<ClientInRoom>
+    public class ServerRoom : Room<BingoClientInRoom>
     {
         private Guid _creatorGuid;
         private string? _creatorIp;
@@ -15,7 +15,7 @@ namespace EldenBingoServer
         {
             AdminPassword = adminPassword;
             CreateTime = DateTime.Now;
-            _creatorGuid = creator.UserGuid;
+            _creatorGuid = creator.ClientGuid;
             _creatorIp = Server.GetClientIp(creator);
             Match.MatchStatusChanged += match_MatchStatusChanged;
         }
@@ -24,25 +24,25 @@ namespace EldenBingoServer
 
         public string AdminPassword { get; init; }
         public BingoBoardGenerator? BoardGenerator { get; set; }
-        public IEnumerable<ClientModel> ClientModels => Clients.Select(c => c.Client);
+        public IEnumerable<BingoClientModel> ClientModels => Users.Select(c => c.Client);
         public DateTime CreateTime { get; init; }
 
-        public ClientInRoom AddClient(ClientModel client, string nick, string adminPass, int team)
+        public BingoClientInRoom AddUser(BingoClientModel client, string nick, string adminPass, int team)
         {
             client.Room = this;
 
-            if (_creatorGuid == client.UserGuid)
+            if (_creatorGuid == client.ClientGuid)
                 _creatorName = nick;
             bool admin = IsAdminByDefault(client, nick) || IsCorrectAdminPassword(adminPass);
-            var cl = new ClientInRoom(client, nick, client.UserGuid, admin, team);
+            var cl = new BingoClientInRoom(client, nick, client.ClientGuid, admin, team);
 
-            AddClient(cl);
+            AddUser(cl);
             return cl;
         }
 
-        public bool IsAdminByDefault(ClientModel client, string name)
+        public bool IsAdminByDefault(BingoClientModel client, string name)
         {
-            return client.UserGuid == _creatorGuid ||
+            return client.ClientGuid == _creatorGuid ||
                 name == _creatorName && _creatorIp != null && _creatorIp == Server.GetClientIp(client);
         }
 
@@ -51,10 +51,10 @@ namespace EldenBingoServer
             return !string.IsNullOrWhiteSpace(AdminPassword) && AdminPassword == pass;
         }
 
-        public ClientInRoom? RemoveClient(ClientModel client)
+        public BingoClientInRoom? RemoveUser(BingoClientModel client)
         {
             //ClientInRoom should have same Guid as clientModel
-            return RemoveClient(client.UserGuid);
+            return RemoveUser(client.ClientGuid);
         }
 
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)

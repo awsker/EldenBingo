@@ -1,11 +1,10 @@
-﻿using EldenBingo.Net.DataContainers;
-using EldenBingoCommon;
+﻿using EldenBingoCommon;
+using Neto.Shared;
 
 namespace EldenBingo.UI
 {
     internal class ScoreboardControl : ClientUserControl
     {
-        private Room<UserInRoom>? _room;
         private IList<ScoreboardRowControl> _rows;
 
         public ScoreboardControl()
@@ -30,7 +29,11 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            Client.IncomingData += client_IncomingData;
+            Client.AddListener<ServerUserChecked>(userChecked);
+            Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
+            Client.AddListener<ServerUserJoinedRoom>(userJoined);
+            Client.AddListener<ServerUserLeftRoom>(userLeft);
         }
 
         protected override void ClientChanged()
@@ -42,32 +45,38 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            Client.IncomingData -= client_IncomingData;
+            Client.RemoveListener<ServerUserChecked>(userChecked);
+            Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
+            Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
+            Client.RemoveListener<ServerUserLeftRoom>(userLeft);
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
         {
-            BingoBoard? board = null;
-            //Checking and marking use the same type of data object, and contain the full board (colors and markings)
-            if (e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged && e.Object is CheckChangedData checkData)
-            {
-                _room = checkData.Room;
-                updateRows();
-            }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerJoinAcceptedRoomData && e.Object is JoinedRoomData roomData)
-            {
-                _room = roomData.Room;
-                updateRows();
-            }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged && e.Object is MatchStatusData match)
-            {
-                updateRows();
-            }
-            else if ((e.PacketType == NetConstants.PacketTypes.ServerUserJoinedRoom || e.PacketType == NetConstants.PacketTypes.ServerUserLeftRoom) && e.Object is UserJoinedLeftRoomData joinLeftData)
-            {
-                updateRows();
-            }
+            updateRows();
         }
+
+        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
+        {
+            updateRows();
+        }
+
+        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatusUpdate)
+        {
+            updateRows();
+        }
+
+        private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
+        {
+            updateRows();
+        }
+
+        private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
+        {
+            updateRows();
+        }
+
 
         private void scoreboardControl_SizeChanged(object? sender, EventArgs e)
         {
@@ -84,19 +93,20 @@ namespace EldenBingo.UI
                 Controls.Clear();
                 _rows.Clear();
 
-                if (_room == null)
+                var room = Client?.Room;
+                if (room == null)
                     return;
 
                 var currentY = 0;
                 const int rowHeight = 25;
                 const int rowPaddingBottom = 3;
-                foreach (var teamCount in _room.GetCheckedSquaresPerTeam())
+                foreach (var teamCount in room.GetCheckedSquaresPerTeam())
                 {
                     var control = new ScoreboardRowControl();
                     var team = teamCount.Item1;
-                    control.Color = NetConstants.GetTeamColor(team);
+                    control.Color = BingoConstants.GetTeamColor(team);
                     control.CounterText = teamCount.Item3.ToString();
-                    control.TextColor = NetConstants.GetTeamColorBright(team);
+                    control.TextColor = BingoConstants.GetTeamColorBright(team);
                     control.NameText = teamCount.Item2;
                     control.Width = Width;
                     control.Height = rowHeight;
@@ -135,8 +145,8 @@ namespace EldenBingo.UI
             {
                 NameText = name;
                 CounterText = counter;
-                Color = NetConstants.GetTeamColor(team);
-                TextColor = NetConstants.GetTeamColorBright(team);
+                Color = BingoConstants.GetTeamColor(team);
+                TextColor = BingoConstants.GetTeamColorBright(team);
             }
 
             protected override void OnPaint(PaintEventArgs e)

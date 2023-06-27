@@ -1,6 +1,6 @@
 ﻿using EldenBingo.Net;
-using EldenBingo.Net.DataContainers;
 using EldenBingoCommon;
+using Neto.Shared;
 
 namespace EldenBingo.UI
 {
@@ -31,8 +31,10 @@ namespace EldenBingo.UI
 
         protected virtual void AddClientListeners()
         {
-            Client.IncomingData += client_IncomingData;
-            Client.RoomChanged += client_RoomChanged;
+            Client.OnRoomChanged += client_RoomChanged;
+            Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            Client.AddListener<ServerUserJoinedRoom>(userJoined);
+            Client.AddListener<ServerUserLeftRoom>(userLeft);
         }
 
         protected virtual void ClientChanged()
@@ -43,8 +45,28 @@ namespace EldenBingo.UI
 
         protected virtual void RemoveClientListeners()
         {
-            Client.IncomingData -= client_IncomingData;
-            Client.RoomChanged -= client_RoomChanged;
+            Client.OnRoomChanged -= client_RoomChanged;
+            Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
+            Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+        }
+
+        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
+        {
+            if (Client?.Room != null)
+                updateUsersList(Client.Room);
+        }
+
+        private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
+        {
+            if (Client?.Room != null)
+                updateUsersList(Client.Room);
+        }
+
+        private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
+        {
+            if (Client?.Room != null)
+                updateUsersList(Client.Room);
         }
 
         private void clearUsersList()
@@ -59,18 +81,6 @@ namespace EldenBingo.UI
                 return;
             }
             clear();
-        }
-
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
-        {
-            if (e.Object is JoinedRoomData roomData)
-            {
-                updateUsersList(roomData.Room);
-            }
-            if (e.Object is UserJoinedLeftRoomData userJoinData)
-            {
-                updateUsersList(userJoinData.Room);
-            }
         }
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)

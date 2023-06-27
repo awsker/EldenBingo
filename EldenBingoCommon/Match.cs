@@ -20,15 +20,6 @@ namespace EldenBingoCommon
             updateMatchStatus();
         }
 
-        public Match(byte[] buffer, ref int offset)
-        {
-            MatchStatus = (MatchStatus)PacketHelper.ReadByte(buffer, ref offset);
-            ServerTimer = PacketHelper.ReadInt(buffer, ref offset);
-            var hasBoard = PacketHelper.ReadBoolean(buffer, ref offset);
-            if (hasBoard)
-                Board = new BingoBoard(buffer, ref offset);
-        }
-
         public event EventHandler? MatchStatusChanged;
 
         public BingoBoard? Board { get; set; }
@@ -100,23 +91,6 @@ namespace EldenBingoCommon
             }
             color = Color.White;
             return string.Empty;
-        }
-
-        public byte[] GetBytes(UserInRoom user)
-        {
-            return PacketHelper.ConcatBytes(
-                new[] { (byte)MatchStatus },
-                BitConverter.GetBytes(MatchMilliseconds),
-                BitConverter.GetBytes(Board != null), //Include bingo board
-                Board?.GetBytes(user) ?? Array.Empty<byte>());
-        }
-
-        public byte[] GetBytesWithoutBoard()
-        {
-            return PacketHelper.ConcatBytes(
-                new[] { (byte)MatchStatus },
-                BitConverter.GetBytes(MatchMilliseconds),
-                BitConverter.GetBytes(false)); //Don't include bingo board
         }
 
         public void UpdateMatchStatus(MatchStatus status, int timer, BingoBoard? board = null)

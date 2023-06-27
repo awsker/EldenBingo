@@ -26,11 +26,6 @@ namespace EldenBingo.Rendering
         private LineLayer _lineLayer;
         private RenderLayer _hudLayer;
 
-        public bool MouseLeftHeld { get; private set; }
-        public bool MouseRightHeld { get; private set; }
-
-        public InputHandler InputHandler { get; init; }
-
         static MapWindow()
         {
             Font = new SFML.Graphics.Font("LibraSans.ttf");
@@ -72,6 +67,10 @@ namespace EldenBingo.Rendering
         }
 
         public static MapWindow? Instance { get; private set; }
+        public bool MouseLeftHeld { get; private set; }
+        public bool MouseRightHeld { get; private set; }
+
+        public InputHandler InputHandler { get; init; }
         public IList<PlayerDrawable> Players { get; init; }
         public LerpCamera Camera { get; init; }
         public bool ShowPlayerNames { get; set; } = true;
@@ -188,7 +187,6 @@ namespace EldenBingo.Rendering
             RoundTableDrawable.DisposeStatic();
             PlayerDrawable.DisposeStatic();
         }
-
 
         private void onMousePressed(object? sender, MouseButtonEventArgs e)
         {

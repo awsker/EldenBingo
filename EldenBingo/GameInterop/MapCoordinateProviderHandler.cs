@@ -1,7 +1,7 @@
 ﻿using EldenBingo.Net;
-using EldenBingo.Net.DataContainers;
 using EldenBingo.Rendering;
 using EldenBingoCommon;
+using Neto.Shared;
 
 namespace EldenBingo.GameInterop
 {
@@ -42,19 +42,16 @@ namespace EldenBingo.GameInterop
 
         private void addClientListeners(Client client)
         {
-            client.RoomChanged += _client_RoomChanged;
-            client.UsersChanged += client_UsersChanged;
-            client.IncomingData += client_IncomingData;
+            client.OnRoomChanged += _client_RoomChanged;
+            client.OnUsersChanged += client_UsersChanged;
+            client.AddListener<ServerUserCoordinates>(incomingCoordinates);
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        private void incomingCoordinates(ClientModel? sender, ServerUserCoordinates coords)
         {
-            if (e.PacketType == NetConstants.PacketTypes.ServerUserCoordinates)
+            if (_netProviders.TryGetValue(coords.UserGuid, out var np))
             {
-                if (e.Object is CoordinateData coords && _netProviders.TryGetValue(coords.User.Guid, out var np))
-                {
-                    np.MapCoordinates = coords.Coordinates;
-                }
+                np.MapCoordinates = new MapCoordinates(coords.X, coords.Y, coords.IsUnderground, coords.Angle);
             }
         }
 
@@ -72,7 +69,7 @@ namespace EldenBingo.GameInterop
             }
             var notPresent = new HashSet<Guid>(_netProviders.Keys);
             //No reason to create coordinate providers for spectators
-            foreach (var user in client.Room.Clients.Where(u => !u.IsSpectator))
+            foreach (var user in client.Room.Users.Where(u => !u.IsSpectator))
             {
                 //Don't create a net coordinate provider for myself
                 if (client.LocalUser != null && user.Guid == client.LocalUser.Guid)
@@ -99,7 +96,7 @@ namespace EldenBingo.GameInterop
 
         private void removeClientListeners(Client client)
         {
-            client.RoomChanged -= _client_RoomChanged;
+            client.OnRoomChanged -= _client_RoomChanged;
         }
 
         internal class LocalCoordinateProvider : ICoordinateProvider
@@ -247,7 +244,6 @@ namespace EldenBingo.GameInterop
             private Color _color;
             private MapCoordinates _coordinates;
             private Guid _guid;
-            
 
             public MockUserCoordinateProvider(string name, Color color, MapCoordinates coordinates)
             {

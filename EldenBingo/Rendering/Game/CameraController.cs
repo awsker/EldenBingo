@@ -176,6 +176,7 @@ namespace EldenBingo.Rendering.Game
                 case UIActions.FitAllPlayers:
                     followPlayer(null);
                     break;
+
                 case UIActions.ZoomIn:
                 case UIActions.ZoomOut:
                     if (_window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0)
@@ -192,6 +193,7 @@ namespace EldenBingo.Rendering.Game
                         _camera.Zoom = getZoom();
                     }
                     break;
+
                 case UIActions.MoveMap:
                     if (e.MousePosition.HasValue)
                     {
@@ -207,7 +209,6 @@ namespace EldenBingo.Rendering.Game
             if (e.PlayerIndex >= 0)
                 followPlayer(e.PlayerIndex);
         }
-
 
         private void updateCameraSize()
         {

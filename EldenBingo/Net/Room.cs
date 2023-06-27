@@ -7,6 +7,7 @@ namespace EldenBingo.Net
         public Room(string name) : base(name)
         { }
 
+        /*
         public Room(byte[] buffer, ref int offset) : base(string.Empty)
         {
             Name = PacketHelper.ReadString(buffer, ref offset);
@@ -18,6 +19,6 @@ namespace EldenBingo.Net
             }
             Match = new Match(buffer, ref offset);
             Match.UpdateMatchStatus(Match.MatchStatus, Match.ServerTimer, Match.Board);
-        }
+        }*/
     }
 }

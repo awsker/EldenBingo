@@ -6,10 +6,9 @@ namespace EldenBingo.Rendering.Game
     public class RoundTableDrawable : IDrawable
     {
         private static Sprite _sprite;
-        private MapWindow _window;
-
         private readonly Vector2f RoundTablePosition = new Vector2f(1750f, MapWindow.FullMapHeight - 1750f);
         private readonly Vector2f RoundTableZoomOffset = new Vector2f(35f, 35f);
+        private MapWindow _window;
 
         static RoundTableDrawable()
         {
@@ -29,14 +28,14 @@ namespace EldenBingo.Rendering.Game
 
         public Vector2f Position => _sprite.Position;
 
-        public void Draw(RenderTarget target, RenderStates states)
-        {
-            _sprite.Draw(target, states);
-        }
-
         public static void DisposeStatic()
         {
             _sprite.Dispose();
+        }
+
+        public void Draw(RenderTarget target, RenderStates states)
+        {
+            _sprite.Draw(target, states);
         }
 
         private void onBeforeDraw_SetPositionAndScale(object? sender, EventArgs e)
@@ -48,6 +47,5 @@ namespace EldenBingo.Rendering.Game
             _sprite.Scale = new Vector2f(scale, scale);
             _sprite.Position = position;
         }
-
     }
 }

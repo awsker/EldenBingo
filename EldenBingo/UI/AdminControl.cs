@@ -1,6 +1,6 @@
 ﻿using EldenBingo.Net;
-using EldenBingo.Net.DataContainers;
 using EldenBingoCommon;
+using Neto.Shared;
 
 namespace EldenBingo.UI
 {
@@ -27,8 +27,8 @@ namespace EldenBingo.UI
                 return;
             Client.Connected += client_Connected;
             Client.Disconnected += client_Disconnected;
-            Client.RoomChanged += client_RoomChanged;
-            Client.IncomingData += client_IncomingData;
+            Client.OnRoomChanged += client_RoomChanged;
+            Client.AddListener<ServerAdminStatusMessage>(adminStatusMessage);
         }
 
         protected override void RemoveClientListeners()
@@ -37,6 +37,8 @@ namespace EldenBingo.UI
                 return;
             Client.Connected -= client_Connected;
             Client.Disconnected -= client_Disconnected;
+            Client.OnRoomChanged -= client_RoomChanged;
+            Client.RemoveListener<ServerAdminStatusMessage>(adminStatusMessage);
         }
 
         private void _browseJsonButton_Click(object sender, EventArgs e)
@@ -100,13 +102,9 @@ namespace EldenBingo.UI
             updateButtonsStatus();
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
+        private void adminStatusMessage(ClientModel? _, ServerAdminStatusMessage message)
         {
-            if (e.PacketType == NetConstants.PacketTypes.ServerToAdminStatusMessage &&
-                e.Object is AdminStatusMessageData messageData)
-            {
-                updateAdminStatusText(messageData.Message, Color.FromArgb(messageData.Color));
-            }
+            updateAdminStatusText(message.Message, Color.FromArgb(message.Color));
         }
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
@@ -136,7 +134,7 @@ namespace EldenBingo.UI
                 return;
             }
             errorProvider1.SetError(_bingoJsonTextBox, null);
-            var p = new Packet(NetConstants.PacketTypes.ClientRandomizeBoard, Array.Empty<byte>());
+            var p = new Packet(new ClientRandomizeBoard(0));
             await Client.SendPacketToServer(p);
         }
 
@@ -145,7 +143,7 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            var p = new Packet(NetConstants.PacketTypes.ClientChangeMatchStatus, new[] { (byte)status });
+            var p = new Packet(new ClientChangeMatchStatus(status));
             await Client.SendPacketToServer(p);
         }
 
@@ -209,7 +207,7 @@ namespace EldenBingo.UI
                 errorProvider1.SetError(_bingoJsonTextBox, null);
                 errorProvider1.SetError(_uploadJsonButton, null);
 
-                var p = new Packet(NetConstants.PacketTypes.ClientBingoJson, PacketHelper.GetStringBytes(json));
+                var p = new Packet(new ClientBingoJson(json, 0));
                 await Client.SendPacketToServer(p);
             }
             catch (IOException ex)

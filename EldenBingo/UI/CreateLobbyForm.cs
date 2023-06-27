@@ -1,5 +1,5 @@
-﻿using EldenBingo.Net.DataContainers;
-using EldenBingoCommon;
+﻿using EldenBingoCommon;
+using Neto.Shared;
 
 namespace EldenBingo.UI
 {
@@ -16,10 +16,21 @@ namespace EldenBingo.UI
 
             if (create && client != null)
             {
-                client.IncomingData += client_IncomingData;
+                client.AddListener<ServerRoomNameSuggestion>(availableRoomNameData);
             }
             initTeamComboBox();
             loadSettings();
+        }
+
+        private void availableRoomNameData(ClientModel? _, ServerRoomNameSuggestion roomNameData)
+        {
+            void update() { RoomName = roomNameData.RoomName; };
+            if(InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
         }
 
         public string AdminPassword
@@ -62,24 +73,16 @@ namespace EldenBingo.UI
             }
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
-        {
-            if (e.Object is AvailableRoomNameData d && RoomName == string.Empty)
-            {
-                RoomName = d.Name;
-            }
-        }
-
         private void CreateLobbyForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _client.IncomingData -= client_IncomingData;
+            _client.RemoveListener<ServerRoomNameSuggestion>(availableRoomNameData);
         }
 
         private void initTeamComboBox()
         {
-            for (int i = -1; i < NetConstants.TeamColors.Length; ++i)
+            for (int i = -1; i < BingoConstants.TeamColors.Length; ++i)
             {
-                _teamComboBox.Items.Add(NetConstants.GetTeamName(i));
+                _teamComboBox.Items.Add(BingoConstants.GetTeamName(i));
             }
             _teamComboBox.SelectedIndex = 0;
             _teamComboBox.SelectedIndexChanged += (o, e) => setPanelColor();
@@ -100,7 +103,7 @@ namespace EldenBingo.UI
 
         private void setPanelColor()
         {
-            _colorPanel.BackColor = NetConstants.GetTeamColor(Team);
+            _colorPanel.BackColor = BingoConstants.GetTeamColor(Team);
         }
 
         private bool validate()

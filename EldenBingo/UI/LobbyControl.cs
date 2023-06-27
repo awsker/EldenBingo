@@ -1,6 +1,6 @@
 ﻿using EldenBingo.Net;
-using EldenBingo.Net.DataContainers;
 using EldenBingoCommon;
+using Neto.Shared;
 
 namespace EldenBingo.UI
 {
@@ -49,8 +49,11 @@ namespace EldenBingo.UI
 
         protected override void AddClientListeners()
         {
-            Client.RoomChanged += client_RoomChanged;
-            Client.IncomingData += client_IncomingData;
+            Client.OnRoomChanged += client_RoomChanged;
+            Client.AddListener<ServerUserChecked>(userChecked);
+            Client.AddListener<ServerUserJoinedRoom>(userJoined);
+            Client.AddListener<ServerUserLeftRoom>(userLeft);
+
         }
 
         protected override void ClientChanged()
@@ -66,9 +69,47 @@ namespace EldenBingo.UI
 
         protected override void RemoveClientListeners()
         {
-            Client.RoomChanged -= client_RoomChanged;
-            Client.IncomingData -= client_IncomingData;
+            Client.OnRoomChanged -= client_RoomChanged;
+            Client.RemoveListener<ServerUserChecked>(userChecked);
+            Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
+            Client.RemoveListener<ServerUserLeftRoom>(userLeft);
         }
+
+        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
+        {
+            if (Client?.Room != null && Client.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < 25)
+            {
+                var user = Client.Room.GetUser(userCheckedArgs.UserGuid);
+                var playerName = user?.Nick ?? "Unknown";
+                Color? color = user?.ColorBright;
+
+                var square = Client.BingoBoard.Squares[userCheckedArgs.Index];
+                updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
+                               new Color?[] { color, null, color }, true);
+
+            }
+        }
+        
+        private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
+        {
+            if (Client?.Room != null)
+            {
+                updateMatchLog(new[] { userJoinedArgs.User.Nick, "joined the lobby" },
+                        new Color?[] { userJoinedArgs.User.ColorBright, null }, true);
+                
+            }
+        }
+
+        private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
+        {
+            if (Client?.Room != null)
+            {
+                updateMatchLog(new[] { userLeftArgs.User.Nick, "left the lobby" },
+                        new Color?[] { userLeftArgs.User.ColorBright, null }, true);
+
+            }
+        }
+
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
         {
@@ -92,28 +133,6 @@ namespace EldenBingo.UI
             _logTextBox.SelectionColor = color;
             _logTextBox.AppendText(text);
             _logTextBox.SelectionColor = _logTextBox.ForeColor;
-        }
-
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
-        {
-            if (e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged && e.Object is CheckChangedData ccd)
-            {
-                //Can not add this line if no board is set
-                if (Client?.Room?.Match.Board == null)
-                    return;
-
-                var playerName = ccd.User?.Nick ?? "Unknown";
-                Color? color = ccd.User?.ColorBright;
-
-                var square = Client.Room.Match.Board.Squares[ccd.Index];
-                updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
-                               new Color?[] { color, null, color }, true);
-            }
-            if ((e.PacketType == NetConstants.PacketTypes.ServerUserJoinedRoom || e.PacketType == NetConstants.PacketTypes.ServerUserLeftRoom) && e.Object is UserJoinedLeftRoomData jrd)
-            {
-                updateMatchLog(new[] { jrd.User.Nick, jrd.Joined ? "joined" : "left", "the lobby" },
-                    new Color?[] { jrd.User.ColorBright, null, null }, true);
-            }
         }
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
@@ -152,7 +171,6 @@ namespace EldenBingo.UI
             ll.Location = new Point(_adminInfoLabel.Width - ll.Width, _adminInfoLabel.Height - ll.Height);
             ll.Click += (o, e) =>
             {
-                ll.Hide();
                 _adminInfoLabel.Hide();
             };
         }
