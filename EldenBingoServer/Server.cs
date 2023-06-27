@@ -3,8 +3,6 @@ using Neto.Server;
 using Neto.Shared;
 using System.Collections.Concurrent;
 using System.Drawing;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 
 namespace EldenBingoServer
