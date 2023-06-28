@@ -81,11 +81,12 @@ namespace EldenBingo.UI
             {
                 var user = Client.Room.GetUser(userCheckedArgs.UserGuid);
                 var playerName = user?.Nick ?? "Unknown";
-                Color? color = user?.ColorBright;
+                Color? playerColor = user?.ColorBright;
+                Color? checkColor = userCheckedArgs.TeamChecked.HasValue ? BingoConstants.GetTeamColorBright(userCheckedArgs.TeamChecked.Value) : playerColor;
 
                 var square = Client.BingoBoard.Squares[userCheckedArgs.Index];
                 updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
-                               new Color?[] { color, null, color }, true);
+                               new Color?[] { playerColor, null, checkColor }, true);
 
             }
         }
