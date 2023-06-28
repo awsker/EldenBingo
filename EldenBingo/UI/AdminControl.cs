@@ -1,4 +1,5 @@
 ﻿using EldenBingo.Net;
+using EldenBingo.Settings;
 using EldenBingoCommon;
 using Neto.Shared;
 
@@ -6,6 +7,8 @@ namespace EldenBingo.UI
 {
     internal partial class AdminControl : ClientUserControl
     {
+        private System.Windows.Forms.Timer _hideAdminMessageTimer;
+
         public AdminControl()
         {
             InitializeComponent();
@@ -153,8 +156,34 @@ namespace EldenBingo.UI
         {
             void update()
             {
+                if(_hideAdminMessageTimer != null)
+                    _hideAdminMessageTimer.Tick -= _hideAdminMessageTimer_Tick;
                 _adminStatusLabel.Text = text;
                 _adminStatusLabel.ForeColor = color;
+                _hideAdminMessageTimer = new System.Windows.Forms.Timer();
+                _hideAdminMessageTimer.Interval = 6000;
+                _hideAdminMessageTimer.Tick += _hideAdminMessageTimer_Tick;
+                _hideAdminMessageTimer.Start();
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
+        }
+
+        private void _hideAdminMessageTimer_Tick(object? sender, EventArgs e)
+        {
+            hideText();
+            _hideAdminMessageTimer.Stop();
+        }
+
+        private void hideText()
+        {
+            void update()
+            {
+                _adminStatusLabel.Text = string.Empty;
             }
             if (InvokeRequired)
             {
@@ -247,6 +276,7 @@ namespace EldenBingo.UI
                 form.Settings = settings;
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
+                    GameSettingsHelper.SaveToSettings(form.Settings, Properties.Settings.Default);
                     var request = new ClientSetGameSettings(form.Settings);
                     await Client.SendPacketToServer(new Packet(request));
                 }

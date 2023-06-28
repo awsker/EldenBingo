@@ -506,6 +506,11 @@ namespace EldenBingoServer
                 {
                     packet.AddObject(createEntireBoardPacket(board, clientInRoom));
                 }
+                if(matchLive && room.Match.Classes.Length > 0)
+                {
+                    var availableClassesPacket = new ServerAvailableClasses(room.Match.Classes);
+                    packet.AddObject(availableClassesPacket);
+                }
             }
             //Send all users currently present in the room to the new client
             await SendPacketToClient(packet, client);
@@ -533,7 +538,21 @@ namespace EldenBingoServer
             //Start game when countdown reaches 0
             if (room.Match.MatchStatus == MatchStatus.Starting)
             {
-                await setRoomMatchStatus(room, MatchStatus.Running);
+                await startMatch(room);
+            }
+        }
+
+        private async Task startMatch(ServerRoom room)
+        {
+            EldenRingClasses[] availableClasses = room.GameSettings.RandomClasses && room.BoardGenerator != null ? 
+                room.BoardGenerator.RandomizeAvailableClasses(room.GameSettings.ValidClasses, room.GameSettings.NumberOfClasses) : 
+                Array.Empty<EldenRingClasses>();
+            room.Match.Classes = availableClasses;
+            await setRoomMatchStatus(room, MatchStatus.Running);
+            if (availableClasses.Length > 0)
+            {
+                var availableClassesPacket = new ServerAvailableClasses(availableClasses);
+                await sendPacketToRoom(new Packet(availableClassesPacket), room);
             }
         }
 

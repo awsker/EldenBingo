@@ -88,18 +88,18 @@
             // _generateNewBoardButton
             // 
             this._generateNewBoardButton.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this._generateNewBoardButton.Location = new System.Drawing.Point(206, 71);
+            this._generateNewBoardButton.Location = new System.Drawing.Point(193, 71);
             this._generateNewBoardButton.Name = "_generateNewBoardButton";
-            this._generateNewBoardButton.Size = new System.Drawing.Size(167, 29);
+            this._generateNewBoardButton.Size = new System.Drawing.Size(185, 29);
             this._generateNewBoardButton.TabIndex = 6;
-            this._generateNewBoardButton.Text = "Randomize new board";
+            this._generateNewBoardButton.Text = "Randomize New Board";
             this._generateNewBoardButton.UseVisualStyleBackColor = true;
             this._generateNewBoardButton.Click += new System.EventHandler(this._generateNewBoardButton_Click);
             // 
             // _stopMatchButton
             // 
             this._stopMatchButton.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this._stopMatchButton.Location = new System.Drawing.Point(258, 108);
+            this._stopMatchButton.Location = new System.Drawing.Point(263, 108);
             this._stopMatchButton.Name = "_stopMatchButton";
             this._stopMatchButton.Size = new System.Drawing.Size(115, 29);
             this._stopMatchButton.TabIndex = 9;
@@ -110,7 +110,7 @@
             // _pauseMatchButton
             // 
             this._pauseMatchButton.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this._pauseMatchButton.Location = new System.Drawing.Point(136, 108);
+            this._pauseMatchButton.Location = new System.Drawing.Point(138, 108);
             this._pauseMatchButton.Name = "_pauseMatchButton";
             this._pauseMatchButton.Size = new System.Drawing.Size(115, 29);
             this._pauseMatchButton.TabIndex = 8;
@@ -160,7 +160,7 @@
             this._lobbySettingsButton.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this._lobbySettingsButton.Location = new System.Drawing.Point(14, 71);
             this._lobbySettingsButton.Name = "_lobbySettingsButton";
-            this._lobbySettingsButton.Size = new System.Drawing.Size(186, 29);
+            this._lobbySettingsButton.Size = new System.Drawing.Size(173, 29);
             this._lobbySettingsButton.TabIndex = 5;
             this._lobbySettingsButton.Text = "Edit Lobby Settings";
             this._lobbySettingsButton.UseVisualStyleBackColor = true;

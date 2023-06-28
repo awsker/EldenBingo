@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using EldenBingoCommon;
+using System.Text.Json;
 
 namespace EldenBingoServer
 {
@@ -7,6 +8,7 @@ namespace EldenBingoServer
         private readonly IList<BingoJsonObj> _list;
         private int _randomSeed;
         private Random _random;
+        private Random _classRandom;
 
         public int RandomSeed
         {
@@ -19,6 +21,7 @@ namespace EldenBingoServer
                 {
                     _randomSeed = value;
                     _random = value == 0 ? new Random() : new Random(value);
+                    _classRandom = value == 0 ? new Random() : new Random(_random.Next());
                 }
             }
         }
@@ -32,8 +35,7 @@ namespace EldenBingoServer
             {
                 throw new ArgumentException("Json is not in the correct format", nameof(json));
             }
-            _randomSeed = randomSeed;
-            _random = randomSeed == 0 ? new Random() : new Random(randomSeed);
+            RandomSeed = randomSeed;
             _list = new List<BingoJsonObj>();
             foreach (var row in doc.RootElement.EnumerateArray())
             {
@@ -111,6 +113,20 @@ namespace EldenBingoServer
             balanceBoard(tempList);
 
             return new ServerBingoBoard(room, squares.Select(o => o.Text).ToArray(), squares.Select(o => o.Tooltip).ToArray());
+        }
+
+        public EldenRingClasses[] RandomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)
+        {
+            var availableClassesList = new List<EldenRingClasses>(availableClasses);
+            var pickedClasses = new List<EldenRingClasses>();
+            for(int i = Math.Min(numberOfClasses, availableClassesList.Count); i > 0; --i)
+            {
+                var r = _classRandom.Next(availableClassesList.Count);
+                var cl = availableClassesList[r];
+                pickedClasses.Add(cl);
+                availableClassesList.RemoveAt(r);
+            }
+            return pickedClasses.ToArray();
         }
 
         private void balanceBoard(IList<BingoJsonObj> squares)

@@ -28,6 +28,8 @@ namespace EldenBingoCommon
         Wretch
     }
 
+    
+
     public static class BingoConstants
     {
         public const int DefaultPort = 4501;
@@ -43,6 +45,20 @@ namespace EldenBingoCommon
             new ColorName(Color.FromArgb(237, 115, 216), "Pink"),
             new ColorName(Color.FromArgb(112, 79, 41), "Brown"),
             new ColorName(Color.FromArgb(196, 179, 0), "Yellow")
+        };
+
+        public static Color[] ClassColors = new Color[]
+        {
+            Color.FromArgb(42, 141, 166),
+            Color.FromArgb(44, 97, 178),
+            Color.FromArgb(158, 43, 37),
+            Color.FromArgb(19, 79, 30),
+            Color.FromArgb(171, 103, 32),
+            Color.FromArgb(203, 177, 134),
+            Color.FromArgb(177, 73, 44),
+            Color.FromArgb(130, 130, 130),
+            Color.FromArgb(140, 53, 185),
+            Color.FromArgb(204, 204, 204),
         };
 
         public static Color AdminSpectatorColor = Color.White;

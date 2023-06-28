@@ -53,6 +53,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
+            Client.AddListener<ServerAvailableClasses>(availableClassesReceived);
 
         }
 
@@ -111,6 +112,27 @@ namespace EldenBingo.UI
             }
         }
 
+        private void availableClassesReceived(ClientModel? _, ServerAvailableClasses availableClassesArgs)
+        {
+            if (availableClassesArgs.Classes.Length <= 0)
+                return;
+
+            var prep = availableClassesArgs.Classes.Length == 1 ? "Required class is:" : "Valid classes are:";
+            var strings = new List<string>();
+            var colors = new List<Color?>();
+            foreach (var cl in availableClassesArgs.Classes)
+            {
+                if (strings.Count == 0)
+                    strings.Add(prep);
+                else
+                    strings.Add(",");
+                strings.Add(cl.ToString());
+                colors.Add(null);
+                colors.Add(BingoConstants.ClassColors[(int)cl]);
+            }
+            colors.Add(null);
+            updateMatchLog(strings.ToArray(), colors.ToArray(), false);
+        }
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
         {

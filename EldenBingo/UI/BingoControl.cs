@@ -250,7 +250,7 @@ namespace EldenBingo.UI
             Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
             Squares[index].Marked = s.Marked;
             Squares[index].Counters = s.Counters;
-            Invalidate(Squares[index].ClientRectangle);
+            Squares[index].Invalidate();
         }
 
         private async void square_MouseDown(object? sender, MouseEventArgs e)
