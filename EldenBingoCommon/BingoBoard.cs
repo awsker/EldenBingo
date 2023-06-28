@@ -28,7 +28,7 @@
 
     public record struct BingoBoardSquare(string Text, string Tooltip, int? Team, bool Marked, TeamCounter[] Counters)
     {
-        public bool Checked = Team.HasValue;
+        public bool Checked => Team.HasValue;
         public override string ToString()
         {
             return Text;
