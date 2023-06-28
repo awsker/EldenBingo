@@ -14,11 +14,9 @@ namespace EldenBingoCommon
         public string Name { get; init; }
     }
 
-    public static class NetConstants
+    public static class BingoConstants
     {
         public const int DefaultPort = 4501;
-        public const string ServerRegisterString = "eldenbingo-server";
-        public const string UserRegisterString = "hello";
 
         public static readonly ColorName[] TeamColors = new[]
         {
@@ -36,40 +34,6 @@ namespace EldenBingoCommon
         public static Color AdminSpectatorColor = Color.White;
 
         public static Color SpectatorColor = Color.LightGray;
-
-        public enum PacketTypes
-        {
-            ClientRegister, //string
-            ClientRequestRoomName, //string
-            ClientRequestCreateRoom, //string, string, string, int, bool
-            ClientRequestJoinRoom, //string, string, string, int, bool
-            ClientRequestLeaveRoom, //(none)
-            ClientChat, //string
-            ClientCoordinates, //MapCoordinates
-            ClientBingoJson, //string (json)
-            ClientRandomizeBoard, //(none)
-            ClientChangeMatchStatus, //byte
-            ClientTryCheck, //byte, Guid
-            ClientTryMark, //byte
-            ClientSetCounter, //byte, int, Guid
-            ClientDisconnect, //(none)
-
-            ServerRegisterAccepted, //string, Guid
-            ServerAvailableRoomName, //string
-            ServerUserJoinedRoom, //UserInRoom
-            ServerUserLeftRoom, //Guid
-            ServerJoinRoomDenied, //string
-            ServerJoinAcceptedRoomData, //string, int, UserInRoom [...], Match
-            ServerUserChat, //UserInRoom, string
-            ServerUserCoordinates, //UserInRoom, MapCoordinates
-            ServerToAdminStatusMessage, //int(color), string,
-            ServerMatchStatusChanged, //Match
-            ServerBingoBoardCheckChanged, //UserGuid, int
-            ServerBingoBoardMarkChanged, //UserGuid, int
-            ServerBingoBoardCountChanged, //UserGuid, int
-            ServerUserConnectionClosed, //(none)
-            ServerShutdown, //(none)
-        }
 
         public static Color GetTeamColor(int team)
         {

@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using EldenBingoServer;
+using Neto.Shared;
 
 namespace EldenBingoServerStandalone
 {
@@ -13,7 +14,7 @@ namespace EldenBingoServerStandalone
 
         private static void Main(string[] args)
         {
-            int port = NetConstants.DefaultPort;
+            int port = BingoConstants.DefaultPort;
             if (args.Length > 0)
             {
                 if (!int.TryParse(args[0], out port))
@@ -22,19 +23,19 @@ namespace EldenBingoServerStandalone
                 }
             }
             var server = new Server(port);
-            server.OnError += server_onError;
-            server.StatusChanged += server_StatusChanged;
+            server.OnError += server_OnError;
+            server.OnStatus += server_OnStatus;
             server.Host();
             
             Thread.Sleep(Timeout.Infinite);
         }
 
-        private static void server_StatusChanged(object? sender, StatusEventArgs e)
+        private static void server_OnStatus(object? sender, StringEventArgs e)
         {
-            Console.WriteLine(e.Status);
+            Console.WriteLine(e.Message);
         }
 
-        private static void server_onError(object? sender, StringEventArgs e)
+        private static void server_OnError(object? sender, StringEventArgs e)
         {
             var message = $"Error: {e.Message}";
             Console.WriteLine(message);

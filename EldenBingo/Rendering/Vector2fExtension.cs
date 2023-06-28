@@ -86,6 +86,5 @@ namespace EldenBingo.Rendering
             var dy = v.Y - other.Y;
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
-
     }
 }

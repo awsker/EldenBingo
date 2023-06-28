@@ -100,41 +100,26 @@ namespace EldenBingoServer
         public CheckStatus[] CheckStatus { get; init; }
         internal ServerRoom Room { get; init; }
 
-        public override byte[] GetBytes(UserInRoom user)
+        public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {
-            //Update all squares to the correct color
-            TransferSquareColors(user);
-            return base.GetBytes(user);
-        }
-
-        public override byte[] GetStatusBytes(UserInRoom user)
-        {
-            //Update all squares to the correct color
-            TransferSquareColors(user);
-            return base.GetStatusBytes(user);
-        }
-
-        public void TransferSquareColors(UserInRoom user)
-        {
+            var squares = new BingoBoardSquare[25];
             for (int i = 0; i < 25; ++i)
             {
                 var status = CheckStatus[i];
-                var sq = Squares[i];
-                sq.Team = status.CheckedBy;
-                sq.Marked = status.IsMarked(user.Team);
-                sq.Counters = status.GetCounters(user, Room.Clients);
+                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
             }
+            return squares;
         }
 
-        public bool UserChangeCount(int i, UserInRoom user, int count)
+        public bool UserChangeCount(int i, UserInRoom user, int change)
         {
-            if (i < 0 || i >= 25 || count == 0)
+            if (i < 0 || i >= 25 || change == 0)
                 return false;
             var check = CheckStatus[i];
             var oldCount = check.GetCounter(user.Team) ?? 0;
             if (user.IsSpectator)
                 return false;
-            check.SetCounter(user.Team, Math.Max(0, oldCount + count));
+            check.SetCounter(user.Team, Math.Max(0, oldCount + change));
             return true;
         }
 

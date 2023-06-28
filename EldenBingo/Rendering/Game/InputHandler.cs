@@ -29,7 +29,9 @@ namespace EldenBingo.Rendering.Game
         }
 
         public event EventHandler<UIActionEvent>? ActionJustPressed;
+
         public event EventHandler<UIActionEvent>? ActionJustReleased;
+
         public event EventHandler<FollowPlayerEvent>? FollowPlayerPressed;
 
         public bool Enabled => true;
@@ -57,7 +59,6 @@ namespace EldenBingo.Rendering.Game
             _window.MouseButtonReleased += window_onMouseButtonReleased;
             _window.MouseWheelScrolled += window_onMouseScrolled;
         }
-
 
         private void unlistenToWindowEvents()
         {
@@ -201,10 +202,11 @@ namespace EldenBingo.Rendering.Game
 
     public class FollowPlayerEvent : EventArgs
     {
-        public int PlayerIndex { get; init; }
         public FollowPlayerEvent(int playerIndex)
         {
             PlayerIndex = playerIndex;
         }
+
+        public int PlayerIndex { get; init; }
     }
 }

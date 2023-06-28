@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EldenBingoCommon\EldenBingoCommon.csproj" />
+    <ProjectReference Include="..\Neto\Neto.csproj" />
   </ItemGroup>
 
 </Project>

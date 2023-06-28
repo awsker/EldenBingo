@@ -1,9 +1,6 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-namespace EldenBingoCommon
+﻿namespace EldenBingoCommon
 {
-    public class UserInRoom : INetSerializable, INotifyPropertyChanged
+    public class UserInRoom
     {
         public UserInRoom(string nick, Guid guid, bool isAdmin, int team)
         {
@@ -13,23 +10,23 @@ namespace EldenBingoCommon
             Team = team;
         }
 
-        public UserInRoom(byte[] bytes, ref int offset)
+        public UserInRoom(UserInRoom copy)
         {
-            Nick = PacketHelper.ReadString(bytes, ref offset);
-            Guid = PacketHelper.ReadGuid(bytes, ref offset);
-            IsAdmin = PacketHelper.ReadBoolean(bytes, ref offset);
-            Team = PacketHelper.ReadInt(bytes, ref offset);
+            Nick = copy.Nick;
+            Guid = copy.Guid;
+            IsAdmin = copy.IsAdmin;
+            Team = copy.Team;
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        //public event PropertyChangedEventHandler? PropertyChanged;
 
         public System.Drawing.Color Color
         {
             get
             {
                 if (IsSpectator && IsAdmin)
-                    return NetConstants.AdminSpectatorColor;
-                return NetConstants.GetTeamColor(Team);
+                    return BingoConstants.AdminSpectatorColor;
+                return BingoConstants.GetTeamColor(Team);
             }
         }
 
@@ -38,25 +35,16 @@ namespace EldenBingoCommon
             get
             {
                 if (IsSpectator && IsAdmin)
-                    return NetConstants.AdminSpectatorColor;
-                return NetConstants.GetTeamColorBright(Team);
+                    return BingoConstants.AdminSpectatorColor;
+                return BingoConstants.GetTeamColorBright(Team);
             }
         }
 
         public Guid Guid { get; set; }
-        public bool IsAdmin { get; init; }
-        public bool IsSpectator => Team == -1;
+        public bool IsAdmin { get; set; }
         public string Nick { get; set; }
-        public int Team { get; init; }
-
-        public byte[] GetBytes()
-        {
-            var nickBytes = PacketHelper.GetStringBytes(Nick);
-            var guidBytes = Guid.ToByteArray();
-            var adminByte = BitConverter.GetBytes(IsAdmin);
-            var teamBytes = BitConverter.GetBytes(Team);
-            return PacketHelper.ConcatBytes(nickBytes, guidBytes, adminByte, teamBytes);
-        }
+        public int Team { get; set; }
+        public bool IsSpectator => Team == -1;
 
         public override string ToString()
         {
@@ -69,10 +57,10 @@ namespace EldenBingoCommon
                 suffix.Add("Spectator");
             return str + (suffix.Any() ? $" [{string.Join(", ", suffix)}]" : string.Empty);
         }
-
+        /*
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        }*/
     }
 }

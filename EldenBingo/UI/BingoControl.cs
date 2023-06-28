@@ -1,5 +1,6 @@
-﻿using EldenBingo.Net.DataContainers;
+﻿using EldenBingo.Net;
 using EldenBingoCommon;
+using Neto.Shared;
 using System.Drawing.Drawing2D;
 
 namespace EldenBingo.UI
@@ -48,11 +49,12 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            Client.IncomingData += client_IncomingData;
-        }
-
-        protected override void ClientChanged()
-        {
+            Client.OnRoomChanged += onRoomChanged;
+            Client.AddListener<ServerUserChecked>(userChecked);
+            Client.AddListener<ServerUserMarked>(userMarked);
+            Client.AddListener<ServerUserSetCounter>(userSetCounter);
+            Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
+            Client.AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
 
         protected override void RemoveClientListeners()
@@ -60,7 +62,79 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            Client.IncomingData -= client_IncomingData;
+            Client.OnRoomChanged -= onRoomChanged;
+            Client.RemoveListener<ServerUserChecked>(userChecked);
+            Client.RemoveListener<ServerUserMarked>(userMarked);
+            Client.RemoveListener<ServerUserSetCounter>(userSetCounter);
+            Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
+            Client.RemoveListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
+        }
+
+        private void onRoomChanged(object? sender, RoomChangedEventArgs e)
+        {
+            if (Client?.BingoBoard == null)
+            {
+                clearBoard();
+            }
+            if (Client?.Room?.Match != null)
+            {
+                updateBoardStatus(Client.Room.Match);
+            }
+        }
+
+        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
+        {
+            if (Client?.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < 25)
+            {
+                var status = Client.BingoBoard.Squares[userCheckedArgs.Index];
+                status.Team = userCheckedArgs.TeamChecked;
+                Client.BingoBoard.Squares[userCheckedArgs.Index] = status;
+                updateSquare(Client.BingoBoard, userCheckedArgs.Index);
+            }
+        }
+
+        private void userMarked(ClientModel? _, ServerUserMarked userMarkedArgs)
+        {
+            if (Client?.BingoBoard != null && userMarkedArgs.Index >= 0 && userMarkedArgs.Index < 25)
+            {
+                var status = Client.BingoBoard.Squares[userMarkedArgs.Index];
+                status.Marked = userMarkedArgs.Marked;
+                Client.BingoBoard.Squares[userMarkedArgs.Index] = status;
+                updateSquare(Client.BingoBoard, userMarkedArgs.Index);
+            }
+        }
+
+        private void userSetCounter(ClientModel? _, ServerUserSetCounter userCounterArgs)
+        {
+            if (Client?.BingoBoard != null && userCounterArgs.Index >= 0 && userCounterArgs.Index < 25)
+            {
+                var status = Client.BingoBoard.Squares[userCounterArgs.Index];
+                status.Counters = userCounterArgs.Counters;
+                Client.BingoBoard.Squares[userCounterArgs.Index] = status;
+                updateSquare(Client.BingoBoard, userCounterArgs.Index);
+            }
+        }
+
+        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
+        {
+            if (Client?.BingoBoard == null)
+            {
+                clearBoard();
+            }
+            if (Client?.Room?.Match != null)
+            {
+                updateBoardStatus(Client.Room.Match);
+            }
+        }
+
+        private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
+        {
+            if (Client?.Room != null)
+            {
+                Client.Room.Match.Board = new BingoBoard(boardUpdate.Squares);
+                setBoard(Client.Room.Match.Board);
+                updateBoardStatus(Client.Room.Match);
+            }
         }
 
         private void _boardStatusLabel_Click(object sender, EventArgs e)
@@ -112,47 +186,6 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void client_IncomingData(object? sender, ObjectEventArgs e)
-        {
-            //Checking and marking use the same type of data object, and contain the full board (colors and markings)
-            if ((e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCheckChanged ||
-                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardMarkChanged ||
-                e.PacketType == NetConstants.PacketTypes.ServerBingoBoardCountChanged) &&
-                e.Object is CheckChangedData checkData)
-            {
-                if (checkData.Room.Match.Board != null)
-                {
-                    setBoard(checkData.Room.Match.Board);
-                }
-                updateBoardStatus(checkData.Room.Match);
-            }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerJoinAcceptedRoomData &&
-                e.Object is JoinedRoomData roomData)
-            {
-                if (roomData.Room.Match.Board == null)
-                {
-                    clearBoard();
-                }
-                else
-                {
-                    setBoard(roomData.Room.Match.Board);
-                }
-                updateBoardStatus(roomData.Room.Match);
-            }
-            else if (e.PacketType == NetConstants.PacketTypes.ServerMatchStatusChanged && e.Object is MatchStatusData match)
-            {
-                if (match.Match.Board == null)
-                {
-                    clearBoard();
-                }
-                else
-                {
-                    setBoard(match.Match.Board);
-                }
-                updateBoardStatus(match.Match);
-            }
-        }
-
         private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
@@ -191,13 +224,7 @@ namespace EldenBingo.UI
             {
                 for (int i = 0; i < 25; ++i)
                 {
-                    var s = board.Squares[i];
-                    Squares[i].Text = s.Text;
-                    Squares[i].ToolTip = s.Tooltip;
-                    Squares[i].Color = s.Team.HasValue ? NetConstants.GetTeamColor(s.Team.Value) : Color.Empty;
-                    Squares[i].Marked = s.Marked;
-                    Squares[i].Counters = s.Counters;
-                    Squares[i].Invalidate();
+                    updateSquare(board, i);
                 }
             }
             if (InvokeRequired)
@@ -206,6 +233,17 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        private void updateSquare(BingoBoard board, int index)
+        {
+            var s = board.Squares[index];
+            Squares[index].Text = s.Text;
+            Squares[index].ToolTip = s.Tooltip;
+            Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
+            Squares[index].Marked = s.Marked;
+            Squares[index].Counters = s.Counters;
+            Invalidate(Squares[index].ClientRectangle);
         }
 
         private async void square_MouseDown(object? sender, MouseEventArgs e)
@@ -221,7 +259,8 @@ namespace EldenBingo.UI
                     var userToSetFor = getUserToSetFor();
                     if (userToSetFor == null)
                         return;
-                    var p = PacketHelper.CreateUserCheckPacket((byte)c.Index, userToSetFor.Guid);
+
+                    var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
                     await Client.SendPacketToServer(p);
                 }
             }
@@ -230,7 +269,7 @@ namespace EldenBingo.UI
                 //Must be in a room
                 if (Client.Room?.Match?.Board != null)
                 {
-                    var p = new Packet(NetConstants.PacketTypes.ClientTryMark, new byte[] { (byte)c.Index });
+                    var p = new Packet(new ClientTryMark(c.Index));
                     await Client.SendPacketToServer(p);
                 }
             }
@@ -250,7 +289,8 @@ namespace EldenBingo.UI
                     if (userToSetFor == null || userToSetFor.IsSpectator)
                         return;
                     var change = Math.Max(-1, Math.Min(1, e.Delta));
-                    var p = PacketHelper.CreateUserSetCountPacket((byte)c.Index, change, userToSetFor.Guid);
+
+                    var p = new Packet(new ClientTrySetCounter(c.Index, change, userToSetFor.Guid));
                     await Client.SendPacketToServer(p);
                 }
             }
@@ -400,6 +440,22 @@ namespace EldenBingo.UI
                 drawCounters(e);
             }
 
+            private static string? findLongestWord(Graphics g, string text, Font font)
+            {
+                string? longest = null;
+                float longestLength = 0f;
+                foreach (var word in text.Split(" "))
+                {
+                    var len = g.MeasureString(word, font);
+                    if (len.Width > longestLength)
+                    {
+                        longest = word;
+                        longestLength = len.Width;
+                    }
+                }
+                return longest;
+            }
+
             private void drawBingoText(PaintEventArgs e)
             {
                 const int textUp = 3;
@@ -416,22 +472,6 @@ namespace EldenBingo.UI
                 var shadowColor = Color.FromArgb(96, 0, 0, 0);
                 TextRenderer.DrawText(e, Text, f, shadowRect, shadowColor, flags);
                 TextRenderer.DrawText(e, Text, f, textRect, TextColor, flags);
-            }
-
-            private static string? findLongestWord(Graphics g, string text, Font font)
-            {
-                string? longest = null;
-                float longestLength = 0f;
-                foreach(var word in text.Split(" "))
-                {
-                    var len = g.MeasureString(word, font);
-                    if(len.Width > longestLength)
-                    {
-                        longest = word;
-                        longestLength = len.Width;
-                    }
-                }
-                return longest;
             }
 
             private void drawCounters(PaintEventArgs e)
@@ -454,7 +494,7 @@ namespace EldenBingo.UI
                         leftXPos = Convert.ToInt32(Width / (i + 1f) - size.Width / 2f);
 
                     int yPos = Height - size.Height;
-                    var color = NetConstants.GetTeamColorBright(c.Team);
+                    var color = BingoConstants.GetTeamColorBright(c.Team);
                     TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos + 1, yPos + 1, size.Width, size.Height), shadowColor, flags: counterFlags);
                     TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos, yPos, size.Width, size.Height), color, flags: counterFlags);
                 }
@@ -481,7 +521,6 @@ namespace EldenBingo.UI
                 var gradientColor = isChecked ? Color.FromArgb(35, 0, 0, 0) : Color.FromArgb(50, 0, 0, 0);
                 var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), gradientColor, Color.Transparent);
                 g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
-                
             }
         }
     }

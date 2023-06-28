@@ -5,21 +5,17 @@ namespace EldenBingo.Rendering
 {
     public class SimpleGameWindow : RenderWindow
     {
-        protected ISet<object> GameObjects;
-        protected IList<IUpdateable> Updateables;
-        protected IList<IDrawable> Drawables;
-        protected bool Running { get; set; }
-
-        public bool DisposeDrawables { get; private set; }
-
         public EventHandler? InitializingDrawables;
         public EventHandler? DisposingDrawables;
         public EventHandler? BeforeUpdate;
         public EventHandler? AfterUpdate;
         public EventHandler? BeforeDraw;
         public EventHandler? AfterDraw;
+        protected ISet<object> GameObjects;
+        protected IList<IUpdateable> Updateables;
+        protected IList<IDrawable> Drawables;
 
-        public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) : 
+        public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) :
             base(new SFML.Window.VideoMode(width, height), title, styles)
         {
             SetVerticalSyncEnabled(true);
@@ -32,6 +28,9 @@ namespace EldenBingo.Rendering
             ListenToEvents();
         }
 
+        public bool DisposeDrawables { get; private set; }
+        protected bool Running { get; set; }
+
         public void Stop()
         {
             Running = false;
@@ -42,12 +41,12 @@ namespace EldenBingo.Rendering
             if (GameObjects.Contains(go))
                 return;
             bool added = false;
-            if(go is IUpdateable up)
+            if (go is IUpdateable up)
             {
                 Updateables.Add(up);
                 added = true;
             }
-            if(go is IDrawable draw)
+            if (go is IDrawable draw)
             {
                 Drawables.Add(draw);
                 if (Running) //If already running, initialization needs to be done manually
@@ -69,7 +68,7 @@ namespace EldenBingo.Rendering
             if (go is IDrawable draw)
             {
                 Drawables.Remove(draw);
-                if(DisposeDrawables)
+                if (DisposeDrawables)
                     draw.Dispose();
             }
             GameObjects.Add(go);
@@ -88,7 +87,7 @@ namespace EldenBingo.Rendering
                 }
 
                 renderLoop();
-            } 
+            }
             finally
             {
                 Running = false;
@@ -103,6 +102,32 @@ namespace EldenBingo.Rendering
                 }
                 Close();
             }
+        }
+
+        public FloatRect GetViewBounds()
+        {
+            var view = GetView();
+            FloatRect rt;
+            rt.Left = view.Center.X - view.Size.X * 0.5f;
+            rt.Top = view.Center.Y - view.Size.Y * 0.5f;
+            rt.Width = view.Size.X;
+            rt.Height = view.Size.Y;
+            return rt;
+        }
+
+        public void DisposeDrawablesOnExit()
+        {
+            DisposeDrawables = true;
+        }
+
+        protected virtual void ListenToEvents()
+        {
+            Closed += onWindowClosed;
+        }
+
+        protected virtual void UnlistenToEvents()
+        {
+            Closed -= onWindowClosed;
         }
 
         private void renderLoop()
@@ -126,39 +151,12 @@ namespace EldenBingo.Rendering
                     var rect = draw.GetBoundingBox();
                     if (rect != null && !viewBounds.Intersects(rect.Value))
                         continue;
-                    
+
                     Draw(draw);
                 }
                 AfterDraw?.Invoke(this, EventArgs.Empty);
                 Display();
             }
-        }
-
-        protected virtual void ListenToEvents()
-        {
-            Closed += onWindowClosed;
-        }
-
-
-        protected virtual void UnlistenToEvents()
-        {
-            Closed -= onWindowClosed;
-        }
-
-        public FloatRect GetViewBounds()
-        {
-            var view = GetView();
-            FloatRect rt;
-            rt.Left = view.Center.X - view.Size.X * 0.5f;
-            rt.Top = view.Center.Y - view.Size.Y * 0.5f;
-            rt.Width = view.Size.X;
-            rt.Height = view.Size.Y;
-            return rt;
-        }
-
-        public void DisposeDrawablesOnExit()
-        {
-            DisposeDrawables = true;
         }
 
         private void onWindowClosed(object? sender, EventArgs e)

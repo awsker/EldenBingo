@@ -1,140 +1,34 @@
 ﻿using EldenBingoCommon;
+using Neto.Server;
+using Neto.Shared;
 using System.Collections.Concurrent;
 using System.Drawing;
-using System.Net;
-using System.Net.Sockets;
+using System.Reflection;
 
 namespace EldenBingoServer
 {
-    public class Server
+    public class Server : NetoServer<BingoClientModel>
     {
         //10 seconds countdown before match starts
         private const int MatchStartCountdown = 9999;
 
-        private static readonly Color StatusColor = Color.CornflowerBlue;
-
-        private readonly ConcurrentBag<ClientModel> _clients;
-        private readonly IPAddress[] _ipAddress;
-        private readonly int _port;
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
-        private readonly ConcurrentBag<TcpListener> _tcpListeners;
-        private CancellationTokenSource _cancelToken;
-        private bool _hosting;
 
-        public Server(int port)
+        public Server(int port) : base(port)
         {
-            _port = port;
-            _ipAddress = getIpAddresses();
-
-            _tcpListeners = new ConcurrentBag<TcpListener>();
-            _clients = new ConcurrentBag<ClientModel>();
             _rooms = new ConcurrentDictionary<string, ServerRoom>();
-            _cancelToken = new CancellationTokenSource();
+            RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
+            registerHandlers();
         }
 
-        public event EventHandler<StringEventArgs>? OnError;
-
-        public event EventHandler<StatusEventArgs>? StatusChanged;
-
-        #region Public properties
-
-        public IPAddress[] IPAddresses
-        { get { return _ipAddress; } }
-
-        public int Port
-        { get { return _port; } }
-
-        #endregion Public properties
-
-        #region Public methods
-
-        public static string? GetClientIp(ClientModel client)
+        protected override async Task DropClient(BingoClientModel client)
         {
-            if (client.TcpClient.Client.RemoteEndPoint is IPEndPoint ip)
-                return ip.Address.ToString();
-            return string.Empty;
+            if (Hosting && client.Room != null)
+                await leaveUserRoom(client);
+            client.Stop();
         }
 
-        public void Host()
-        {
-            if (_hosting)
-                throw new Exception("Already hosting");
-
-            _tcpListeners.Clear();
-
-            _cancelToken = new CancellationTokenSource();
-            foreach (var ip in getIpAddresses())
-            {
-                var localIp = ip;
-                var thread = new Thread(() => runTcpListener(localIp));
-                thread.Start();
-            }
-            _hosting = true;
-            onStatus($"Hosting server on port {_port}", StatusColor);
-        }
-
-        public async void Stop()
-        {
-            if (!_hosting)
-                throw new Exception("Not hosting");
-
-            _hosting = false;
-
-            await sendShutdownToAll();
-            foreach (var tcp in _tcpListeners)
-            {
-                tcp.Stop();
-            }
-            _cancelToken.Cancel();
-            onStatus($"Stopped server", StatusColor);
-        }
-
-        #endregion Public methods
-
-        #region Private methods
-
-        private static IPAddress[] getIpAddresses()
-        {
-            var addresses = Dns.GetHostAddresses(Dns.GetHostName());
-            var local = IPAddress.Parse("127.0.0.1");
-            if (!addresses.Any(a => a.Equals(local)))
-            {
-                return addresses.Concat(new IPAddress[] { local }).ToArray();
-            }
-            return addresses;
-        }
-
-        private async Task acceptIncomingConnections(TcpListener tcp)
-        {
-            try
-            {
-                var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
-                var client = new ClientModel(tcpClient);
-                _clients.Add(client);
-                _ = Task.Run(() => clientTcpListenerTask(client));
-            }
-            catch (SocketException)
-            {
-                _cancelToken.Cancel();
-            }
-        }
-
-        private async Task clientTcpListenerTask(ClientModel client)
-        {
-            try
-            {
-                while (!client.CancellationToken.IsCancellationRequested)
-                {
-                    await waitForPacketAsync(client);
-                }
-            }
-            catch (Exception)
-            {
-                await dropClient(client);
-            }
-        }
-
-        private async Task<bool> confirm(ClientModel client, bool? admin = null, bool? spectator = null, bool? inRoom = null, bool? hasBingoBoard = null, bool? gameStarted = null)
+        private async Task<bool> confirm(BingoClientModel client, bool? admin = null, bool? spectator = null, bool? inRoom = null, bool? hasBingoBoard = null, bool? gameStarted = null)
         {
             if (admin.HasValue)
             {
@@ -205,13 +99,6 @@ namespace EldenBingoServer
             return true;
         }
 
-        private async Task dropClient(ClientModel client)
-        {
-            if (_hosting)
-                await leaveUserRoom(client);
-            client.Stop();
-        }
-
         private string generateAvailableRoomName()
         {
             var r = new Random();
@@ -227,325 +114,363 @@ namespace EldenBingoServer
             return roomName;
         }
 
-        private IEnumerable<ClientModel> getApplicableClientsForCoordinates(ServerRoom room, ClientInRoom sender)
+        private IEnumerable<BingoClientModel> getApplicableClientsForCoordinates(ServerRoom room, BingoClientInRoom sender)
         {
             if (room == null)
-                return Enumerable.Empty<ClientModel>();
+                return Enumerable.Empty<BingoClientModel>();
 
             //Send coordinates to spectators or players on the same team
-            return room.Clients.Where(c => c.Guid != sender.Guid && (c.IsSpectator || c.Team == sender.Team)).Select(cp => cp.Client);
+            return room.Users.Where(c => c.Guid != sender.Guid && (c.IsSpectator || c.Team == sender.Team)).Select(cp => cp.Client);
         }
 
-        private async Task handleIncomingPacket(ClientModel client, Packet packet)
+        private void registerHandlers()
         {
-            int offset = 0;
-            //A non-registered client's first packet better be ClientRegister, otherwise kicked and socket closed
-            if (!client.IsRegistered && packet.PacketType != NetConstants.PacketTypes.ClientRegister)
+            AddListener<ClientRequestRoomName>(roomNameRequested);
+            AddListener<ClientRequestCreateRoom>(createRoomRequested);
+            AddListener<ClientRequestJoinRoom>(joinRoomRequested);
+            AddListener<ClientRequestLeaveRoom>(leaveRoomRequested);
+            AddListener<ClientCoordinates>(clientCoordinates);
+            AddListener<ClientChat>(clientChat);
+            AddListener<ClientBingoJson>(clientBingoJson);
+            AddListener<ClientRandomizeBoard>(clientRandomizeBoard);
+            AddListener<ClientChangeMatchStatus>(clientChangeMatchStatus);
+            AddListener<ClientTryCheck>(clientTryCheck);
+            AddListener<ClientTryMark>(clientTryMark);
+            AddListener<ClientTrySetCounter>(clientTrySetCounter);
+        }
+
+        private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
+        {
+            if (sender == null)
+                return;
+            var availableRoomName = generateAvailableRoomName();
+            var roomNamePacket = new ServerRoomNameSuggestion(availableRoomName);
+            await SendPacketToClient(new Packet(roomNamePacket), sender);
+        }
+
+        private async void createRoomRequested(BingoClientModel? sender, ClientRequestCreateRoom request)
+        {
+            if (sender == null)
+                return;
+            string? deniedReason = null;
+            if (string.IsNullOrWhiteSpace(request.RoomName))
+                deniedReason = "Invalid room name";
+            else if (_rooms.TryGetValue(request.RoomName, out _))
+                deniedReason = "Room already exists";
+            else if (string.IsNullOrWhiteSpace(request.Nick))
+                deniedReason = "Invalid nickname";
+            if (deniedReason != null)
             {
-                client.Stop();
+                var deniedPacket = new ServerJoinRoomDenied(deniedReason);
+                await SendPacketToClient(new Packet(deniedPacket), sender);
                 return;
             }
-            switch (packet.PacketType)
+            ServerRoom? room = createRoom(request.RoomName, request.AdminPass, sender);
+            //Leave old room
+            await leaveUserRoom(sender);
+            //Join new room
+            if (room != null)
             {
-                case NetConstants.PacketTypes.ClientRegister:
-                    {
-                        var registerString = PacketHelper.ReadString(packet.DataBytes, ref offset);
-                        if (registerString == NetConstants.UserRegisterString && !client.IsRegistered)
-                        {
-                            client.IsRegistered = true;
-                            var registerAccepted = PacketHelperServer.CreateUserRegisterAcceptedPacket(client.UserGuid);
-                            await sendPacketToClient(registerAccepted, client);
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientRequestRoomName:
-                    {
-                        var availableRoomName = generateAvailableRoomName();
-                        var p = new Packet(NetConstants.PacketTypes.ServerAvailableRoomName, PacketHelper.GetStringBytes(availableRoomName));
-                        await sendPacketToClient(p, client);
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientRequestCreateRoom:
-                    {
-                        var roomName = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim().ToUpper();
-                        var adminPass = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
-                        var nick = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
-                        var team = PacketHelper.ReadInt(packet.DataBytes, ref offset);
-                        string? deniedReason = null;
-                        ServerRoom? room = null;
-                        if (string.IsNullOrWhiteSpace(roomName))
-                            deniedReason = "Invalid room name";
-                        else if (_rooms.TryGetValue(roomName, out room))
-                            deniedReason = "Room already exists";
-                        else if (string.IsNullOrWhiteSpace(nick))
-                            deniedReason = "Invalid nickname";
-                        if (deniedReason != null)
-                        {
-                            var deniedPacket = PacketHelperServer.CreateJoinRoomDeniedPacket(deniedReason);
-                            await sendPacketToClient(deniedPacket, client);
-                            break;
-                        }
-                        _rooms[roomName] = room = new ServerRoom(roomName, adminPass, client);
-                        _rooms[roomName].TimerElapsed += (o, e) => onMatchTimerElapsed(room);
-                        //Leave old room
-                        await leaveUserRoom(client);
-                        //Join new room
-                        if (room != null)
-                        {
-                            await joinUserRoom(client, nick, adminPass, team, room, created: true);
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientRequestJoinRoom:
-                    {
-                        var roomName = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim().ToUpper();
-                        var adminPass = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
-                        var nick = PacketHelper.ReadString(packet.DataBytes, ref offset).Trim();
-                        var team = PacketHelper.ReadInt(packet.DataBytes, ref offset);
-                        string? deniedReason = null;
-                        ServerRoom? room = null;
-                        if (string.IsNullOrWhiteSpace(roomName))
-                            deniedReason = "Invalid room name";
-                        else if (!_rooms.TryGetValue(roomName, out room))
-                            deniedReason = "Room doesn't exist";
-                        else if (room != null && client.Room == room)
-                            deniedReason = "Already in this room";
-                        else if (string.IsNullOrWhiteSpace(nick))
-                            deniedReason = "Invalid nickname";
-                        else if (room != null && room.Clients.Any(c => c.Nick == nick))
-                            deniedReason = "Nickname already in use";
-                        else if (room != null && !string.IsNullOrWhiteSpace(adminPass) && !room.IsCorrectAdminPassword(adminPass))
-                            deniedReason = "Wrong admin password";
-                        if (deniedReason != null)
-                        {
-                            var deniedPacket = PacketHelperServer.CreateJoinRoomDeniedPacket(deniedReason);
-                            await sendPacketToClient(deniedPacket, client);
-                            break;
-                        }
-                        //Leave old room
-                        await leaveUserRoom(client);
-                        //Join new room
-                        if (room != null)
-                        {
-                            await joinUserRoom(client, nick, adminPass, team, room, created: false);
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientRequestLeaveRoom:
-                    {
-                        await leaveUserRoom(client);
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientCoordinates:
-                    {
-                        if (client.Room != null)
-                        {
-                            var coords = PacketHelper.ReadMapCoordinates(packet.DataBytes, ref offset);
-                            var clientInfo = client.Room.GetClient(client.UserGuid);
-                            //Don't allow spectators to send coordinates
-                            if (clientInfo != null && !clientInfo.IsSpectator)
-                            {
-                                var p = PacketHelperServer.CreateServerUserCoordinatesPacket(clientInfo.Guid, coords);
-                                await sendPacketToClients(p, getApplicableClientsForCoordinates(client.Room, clientInfo));
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientChat:
-                    {
-                        if (client.Room != null)
-                        {
-                            var text = PacketHelper.ReadString(packet.DataBytes, ref offset);
-                            var clientInfo = client.Room.GetClient(client.UserGuid);
-                            if (clientInfo != null)
-                            {
-                                var p = PacketHelperServer.CreateServerUserChatMessagePacket(clientInfo.Guid, text);
-                                await sendPacketToRoom(p, client.Room);
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientBingoJson:
-                    {
-                        if (await confirm(client, admin: true, inRoom: true))
-                        {
-                            var json = PacketHelper.ReadString(packet.DataBytes, ref offset);
-                            ServerBingoBoard? board = null;
-                            try
-                            {
-                                client.Room.BoardGenerator = new BingoBoardGenerator(json);
-                                board = client.Room.BoardGenerator.CreateBingoBoard(client.Room, 0);
-                            }
-                            catch (Exception e)
-                            {
-                                await sendAdminStatusMessage(client, $"Error reading bingo json file: {e.Message}", System.Drawing.Color.Red);
-                                //Ignore errors when reading the Json
-                            }
-                            if (board != null && client.Room.Match.MatchStatus == MatchStatus.NotRunning) //Don't update bingo board if match is running
-                            {
-                                await setRoomBingoBoard(client.Room, board);
-                                await sendAdminStatusMessage(client, $"Bingo json file successfully uploaded and bingo board generated!", System.Drawing.Color.Green);
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientRandomizeBoard:
-                    {
-                        //Don't update bingo board if match is running
-                        if (await confirm(client, admin: true, inRoom: true))
-                        {
-                            if (client.Room.BoardGenerator == null)
-                            {
-                                await sendAdminStatusMessage(client, "No bingo json set", System.Drawing.Color.Red);
-                            }
-                            else if (await confirm(client, gameStarted: false))
-                            {
-                                ServerBingoBoard? board = client.Room.BoardGenerator.CreateBingoBoard(client.Room, 0);
-                                if (board != null)
-                                {
-                                    await setRoomBingoBoard(client.Room, board);
-                                    await sendAdminStatusMessage(client, "New board generated!", System.Drawing.Color.Green);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientChangeMatchStatus:
-                    {
-                        if (await confirm(client, admin: true, inRoom: true))
-                        {
-                            var status = (MatchStatus)PacketHelper.ReadByte(packet.DataBytes, ref offset);
-                            //Can always change status to "Not running", all others require that bingo board is generated
-                            if (status > MatchStatus.NotRunning && !await confirm(client, hasBingoBoard: true))
-                                break;
-
-                            var result = await setRoomMatchStatus(client.Room, status);
-                            if (!result.Item1 && result.Item2 != null)
-                            {
-                                await sendAdminStatusMessage(client, result.Item2, System.Drawing.Color.Red);
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientTryCheck:
-                    {
-                        if (client.Room?.Match?.Board is ServerBingoBoard board &&
-                            (client.Room.Match.MatchStatus == MatchStatus.Running || client.Room.Match.MatchStatus == MatchStatus.Paused))
-                        {
-                            int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
-                            var targetUser = PacketHelper.ReadGuid(packet.DataBytes, ref offset);
-                            var user = client.Room.GetClient(client.UserGuid);
-                            if (user == null) //No matching user
-                                return;
-                            if (targetUser == client.UserGuid || //Setting my own count
-                                user.IsAdmin && user.IsSpectator) //Setting someone elses count as admin+spectator
-                            {
-                                var userToSet = targetUser == client.UserGuid ? user : client.Room.GetClient(targetUser);
-                                if (userToSet == null)
-                                    return;
-
-                                if (board.UserClicked(i, user, userToSet))
-                                {
-                                    foreach (var recipient in client.Room.Clients)
-                                    {
-                                        var p = PacketHelperServer.CreateBoardCheckStatusPacket(userToSet.Guid, i, recipient, board);
-                                        await sendPacketToClient(p, recipient.Client);
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientTryMark:
-                    {
-                        if (client.Room?.Match?.Board is ServerBingoBoard board)
-                        {
-                            int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
-                            var user = client.Room.GetClient(client.UserGuid);
-                            if (user != null && board.UserMarked(i, user))
-                            {
-                                foreach (var recipient in client.Room.Clients)
-                                {
-                                    var p = PacketHelperServer.CreateBoardMarkedStatusPacket(user.Guid, i, recipient, board);
-                                    await sendPacketToClient(p, recipient.Client);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientSetCounter:
-                    {
-                        if (client.Room?.Match?.Board is ServerBingoBoard board && client.Room.Match.MatchStatus >= MatchStatus.Running)
-                        {
-                            int i = PacketHelper.ReadByte(packet.DataBytes, ref offset);
-                            int count = PacketHelper.ReadInt(packet.DataBytes, ref offset);
-                            var targetUser = PacketHelper.ReadGuid(packet.DataBytes, ref offset);
-                            var user = client.Room.GetClient(client.UserGuid);
-                            if (user == null) //No matching user
-                                return;
-                            if (targetUser == client.UserGuid || //Setting my own count
-                                user.IsAdmin && user.IsSpectator) //Setting someone elses count as admin+spectator
-                            {
-                                var userToSet = targetUser == client.UserGuid ? user : client.Room.GetClient(targetUser);
-                                if (userToSet == null || userToSet.IsSpectator)
-                                    return;
-
-                                if (board.UserChangeCount(i, userToSet, count))
-                                {
-                                    foreach (var recipient in client.Room.Clients)
-                                    {
-                                        var p = PacketHelperServer.CreateBoardCountStatusPacket(user.Guid, i, recipient, board);
-                                        await sendPacketToClient(p, recipient.Client);
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    }
-                case NetConstants.PacketTypes.ClientDisconnect:
-                    {
-                        await dropClient(client);
-                        break;
-                    }
+                await joinUserRoom(sender, request.Nick, request.AdminPass, request.Team, room, created: true);
             }
         }
 
-        private async Task joinUserRoom(ClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
+        private ServerRoom createRoom(string roomName, string adminPass, ClientModel creator)
+        {
+            if (_rooms.TryGetValue(roomName, out _))
+            {
+                throw new ApplicationException("Room already exists");
+            }
+            var room = new ServerRoom(roomName, adminPass, creator);
+            room.TimerElapsed += (o, e) => onMatchTimerElapsed(room);
+            _rooms[roomName] = room;
+            return room;
+        }
+
+        private async void joinRoomRequested(BingoClientModel? sender, ClientRequestJoinRoom request)
+        {
+            if (sender == null)
+                return;
+
+            string? deniedReason = null;
+            ServerRoom? room = null;
+            if (string.IsNullOrWhiteSpace(request.RoomName))
+                deniedReason = "Invalid room name";
+            else if (!_rooms.TryGetValue(request.RoomName, out room))
+                deniedReason = "Room doesn't exist";
+            else if (room != null && sender.Room == room)
+                deniedReason = "Already in this room";
+            else if (string.IsNullOrWhiteSpace(request.Nick))
+                deniedReason = "Invalid nickname";
+            else if (room != null && room.Users.Any(c => c.Nick == request.Nick))
+                deniedReason = "Nickname already in use";
+            else if (room != null && !string.IsNullOrWhiteSpace(request.AdminPass) && !room.IsCorrectAdminPassword(request.AdminPass))
+                deniedReason = "Wrong admin password";
+            if (deniedReason != null)
+            {
+                var deniedPacket = new ServerJoinRoomDenied(deniedReason);
+                await SendPacketToClient(new Packet(deniedPacket), sender);
+                return;
+            }
+            //Leave old room
+            await leaveUserRoom(sender);
+            //Join new room
+            if (room != null)
+            {
+                await joinUserRoom(sender, request.Nick, request.AdminPass, request.Team, room, created: true);
+            }
+        }
+
+        private async void leaveRoomRequested(BingoClientModel? sender, ClientRequestLeaveRoom request)
+        {
+            if (sender == null)
+                return;
+
+            await leaveUserRoom(sender);
+        }
+
+        private async void clientCoordinates(BingoClientModel? sender, ClientCoordinates coordinates)
+        {
+            if (sender?.Room == null)
+                return;
+
+            var userInfo = sender.Room.GetUser(sender.ClientGuid);
+            //Don't allow spectators to send coordinates
+            if (userInfo != null && !userInfo.IsSpectator)
+            {
+                var packet = new ServerUserCoordinates(sender.ClientGuid, coordinates.X, coordinates.Y, coordinates.Angle, coordinates.IsUnderground);
+                await SendPacketToClients(new Packet(packet), getApplicableClientsForCoordinates(sender.Room, userInfo));
+            }
+        }
+
+        private async void clientChat(BingoClientModel? sender, ClientChat chatMessage)
+        {
+            if (sender?.Room == null)
+                return;
+
+            var userInfo = sender.Room.GetUser(sender.ClientGuid);
+            if (userInfo != null)
+            {
+                var packet = new ServerUserChat(sender.ClientGuid, chatMessage.Message);
+                await sendPacketToRoom(new Packet(packet), sender.Room);
+            }
+        }
+
+        private async void clientBingoJson(BingoClientModel? sender, ClientBingoJson bingoJson)
+        {
+            if (sender?.Room == null)
+                return;
+
+            if (!await confirm(sender, admin: true, inRoom: true))
+                return;
+
+            ServerBingoBoard? board = null;
+            try
+            {
+                sender.Room.BoardGenerator = new BingoBoardGenerator(bingoJson.Json);
+                board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room, bingoJson.Seed);
+            }
+            catch (Exception e)
+            {
+                await sendAdminStatusMessage(sender, $"Error reading bingo json file: {e.Message}", System.Drawing.Color.Red);
+                //Ignore errors when reading the Json
+            }
+            if (board != null && sender.Room.Match.MatchStatus == MatchStatus.NotRunning) //Don't update bingo board if match is running
+            {
+                await setRoomBingoBoard(sender.Room, board);
+                await sendAdminStatusMessage(sender, $"Bingo json file successfully uploaded and bingo board generated!", System.Drawing.Color.Green);
+            }
+        }
+
+        private async void clientRandomizeBoard(BingoClientModel? sender, ClientRandomizeBoard randomizeBoard)
+        {
+            if (sender?.Room == null)
+                return;
+
+            if (!await confirm(sender, admin: true, inRoom: true))
+                return;
+
+            if (sender.Room.BoardGenerator == null)
+            {
+                await sendAdminStatusMessage(sender, "No bingo json set", System.Drawing.Color.Red);
+            }
+            else if (await confirm(sender, gameStarted: false))
+            {
+                ServerBingoBoard? board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room, randomizeBoard.Seed);
+                if (board != null)
+                {
+                    await setRoomBingoBoard(sender.Room, board);
+                    await sendAdminStatusMessage(sender, "New board generated!", System.Drawing.Color.Green);
+                }
+            }
+        }
+
+        private async void clientChangeMatchStatus(BingoClientModel? sender, ClientChangeMatchStatus matchStatus)
+        {
+            if (sender?.Room == null)
+                return;
+
+            if (!await confirm(sender, admin: true, inRoom: true))
+                return;
+
+            //Can always change status to "Not running", all others require that bingo board is generated
+            if (matchStatus.MatchStatus > MatchStatus.NotRunning && !await confirm(sender, hasBingoBoard: true))
+                return;
+
+            var result = await setRoomMatchStatus(sender.Room, matchStatus.MatchStatus);
+            //If error occured when setting room match status, send response to the requester
+            if (!result.Item1 && result.Item2 != null)
+            {
+                await sendAdminStatusMessage(sender, result.Item2, System.Drawing.Color.Red);
+            }
+        }
+
+        private async void clientTryCheck(BingoClientModel? sender, ClientTryCheck tryCheck)
+        {
+            if (sender?.Room == null)
+                return;
+
+            if (sender.Room.Match?.Board is ServerBingoBoard board && sender.Room.Match.MatchStatus >= MatchStatus.Running)
+            {
+                var targetUser = tryCheck.ForUser;
+                var userInfo = sender.Room.GetUser(sender.ClientGuid);
+                if (userInfo == null)
+                    return;
+
+                if (targetUser == sender.ClientGuid || //Setting my own count
+                    userInfo.IsAdmin && userInfo.IsSpectator) //Setting someone elses count as admin+spectator
+                {
+                    var userToSet = targetUser == sender.ClientGuid ? userInfo : sender.Room.GetUser(targetUser);
+                    if (userToSet == null)
+                        return;
+
+                    if (board.UserClicked(tryCheck.Index, userInfo, userToSet))
+                    {
+                        var userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, board.CheckStatus[tryCheck.Index].CheckedBy);
+                        await sendPacketToRoom(new Packet(userCheck), sender.Room);
+                    }
+                }
+            }
+        }
+
+        private async void clientTryMark(BingoClientModel? sender, ClientTryMark tryMark)
+        {
+            if (sender?.Room == null)
+                return;
+
+            if (sender.Room.Match?.Board is ServerBingoBoard board)
+            {
+                var userInfo = sender.Room.GetUser(sender.ClientGuid);
+                if (userInfo == null)
+                    return;
+
+                if (board.UserMarked(tryMark.Index, userInfo))
+                {
+                    //Send marking to all players on the same team
+                    var userMarked = new ServerUserMarked(userInfo.Guid, tryMark.Index, board.CheckStatus[tryMark.Index].IsMarked(userInfo.Team));
+                    await SendPacketToClients(new Packet(userMarked), sender.Room.Users.Where(u => u.Team == userInfo.Team).Select(c => c.Client));
+                }
+            }
+        }
+
+        private async void clientTrySetCounter(BingoClientModel? sender, ClientTrySetCounter trySetCounter)
+        {
+            if (sender?.Room == null)
+                return;
+
+            if (sender.Room.Match?.Board is ServerBingoBoard board && sender.Room.Match.MatchStatus >= MatchStatus.Running)
+            {
+                var targetUser = trySetCounter.ForUser;
+                var userInfo = sender.Room.GetUser(sender.ClientGuid);
+                if (userInfo == null)
+                    return;
+
+                if (targetUser == sender.ClientGuid || //Setting my own count
+                    userInfo.IsAdmin && userInfo.IsSpectator) //Setting someone elses count as admin+spectator
+                {
+                    var userToSet = targetUser == sender.ClientGuid ? userInfo : sender.Room.GetUser(targetUser);
+                    if (userToSet == null)
+                        return;
+
+                    if (board.UserChangeCount(trySetCounter.Index, userToSet, trySetCounter.Change))
+                    {
+                        var tasks = new List<Task>();
+                        foreach (var recipient in sender.Room.Users)
+                        {
+                            var userCounter = new ServerUserSetCounter(userInfo.Guid, trySetCounter.Index, board.CheckStatus[trySetCounter.Index].GetCounters(recipient, sender.Room.Users));
+                            var task = SendPacketToClient(new Packet(userCounter), recipient.Client);
+                            tasks.Add(task);
+                        }
+                        await Task.WhenAll(tasks);
+                    }
+                }
+            }
+        }
+
+        private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard board, UserInRoom user)
+        {
+            var squareData = board.GetSquareDataForUser(user);
+            var boardCopy = new BingoBoard(board.Squares);
+            for (int i = 0; i < 25; ++i)
+                boardCopy.Squares[i] = squareData[i];
+            return new ServerEntireBingoBoardUpdate(boardCopy.Squares);
+        }
+
+        /*
+        private ServerBingoBoardStatusUpdate createBoardStatusPacket(ServerBingoBoard board, UserInRoom user)
+        {
+            var squareData = board.GetSquareDataForUser(user);
+            return new ServerBingoBoardStatusUpdate(squareData);
+        }*/
+
+        private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
         {
             if (client.Room != null)
                 await leaveUserRoom(client);
 
-            ClientInRoom clientInRoom = room.AddClient(client, nick, adminPass, team);
+            BingoClientInRoom clientInRoom = room.AddUser(client, nick, adminPass, team);
 
             //Only send new user to room if there are any other clients present
-            if (room.NumClients > 1)
+            if (room.NumUsers > 1)
             {
-                var joinPacket = PacketHelperServer.CreateUserEnteredRoomPacket(clientInRoom);
+                //Send the user as a UserInRoom (we don't want to a BingoClientInRoom since this type is unrecognized by the client)
+                var user = new UserInRoom(clientInRoom);
+                var joinPacket = new ServerUserJoinedRoom(user);
                 //Send join message to all clients already in the room
-                await sendPacketToRoomExcept(joinPacket, room, client.UserGuid);
+                await sendPacketToRoomExcept(new Packet(joinPacket), room, client.ClientGuid);
             }
-            var usersPacket = PacketHelperServer.CreateRoomDataPacket(room, clientInRoom);
+
+            //Construct a list of all users as UserInRoom and send these (we don't want to send the users as BingoClientInRoom since this type is unrecognized by the client)
+            var currentUsers = new List<UserInRoom>();
+            foreach(var user in room.Users)
+            {
+                currentUsers.Add(new UserInRoom(user));
+            }
+            var joinAccepted = new ServerJoinRoomAccepted(room.Name, currentUsers.ToArray(), room.Match.MatchStatus, room.Match.MatchMilliseconds);
+            var packet = new Packet(joinAccepted);
+            if (room.Match.Board is ServerBingoBoard board)
+            {
+                packet.AddObject(createEntireBoardPacket(board, clientInRoom));
+            }
             //Send all users currently present in the room to the new client
-            await sendPacketToClient(usersPacket, client);
+            await SendPacketToClient(packet, client);
         }
 
-        private async Task kickClient(ClientModel client)
-        {
-            var packet = new Packet(NetConstants.PacketTypes.ServerUserConnectionClosed, Array.Empty<byte>());
-            await sendPacketToClient(packet, client);
-            await dropClient(client);
-        }
-
-        private async Task leaveUserRoom(ClientModel client)
+        private async Task leaveUserRoom(BingoClientModel client)
         {
             if (client.Room == null)
                 return;
+            
             var room = client.Room;
-            client.Room.RemoveClient(client);
+            var user = client.Room.RemoveUser(client);
             client.Room = null;
-            var leftPacket = PacketHelperServer.CreateUserLeftRoomPacket(client.UserGuid);
-            //Send user leaving packet to all users remaining in the room
-            await sendPacketToRoom(leftPacket, room);
+
+            if (user != null)
+            {
+                var leftPacket = new ServerUserLeftRoom(new UserInRoom(user));
+                //Send user leaving packet to all users remaining in the room
+                await sendPacketToRoom(new Packet(leftPacket), room);
+            }
         }
 
         private async void onMatchTimerElapsed(ServerRoom room)
@@ -557,44 +482,9 @@ namespace EldenBingoServer
             }
         }
 
-        private void onStatus(string message, Color color)
+        private async Task sendAdminStatusMessage(BingoClientModel client, string message, Color color)
         {
-            StatusChanged?.Invoke(this, new StatusEventArgs(message, color));
-        }
-
-        private async void runTcpListener(IPAddress ip)
-        {
-            try
-            {
-                var tcp = new TcpListener(ip, _port);
-                tcp.Start();
-                _tcpListeners.Add(tcp);
-                while (!_cancelToken.IsCancellationRequested)
-                {
-                    await acceptIncomingConnections(tcp);
-                }
-            }
-            catch (Exception e)
-            {
-                _cancelToken.Cancel();
-                OnError?.Invoke(this, new StringEventArgs(e.Message));
-            }
-            try
-            {
-                await sendShutdownToAll();
-            }
-            catch (Exception e)
-            {
-                _cancelToken.Cancel();
-                OnError?.Invoke(this, new StringEventArgs(e.Message));
-            }
-        }
-
-        private async Task sendAdminStatusMessage(ClientModel client, string message, System.Drawing.Color color)
-        {
-            var data = PacketHelper.ConcatBytes(BitConverter.GetBytes(color.ToArgb()), PacketHelper.GetStringBytes(message));
-            var p = new Packet(NetConstants.PacketTypes.ServerToAdminStatusMessage, data);
-            await sendPacketToClient(p, client);
+            await SendPacketToClient(new Packet(new ServerAdminStatusMessage(message, color.ToArgb())), client);
         }
 
         private async Task sendMatchData(ServerRoom room)
@@ -603,65 +493,33 @@ namespace EldenBingoServer
             bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
             var (adminSpectators, others) = splitClients(room, c => c.IsAdmin && c.IsSpectator);
 
+            var matchStatus = new ServerMatchStatusUpdate(room.Match.MatchStatus, room.Match.MatchMilliseconds);
+            if (room.Match?.Board is not ServerBingoBoard board)
+                return;
+
             foreach (var k in adminSpectators)
             {
                 //Admin spectators get the bingo board regardless of status
-                var adminPacket = new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytes(k));
-                await sendPacketToClient(adminPacket, k.Client);
+                var adminPacket = new Packet(matchStatus, createEntireBoardPacket(board, k));
+                await SendPacketToClient(adminPacket, k.Client);
             }
             foreach (var k in others)
             {
                 //All other users gets the packet without bingo board if match hasn't started
-                var nonAdminsPacket = matchLive ? new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytes(k)) : new Packet(NetConstants.PacketTypes.ServerMatchStatusChanged, room.Match.GetBytesWithoutBoard());
-                await sendPacketToClient(nonAdminsPacket, k.Client);
-            }
-        }
-
-        private async Task sendPacketToAllClients(Packet p, bool onlyRegistered = false)
-        {
-            var clientsToInclude = onlyRegistered ? _clients.Where(c => c.IsRegistered) : _clients;
-            await sendPacketToClients(p, clientsToInclude);
-        }
-
-        private async Task sendPacketToClient(Packet p, ClientModel client)
-        {
-            try
-            {
-                var stream = client.TcpClient.GetStream();
-                await stream.WriteAsync(p.Bytes.AsMemory(0, p.TotalSize));
-            }
-            catch
-            {
-                await dropClient(client);
-            }
-        }
-
-        private async Task sendPacketToClients(Packet p, IEnumerable<ClientModel> clients)
-        {
-            foreach (var client in clients)
-            {
-                await sendPacketToClient(p, client);
+                var nonAdminsPacket = matchLive ?
+                    new Packet(matchStatus, createEntireBoardPacket(board, k)) : new Packet(matchStatus);
+                await SendPacketToClient(nonAdminsPacket, k.Client);
             }
         }
 
         private async Task sendPacketToRoom(Packet p, ServerRoom room)
         {
-            await sendPacketToClients(p, room.ClientModels);
+            await SendPacketToClients(p, room.ClientModels);
         }
 
         private async Task sendPacketToRoomExcept(Packet p, ServerRoom room, Guid except)
         {
-            await sendPacketToClients(p, room.ClientModels.Where(c => c.UserGuid != except));
-        }
-
-        private async Task sendShutdownToAll()
-        {
-            var packet = new Packet(NetConstants.PacketTypes.ServerShutdown, Array.Empty<byte>());
-            await sendPacketToAllClients(packet);
-            foreach (var c in _clients)
-            {
-                c.Stop();
-            }
+            await SendPacketToClients(p, room.ClientModels.Where(c => c.ClientGuid != except));
         }
 
         private async Task setRoomBingoBoard(ServerRoom room, ServerBingoBoard board)
@@ -758,64 +616,15 @@ namespace EldenBingoServer
             return (error != null, error);
         }
 
-        private (IList<ClientInRoom>, IList<ClientInRoom>) splitClients(ServerRoom room, Predicate<ClientInRoom> pred)
+        private (IList<BingoClientInRoom>, IList<BingoClientInRoom>) splitClients(ServerRoom room, Predicate<BingoClientInRoom> pred)
         {
-            var truelist = new List<ClientInRoom>();
-            var falselist = new List<ClientInRoom>();
-            foreach (var c in room.Clients)
+            var truelist = new List<BingoClientInRoom>();
+            var falselist = new List<BingoClientInRoom>();
+            foreach (var c in room.Users)
             {
                 (pred(c) ? truelist : falselist).Add(c);
             }
             return (truelist, falselist);
         }
-
-        private async Task waitForPacketAsync(ClientModel client)
-        {
-            var stream = client.TcpClient.GetStream();
-            var size = client.TcpClient.ReceiveBufferSize;
-            try
-            {
-                byte[] buffer = new byte[size];
-                var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), client.CancellationToken.Token);
-                int offset = 1;
-                var expectedLength = Packet.HeaderSize + PacketHelper.ReadInt(buffer, ref offset);
-                List<byte[]>? dataChunks = new List<byte[]> { buffer };
-                //Read data until entire expected packet has arrived
-                while (bytesRead < expectedLength)
-                {
-                    buffer = new byte[size];
-                    bytesRead += await stream.ReadAsync(buffer.AsMemory(0, size), client.CancellationToken.Token);
-                    dataChunks.Add(buffer);
-                }
-                await handleIncomingPacket(client, new Packet(PacketHelper.ConcatBytes(dataChunks)));
-            }
-            catch (Exception e)
-            {
-                //Stream was closed, most likely due to the server shutting down
-                //but could also be because client sent malformed packet
-                await dropClient(client);
-                OnError?.Invoke(this, new StringEventArgs(e.Message));
-            }
-        }
-
-        /*
-        private async Task sendPacketToRoomPredicate(Packet p, ServerRoom room, Predicate<ClientModel> pred)
-        {
-            await sendPacketToClients(p, room.ClientModels.Where(c => pred(c)));
-        }
-
-        private async Task sendPacketToRoomNonAdmins(Packet p, ServerRoom room)
-        {
-            await sendPacketToClients(p, room.ClientModels.Where(c => !c.IsAdmin));
-        }
-
-        private async Task sendPacketToAllClientsExcept(Packet p, Guid except, bool onlyRegistered = false)
-        {
-            var clientsToInclude = onlyRegistered ? _clients.Where(c => c.IsRegistered && c.UserGuid != except) : _clients.Where(c => c.UserGuid != except);
-            await sendPacketToClients(p, clientsToInclude);
-        }
-        */
-
-        #endregion Private methods
     }
 }

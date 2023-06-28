@@ -1,4 +1,4 @@
-﻿namespace EldenBingoCommon
+﻿namespace Neto.Shared
 {
     public class StringEventArgs : EventArgs
     {

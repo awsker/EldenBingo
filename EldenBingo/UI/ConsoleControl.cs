@@ -2,7 +2,7 @@
 
 namespace EldenBingo.UI
 {
-    internal partial class ConsoleControl : ClientUserControl
+    internal partial class ConsoleControl : UserControl
     {        
         public ConsoleControl() : base()
         {
@@ -17,21 +17,6 @@ namespace EldenBingo.UI
                 base.BackColor = value;
                 _consoleTextBox.BackColor = value;
             }
-        }
-
-        protected override void AddClientListeners()
-        {
-            Client.StatusChanged += client_StatusChanged;
-        }
-
-        protected override void RemoveClientListeners()
-        {
-            Client.StatusChanged -= client_StatusChanged;
-        }
-
-        private void client_StatusChanged(object? sender, StatusEventArgs e)
-        {
-            PrintToConsole(e.Status, e.Color, true);
         }
 
         public void PrintToConsole(string text, Color color, bool timestamp = true)
