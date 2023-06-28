@@ -15,7 +15,7 @@ namespace EldenBingo.Rendering.Game
     {
         private const float MapViewportWidth = 750f, MapViewportHeight = 750f;
 
-        private CameraMode _cameraMode = CameraMode.FreeCam;
+        private CameraMode _cameraMode = CameraMode.FitAll;
         private PlayerDrawable? _cameraFollow = null;
         private MapWindow _window;
         private ICamera _camera;
