@@ -129,12 +129,11 @@ namespace EldenBingo.UI
 
         private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
         {
-            if (Client?.Room != null)
-            {
-                Client.Room.Match.Board = new BingoBoard(boardUpdate.Squares);
-                setBoard(Client.Room.Match.Board);
-                updateBoardStatus(Client.Room.Match);
-            }
+            if (Client?.Room == null)
+                return;
+
+            setBoard(Client.Room.Match.Board);
+            updateBoardStatus(Client.Room.Match);
         }
 
         private void _boardStatusLabel_Click(object sender, EventArgs e)
@@ -175,6 +174,8 @@ namespace EldenBingo.UI
                     Squares[i].Text = string.Empty;
                     Squares[i].ToolTip = string.Empty;
                     Squares[i].Color = Color.Empty;
+                    Squares[i].Marked = false;
+                    Squares[i].Counters = Array.Empty<TeamCounter>();
                 }
                 Invalidate();
             }
@@ -218,14 +219,20 @@ namespace EldenBingo.UI
             }
         }
 
-        private void setBoard(BingoBoard board)
+        private void setBoard(BingoBoard? board)
         {
             void update()
             {
+                if (board == null)
+                {
+                    clearBoard();
+                    return;
+                }
                 for (int i = 0; i < 25; ++i)
                 {
                     updateSquare(board, i);
                 }
+                Invalidate();
             }
             if (InvokeRequired)
             {

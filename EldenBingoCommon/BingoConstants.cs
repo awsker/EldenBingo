@@ -14,6 +14,20 @@ namespace EldenBingoCommon
         public string Name { get; init; }
     }
 
+    public enum EldenRingClasses
+    {
+        Vagabond,
+        Warrior,
+        Hero, 
+        Bandit, 
+        Astrologer,
+        Prophet,
+        Samurai,
+        Prisoner, 
+        Confessor,
+        Wretch
+    }
+
     public static class BingoConstants
     {
         public const int DefaultPort = 4501;

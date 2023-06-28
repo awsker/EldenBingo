@@ -29,6 +29,7 @@ namespace EldenBingo.UI
             Client.Disconnected += client_Disconnected;
             Client.OnRoomChanged += client_RoomChanged;
             Client.AddListener<ServerAdminStatusMessage>(adminStatusMessage);
+            Client.AddListener<ServerCurrentGameSettings>(receivedGameSettings);
         }
 
         protected override void RemoveClientListeners()
@@ -39,6 +40,7 @@ namespace EldenBingo.UI
             Client.Disconnected -= client_Disconnected;
             Client.OnRoomChanged -= client_RoomChanged;
             Client.RemoveListener<ServerAdminStatusMessage>(adminStatusMessage);
+            Client.RemoveListener<ServerCurrentGameSettings>(receivedGameSettings);
         }
 
         private void _browseJsonButton_Click(object sender, EventArgs e)
@@ -134,7 +136,7 @@ namespace EldenBingo.UI
                 return;
             }
             errorProvider1.SetError(_bingoJsonTextBox, null);
-            var p = new Packet(new ClientRandomizeBoard(0));
+            var p = new Packet(new ClientRandomizeBoard());
             await Client.SendPacketToServer(p);
         }
 
@@ -207,13 +209,54 @@ namespace EldenBingo.UI
                 errorProvider1.SetError(_bingoJsonTextBox, null);
                 errorProvider1.SetError(_uploadJsonButton, null);
 
-                var p = new Packet(new ClientBingoJson(json, 0));
+                var p = new Packet(new ClientBingoJson(json));
                 await Client.SendPacketToServer(p);
             }
             catch (IOException ex)
             {
                 errorProvider1.SetError(_bingoJsonTextBox, $"Could not read file: {ex.Message}");
             }
+        }
+
+        private async void _lobbySettingsButton_Click(object sender, EventArgs e)
+        {
+            if (Client?.Room == null)
+            {
+                return; //Not in a room
+            }
+            var request = new ClientRequestCurrentGameSettings();
+            await Client.SendPacketToServer(new Packet(request));
+            
+        }
+
+        private void receivedGameSettings(ClientModel? _, ServerCurrentGameSettings gameSettingsArgs)
+        {
+            openSettingsWindow(gameSettingsArgs.GameSettings);
+        }
+
+        private void openSettingsWindow(BingoGameSettings settings)
+        {
+            if (Client?.Room == null)
+            {
+                return; //Not in a room
+            }
+
+            async void openWindow()
+            {
+                var form = new GameSettingsForm();
+                form.Settings = settings;
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    var request = new ClientSetGameSettings(form.Settings);
+                    await Client.SendPacketToServer(new Packet(request));
+                }
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(openWindow);
+                return;
+            }
+            openWindow();
         }
     }
 }

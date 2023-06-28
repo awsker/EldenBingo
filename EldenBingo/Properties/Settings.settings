@@ -83,5 +83,20 @@
     <Setting Name="FlipMouseButtons" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="GS_RandomizeClasses" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="GS_NumClasses" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="GS_Classes" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0,1,2,3,4,5,6,7,8,9</Value>
+    </Setting>
+    <Setting Name="GS_CategoryLimit" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="GS_RandomSeed" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

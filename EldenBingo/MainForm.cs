@@ -2,6 +2,7 @@ using EldenBingo.GameInterop;
 using EldenBingo.Net;
 using EldenBingo.Properties;
 using EldenBingo.Rendering;
+using EldenBingo.Settings;
 using EldenBingo.UI;
 using EldenBingoCommon;
 using EldenBingoServer;
@@ -99,7 +100,8 @@ namespace EldenBingo
                     form.RoomName,
                     form.AdminPassword,
                     form.Nickname,
-                    form.Team);
+                    form.Team,
+                    GameSettingsHelper.ReadFromSettings(Properties.Settings.Default));
             }
         }
 

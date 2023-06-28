@@ -10,14 +10,16 @@ namespace EldenBingoServer
         private string? _creatorIp;
         private string? _creatorName;
         private System.Timers.Timer? _timer;
+        
 
-        public ServerRoom(string name, string adminPassword, ClientModel creator) : base(name)
+        public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
         {
             AdminPassword = adminPassword;
             CreateTime = DateTime.Now;
             _creatorGuid = creator.ClientGuid;
             _creatorIp = Server.GetClientIp(creator);
             Match.MatchStatusChanged += match_MatchStatusChanged;
+            GameSettings = gameSettings;
         }
 
         public event EventHandler? TimerElapsed;
@@ -26,6 +28,7 @@ namespace EldenBingoServer
         public BingoBoardGenerator? BoardGenerator { get; set; }
         public IEnumerable<BingoClientModel> ClientModels => Users.Select(c => c.Client);
         public DateTime CreateTime { get; init; }
+        public BingoGameSettings GameSettings { get; set; }
 
         public BingoClientInRoom AddUser(BingoClientModel client, string nick, string adminPass, int team)
         {

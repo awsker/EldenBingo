@@ -39,20 +39,6 @@ namespace EldenBingoCommon
         {
             UsersDict[user.Guid] = user;
         }
-        /*
-        public virtual byte[] GetBytes(UserInRoom user)
-        {
-            var byteList = new List<byte[]>();
-            byteList.Add(PacketHelper.GetStringBytes(Name));
-            byteList.Add(BitConverter.GetBytes(NumClients));
-            foreach (var cl in Clients)
-            {
-                byteList.Add(cl.GetBytes());
-            }
-            var includeBoard = Match.MatchStatus >= MatchStatus.Running || user.IsAdmin && user.IsSpectator;
-            byteList.Add(includeBoard ? Match.GetBytes(user) : Match.GetBytesWithoutBoard());
-            return PacketHelper.ConcatBytes(byteList);
-        }*/
 
         /// <summary>
         /// Get number of checked squares per team
