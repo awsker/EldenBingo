@@ -118,11 +118,6 @@ namespace EldenBingo.UI
 
         private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
         {
-            /*
-            if (Client?.BingoBoard == null)
-            {
-                clearBoard();
-            }*/
             if (Client?.Room?.Match != null)
             {
                 updateBoardStatus(Client.Room.Match);
