@@ -49,6 +49,7 @@ namespace EldenBingo.Rendering
 
             Camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f, FullMapHeight * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
             Camera.MaxZoom = 13f;
+            Camera.MinZoom = 0.4f;
             _cameraController = new CameraController(this, Camera);
 
             AddGameObject(_cameraController);

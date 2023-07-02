@@ -185,12 +185,12 @@ namespace EldenBingo.Rendering.Game
                     var zoomChange = _userZoom * 0.12f;
                     if (e.Action == UIActions.ZoomIn)
                     {
-                        _userZoom = Math.Max(0.5f, _userZoom - zoomChange);
+                        _userZoom = Math.Max(_camera.MinZoom, _userZoom - zoomChange);
                         _camera.Zoom = getZoom();
                     }
                     else if (e.Action == UIActions.ZoomOut)
                     {
-                        _userZoom = Math.Max(0.5f, _userZoom + zoomChange);
+                        _userZoom = Math.Min(_camera.MaxZoom, _userZoom + zoomChange);
                         _camera.Zoom = getZoom();
                     }
                     break;
