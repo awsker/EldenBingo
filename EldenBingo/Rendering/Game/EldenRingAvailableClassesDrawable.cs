@@ -63,8 +63,6 @@ namespace EldenBingo.Rendering.Game
                         _classTextures[i] = tex;
                     }
                     _backgroundTexture = new Texture(Path.Combine(imgPath, "Classes_Background_2.jpg"));
-                    _background = new CenteredBackgroundDrawable(_backgroundTexture, Window.Size);
-                    AddGameObject(_background);
                     _texturesLoaded = true;
                 }
                 catch (SFML.LoadingFailedException)
@@ -72,6 +70,8 @@ namespace EldenBingo.Rendering.Game
                     return;
                 }
             }
+            _background = new CenteredBackgroundDrawable(_backgroundTexture, Window.Size);
+            AddGameObject(_background);
         }
 
         public void Dispose()

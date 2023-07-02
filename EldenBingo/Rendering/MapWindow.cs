@@ -241,11 +241,11 @@ namespace EldenBingo.Rendering
             if (e.Button == Mouse.Button.Left)
             {
                 MouseLeftHeld = true;
+                showAvailableClasses(false);
             }
             if (e.Button == Mouse.Button.Right)
             {
                 MouseRightHeld = false;
-                showAvailableClasses(false);
             }
         }
 
