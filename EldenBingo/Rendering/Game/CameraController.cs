@@ -15,7 +15,7 @@ namespace EldenBingo.Rendering.Game
     {
         private const float MapViewportWidth = 750f, MapViewportHeight = 750f;
 
-        private CameraMode _cameraMode = CameraMode.FitAll;
+        private CameraMode _cameraMode;
         private PlayerDrawable? _cameraFollow = null;
         private MapWindow _window;
         private ICamera _camera;
@@ -29,6 +29,7 @@ namespace EldenBingo.Rendering.Game
             _camera = camera;
             _lastZoom = 1f;
             _userZoom = 1f;
+            _cameraMode = CameraMode.FitAll;
 
             listenToWindowEvents(window);
             updateCameraSize();

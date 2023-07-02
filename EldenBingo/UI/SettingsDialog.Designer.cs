@@ -62,6 +62,7 @@
             this.label9 = new System.Windows.Forms.Label();
             this._hostServerCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this._showClassesCheckBox = new System.Windows.Forms.CheckBox();
             this._swapMouseButtons = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -392,17 +393,27 @@
             // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this._showClassesCheckBox);
             this.groupBox6.Controls.Add(this._swapMouseButtons);
             this.groupBox6.Location = new System.Drawing.Point(237, 228);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(209, 115);
             this.groupBox6.TabIndex = 20;
             this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "Map Input";
+            this.groupBox6.Text = "Map";
+            // 
+            // _showClassesCheckBox
+            // 
+            this._showClassesCheckBox.Location = new System.Drawing.Point(9, 59);
+            this._showClassesCheckBox.Name = "_showClassesCheckBox";
+            this._showClassesCheckBox.Size = new System.Drawing.Size(194, 53);
+            this._showClassesCheckBox.TabIndex = 2;
+            this._showClassesCheckBox.Text = "Show random classes in an overlay on the map (for streaming)";
+            this._showClassesCheckBox.UseVisualStyleBackColor = true;
             // 
             // _swapMouseButtons
             // 
-            this._swapMouseButtons.Location = new System.Drawing.Point(9, 22);
+            this._swapMouseButtons.Location = new System.Drawing.Point(9, 20);
             this._swapMouseButtons.Name = "_swapMouseButtons";
             this._swapMouseButtons.Size = new System.Drawing.Size(194, 36);
             this._swapMouseButtons.TabIndex = 1;
@@ -482,5 +493,6 @@
         private CheckBox _hostServerCheckBox;
         private GroupBox groupBox6;
         private CheckBox _swapMouseButtons;
+        private CheckBox _showClassesCheckBox;
     }
 }

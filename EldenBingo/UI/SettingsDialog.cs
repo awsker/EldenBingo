@@ -78,6 +78,7 @@
             _bingoCustomMaxSizeRadioButton.CheckedChanged += (_, _) => updateMaxSizeEnable();
 
             _swapMouseButtons.Checked = Properties.Settings.Default.FlipMouseButtons;
+            _showClassesCheckBox.Checked = Properties.Settings.Default.ShowClassesOnMap;
 
             updateSizeEnable();
             updatePositionEnable();
@@ -183,6 +184,7 @@
             }
 
             Properties.Settings.Default.FlipMouseButtons = _swapMouseButtons.Checked;
+            Properties.Settings.Default.ShowClassesOnMap = _showClassesCheckBox.Checked;
 
             Properties.Settings.Default.Save();
             return true;

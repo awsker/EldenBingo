@@ -1,8 +1,10 @@
 ﻿using EldenBingo.GameInterop;
 using EldenBingo.Rendering.Game;
+using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.ComponentModel;
 
 namespace EldenBingo.Rendering
 {
@@ -24,7 +26,9 @@ namespace EldenBingo.Rendering
         private RoundTableDrawable _roundTable;
         private CameraController _cameraController;
         private LineLayer _lineLayer;
-        private RenderLayer _hudLayer;
+
+        //private RenderLayer _hudLayer;
+        private EldenRingAvailableClassesDrawable? _availableClasses;
 
         static MapWindow()
         {
@@ -44,6 +48,7 @@ namespace EldenBingo.Rendering
             AddGameObject(InputHandler);
 
             Camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f, FullMapHeight * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
+            Camera.MaxZoom = 13f;
             _cameraController = new CameraController(this, Camera);
 
             AddGameObject(_cameraController);
@@ -57,23 +62,28 @@ namespace EldenBingo.Rendering
             _lineLayer = new LineLayer(this);
             AddGameObject(_lineLayer);
 
-            _hudLayer = new RenderLayer(this);
-            _hudLayer.Visible = false;
-            AddGameObject(_hudLayer);
-            /*
-            var text = new TextDrawable("Test", Font);
-            _hudLayer.CustomView = new SFML.Graphics.View(new FloatRect(0, 0, 400, 400));
-            _hudLayer.AddGameObject(text);*/
+            Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
+
+            if (Properties.Settings.Default.ShowClassesOnMap)
+            {
+                initClassesDrawable();
+            }
         }
 
         public static MapWindow? Instance { get; private set; }
+
         public bool MouseLeftHeld { get; private set; }
+
         public bool MouseRightHeld { get; private set; }
 
         public InputHandler InputHandler { get; init; }
+
         public IList<PlayerDrawable> Players { get; init; }
+
         public LerpCamera Camera { get; init; }
+
         public bool ShowPlayerNames { get; set; } = true;
+
         public ToolMode ToolMode { get; set; }
 
         public void AddCoordinateProvider(ICoordinateProvider p)
@@ -110,6 +120,16 @@ namespace EldenBingo.Rendering
             _guids.Remove(g);
         }
 
+        public void ShowAvailableClasses(EldenRingClasses[] classes)
+        {
+            if (_availableClasses == null)
+            {
+                initClassesDrawable();
+            }
+            _availableClasses.SetAvailableClasses(classes);
+            showAvailableClasses(classes.Length > 0);
+        }
+
         protected override void ListenToEvents()
         {
             base.ListenToEvents();
@@ -136,6 +156,23 @@ namespace EldenBingo.Rendering
             MouseButtonReleased -= onMouseReleased;
         }
 
+        private void initClassesDrawable()
+        {
+            _availableClasses = new EldenRingAvailableClassesDrawable(this);
+            AddGameObject(_availableClasses);
+            if (Running) //Init the textures if this window is already running
+                _availableClasses.Init();
+            showAvailableClasses(false);
+        }
+
+        private void default_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Properties.Settings.ShowClassesOnMap) && Properties.Settings.Default.ShowClassesOnMap && _availableClasses == null)
+            {
+                initClassesDrawable();
+            }
+        }
+
         private void onInitializingDrawables(object? sender, EventArgs e)
         {
             Clear(new SFML.Graphics.Color(96, 96, 96));
@@ -154,8 +191,9 @@ namespace EldenBingo.Rendering
 
         private void onAfterDraw(object? sender, EventArgs e)
         {
-            //Draw HUD last
-            Draw(_hudLayer);
+            //Draw available classes last
+            if (_availableClasses != null && _availableClasses.Visible)
+                Draw(_availableClasses);
         }
 
         private void onWindowResized(object? sender, SizeEventArgs e)
@@ -179,6 +217,16 @@ namespace EldenBingo.Rendering
             {
                 _lineLayer.ClearLines();
             }
+            if (e.Code == Keyboard.Key.Space || e.Code == Keyboard.Key.Escape)
+            {
+                showAvailableClasses(false);
+            }
+        }
+
+        private void showAvailableClasses(bool vis)
+        {
+            if (_availableClasses != null)
+                _availableClasses.Visible = vis;
         }
 
         private void onDisposingDrawables(object? sender, EventArgs e)
@@ -197,6 +245,7 @@ namespace EldenBingo.Rendering
             if (e.Button == Mouse.Button.Right)
             {
                 MouseRightHeld = false;
+                showAvailableClasses(false);
             }
         }
 

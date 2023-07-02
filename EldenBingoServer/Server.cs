@@ -10,7 +10,7 @@ namespace EldenBingoServer
     public class Server : NetoServer<BingoClientModel>
     {
         //10 seconds countdown before match starts
-        private const int MatchStartCountdown = 9999;
+        private const int MatchStartCountdown = 999;
 
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
 

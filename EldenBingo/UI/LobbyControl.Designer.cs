@@ -135,6 +135,7 @@
             this._logTextBox.ForeColor = System.Drawing.Color.White;
             this._logTextBox.Location = new System.Drawing.Point(1, 1);
             this._logTextBox.Name = "_logTextBox";
+            this._logTextBox.ReadOnly = true;
             this._logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             this._logTextBox.Size = new System.Drawing.Size(257, 314);
             this._logTextBox.TabIndex = 8;

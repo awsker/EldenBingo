@@ -21,6 +21,11 @@ namespace EldenBingo.Rendering
         public bool Changed { get; private set; }
 
         /// <summary>
+        /// True if this camera is enabled and should update
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
         /// Center position of camera
         /// </summary>
         public virtual Vector2f Position
@@ -62,7 +67,8 @@ namespace EldenBingo.Rendering
             }
         }
 
-        public bool Enabled => throw new NotImplementedException();
+        public float MinZoom { get; set; } = float.MinValue;
+        public float MaxZoom { get; set; } = float.MaxValue;
 
         public View GetView()
         {

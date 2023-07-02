@@ -406,5 +406,17 @@ namespace EldenBingo.Properties {
                 this["GS_RandomSeed"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowClassesOnMap {
+            get {
+                return ((bool)(this["ShowClassesOnMap"]));
+            }
+            set {
+                this["ShowClassesOnMap"] = value;
+            }
+        }
     }
 }

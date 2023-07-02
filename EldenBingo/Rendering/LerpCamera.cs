@@ -5,7 +5,7 @@ namespace EldenBingo.Rendering
 {
     public class LerpCamera : ICamera
     {
-        private const float DTCHANGE = 2.0f;
+        private const float DTCHANGE = 2f;
         private Vector2f _position, _size;
         private bool _snap;
         private Vector2f _targetPosition;
@@ -66,13 +66,17 @@ namespace EldenBingo.Rendering
             get => _zoom;
             set
             {
-                if (_targetZoom != value)
+                var z = Math.Clamp(value, MinZoom, MaxZoom);
+                if (_targetZoom != z)
                 {
-                    _targetZoom = value;
+                    _targetZoom = z;
                     Changed = true;
                 }
             }
         }
+
+        public float MinZoom { get; set; } = float.MinValue;
+        public float MaxZoom { get; set; } = float.MaxValue;
 
         public View GetView()
         {
