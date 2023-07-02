@@ -38,6 +38,7 @@
             this._consoleTextBox.Location = new System.Drawing.Point(0, 0);
             this._consoleTextBox.Margin = new System.Windows.Forms.Padding(0);
             this._consoleTextBox.Name = "_consoleTextBox";
+            this._consoleTextBox.ReadOnly = true;
             this._consoleTextBox.Size = new System.Drawing.Size(400, 300);
             this._consoleTextBox.TabIndex = 1;
             this._consoleTextBox.Text = "";

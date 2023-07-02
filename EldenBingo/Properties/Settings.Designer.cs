@@ -346,5 +346,77 @@ namespace EldenBingo.Properties {
                 this["FlipMouseButtons"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GS_RandomizeClasses {
+            get {
+                return ((bool)(this["GS_RandomizeClasses"]));
+            }
+            set {
+                this["GS_RandomizeClasses"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int GS_NumClasses {
+            get {
+                return ((int)(this["GS_NumClasses"]));
+            }
+            set {
+                this["GS_NumClasses"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0,1,2,3,4,5,6,7,8,9")]
+        public string GS_Classes {
+            get {
+                return ((string)(this["GS_Classes"]));
+            }
+            set {
+                this["GS_Classes"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int GS_CategoryLimit {
+            get {
+                return ((int)(this["GS_CategoryLimit"]));
+            }
+            set {
+                this["GS_CategoryLimit"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int GS_RandomSeed {
+            get {
+                return ((int)(this["GS_RandomSeed"]));
+            }
+            set {
+                this["GS_RandomSeed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowClassesOnMap {
+            get {
+                return ((bool)(this["ShowClassesOnMap"]));
+            }
+            set {
+                this["ShowClassesOnMap"] = value;
+            }
+        }
     }
 }

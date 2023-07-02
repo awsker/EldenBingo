@@ -1,4 +1,5 @@
-﻿using EldenBingoCommon;
+﻿using EldenBingo.Settings;
+using EldenBingoCommon;
 using Neto.Shared;
 
 namespace EldenBingo.UI
@@ -6,13 +7,22 @@ namespace EldenBingo.UI
     public partial class CreateLobbyForm : Form
     {
         private readonly Client _client;
+        private GameSettingsControl? _gameSettingsControl;
+
+        private int _initWidth, _initHeight;
 
         public CreateLobbyForm(Client client, bool create)
         {
             InitializeComponent();
+            _initWidth = Width;
+            _initHeight = Height;
             _client = client;
             if (!create)
+            {
                 Text = "Join Lobby";
+                _lobbySettingsButton.Visible = false;
+                Height -= _lobbySettingsButton.Height;
+            }
 
             if (create && client != null)
             {
@@ -98,6 +108,7 @@ namespace EldenBingo.UI
         {
             Properties.Settings.Default.Nickname = Nickname;
             Properties.Settings.Default.Team = Team;
+            saveGameSettings();
             Properties.Settings.Default.Save();
         }
 
@@ -128,6 +139,57 @@ namespace EldenBingo.UI
                 errorProvider1.SetError(_nicknameTextBox, null);
             }
             return true;
+        }
+
+        private void _lobbySettingsButton_Click(object sender, EventArgs e)
+        {
+            if(_gameSettingsControl == null)
+            {
+                createGameSettingsControl();
+                loadGameSettings();
+            } 
+            else
+            {
+                _gameSettingsControl.Visible = !_gameSettingsControl.Visible;
+            }
+            
+            if(_gameSettingsControl.Visible)
+            {
+                Width = _gameSettingsControl.Location.X + _gameSettingsControl.Width + 20;
+                Height = Math.Max(Height, _gameSettingsControl.Location.Y + _gameSettingsControl.Height + 42);
+                _lobbySettingsButton.Text = "Lobby Settings <<";
+            } 
+            else
+            {
+                Width = _initWidth;
+                Height = _initHeight;
+                _lobbySettingsButton.Text = "Lobby Settings >>";
+            }
+        }
+
+        private void createGameSettingsControl()
+        {
+            var control = new GameSettingsControl();
+            control.Location = new Point(Width - 14, 4);
+            Controls.Add(control);
+            _gameSettingsControl = control;
+        }
+
+        private void loadGameSettings()
+        {
+            if (_gameSettingsControl != null)
+            {
+                _gameSettingsControl.Settings = GameSettingsHelper.ReadFromSettings(Properties.Settings.Default);
+            }
+        }
+
+        private void saveGameSettings()
+        {
+            if(_gameSettingsControl != null)
+            {
+                var settings = _gameSettingsControl.Settings;
+                GameSettingsHelper.SaveToSettings(settings, Properties.Settings.Default);
+            }
         }
     }
 }

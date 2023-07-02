@@ -43,6 +43,7 @@
             this._cancelButton = new System.Windows.Forms.Button();
             this._createButton = new System.Windows.Forms.Button();
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            this._lobbySettingsButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
@@ -153,8 +154,8 @@
             // 
             // _cancelButton
             // 
-            this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(172, 194);
+            this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this._cancelButton.Location = new System.Drawing.Point(172, 223);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
             this._cancelButton.TabIndex = 11;
@@ -164,8 +165,8 @@
             // 
             // _createButton
             // 
-            this._createButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._createButton.Location = new System.Drawing.Point(91, 194);
+            this._createButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this._createButton.Location = new System.Drawing.Point(91, 223);
             this._createButton.Name = "_createButton";
             this._createButton.Size = new System.Drawing.Size(75, 23);
             this._createButton.TabIndex = 10;
@@ -177,12 +178,23 @@
             // 
             this.errorProvider1.ContainerControl = this;
             // 
+            // _lobbySettingsButton
+            // 
+            this._lobbySettingsButton.Location = new System.Drawing.Point(92, 193);
+            this._lobbySettingsButton.Name = "_lobbySettingsButton";
+            this._lobbySettingsButton.Size = new System.Drawing.Size(155, 23);
+            this._lobbySettingsButton.TabIndex = 12;
+            this._lobbySettingsButton.Text = "Lobby Settings >>";
+            this._lobbySettingsButton.UseVisualStyleBackColor = true;
+            this._lobbySettingsButton.Click += new System.EventHandler(this._lobbySettingsButton_Click);
+            // 
             // CreateLobbyForm
             // 
             this.AcceptButton = this._createButton;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(263, 227);
+            this.ClientSize = new System.Drawing.Size(258, 256);
+            this.Controls.Add(this._lobbySettingsButton);
             this.Controls.Add(this._createButton);
             this.Controls.Add(this._cancelButton);
             this.Controls.Add(this.groupBox2);
@@ -217,5 +229,6 @@
         private Button _createButton;
         private ErrorProvider errorProvider1;
         private Panel _colorPanel;
+        private Button _lobbySettingsButton;
     }
 }

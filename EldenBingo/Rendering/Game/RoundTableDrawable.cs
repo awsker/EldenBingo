@@ -41,7 +41,7 @@ namespace EldenBingo.Rendering.Game
         private void onBeforeDraw_SetPositionAndScale(object? sender, EventArgs e)
         {
             var cam = _window.Camera;
-            var scale = 0.5f * cam.Zoom;
+            var scale = 0.5f * Math.Min(10f, cam.Zoom);
             var position = RoundTablePosition + RoundTableZoomOffset * scale;
 
             _sprite.Scale = new Vector2f(scale, scale);

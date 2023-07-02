@@ -108,6 +108,7 @@ namespace Neto.Server
             if (client.IsRegistered)
             {
                 fireOnClientDisconnected(client);
+                client.IsRegistered = false;
             }
             client.Stop();
         }
@@ -297,8 +298,19 @@ namespace Neto.Server
                 } while (!IsMessageTerminated(ms));
 
                 var packet = ReadPacket(ms.ToArray());
-                if (packet != null)
+                if (packet == null)
+                {
+                    //Drop client after 3 malformed packets
+                    if(++client.MalformedPackets == 3)
+                    {
+                        await KickClient(client);
+                    }
+                }
+                else
+                {
+                    client.MalformedPackets = Math.Max(0, client.MalformedPackets - 1);
                     await handleIncomingPacket(client, packet);
+                }
             }
             catch (Exception e)
             {

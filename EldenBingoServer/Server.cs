@@ -10,7 +10,7 @@ namespace EldenBingoServer
     public class Server : NetoServer<BingoClientModel>
     {
         //10 seconds countdown before match starts
-        private const int MatchStartCountdown = 9999;
+        private const int MatchStartCountdown = 999;
 
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
 
@@ -137,6 +137,8 @@ namespace EldenBingoServer
             AddListener<ClientTryCheck>(clientTryCheck);
             AddListener<ClientTryMark>(clientTryMark);
             AddListener<ClientTrySetCounter>(clientTrySetCounter);
+            AddListener<ClientRequestCurrentGameSettings>(clientRequestGameSettings);
+            AddListener<ClientSetGameSettings>(clientSetGameSettings);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -165,7 +167,7 @@ namespace EldenBingoServer
                 await SendPacketToClient(new Packet(deniedPacket), sender);
                 return;
             }
-            ServerRoom? room = createRoom(request.RoomName, request.AdminPass, sender);
+            ServerRoom? room = createRoom(request.RoomName, request.AdminPass, sender, request.Settings);
             //Leave old room
             await leaveUserRoom(sender);
             //Join new room
@@ -175,13 +177,13 @@ namespace EldenBingoServer
             }
         }
 
-        private ServerRoom createRoom(string roomName, string adminPass, ClientModel creator)
+        private ServerRoom createRoom(string roomName, string adminPass, ClientModel creator, BingoGameSettings settings)
         {
             if (_rooms.TryGetValue(roomName, out _))
             {
                 throw new ApplicationException("Room already exists");
             }
-            var room = new ServerRoom(roomName, adminPass, creator);
+            var room = new ServerRoom(roomName, adminPass, creator, settings);
             room.TimerElapsed += (o, e) => onMatchTimerElapsed(room);
             _rooms[roomName] = room;
             return room;
@@ -267,19 +269,45 @@ namespace EldenBingoServer
             ServerBingoBoard? board = null;
             try
             {
-                sender.Room.BoardGenerator = new BingoBoardGenerator(bingoJson.Json);
-                board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room, bingoJson.Seed);
+                var bg = new BingoBoardGenerator(bingoJson.Json, sender.Room.GameSettings.RandomSeed);
+                bg.CategoryLimit = sender.Room.GameSettings.CategoryLimit;
+                sender.Room.BoardGenerator = bg;
+                //Don't update bingo board if match is running
+                if (sender.Room.Match.MatchStatus == MatchStatus.NotRunning || sender.Room.Match.MatchStatus == MatchStatus.Finished)
+                {
+                    board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
+                    if (board == null)
+                    {
+                        await sendAdminStatusMessage(sender, $"Error generating bingo board: No valid board possible", System.Drawing.Color.Red);
+                        return;
+                    }
+                }
             }
             catch (Exception e)
             {
                 await sendAdminStatusMessage(sender, $"Error reading bingo json file: {e.Message}", System.Drawing.Color.Red);
-                //Ignore errors when reading the Json
+                return;
             }
-            if (board != null && sender.Room.Match.MatchStatus == MatchStatus.NotRunning) //Don't update bingo board if match is running
+            
+            if (board != null)
             {
+                randomizeClassesIfNeeded(sender.Room);
                 await setRoomBingoBoard(sender.Room, board);
                 await sendAdminStatusMessage(sender, $"Bingo json file successfully uploaded and bingo board generated!", System.Drawing.Color.Green);
             }
+            else
+            {
+                await sendAdminStatusMessage(sender, $"Bingo json file successfully uploaded!", System.Drawing.Color.Green);
+            }
+
+        }
+
+        private void randomizeClassesIfNeeded(ServerRoom room)
+        {
+            EldenRingClasses[] availableClasses = room.GameSettings.RandomClasses && room.BoardGenerator != null ?
+               room.BoardGenerator.RandomizeAvailableClasses(room.GameSettings.ValidClasses, room.GameSettings.NumberOfClasses) :
+               Array.Empty<EldenRingClasses>();
+            room.Match.Classes = availableClasses;
         }
 
         private async void clientRandomizeBoard(BingoClientModel? sender, ClientRandomizeBoard randomizeBoard)
@@ -296,9 +324,10 @@ namespace EldenBingoServer
             }
             else if (await confirm(sender, gameStarted: false))
             {
-                ServerBingoBoard? board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room, randomizeBoard.Seed);
+                ServerBingoBoard? board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
                 if (board != null)
                 {
+                    randomizeClassesIfNeeded(sender.Room);
                     await setRoomBingoBoard(sender.Room, board);
                     await sendAdminStatusMessage(sender, "New board generated!", System.Drawing.Color.Green);
                 }
@@ -319,9 +348,15 @@ namespace EldenBingoServer
 
             var result = await setRoomMatchStatus(sender.Room, matchStatus.MatchStatus);
             //If error occured when setting room match status, send response to the requester
-            if (!result.Item1 && result.Item2 != null)
+            if (!result.Success && result.ErrorMessage != null)
             {
-                await sendAdminStatusMessage(sender, result.Item2, System.Drawing.Color.Red);
+                await sendAdminStatusMessage(sender, result.ErrorMessage, System.Drawing.Color.Red);
+            }
+            if (result.Success && matchStatus.MatchStatus == MatchStatus.Starting)
+            {
+                var p = new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>()));
+                //Reset the board for all players
+                await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
             }
         }
 
@@ -407,8 +442,38 @@ namespace EldenBingoServer
             }
         }
 
-        private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard board, UserInRoom user)
+        private async void clientRequestGameSettings(BingoClientModel? sender, ClientRequestCurrentGameSettings gameSettingsRequest)
         {
+            if (sender == null)
+                return;
+            if (!await confirm(sender, admin: true, inRoom: true))
+                return;
+
+            var packet = new ServerCurrentGameSettings(sender.Room.GameSettings);
+            await SendPacketToClient(new Packet(packet), sender);
+        }
+
+        private async void clientSetGameSettings(BingoClientModel? sender, ClientSetGameSettings gameSettingsRequest)
+        {
+            if (sender == null)
+                return;
+            if (!await confirm(sender, admin: true, inRoom: true))
+                return;
+
+            sender.Room.GameSettings = gameSettingsRequest.GameSettings;
+            if(sender.Room.BoardGenerator != null)
+            {
+                //Update the current board generator with the new random seed
+                sender.Room.BoardGenerator.RandomSeed = gameSettingsRequest.GameSettings.RandomSeed;
+                sender.Room.BoardGenerator.CategoryLimit = gameSettingsRequest.GameSettings.CategoryLimit;
+            }
+            await sendAdminStatusMessage(sender, "New lobby settings set", System.Drawing.Color.Green);
+        }
+
+        private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
+        {
+            if(board == null)
+                return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>());
             var squareData = board.GetSquareDataForUser(user);
             var boardCopy = new BingoBoard(board.Squares);
             for (int i = 0; i < 25; ++i)
@@ -450,7 +515,17 @@ namespace EldenBingoServer
             var packet = new Packet(joinAccepted);
             if (room.Match.Board is ServerBingoBoard board)
             {
-                packet.AddObject(createEntireBoardPacket(board, clientInRoom));
+                //Also send the bingo board if user should have it
+                bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
+                if(matchLive || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
+                {
+                    packet.AddObject(createEntireBoardPacket(board, clientInRoom));
+                }
+                if(matchLive && room.Match.Classes.Length > 0)
+                {
+                    var availableClassesPacket = new ServerAvailableClasses(room.Match.Classes);
+                    packet.AddObject(availableClassesPacket);
+                }
             }
             //Send all users currently present in the room to the new client
             await SendPacketToClient(packet, client);
@@ -478,8 +553,14 @@ namespace EldenBingoServer
             //Start game when countdown reaches 0
             if (room.Match.MatchStatus == MatchStatus.Starting)
             {
-                await setRoomMatchStatus(room, MatchStatus.Running);
+                await startMatch(room);
             }
+        }
+
+        private async Task startMatch(ServerRoom room)
+        {
+            await setRoomMatchStatus(room, MatchStatus.Running);
+            await sendBoardAndClasses(room);
         }
 
         private async Task sendAdminStatusMessage(BingoClientModel client, string message, Color color)
@@ -487,27 +568,44 @@ namespace EldenBingoServer
             await SendPacketToClient(new Packet(new ServerAdminStatusMessage(message, color.ToArgb())), client);
         }
 
-        private async Task sendMatchData(ServerRoom room)
+        private async Task sendMatchStatus(ServerRoom room)
+        {
+            var matchStatus = new ServerMatchStatusUpdate(room.Match.MatchStatus, room.Match.MatchMilliseconds);
+            await sendPacketToRoom(new Packet(matchStatus), room);
+        }
+
+        private async Task sendBoardAndClasses(ServerRoom room)
         {
             //Recalculate match live status
             bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
             var (adminSpectators, others) = splitClients(room, c => c.IsAdmin && c.IsSpectator);
 
-            var matchStatus = new ServerMatchStatusUpdate(room.Match.MatchStatus, room.Match.MatchMilliseconds);
-            if (room.Match?.Board is not ServerBingoBoard board)
+            if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
+            {
+                //No board set, so we send an empty board
+                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>())), room);
                 return;
+            }
 
+            //Board is set
             foreach (var k in adminSpectators)
             {
                 //Admin spectators get the bingo board regardless of status
-                var adminPacket = new Packet(matchStatus, createEntireBoardPacket(board, k));
+                var adminPacket = new Packet(createEntireBoardPacket(board, k));
+                if (room.Match.Classes.Length > 0 && room.Match.MatchMilliseconds < 10000) //Include the classes for the first 10 seconds of the game
+                {
+                    adminPacket.AddObject(new ServerAvailableClasses(room.Match.Classes));
+                }
                 await SendPacketToClient(adminPacket, k.Client);
             }
             foreach (var k in others)
             {
                 //All other users gets the packet without bingo board if match hasn't started
-                var nonAdminsPacket = matchLive ?
-                    new Packet(matchStatus, createEntireBoardPacket(board, k)) : new Packet(matchStatus);
+                var nonAdminsPacket = new Packet(createEntireBoardPacket(matchLive ? board : null, k));
+                if (room.Match.MatchStatus == MatchStatus.Running && room.Match.Classes.Length > 0 && room.Match.MatchMilliseconds < 10000)
+                {
+                    nonAdminsPacket.AddObject(new ServerAvailableClasses(room.Match.Classes));
+                }
                 await SendPacketToClient(nonAdminsPacket, k.Client);
             }
         }
@@ -526,9 +624,12 @@ namespace EldenBingoServer
         {
             room.Match.Board = board;
             await setRoomMatchStatus(room, MatchStatus.NotRunning);
+            await sendBoardAndClasses(room);
         }
 
-        private async Task<(bool, string?)> setRoomMatchStatus(ServerRoom room, MatchStatus status)
+        private record struct SetRoomStatusResult(bool Success, string? ErrorMessage);
+
+        private async Task<SetRoomStatusResult> setRoomMatchStatus(ServerRoom room, MatchStatus status)
         {
             string? error = null;
             var currentStatus = room.Match.MatchStatus;
@@ -612,8 +713,9 @@ namespace EldenBingoServer
                         break;
                     }
             }
-            await sendMatchData(room);
-            return (error != null, error);
+            if(error == null)
+                await sendMatchStatus(room);
+            return new SetRoomStatusResult(error == null, error);
         }
 
         private (IList<BingoClientInRoom>, IList<BingoClientInRoom>) splitClients(ServerRoom room, Predicate<BingoClientInRoom> pred)

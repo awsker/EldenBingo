@@ -15,6 +15,7 @@ namespace Neto.Shared
         public Guid ClientGuid { get; init; }
         public CancellationTokenSource CancellationToken { get; init; }
         public bool IsRegistered { get; set; }
+        internal int MalformedPackets { get; set; }
 
         public virtual void Stop()
         {

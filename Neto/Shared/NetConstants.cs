@@ -8,12 +8,12 @@
 
         public enum PacketTypes
         {
-            ServerRegisterAccepted, //string, Guid
-            ServerClientDropped, //(none)
-            ServerShutdown, //(none)
+            ServerRegisterAccepted,
+            ServerClientDropped,
+            ServerShutdown,
 
-            ClientRegister, //string
-            ClientDisconnect, //(none)
+            ClientRegister,
+            ClientDisconnect,
 
             ObjectData,
         }

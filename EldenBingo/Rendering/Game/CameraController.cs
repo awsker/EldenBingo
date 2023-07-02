@@ -15,7 +15,7 @@ namespace EldenBingo.Rendering.Game
     {
         private const float MapViewportWidth = 750f, MapViewportHeight = 750f;
 
-        private CameraMode _cameraMode = CameraMode.FitAll;
+        private CameraMode _cameraMode;
         private PlayerDrawable? _cameraFollow = null;
         private MapWindow _window;
         private ICamera _camera;
@@ -29,6 +29,7 @@ namespace EldenBingo.Rendering.Game
             _camera = camera;
             _lastZoom = 1f;
             _userZoom = 1f;
+            _cameraMode = CameraMode.FitAll;
 
             listenToWindowEvents(window);
             updateCameraSize();
@@ -184,12 +185,12 @@ namespace EldenBingo.Rendering.Game
                     var zoomChange = _userZoom * 0.12f;
                     if (e.Action == UIActions.ZoomIn)
                     {
-                        _userZoom = Math.Max(0.5f, _userZoom - zoomChange);
+                        _userZoom = Math.Max(_camera.MinZoom, _userZoom - zoomChange);
                         _camera.Zoom = getZoom();
                     }
                     else if (e.Action == UIActions.ZoomOut)
                     {
-                        _userZoom = Math.Max(0.5f, _userZoom + zoomChange);
+                        _userZoom = Math.Min(_camera.MaxZoom, _userZoom + zoomChange);
                         _camera.Zoom = getZoom();
                     }
                     break;

@@ -14,7 +14,6 @@ namespace EldenBingo.Rendering
         private Sprite _renderSprite;
         private SFML.Graphics.View _renderView;
         private SFML.Graphics.View? _customView;
-        private Vector2f _customViewInitialSize;
 
         public RenderLayer(SimpleGameWindow window)
         {
@@ -34,15 +33,7 @@ namespace EldenBingo.Rendering
 
         public Shader? Shader { get; set; }
 
-        public SFML.Graphics.View? CustomView
-        {
-            get { return _customView; }
-            set
-            {
-                _customView = value;
-                _customViewInitialSize = _customView?.Size ?? new Vector2f();
-            }
-        }
+        public virtual SFML.Graphics.View? CustomView { get; set; }
 
         public IReadOnlyCollection<object> GetGameObjects()
         {
@@ -94,7 +85,8 @@ namespace EldenBingo.Rendering
 
         public virtual void Draw(RenderTarget target, RenderStates states)
         {
-            var oldView = new SFML.Graphics.View(Window.GetView());
+            var oldView = new SFML.Graphics.View(target.GetView());
+
             var viewBounds = Window.GetViewBounds();
             _renderTex.Clear(SFML.Graphics.Color.Transparent);
             _renderTex.SetView(CustomView ?? oldView);
@@ -103,7 +95,7 @@ namespace EldenBingo.Rendering
                 var rect = draw.GetBoundingBox();
                 if (rect != null && !viewBounds.Intersects(rect.Value))
                     continue;
-
+                
                 _renderTex.Draw(draw, states);
             }
 

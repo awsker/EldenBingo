@@ -10,7 +10,7 @@ namespace EldenBingo.UI
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
         private BoardStatusEnum _boardStatus;
-        private string[] _boardStatusStrings = { "No board set", "Click to reveal...", "Match Starting...", "" };
+        private string[] _boardStatusStrings = { "Waiting for match to start...", "Click to reveal...", "Match Starting...", "" };
         private bool _revealed = false;
         private BingoSquareControl[] Squares;
 
@@ -72,6 +72,7 @@ namespace EldenBingo.UI
 
         private void onRoomChanged(object? sender, RoomChangedEventArgs e)
         {
+            _revealed = false;
             if (Client?.BingoBoard == null)
             {
                 clearBoard();
@@ -117,10 +118,6 @@ namespace EldenBingo.UI
 
         private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
         {
-            if (Client?.BingoBoard == null)
-            {
-                clearBoard();
-            }
             if (Client?.Room?.Match != null)
             {
                 updateBoardStatus(Client.Room.Match);
@@ -129,12 +126,11 @@ namespace EldenBingo.UI
 
         private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
         {
-            if (Client?.Room != null)
-            {
-                Client.Room.Match.Board = new BingoBoard(boardUpdate.Squares);
-                setBoard(Client.Room.Match.Board);
-                updateBoardStatus(Client.Room.Match);
-            }
+            if (Client?.Room == null)
+                return;
+
+            setBoard(Client.Room.Match.Board);
+            updateBoardStatus(Client.Room.Match);
         }
 
         private void _boardStatusLabel_Click(object sender, EventArgs e)
@@ -175,6 +171,8 @@ namespace EldenBingo.UI
                     Squares[i].Text = string.Empty;
                     Squares[i].ToolTip = string.Empty;
                     Squares[i].Color = Color.Empty;
+                    Squares[i].Marked = false;
+                    Squares[i].Counters = Array.Empty<TeamCounter>();
                 }
                 Invalidate();
             }
@@ -218,14 +216,20 @@ namespace EldenBingo.UI
             }
         }
 
-        private void setBoard(BingoBoard board)
+        private void setBoard(BingoBoard? board)
         {
             void update()
             {
+                if (board == null)
+                {
+                    clearBoard();
+                    return;
+                }
                 for (int i = 0; i < 25; ++i)
                 {
                     updateSquare(board, i);
                 }
+                Invalidate();
             }
             if (InvokeRequired)
             {
@@ -243,7 +247,7 @@ namespace EldenBingo.UI
             Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
             Squares[index].Marked = s.Marked;
             Squares[index].Counters = s.Counters;
-            Invalidate(Squares[index].ClientRectangle);
+            Squares[index].Invalidate();
         }
 
         private async void square_MouseDown(object? sender, MouseEventArgs e)
@@ -313,6 +317,7 @@ namespace EldenBingo.UI
                     else
                     {
                         _boardStatus = BoardStatusEnum.BoardRevealed;
+                        _revealed = false; //Reset revealed status, so the board is not automatically revealed next time
                     }
                 }
                 _boardStatusLabel.Text = _boardStatusStrings[(int)_boardStatus];

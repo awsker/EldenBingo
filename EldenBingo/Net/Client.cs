@@ -60,9 +60,9 @@ namespace EldenBingo
             await SendPacketToServer(req);
         }
 
-        public async Task CreateRoom(string roomName, string adminPass, string nickname, int team)
+        public async Task CreateRoom(string roomName, string adminPass, string nickname, int team, BingoGameSettings settings)
         {
-            var request = new ClientRequestCreateRoom(roomName, adminPass, nickname, team);
+            var request = new ClientRequestCreateRoom(roomName, adminPass, nickname, team, settings);
             await SendPacketToServer(new Packet(request));
         }
 
@@ -86,6 +86,7 @@ namespace EldenBingo
             AddListener<ServerCreateRoomDenied>(createRoomDenied);
             AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
             AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
         }
 
@@ -135,6 +136,14 @@ namespace EldenBingo
 
             //Set the new current room (which fires the RoomChanged event)
             Room = room;
+        }
+
+        private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
+        {
+            if (Room != null)
+            {
+                Room.Match.Board = boardUpdate.Squares.Length != 25 ? null : new BingoBoard(boardUpdate.Squares);
+            }
         }
 
         private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)

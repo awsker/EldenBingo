@@ -2,6 +2,7 @@ using EldenBingo.GameInterop;
 using EldenBingo.Net;
 using EldenBingo.Properties;
 using EldenBingo.Rendering;
+using EldenBingo.Settings;
 using EldenBingo.UI;
 using EldenBingoCommon;
 using EldenBingoServer;
@@ -99,7 +100,8 @@ namespace EldenBingo
                     form.RoomName,
                     form.AdminPassword,
                     form.Nickname,
-                    form.Team);
+                    form.Team,
+                    GameSettingsHelper.ReadFromSettings(Properties.Settings.Default));
             }
         }
 
@@ -208,6 +210,7 @@ namespace EldenBingo
 
             client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
+            client.AddListener<ServerAvailableClasses>(availableClasses);
         }
 
         private void client_Connected(object? sender, EventArgs e)
@@ -228,6 +231,12 @@ namespace EldenBingo
         private void joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinRoomDeniedArgs)
         {
             updateButtonAvailability();
+        }
+
+        private void availableClasses(ClientModel? _, ServerAvailableClasses classesArgs)
+        {
+            if (_mapWindow != null && _client.Room != null && _client.Room.Match.MatchStatus == MatchStatus.Running && Properties.Settings.Default.ShowClassesOnMap)
+                _mapWindow.ShowAvailableClasses(classesArgs.Classes);
         }
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
