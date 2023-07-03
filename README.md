@@ -9,7 +9,9 @@ This application makes running, administrating, spectating and streaming Elden R
 * Host a server capable of running multiple bingo races at once
 * Create bingo lobbies with optional administrator password and upload your own bingo .json file
 * Join lobbies as an individual player or part of a team, or even as spectator
+* Chat in lobbies
 * Watch your teammates' positions live on the built in map of The Lands Between, or see everyone as a spectator
+* Configure your lobby with custom rules, like randomized starting classes
 * Matches can be started, paused and stopped by the referees
 * Squares can be checked/unchecked by players or by referees on behalf of players
 * Right click to mark squares with stars, visible to everyone on the team
@@ -34,10 +36,16 @@ When joining (or creating) a lobby, you will be asked to input a nickname and se
 ## Creating a lobby
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
+You can also configure the rules of the lobby. You can enable randomized classes, configure which ones should be in the pool, and set how many should be selected at random.  
+![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/3dcb68e8-bd92-4c48-b424-42d3eda6075d)
+
+Setting *Max square in same category* will ensure that at most that many squares in the same category will be included in one board. **0 means this feature is disabled**. For more info on the json format, see [Json Format](#json-format).  
+Setting a *Random seed* will ensure that the same sequence of boards and random classes are generated/picked. This sequence will reset when a new json is uploaded. **0 means a random seed will be used**.
+
 # Administrating a lobby
 You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only AdminSpectators (ie. a player that is both administrator and spectator) have special privileges (see [AdminSpectators](#adminspectators)).
 
-When you've joined a lobby as an administrator, the administrator tools will show under the bingo board. Use these tools to upload a Bingo .json file, following the same format as Bingo Brawlers and BingoSync. [Here is an example file](https://bingobrawlers.com/files/bingo-brawlers.json).
+When you've joined a lobby as an administrator, the administrator tools will show under the bingo board. Use these tools to upload a Bingo .json file, following the same format as Bingo Brawlers and BingoSync but with some extensions. [Here is an example file](https://bingobrawlers.com/files/bingo-brawlers.json). For more info on the json format, see [Json Format](#json-format).
 
 Once you've uploaded the file, a board is generated but will not be made visible to the players until the match is started. AdminSpectators can see the board and generate new boards if necessary.
 
@@ -64,6 +72,11 @@ You can use the right mouse button to draw on the map. This is meant for live st
 * F - Fit all players in view
 * 1-9 - Follow a specific player
 
+## Randomized classes display
+If you enable the setting "Show random classes in map", the randomized classes will be displayed over the map in the map view when the match starts. This is useful if you're a streamer and want your viewers to be able to see the selection themselves. Just set up a scene in your streaming software that captures the map window (as a Game capture) and you're good to go.  
+![random classes](https://github.com/awsker/EldenBingo/assets/604653/562f384c-231e-42fd-8234-9715887b377d)
+
+
 # Bingo board controls
 * Left click - Check or uncheck a square for you/your team. Visible for everyone.
 * Right click - Mark a square with a star. The star can be used for anything, like a reminder for yourself or for coordinating a plan with your teammates. The star is only visible to your own team.
@@ -75,6 +88,16 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 
 # Settings
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
+
+# Json Format
+The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips and categories.  
+![json](https://github.com/awsker/EldenBingo/assets/604653/65a3209b-3ba5-4d4b-8ee7-d5638dcb9b9b)
+
+
+Use the *tooltip* tag to define a tooltip when hovering that square:  
+ ![image](https://github.com/awsker/EldenBingo/assets/604653/a5f97ed4-9454-462a-bd31-8b2de1e186f7)
+
+Use the *category* tag to define a single category, or the *categories* tag to define an array of categories. These categories can be used in conjunction with the lobby setting *Max square in same category* to ensure that at most that number of categories will be present in one bingo board, in order to generate more balanced bingo boards.
 
 # Credits
 * Tremwil on The Grand Archives discord
