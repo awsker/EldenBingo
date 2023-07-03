@@ -10,7 +10,7 @@ namespace EldenBingoServer
     public class Server : NetoServer<BingoClientModel>
     {
         //10 seconds countdown before match starts
-        private const int MatchStartCountdown = 999;
+        private const int MatchStartCountdown = 9999;
 
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
 
@@ -253,8 +253,15 @@ namespace EldenBingoServer
             var userInfo = sender.Room.GetUser(sender.ClientGuid);
             if (userInfo != null)
             {
-                var packet = new ServerUserChat(sender.ClientGuid, chatMessage.Message);
-                await sendPacketToRoom(new Packet(packet), sender.Room);
+                var packet = new Packet(new ServerUserChat(sender.ClientGuid, chatMessage.Message));
+                if (userInfo.IsSpectator)
+                {
+                    await SendPacketToClients(packet, sender.Room.ClientModels.Where(u => u.IsSpectator));
+                } 
+                else
+                {
+                    await sendPacketToRoom(packet, sender.Room);
+                }
             }
         }
 
