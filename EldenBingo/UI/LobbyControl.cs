@@ -54,7 +54,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
             Client.AddListener<ServerAvailableClasses>(availableClassesReceived);
-
+            Client.AddListener<ServerUserChat>(userChat);
         }
 
         protected override void ClientChanged()
@@ -88,17 +88,15 @@ namespace EldenBingo.UI
                 var square = Client.BingoBoard.Squares[userCheckedArgs.Index];
                 updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
                                new Color?[] { playerColor, null, checkColor }, true);
-
             }
         }
-        
+
         private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
         {
             if (Client?.Room != null)
             {
                 updateMatchLog(new[] { userJoinedArgs.User.Nick, "joined the lobby" },
                         new Color?[] { userJoinedArgs.User.ColorBright, null }, true);
-                
             }
         }
 
@@ -108,7 +106,6 @@ namespace EldenBingo.UI
             {
                 updateMatchLog(new[] { userLeftArgs.User.Nick, "left the lobby" },
                         new Color?[] { userLeftArgs.User.ColorBright, null }, true);
-
             }
         }
 
@@ -132,6 +129,19 @@ namespace EldenBingo.UI
             }
             colors.Add(null);
             updateMatchLog(strings.ToArray(), colors.ToArray(), false);
+        }
+
+        private void userChat(ClientModel? _, ServerUserChat chatArgs)
+        {
+            if (Client?.Room != null)
+            {
+                var user = Client.Room.GetUser(chatArgs.UserGuid);
+                if (user != null)
+                {
+                    updateMatchLog(new[] { user.Nick, ":", chatArgs.Message },
+                        new Color?[] { user.ColorBright, null, null }, true);
+                }
+            }
         }
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
@@ -304,7 +314,7 @@ namespace EldenBingo.UI
             {
                 _logTextBox.Clear();
             }
-            if(InvokeRequired)
+            if (InvokeRequired)
             {
                 BeginInvoke(update);
                 return;
@@ -312,6 +322,10 @@ namespace EldenBingo.UI
             update();
         }
 
+        private void updateMatchLog(string text, Color color, bool timestamp)
+        {
+            updateMatchLog(new[] { text }, new Color?[] { color }, timestamp);
+        }
 
         private void updateMatchLog(string[] text, Color?[] color, bool timestamp)
         {
@@ -355,6 +369,56 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        private async void _chatTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Return)
+            {
+                await sendChat();
+            }
+        }
+
+        private async Task sendChat()
+        {
+            async Task send()
+            {
+                var text = _chatTextBox.Text;
+                if (Client?.Room == null)
+                    updateMatchLog("Not in a room", Color.Red, false);
+                if (Client?.Room != null && !string.IsNullOrWhiteSpace(text))
+                {
+                    var message = new ClientChat(text);
+                    await Client.SendPacketToServer(new Packet(message));
+                }
+                _chatTextBox.Clear();
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(send, null);
+                return;
+            }
+            await send();
+        }
+
+        private void _logTextBox_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            openUrl(e.LinkText);
+        }
+
+        private void openUrl(string? url)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                updateMatchLog(ex.Message, Color.Red, false);
+            }
         }
     }
 }

@@ -34,6 +34,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this._scoreboardControl = new EldenBingo.UI.ScoreboardControl();
             this._logBoxBorderPanel = new System.Windows.Forms.Panel();
+            this._chatTextBox = new System.Windows.Forms.TextBox();
             this._logTextBox = new EldenBingo.UI.RichTextBoxCustom();
             this._timerLabel = new System.Windows.Forms.Label();
             this._matchStatusLabel = new System.Windows.Forms.Label();
@@ -115,12 +116,28 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._logBoxBorderPanel.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this._logBoxBorderPanel.Controls.Add(this._chatTextBox);
             this._logBoxBorderPanel.Controls.Add(this._logTextBox);
             this._logBoxBorderPanel.Location = new System.Drawing.Point(5, 104);
             this._logBoxBorderPanel.Name = "_logBoxBorderPanel";
             this._logBoxBorderPanel.Padding = new System.Windows.Forms.Padding(1);
             this._logBoxBorderPanel.Size = new System.Drawing.Size(259, 316);
             this._logBoxBorderPanel.TabIndex = 9;
+            // 
+            // _chatTextBox
+            // 
+            this._chatTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
+            this._chatTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this._chatTextBox.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this._chatTextBox.ForeColor = System.Drawing.Color.White;
+            this._chatTextBox.Location = new System.Drawing.Point(1, 292);
+            this._chatTextBox.MaxLength = 327670;
+            this._chatTextBox.Name = "_chatTextBox";
+            this._chatTextBox.PlaceholderText = "Send a message";
+            this._chatTextBox.AutoSize = false;
+            this._chatTextBox.Size = new System.Drawing.Size(257, 23);
+            this._chatTextBox.TabIndex = 9;
+            this._chatTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._chatTextBox_KeyPress);
             // 
             // _logTextBox
             // 
@@ -130,16 +147,16 @@
             this._logTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
             this._logTextBox.BorderColor = System.Drawing.SystemColors.WindowFrame;
             this._logTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this._logTextBox.DetectUrls = false;
             this._logTextBox.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this._logTextBox.ForeColor = System.Drawing.Color.White;
             this._logTextBox.Location = new System.Drawing.Point(1, 1);
             this._logTextBox.Name = "_logTextBox";
             this._logTextBox.ReadOnly = true;
             this._logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this._logTextBox.Size = new System.Drawing.Size(257, 314);
+            this._logTextBox.Size = new System.Drawing.Size(257, 290);
             this._logTextBox.TabIndex = 8;
             this._logTextBox.Text = "";
+            this._logTextBox.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this._logTextBox_LinkClicked);
             // 
             // _timerLabel
             // 
@@ -197,7 +214,7 @@
             this._adminInfoLabel.Name = "_adminInfoLabel";
             this._adminInfoLabel.Size = new System.Drawing.Size(200, 65);
             this._adminInfoLabel.TabIndex = 4;
-            this._adminInfoLabel.Text = "AdminSpectator Info: Check/count actions are made on behalf of selection's team";
+            this._adminInfoLabel.Text = "AdminSpectator Info: Check/count actions are made on behalf of selection\'s team";
             this._adminInfoLabel.Visible = false;
             // 
             // LobbyControl
@@ -231,5 +248,6 @@
         private Panel _logBoxBorderPanel;
         private Label _adminInfoLabel;
         private ScoreboardControl _scoreboardControl;
+        private TextBox _chatTextBox;
     }
 }

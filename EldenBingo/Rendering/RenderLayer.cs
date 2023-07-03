@@ -13,7 +13,6 @@ namespace EldenBingo.Rendering
         private RenderTexture _renderTex;
         private Sprite _renderSprite;
         private SFML.Graphics.View _renderView;
-        private SFML.Graphics.View? _customView;
 
         private object _lock = new object();
 
