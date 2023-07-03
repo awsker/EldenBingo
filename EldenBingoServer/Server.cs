@@ -254,9 +254,9 @@ namespace EldenBingoServer
             if (userInfo != null)
             {
                 var packet = new Packet(new ServerUserChat(sender.ClientGuid, chatMessage.Message));
-                if (userInfo.IsSpectator)
+                if (userInfo.IsSpectator && !userInfo.IsAdmin)
                 {
-                    await SendPacketToClients(packet, sender.Room.ClientModels.Where(u => u.IsSpectator));
+                    await SendPacketToClients(packet, sender.Room.ClientModels.Where(u => u.IsSpectator && !u.IsAdmin));
                 } 
                 else
                 {
