@@ -17,7 +17,7 @@ namespace EldenBingo.Rendering.Game
         private float _interp = 0f;
         private float _opacity = 0f;
 
-        private const float MaxHeightProportionateToWindow = 0.75f;
+        private const float MaxHeightProportionateToWindow = 0.8f;
 
         //Fraction of movement remaining per second (position interpolation)
         const float InterpTime = 1.0f;
@@ -32,6 +32,7 @@ namespace EldenBingo.Rendering.Game
             
             _renderTargetSize = renderTargetSize;
             _proportion = 1f;
+            _interp = 0f;
             SetTargetSize(renderTargetSize);
         }
 
@@ -52,13 +53,13 @@ namespace EldenBingo.Rendering.Game
 
         public void Update(float dt)
         {
-            _interp += dt;
-            var interpProp = Math.Clamp(_interp / InterpTime, 0f, 1f);
+            _interp = Math.Min(InterpTime, _interp + dt);
+            var interpProportion = _interp / InterpTime;
 
-            float prop = (float)Math.Sin(Math.PI * 0.5 * interpProp);
+            float prop = (float)Math.Sin(Math.PI * 0.5 * interpProportion);
             var pos = _startPosition * (1f - prop) + _targetPosition * prop;
             _sprite.Position = pos;
-            _opacity = interpProp;
+            _opacity = interpProportion;
         }
 
         public void SetTargetSize(Vector2u size)
@@ -66,7 +67,7 @@ namespace EldenBingo.Rendering.Game
             _renderTargetSize = size;
 
             var xProp = (float)_renderTargetSize.X / (_sprite.Texture.Size.X * _numClasses);
-            var yProp = _renderTargetSize.Y* MaxHeightProportionateToWindow / _sprite.Texture.Size.Y;
+            var yProp = _renderTargetSize.Y * MaxHeightProportionateToWindow / _sprite.Texture.Size.Y;
 
             _proportion = Math.Min(xProp, yProp); //Use the smallest calculated proportion;
             _sprite.Scale = new Vector2f(_proportion, _proportion);
@@ -74,9 +75,10 @@ namespace EldenBingo.Rendering.Game
             _targetSize = new Vector2f(_sprite.Texture.Size.X * _proportion, _sprite.Texture.Size.Y * _proportion);
 
             var subWindow = new RectangleF(_index * (float)_renderTargetSize.X / _numClasses, 0, _renderTargetSize.X / _numClasses, _renderTargetSize.Y);
-            _targetPosition = new Vector2f(subWindow.X + (subWindow.Width - _targetSize.X) * 0.5f, subWindow.Y + (subWindow.Height - _targetSize.Y) * 0.5f);
+            var yPos = Math.Max(_renderTargetSize.Y * 0.2f, subWindow.Y + (subWindow.Height - _targetSize.Y) * 0.5f); //At least a 20% gap between top of window and classes
+
+            _targetPosition = new Vector2f(subWindow.X + (subWindow.Width - _targetSize.X) * 0.5f, yPos);
             _startPosition = _targetPosition - new Vector2f(subWindow.Width * 0.1f, 0f);
-            _interp = 0f;
         }
     }
 }

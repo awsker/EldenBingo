@@ -24,6 +24,8 @@ namespace EldenBingo.Rendering.Game
 
         public override void Draw(RenderTarget target, RenderStates states)
         {
+            if (_lines.Count == 0)
+                return;
             var zoom = Math.Pow(_mapWindow.Camera.Zoom, 0.75);
             foreach (var line in GameObjects.OfType<Line>())
             {

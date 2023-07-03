@@ -29,6 +29,7 @@ namespace EldenBingo.Rendering
 
         //private RenderLayer _hudLayer;
         private EldenRingAvailableClassesDrawable? _availableClasses;
+        private bool _showingClasses = false;
 
         static MapWindow()
         {
@@ -159,7 +160,7 @@ namespace EldenBingo.Rendering
 
         private void initClassesDrawable()
         {
-            _availableClasses = new EldenRingAvailableClassesDrawable(this);
+            _availableClasses = new EldenRingAvailableClassesDrawable(this) { Visible = false };
             AddGameObject(_availableClasses);
             if (Running) //Init the textures if this window is already running
                 _availableClasses.Init();
@@ -193,8 +194,10 @@ namespace EldenBingo.Rendering
         private void onAfterDraw(object? sender, EventArgs e)
         {
             //Draw available classes last
-            if (_availableClasses != null && _availableClasses.Visible)
+            if (_availableClasses != null && _showingClasses)
+            {
                 Draw(_availableClasses);
+            }
         }
 
         private void onWindowResized(object? sender, SizeEventArgs e)
@@ -226,8 +229,7 @@ namespace EldenBingo.Rendering
 
         private void showAvailableClasses(bool vis)
         {
-            if (_availableClasses != null)
-                _availableClasses.Visible = vis;
+            _showingClasses = vis;
         }
 
         private void onDisposingDrawables(object? sender, EventArgs e)

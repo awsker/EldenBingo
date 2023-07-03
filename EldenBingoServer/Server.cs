@@ -430,7 +430,7 @@ namespace EldenBingoServer
                     if (board.UserChangeCount(trySetCounter.Index, userToSet, trySetCounter.Change))
                     {
                         var tasks = new List<Task>();
-                        foreach (var recipient in sender.Room.Users)
+                        foreach (var recipient in sender.Room.Users.Where(u => u.IsSpectator || u.Team == userToSet.Team))
                         {
                             var userCounter = new ServerUserSetCounter(userInfo.Guid, trySetCounter.Index, board.CheckStatus[trySetCounter.Index].GetCounters(recipient, sender.Room.Users));
                             var task = SendPacketToClient(new Packet(userCounter), recipient.Client);
