@@ -197,8 +197,7 @@
             this._adminInfoLabel.Name = "_adminInfoLabel";
             this._adminInfoLabel.Size = new System.Drawing.Size(200, 65);
             this._adminInfoLabel.TabIndex = 4;
-            this._adminInfoLabel.Text = "AdminSpectator Info: All bingo board actions are made on behalf of the selected u" +
-    "ser";
+            this._adminInfoLabel.Text = "AdminSpectator Info: Check/count actions are made on behalf of selection's team";
             this._adminInfoLabel.Visible = false;
             // 
             // LobbyControl

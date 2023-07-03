@@ -14,6 +14,7 @@ namespace EldenBingo.Rendering
         protected ISet<object> GameObjects;
         protected IList<IUpdateable> Updateables;
         protected IList<IDrawable> Drawables;
+        private object _lock = new object();
 
         public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) :
             base(new SFML.Window.VideoMode(width, height), title, styles)
@@ -38,40 +39,46 @@ namespace EldenBingo.Rendering
 
         public void AddGameObject(object go)
         {
-            if (GameObjects.Contains(go))
-                return;
-            bool added = false;
-            if (go is IUpdateable up)
+            lock (_lock)
             {
-                Updateables.Add(up);
-                added = true;
+                if (GameObjects.Contains(go))
+                    return;
+                bool added = false;
+                if (go is IUpdateable up)
+                {
+                    Updateables.Add(up);
+                    added = true;
+                }
+                if (go is IDrawable draw)
+                {
+                    Drawables.Add(draw);
+                    if (Running) //If already running, initialization needs to be done manually
+                        draw.Init();
+                    added = true;
+                }
+                if (added)
+                    GameObjects.Add(go);
             }
-            if (go is IDrawable draw)
-            {
-                Drawables.Add(draw);
-                if (Running) //If already running, initialization needs to be done manually
-                    draw.Init();
-                added = true;
-            }
-            if (added)
-                GameObjects.Add(go);
         }
 
         public void RemoveGameObject(object go)
         {
-            if (!GameObjects.Contains(go))
-                return;
-            if (go is IUpdateable up)
+            lock (_lock)
             {
-                Updateables.Remove(up);
+                if (!GameObjects.Contains(go))
+                    return;
+                if (go is IUpdateable up)
+                {
+                    Updateables.Remove(up);
+                }
+                if (go is IDrawable draw)
+                {
+                    Drawables.Remove(draw);
+                    if (DisposeDrawables)
+                        draw.Dispose();
+                }
+                GameObjects.Add(go);
             }
-            if (go is IDrawable draw)
-            {
-                Drawables.Remove(draw);
-                if (DisposeDrawables)
-                    draw.Dispose();
-            }
-            GameObjects.Add(go);
         }
 
         public void Start()
@@ -81,11 +88,13 @@ namespace EldenBingo.Rendering
                 Running = true;
 
                 InitializingDrawables?.Invoke(this, EventArgs.Empty);
-                foreach (var draw in Drawables)
+                lock (_lock)
                 {
-                    draw.Init();
+                    foreach (var draw in Drawables)
+                    {
+                        draw.Init();
+                    }
                 }
-
                 renderLoop();
             }
             finally
@@ -95,9 +104,12 @@ namespace EldenBingo.Rendering
                 if (DisposeDrawables)
                 {
                     DisposingDrawables?.Invoke(this, EventArgs.Empty);
-                    foreach (var draw in Drawables)
+                    lock (_lock)
                     {
-                        draw.Dispose();
+                        foreach (var draw in Drawables)
+                        {
+                            draw.Dispose();
+                        }
                     }
                 }
                 Close();
@@ -139,20 +151,27 @@ namespace EldenBingo.Rendering
                 Time elapsed = clock.Restart();
                 BeforeUpdate?.Invoke(this, EventArgs.Empty);
                 Clear(SFML.Graphics.Color.Black);
-                foreach (var up in Updateables.Where(u => u.Enabled))
+                lock (_lock)
                 {
-                    up.Update(elapsed.AsSeconds());
+                    foreach (var up in Updateables.Where(u => u.Enabled))
+                    {
+                        up.Update(elapsed.AsSeconds());
+                    }
                 }
                 AfterUpdate?.Invoke(this, EventArgs.Empty);
                 BeforeDraw?.Invoke(this, EventArgs.Empty);
                 var viewBounds = GetViewBounds();
-                foreach (var draw in Drawables.Where(d => d.Visible))
+                lock (_lock)
                 {
-                    var rect = draw.GetBoundingBox();
-                    if (rect != null && !viewBounds.Intersects(rect.Value))
-                        continue;
+                    foreach (var draw in Drawables.Where(d => d.Visible))
+                    {
+                        var rect = draw.GetBoundingBox();
+                        if (rect != null && !viewBounds.Intersects(rect.Value))
+                            continue;
 
-                    Draw(draw);
+                        Draw(draw);
+
+                    }
                 }
                 AfterDraw?.Invoke(this, EventArgs.Empty);
                 Display();

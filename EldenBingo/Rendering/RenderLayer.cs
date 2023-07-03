@@ -15,6 +15,8 @@ namespace EldenBingo.Rendering
         private SFML.Graphics.View _renderView;
         private SFML.Graphics.View? _customView;
 
+        private object _lock = new object();
+
         public RenderLayer(SimpleGameWindow window)
         {
             Window = window;
@@ -35,6 +37,8 @@ namespace EldenBingo.Rendering
 
         public virtual SFML.Graphics.View? CustomView { get; set; }
 
+        public SFML.Graphics.Color? Color { get; set; }
+
         public IReadOnlyCollection<object> GetGameObjects()
         {
             var list = new List<object>(GameObjects);
@@ -43,84 +47,104 @@ namespace EldenBingo.Rendering
 
         public void AddGameObject(object go)
         {
-            if (GameObjects.Contains(go))
-                return;
-            bool added = false;
-            if (go is IUpdateable up)
+            lock (_lock)
             {
-                Updateables.Add(up);
-                added = true;
+                if (GameObjects.Contains(go))
+                    return;
+                bool added = false;
+                if (go is IUpdateable up)
+                {
+                    Updateables.Add(up);
+                    added = true;
+                }
+                if (go is IDrawable draw)
+                {
+                    Drawables.Add(draw);
+                    added = true;
+                }
+                if (added)
+                    GameObjects.Add(go);
             }
-            if (go is IDrawable draw)
-            {
-                Drawables.Add(draw);
-                added = true;
-            }
-            if (added)
-                GameObjects.Add(go);
         }
 
         public void RemoveGameObject(object go)
         {
-            if (!GameObjects.Contains(go))
-                return;
-            if (go is IUpdateable up)
+            lock (_lock)
             {
-                Updateables.Remove(up);
+                if (!GameObjects.Contains(go))
+                    return;
+                if (go is IUpdateable up)
+                {
+                    Updateables.Remove(up);
+                }
+                if (go is IDrawable draw)
+                {
+                    Drawables.Remove(draw);
+                    if (Window.DisposeDrawables)
+                        draw.Dispose();
+                }
+                GameObjects.Add(go);
             }
-            if (go is IDrawable draw)
-            {
-                Drawables.Remove(draw);
-                if (Window.DisposeDrawables)
-                    draw.Dispose();
-            }
-            GameObjects.Add(go);
         }
 
         public virtual void Update(float dt)
         {
-            foreach (var go in Updateables)
-                go.Update(dt);
+            lock (_lock)
+            {
+                foreach (var go in Updateables)
+                    go.Update(dt);
+            }
         }
 
         public virtual void Draw(RenderTarget target, RenderStates states)
         {
-            var oldView = new SFML.Graphics.View(target.GetView());
-
-            var viewBounds = Window.GetViewBounds();
-            _renderTex.Clear(SFML.Graphics.Color.Transparent);
-            _renderTex.SetView(CustomView ?? oldView);
-            foreach (var draw in Drawables.Where(d => d.Visible))
+            lock (_lock)
             {
-                var rect = draw.GetBoundingBox();
-                if (rect != null && !viewBounds.Intersects(rect.Value))
-                    continue;
-                
-                _renderTex.Draw(draw, states);
+                var oldView = new SFML.Graphics.View(target.GetView());
+
+                var viewBounds = Window.GetViewBounds();
+                _renderTex.Clear(SFML.Graphics.Color.Transparent);
+                _renderTex.SetView(CustomView ?? oldView);
+                foreach (var draw in Drawables.Where(d => d.Visible))
+                {
+                    var rect = draw.GetBoundingBox();
+                    if (rect != null && !viewBounds.Intersects(rect.Value))
+                        continue;
+
+                    _renderTex.Draw(draw, states);
+                }
+
+                var trans = Transform.Identity;
+                trans.Translate(0, _renderTex.Size.Y);
+                trans.Scale(new Vector2f(1f, -1f));
+                states.Transform *= trans;
+                if (Shader != null)
+                    states.Shader = Shader;
+
+                target.SetView(_renderView);
+                if (Color != null)
+                    _renderSprite.Color = Color.Value;
+                target.Draw(_renderSprite, states);
+                target.SetView(oldView);
             }
-
-            var trans = Transform.Identity;
-            trans.Translate(0, _renderTex.Size.Y);
-            trans.Scale(new Vector2f(1f, -1f));
-            states.Transform *= trans;
-            if (Shader != null)
-                states.Shader = Shader;
-
-            target.SetView(_renderView);
-            target.Draw(_renderSprite, states);
-            target.SetView(oldView);
         }
 
         public virtual void Init()
         {
-            foreach (var draw in Drawables)
-                draw.Init();
+            lock (_lock)
+            {
+                foreach (var draw in Drawables)
+                    draw.Init();
+            }
         }
 
         public virtual void Dispose()
         {
-            foreach (var draw in Drawables)
-                draw.Dispose();
+            lock (_lock)
+            {
+                foreach (var draw in Drawables)
+                    draw.Dispose();
+            }
 
             Shader?.Dispose();
             UnlistenToWindowEvents();
