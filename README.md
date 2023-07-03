@@ -73,7 +73,7 @@ You can use the right mouse button to draw on the map. This is meant for live st
 * 1-9 - Follow a specific player
 
 ## Randomized classes display
-If you enable the setting "Show random classes in map", the randomized classes will be displayed in the Map Window when the match starts. This is useful if you're a streamer and want your viewers to be able to see the selection themselves. Just set up a scene in your streaming software that captures the map window (as a Game capture) and you're good to go.  
+If you enable the setting "Show random classes in map", the randomized classes will be displayed in the Map Window when the match starts. This is useful if you're a streamer and want your viewers to be able to see the selection themselves. Just set up a scene in your streaming software that captures the map window (as a Game capture) and you're good to go. Clicking, pressing Space or Escape will close the classes display.  
 ![random classes](https://github.com/awsker/EldenBingo/assets/604653/562f384c-231e-42fd-8234-9715887b377d)
 
 
