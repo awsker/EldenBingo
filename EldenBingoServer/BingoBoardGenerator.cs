@@ -78,56 +78,63 @@ namespace EldenBingoServer
 
         public ServerBingoBoard? CreateBingoBoard(ServerRoom room)
         {
-            var tempList = new List<BingoJsonObj>(_list);
-            var squares = new BingoJsonObj[25];
-            int? limit = CategoryLimit > 0 ? CategoryLimit : null;
+            var tempList = shuffleList(_list);
+            var squares = new List<BingoJsonObj>();
             var categoryCount = new Dictionary<string, int>();
-            for (int i = 0; i < 25; ++i)
+
+            bool exceededCategoryLimit = false;
+            while(tempList.Count > 0 && squares.Count < 25)
             {
-                if(tempList.Count == 0)
-                {
-                    return null; //No squares left, not possible to create bingo board
-                }
-                var r = _random.Next(tempList.Count);
-                var potentialSquare = tempList[r];
-                if (limit.HasValue)
+                var potentialSquare = tempList[0];
+                tempList.RemoveAt(0);
+                if (CategoryLimit > 0)
                 {
                     foreach (var category in potentialSquare.Categories)
                     {
-                        if (categoryCount.TryGetValue(category, out int count) && count + 1 > limit.Value)
+                        if (categoryCount.TryGetValue(category, out int count) && count + 1 > CategoryLimit)
                         {
-                            --i;
-                            tempList.RemoveAt(r); //Remove square and try a new square
-                            continue;
+                            exceededCategoryLimit = true;
+                            continue; //Category limit would be exceeded with this square, so we skip it
                         } 
                     }
                 }
+                //YES, include the square on the board
+                squares.Add(potentialSquare);
                 //Increment count of each category by 1
                 foreach (var category in potentialSquare.Categories)
                 {
                     categoryCount.TryGetValue(category, out int count);
                     categoryCount[category] = count + 1;
                 }
-                tempList.RemoveAt(r);
-                squares[i] = potentialSquare;
             }
-            balanceBoard(tempList);
+            if(squares.Count != 25)
+            {
+                return null;
+            }
+            //If category limit was exceeded by any square:
+            //Shuffle the final squares, so we don't get a bias of category-less squares late in the board
+            if(exceededCategoryLimit)
+                squares = shuffleList(squares);
+            balanceBoard(squares);
 
             return new ServerBingoBoard(room, squares.Select(o => o.Text).ToArray(), squares.Select(o => o.Tooltip).ToArray());
         }
 
         public EldenRingClasses[] RandomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)
         {
-            var availableClassesList = new List<EldenRingClasses>(availableClasses);
+            var availableClassesList = shuffleList(availableClasses);
             var pickedClasses = new List<EldenRingClasses>();
-            for(int i = Math.Min(numberOfClasses, availableClassesList.Count); i > 0; --i)
+            while(availableClassesList.Count > 0 && pickedClasses.Count < numberOfClasses)
             {
-                var r = _classRandom.Next(availableClassesList.Count);
-                var cl = availableClassesList[r];
-                pickedClasses.Add(cl);
-                availableClassesList.RemoveAt(r);
+                pickedClasses.Add(availableClassesList[0]);
+                availableClassesList.RemoveAt(0);
             }
             return pickedClasses.ToArray();
+        }
+
+        private List<T> shuffleList<T>(IEnumerable<T> squares)
+        {
+            return squares.OrderBy(s => _random.Next()).ToList();
         }
 
         private void balanceBoard(IList<BingoJsonObj> squares)
