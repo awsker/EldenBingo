@@ -1,5 +1,5 @@
 # Elden Bingo
-This application makes running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind. It's built on .NET 6.0, so requires that the [runtimes](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.16-windows-x64-installer) are installed.
+This application makes running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind. It's built on .NET 6.0, so requires that the [runtimes](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.19-windows-x64-installer) are installed.
 
 ![eldenbingo-window](https://user-images.githubusercontent.com/604653/236489862-7a69d672-9243-49fb-88fc-236ae502f655.png)  
 ![mapview](https://user-images.githubusercontent.com/604653/235779143-aa708a4e-0443-49fb-96b7-b8c3dce73e67.png)  
