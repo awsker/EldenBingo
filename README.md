@@ -1,5 +1,5 @@
 # Elden Bingo
-This application makes running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind. It's built on .NET 6.0, so requires that the [runtimes](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.16-windows-x64-installer) are installed.
+This application makes running, administrating, spectating and streaming Elden Ring Bingo races easier. It was made with [Bingo Brawlers](https://bingobrawlers.com) in mind. It's built on .NET 6.0, so requires that the [runtimes](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.19-windows-x64-installer) are installed.
 
 ![eldenbingo-window](https://user-images.githubusercontent.com/604653/236489862-7a69d672-9243-49fb-88fc-236ae502f655.png)  
 ![mapview](https://user-images.githubusercontent.com/604653/235779143-aa708a4e-0443-49fb-96b7-b8c3dce73e67.png)  
@@ -36,7 +36,7 @@ When joining (or creating) a lobby, you will be asked to input a nickname and se
 ## Creating a lobby
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
-You can also configure the rules of the lobby. You can enable randomized classes, configure which ones should be in the pool, and set how many should be selected at random.  
+You can also configure the rules of the lobby. You can enable a random pick of classes, configure which ones should be in the pool, and set how many should be selected at random.  
 ![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/3dcb68e8-bd92-4c48-b424-42d3eda6075d)
 
 Setting *Max square in same category* will ensure that at most that many squares in the same category will be included in one board. **0 means this feature is disabled**. For more info on the json format, see [Json Format](#json-format).  
@@ -72,8 +72,8 @@ You can use the right mouse button to draw on the map. This is meant for live st
 * F - Fit all players in view
 * 1-9 - Follow a specific player
 
-## Randomized classes display
-If you enable the setting "Show random classes in map", the randomized classes will be displayed in the Map Window when the match starts. This is useful if you're a streamer and want your viewers to be able to see the selection themselves. Just set up a scene in your streaming software that captures the map window (as a Game capture) and you're good to go. Clicking left mouse, pressing Space or Escape will close the classes display.  
+## Class choice display
+If you enable the setting "Show random classes in map", the available starting classes will be displayed in the Map Window when the match starts. This is useful if you're a streamer and want your viewers to be able to see the selection themselves. Just set up a scene in your streaming software that captures the map window (as a Game capture) and you're good to go. Clicking left mouse, pressing Space or Escape will close the classes display.  
 ![random classes](https://github.com/awsker/EldenBingo/assets/604653/562f384c-231e-42fd-8234-9715887b377d)
 
 
