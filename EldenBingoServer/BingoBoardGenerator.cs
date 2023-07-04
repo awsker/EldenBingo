@@ -108,6 +108,7 @@ namespace EldenBingoServer
                     categoryCount.TryGetValue(category, out int count);
                     categoryCount[category] = count + 1;
                 }
+                tempList.RemoveAt(r);
                 squares[i] = potentialSquare;
             }
             balanceBoard(tempList);
