@@ -78,15 +78,14 @@ namespace EldenBingoServer
 
         public ServerBingoBoard? CreateBingoBoard(ServerRoom room)
         {
-            var tempList = shuffleList(_list);
+            var squareQueue = new Queue<BingoJsonObj>(shuffleList(_list));
             var squares = new List<BingoJsonObj>();
             var categoryCount = new Dictionary<string, int>();
 
             bool exceededCategoryLimit = false;
-            while(tempList.Count > 0 && squares.Count < 25)
+            while(squareQueue.Count > 0 && squares.Count < 25)
             {
-                var potentialSquare = tempList[0];
-                tempList.RemoveAt(0);
+                var potentialSquare = squareQueue.Dequeue();
                 if (CategoryLimit > 0)
                 {
                     foreach (var category in potentialSquare.Categories)
@@ -114,7 +113,7 @@ namespace EldenBingoServer
             //If category limit was exceeded by any square:
             //Shuffle the final squares, so we don't get a bias of category-less squares late in the board
             if(exceededCategoryLimit)
-                squares = shuffleList(squares);
+                squares = shuffleList(squares).ToList();
             balanceBoard(squares);
 
             return new ServerBingoBoard(room, squares.Select(o => o.Text).ToArray(), squares.Select(o => o.Tooltip).ToArray());
@@ -122,17 +121,16 @@ namespace EldenBingoServer
 
         public EldenRingClasses[] RandomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)
         {
-            var availableClassesList = shuffleList(availableClasses);
+            var classesQueue = new Queue<EldenRingClasses>(shuffleList(availableClasses));
             var pickedClasses = new List<EldenRingClasses>();
-            while(availableClassesList.Count > 0 && pickedClasses.Count < numberOfClasses)
+            while(classesQueue.Count > 0 && pickedClasses.Count < numberOfClasses)
             {
-                pickedClasses.Add(availableClassesList[0]);
-                availableClassesList.RemoveAt(0);
+                pickedClasses.Add(classesQueue.Dequeue());
             }
             return pickedClasses.ToArray();
         }
 
-        private List<T> shuffleList<T>(IEnumerable<T> squares)
+        private IEnumerable<T> shuffleList<T>(IEnumerable<T> squares)
         {
             return squares.OrderBy(s => _random.Next()).ToList();
         }
