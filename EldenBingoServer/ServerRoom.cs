@@ -10,7 +10,6 @@ namespace EldenBingoServer
         private string? _creatorIp;
         private string? _creatorName;
         private System.Timers.Timer? _timer;
-        
 
         public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
         {
@@ -20,6 +19,7 @@ namespace EldenBingoServer
             _creatorIp = Server.GetClientIp(creator);
             Match.MatchStatusChanged += match_MatchStatusChanged;
             GameSettings = gameSettings;
+            LastActivity = DateTime.Now;
         }
 
         public event EventHandler? TimerElapsed;
@@ -28,6 +28,7 @@ namespace EldenBingoServer
         public BingoBoardGenerator? BoardGenerator { get; set; }
         public IEnumerable<BingoClientModel> ClientModels => Users.Select(c => c.Client);
         public DateTime CreateTime { get; init; }
+        public DateTime LastActivity { get; set; }
         public BingoGameSettings GameSettings { get; set; }
 
         public BingoClientInRoom AddUser(BingoClientModel client, string nick, string adminPass, int team)
@@ -40,6 +41,7 @@ namespace EldenBingoServer
             var cl = new BingoClientInRoom(client, nick, client.ClientGuid, admin, team);
 
             AddUser(cl);
+            updateLastActivity();
             return cl;
         }
 
@@ -56,6 +58,7 @@ namespace EldenBingoServer
 
         public BingoClientInRoom? RemoveUser(BingoClientModel client)
         {
+            updateLastActivity();
             //ClientInRoom should have same Guid as clientModel
             return RemoveUser(client.ClientGuid);
         }
@@ -95,6 +98,11 @@ namespace EldenBingoServer
                 _timer.Elapsed -= _timer_Elapsed;
                 _timer.Stop();
             }
+        }
+
+        private void updateLastActivity()
+        {
+            LastActivity = DateTime.Now;
         }
     }
 }

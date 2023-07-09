@@ -11,14 +11,22 @@ namespace EldenBingoServer
     {
         //10 seconds countdown before match starts
         private const int MatchStartCountdown = 9999;
+        private const int RoomInactivityRemovalSeconds = 86400;
+        private System.Timers.Timer _roomClearTimer;
 
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
 
         public Server(int port) : base(port)
         {
             _rooms = new ConcurrentDictionary<string, ServerRoom>();
+            //Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
             registerHandlers();
+
+            //Start the room clearing timer
+            _roomClearTimer = new System.Timers.Timer(3600000); //Check for inactive rooms once every hour (3600 seconds * 1000 ms)
+            _roomClearTimer.Elapsed += _roomClearTimer_Elapsed;
+            _roomClearTimer.Start();
         }
 
         protected override async Task DropClient(BingoClientModel client)
@@ -168,8 +176,6 @@ namespace EldenBingoServer
                 return;
             }
             ServerRoom? room = createRoom(request.RoomName, request.AdminPass, sender, request.Settings);
-            //Leave old room
-            await leaveUserRoom(sender);
             //Join new room
             if (room != null)
             {
@@ -214,8 +220,6 @@ namespace EldenBingoServer
                 await SendPacketToClient(new Packet(deniedPacket), sender);
                 return;
             }
-            //Leave old room
-            await leaveUserRoom(sender);
             //Join new room
             if (room != null)
             {
@@ -306,7 +310,6 @@ namespace EldenBingoServer
             {
                 await sendAdminStatusMessage(sender, $"Bingo json file successfully uploaded!", System.Drawing.Color.Green);
             }
-
         }
 
         private void randomizeClassesIfNeeded(ServerRoom room)
@@ -734,6 +737,35 @@ namespace EldenBingoServer
                 (pred(c) ? truelist : falselist).Add(c);
             }
             return (truelist, falselist);
+        }
+
+
+        private void _roomClearTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            removeNonActiveRooms(RoomInactivityRemovalSeconds);
+        }
+
+        private void removeNonActiveRooms(int maxSecondsInactive)
+        {
+            var obsoleteRooms = new HashSet<string>();
+            var now = DateTime.Now;
+            foreach (var room in _rooms)
+            {
+                //Don't remove rooms with users still connected
+                if (room.Value.NumUsers > 0)
+                    continue;
+                
+                //Check if too long since last activity
+                if((now - room.Value.LastActivity).TotalSeconds > maxSecondsInactive)
+                {
+                    obsoleteRooms.Add(room.Key);
+                }
+            }
+            //Remove rooms after loop to avoid IEnumerable changed during enumeration exception
+            foreach(var roomName in obsoleteRooms)
+            {
+                _rooms.Remove(roomName, out _);
+            }
         }
     }
 }
