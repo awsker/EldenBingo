@@ -19,6 +19,7 @@ namespace EldenBingo.UI
             listenToSettingsChanged();
             Load += lobbyControl_Load;
             SizeChanged += lobbyControl_SizeChanged;
+            splitContainer1.Panel1.SizeChanged += panel1_SizeChanged;
         }
 
         public static UserInRoom? CurrentlyOnBehalfOfUser
@@ -226,6 +227,11 @@ namespace EldenBingo.UI
             updateBingoSize();
         }
 
+        private void panel1_SizeChanged(object? sender, EventArgs e)
+        {
+            updateBingoSize();
+        }
+
         private void match_MatchStatusChanged(object? sender, EventArgs e)
         {
             if (Client?.Room != null)
@@ -305,7 +311,7 @@ namespace EldenBingo.UI
 
         private void updateBingoSize()
         {
-            _bingoControl.Size = new Size(panel2.Width - 10, panel2.Height - 10);
+            _bingoControl.Size = new Size(panel2.Width - 6, panel2.Height - 6);
         }
 
         private void clearMatchLog()

@@ -157,6 +157,7 @@
             this._logTextBox.TabIndex = 8;
             this._logTextBox.Text = "";
             this._logTextBox.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this._logTextBox_LinkClicked);
+            this._logTextBox.MustHideCaret = true;
             // 
             // _timerLabel
             // 

@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this._consoleTextBox = new System.Windows.Forms.RichTextBox();
+            this._consoleTextBox = new RichTextBoxCustom();
             this.SuspendLayout();
             // 
             // _consoleTextBox
@@ -42,6 +42,7 @@
             this._consoleTextBox.Size = new System.Drawing.Size(400, 300);
             this._consoleTextBox.TabIndex = 1;
             this._consoleTextBox.Text = "";
+            this._consoleTextBox.MustHideCaret = true;
             // 
             // ConsoleControl
             // 
@@ -55,6 +56,6 @@
 
         #endregion
 
-        private RichTextBox _consoleTextBox;
+        private RichTextBoxCustom _consoleTextBox;
     }
 }
