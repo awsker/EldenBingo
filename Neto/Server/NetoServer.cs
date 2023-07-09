@@ -225,7 +225,12 @@ namespace Neto.Server
             {
                 case NetConstants.PacketTypes.ClientRegister:
                     ClientRegister? objData = packet.GetObjectData<ClientRegister>();
-                    if (objData?.Message == NetConstants.ClientRegisterString && !client.IsRegistered)
+                    if (objData?.Message != NetConstants.ClientRegisterString)
+                    {
+                        await DropClient(client);
+                        return;
+                    }
+                    if (!client.IsRegistered)
                     {
                         client.IsRegistered = true;
                         var acceptPacket = new Packet(NetConstants.PacketTypes.ServerRegisterAccepted, new ServerRegisterAccepted(NetConstants.ServerRegisterString, client.ClientGuid));
