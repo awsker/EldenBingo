@@ -5,18 +5,18 @@ namespace EldenBingo.UI
 {
     internal class RichTextBoxCustom : RichTextBox
     {
+        private object _lock = new object();
+
+        private bool _mustHideCaret;
+
         public RichTextBoxCustom() : base()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         }
 
-        private object _lock = new object();
-
         [Browsable(true)]
         [Category("Border Style")]
         public Color BorderColor { get; set; }
-
-        private bool mustHideCaret;
 
         [DefaultValue(false)]
         public bool MustHideCaret
@@ -24,7 +24,7 @@ namespace EldenBingo.UI
             get
             {
                 lock (_lock)
-                    return this.mustHideCaret;
+                    return _mustHideCaret;
             }
             set
             {
@@ -36,36 +36,8 @@ namespace EldenBingo.UI
             }
         }
 
-        [DllImport("user32.dll")]
-        private static extern int HideCaret(IntPtr hwnd);
         [DllImport("user32.dll", EntryPoint = "ShowCaret")]
         public static extern long ShowCaret(IntPtr hwnd);
-
-        private void SetHideCaret()
-        {
-            MouseDown += new MouseEventHandler(ReadOnlyRichTextBox_Mouse);
-            MouseUp += new MouseEventHandler(ReadOnlyRichTextBox_Mouse);
-            Resize += new EventHandler(ReadOnlyRichTextBox_Resize);
-            hideCaret();
-            lock (_lock)
-                this.mustHideCaret = true;
-        }
-
-        private void SetShowCaret()
-        {
-            try
-            {
-                MouseDown -= new MouseEventHandler(ReadOnlyRichTextBox_Mouse);
-                MouseUp -= new MouseEventHandler(ReadOnlyRichTextBox_Mouse);
-                Resize -= new EventHandler(ReadOnlyRichTextBox_Resize);
-            }
-            catch
-            {
-            }
-            showCaret();
-            lock (_lock)
-                this.mustHideCaret = false;
-        }
 
         protected override void OnGotFocus(EventArgs e)
         {
@@ -77,12 +49,41 @@ namespace EldenBingo.UI
             hideCaret();
         }
 
-        private void ReadOnlyRichTextBox_Mouse(object sender, System.Windows.Forms.MouseEventArgs e)
+        [DllImport("user32.dll")]
+        private static extern int HideCaret(IntPtr hwnd);
+
+        private void SetHideCaret()
+        {
+            MouseDown += onMouse;
+            MouseUp += onMouse;
+            Resize += onResize;
+            hideCaret();
+            lock (_lock)
+                _mustHideCaret = true;
+        }
+
+        private void SetShowCaret()
+        {
+            try
+            {
+                MouseDown -= onMouse;
+                MouseUp -= onMouse;
+                Resize -= onResize;
+            }
+            catch
+            {
+            }
+            showCaret();
+            lock (_lock)
+                _mustHideCaret = false;
+        }
+
+        private void onMouse(object? sender, MouseEventArgs e)
         {
             hideCaret();
         }
 
-        private void ReadOnlyRichTextBox_Resize(object sender, System.EventArgs e)
+        private void onResize(object? sender, System.EventArgs e)
         {
             hideCaret();
         }
@@ -116,6 +117,5 @@ namespace EldenBingo.UI
             }
             update();
         }
-
     }
 }
