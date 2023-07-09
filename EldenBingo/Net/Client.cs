@@ -12,6 +12,7 @@ namespace EldenBingo
 
         public Client()
         {
+            //Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
             registerHandlers();
         }
