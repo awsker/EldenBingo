@@ -40,7 +40,7 @@ namespace Neto.Server
 
         public static string? GetClientIp(ClientModel client)
         {
-            if (client.TcpClient.Client.RemoteEndPoint is IPEndPoint ip)
+            if (client.TcpClient.Client?.RemoteEndPoint is IPEndPoint ip)
                 return ip.Address.ToString();
             return null;
         }
@@ -187,6 +187,7 @@ namespace Neto.Server
                 var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 _clients.Add(client);
+                FireOnStatus($"Client connected ({GetClientIp(client)})");
                 _ = Task.Run(() => clientTcpListenerTask(client));
             }
             catch (SocketException)
@@ -197,6 +198,7 @@ namespace Neto.Server
 
         private async Task clientTcpListenerTask(CM client)
         {
+            var ip = GetClientIp(client);
             try
             {
                 while (!client.CancellationToken.IsCancellationRequested)
@@ -208,6 +210,7 @@ namespace Neto.Server
             {
                 await DropClient(client);
             }
+            FireOnStatus($"Client disconnected ({ip})");
         }
 
         private async Task handleIncomingPacket(CM client, Packet packet)
@@ -304,6 +307,7 @@ namespace Neto.Server
                     if(++client.MalformedPackets == 3)
                     {
                         await KickClient(client);
+                        FireOnStatus($"Kicked client connected from {GetClientIp(client)}");
                     }
                 }
                 else

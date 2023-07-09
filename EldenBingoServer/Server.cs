@@ -192,6 +192,7 @@ namespace EldenBingoServer
             var room = new ServerRoom(roomName, adminPass, creator, settings);
             room.TimerElapsed += (o, e) => onMatchTimerElapsed(room);
             _rooms[roomName] = room;
+            FireOnStatus($"Lobby '{roomName}' was created");
             return room;
         }
 
@@ -765,6 +766,7 @@ namespace EldenBingoServer
             foreach(var roomName in obsoleteRooms)
             {
                 _rooms.Remove(roomName, out _);
+                FireOnStatus($"Removed inactive lobby '{roomName}'");
             }
         }
     }
