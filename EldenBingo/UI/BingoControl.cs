@@ -279,8 +279,39 @@ namespace EldenBingo.UI
                     if (userToSetFor == null)
                         return;
 
-                    var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
-                    await Client.SendPacketToServer(p);
+                    var square = Client.Room.Match.Board.Squares[c.Index];
+                    if(square.Count <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
+                    {
+                        var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
+                        await Client.SendPacketToServer(p);
+                    } 
+                    else
+                    {
+                        var currentTeamCount = c.Counters.FirstOrDefault(t => t.Team == userToSetFor.Team).Counter;
+                        if(currentTeamCount + 1 == square.Count)
+                        {
+                            //Increment 1
+                            var p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
+                            //Check square
+                            p.AddObject(new ClientTryCheck(c.Index, userToSetFor.Guid));
+                            await Client.SendPacketToServer(p);
+                        }
+                        else if(currentTeamCount == square.Count)
+                        {
+                            //Decrement 1
+                            var p = new Packet(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
+                            //Uncheck
+                            p.AddObject(new ClientTryCheck(c.Index, userToSetFor.Guid));
+                            await Client.SendPacketToServer(p);  
+                        } 
+                        else
+                        {
+                            //Increment 1
+                            var p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
+                            await Client.SendPacketToServer(p);
+                        }
+                    }
+                   
                 }
             }
             if (e.Button == MouseButtons.Right)

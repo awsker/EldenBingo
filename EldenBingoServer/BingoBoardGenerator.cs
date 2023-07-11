@@ -44,10 +44,13 @@ namespace EldenBingoServer
                     continue;
 
                 string? tooltip = null;
+                int count = 0;
                 int weight = 1;
                 var categories = new HashSet<string>();
                 if (row.TryGetProperty("tooltip", out var elem))
                     tooltip = elem.GetString();
+                if (row.TryGetProperty("count", out elem))
+                    elem.TryGetInt32(out count);
                 if (row.TryGetProperty("weight", out elem))
                     elem.TryGetInt32(out weight);
                 if (row.TryGetProperty("category", out elem))
@@ -68,7 +71,7 @@ namespace EldenBingoServer
                         }
                     }
                 }
-                _list.Add(new BingoJsonObj(text, tooltip, weight, categories.ToArray()));
+                _list.Add(new BingoJsonObj(text, tooltip, count, weight, categories.ToArray()));
             }
             if (_list.Count < 25)
             {
@@ -78,7 +81,7 @@ namespace EldenBingoServer
 
         public ServerBingoBoard? CreateBingoBoard(ServerRoom room)
         {
-            var squareQueue = new Queue<BingoJsonObj>(shuffleList(_list));
+            var squareQueue = new Queue<BingoJsonObj>(shuffleList(_list, _random));
             var squares = new List<BingoJsonObj>();
             var categoryCount = new Dictionary<string, int>();
 
@@ -113,15 +116,15 @@ namespace EldenBingoServer
             //If category limit was exceeded by any square:
             //Shuffle the final squares, so we don't get a bias of category-less squares late in the board
             if(exceededCategoryLimit)
-                squares = shuffleList(squares).ToList();
+                squares = shuffleList(squares, _random).ToList();
             balanceBoard(squares);
 
-            return new ServerBingoBoard(room, squares.Select(o => o.Text).ToArray(), squares.Select(o => o.Tooltip).ToArray());
+            return new ServerBingoBoard(room, squares.Select(s => new BingoBoardSquare(s.Text, s.Tooltip, s.Count, null, false, Array.Empty<TeamCounter>())).ToArray());
         }
 
         public EldenRingClasses[] RandomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)
         {
-            var classesQueue = new Queue<EldenRingClasses>(shuffleList(availableClasses));
+            var classesQueue = new Queue<EldenRingClasses>(shuffleList(availableClasses, _classRandom));
             var pickedClasses = new List<EldenRingClasses>();
             while(classesQueue.Count > 0 && pickedClasses.Count < numberOfClasses)
             {
@@ -130,9 +133,9 @@ namespace EldenBingoServer
             return pickedClasses.ToArray();
         }
 
-        private IEnumerable<T> shuffleList<T>(IEnumerable<T> squares)
+        private IEnumerable<T> shuffleList<T>(IEnumerable<T> squares, Random random)
         {
-            return squares.OrderBy(s => _random.Next()).ToList();
+            return squares.OrderBy(s => random.Next()).ToList();
         }
 
         private void balanceBoard(IList<BingoJsonObj> squares)
@@ -142,16 +145,18 @@ namespace EldenBingoServer
 
         private struct BingoJsonObj
         {
-            public BingoJsonObj(string text, string? tooltip = null, int weight = 1, string[]? categories = null)
+            public BingoJsonObj(string text, string? tooltip = null, int count = 1, int weight = 1, string[]? categories = null)
             {
                 Text = text;
                 Tooltip = tooltip == null ? string.Empty : tooltip;
+                Count = Math.Max(0, count);
                 Weight = weight;
                 Categories = new HashSet<string>(categories ?? Array.Empty<string>());
             }
 
             public string Text { get; init; }
             public string Tooltip { get; init; }
+            public int Count { get; init; }
             public int Weight { get; init; }
             public ISet<string> Categories { get; init; }
 

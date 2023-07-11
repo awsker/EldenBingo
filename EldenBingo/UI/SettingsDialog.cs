@@ -79,6 +79,7 @@
 
             _swapMouseButtons.Checked = Properties.Settings.Default.FlipMouseButtons;
             _showClassesCheckBox.Checked = Properties.Settings.Default.ShowClassesOnMap;
+            _clickIncrementsCountCheckbox.Checked = Properties.Settings.Default.ClickIncrementsCountedSquares;
 
             updateSizeEnable();
             updatePositionEnable();
@@ -185,6 +186,7 @@
 
             Properties.Settings.Default.FlipMouseButtons = _swapMouseButtons.Checked;
             Properties.Settings.Default.ShowClassesOnMap = _showClassesCheckBox.Checked;
+            Properties.Settings.Default.ClickIncrementsCountedSquares = _clickIncrementsCountCheckbox.Checked;
 
             Properties.Settings.Default.Save();
             return true;

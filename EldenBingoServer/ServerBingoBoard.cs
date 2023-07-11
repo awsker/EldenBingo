@@ -1,4 +1,5 @@
 ﻿using EldenBingoCommon;
+using System.Collections.Concurrent;
 
 namespace EldenBingoServer
 {
@@ -9,7 +10,7 @@ namespace EldenBingoServer
             Time = DateTime.Now;
             CheckedBy = null;
             MarkedBy = new HashSet<int>();
-            CountersBy = new Dictionary<int, int>();
+            CountersBy = new ConcurrentDictionary<int, int>();
         }
 
         public int? CheckedBy { get; set; }
@@ -17,10 +18,40 @@ namespace EldenBingoServer
         private IDictionary<int, int> CountersBy { get; init; }
         private ISet<int> MarkedBy { get; init; }
 
-        public void Check(int team)
+        public bool Check(int team)
         {
-            if (team >= 0)
+            if (team >= 0 && CheckedBy != team)
+            {
                 CheckedBy = team;
+                return true;
+            }
+            return false;
+        }
+
+        public bool Uncheck()
+        {
+            if (CheckedBy != null)
+            {
+                CheckedBy = null;
+                return true;
+            }
+            return false;
+        }
+
+        public bool Mark(int team)
+        {
+            //If no changes need to be made, return false
+            return MarkedBy.Add(team);
+        }
+
+        public bool Unmark(int team)
+        {
+            return MarkedBy.Remove(team);
+        }
+
+        public bool IsMarked(int team)
+        {
+            return MarkedBy.Contains(team);
         }
 
         public int? GetCounter(int team)
@@ -30,6 +61,21 @@ namespace EldenBingoServer
                 return counter;
             }
             return null;
+        }
+
+        public bool SetCounter(int team, int? counter)
+        {
+            if (team < 0)
+                return false;
+
+            if (counter.HasValue && counter.Value > 0)
+            {
+                CountersBy.TryGetValue(team, out int c);
+                CountersBy[team] = counter.Value;
+                return counter != c;
+            }
+            else
+                return CountersBy.Remove(team);
         }
 
         public TeamCounter[] GetCounters(UserInRoom recipient, IEnumerable<UserInRoom> users)
@@ -47,38 +93,6 @@ namespace EldenBingoServer
             return counters;
         }
 
-        public bool IsMarked(int team)
-        {
-            return MarkedBy.Contains(team);
-        }
-
-        public bool Mark(int team)
-        {
-            //If no changes need to be made, return false
-            return MarkedBy.Add(team);
-        }
-
-        public void SetCounter(int team, int? counter)
-        {
-            if (team < 0)
-                return;
-
-            if (counter.HasValue)
-                CountersBy[team] = counter.Value;
-            else
-                CountersBy.Remove(team);
-        }
-
-        public void Uncheck()
-        {
-            CheckedBy = null;
-        }
-
-        public bool Unmark(int team)
-        {
-            return MarkedBy.Remove(team);
-        }
-
         public bool UnsetCounter(int team)
         {
             return CountersBy.Remove(team);
@@ -87,7 +101,7 @@ namespace EldenBingoServer
 
     public class ServerBingoBoard : BingoBoard
     {
-        internal ServerBingoBoard(ServerRoom room, string[] squareTexts, string[] tooltips) : base(squareTexts, tooltips)
+        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares) : base(squares)
         {
             CheckStatus = new CheckStatus[25];
             Room = room;
@@ -106,7 +120,7 @@ namespace EldenBingoServer
             for (int i = 0; i < 25; ++i)
             {
                 var status = CheckStatus[i];
-                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
+                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, Squares[i].Count, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
             }
             return squares;
         }
@@ -119,8 +133,15 @@ namespace EldenBingoServer
             var oldCount = check.GetCounter(user.Team) ?? 0;
             if (user.IsSpectator)
                 return false;
-            check.SetCounter(user.Team, Math.Max(0, oldCount + change));
-            return true;
+            var maxCount = Squares[i].Count;
+            if (maxCount > 0)
+            {
+                return check.SetCounter(user.Team, Math.Clamp(oldCount + change, 0, maxCount));
+            } 
+            else
+            {
+                return check.SetCounter(user.Team, Math.Max(0, oldCount + change));
+            }
         }
 
         public bool UserClicked(int i, UserInRoom clicker, UserInRoom? onBehalfOf)
@@ -142,15 +163,13 @@ namespace EldenBingoServer
             {
                 if (onBehalfOf != null && !onBehalfOf.IsSpectator)
                 {
-                    check.Check(onBehalfOf.Team);
-                    return true;
+                    return check.Check(onBehalfOf.Team);
                 }
                 return false;
             }
             if (clicker.IsSpectator && clicker.IsAdmin)
             {
-                CheckStatus[i].Uncheck();
-                return true;
+                return CheckStatus[i].Uncheck();
             }
             //No owner of the action
             if (onBehalfOf == null)
@@ -159,8 +178,7 @@ namespace EldenBingoServer
             //Square owned by this player's team -> allow it to be toggled off
             if (check.CheckedBy.Value == onBehalfOf.Team)
             {
-                CheckStatus[i].Uncheck();
-                return true;
+                return CheckStatus[i].Uncheck();
             }
             //Not allowed to toggle square, owned by other player/team
             return false;

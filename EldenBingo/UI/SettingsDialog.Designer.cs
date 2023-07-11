@@ -45,10 +45,10 @@
             this._bingoMaxXTextBox = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this._fontLinkLabel = new System.Windows.Forms.LinkLabel();
-            this.label8 = new System.Windows.Forms.Label();
             this._colorPanel = new System.Windows.Forms.Panel();
             this.label5 = new System.Windows.Forms.Label();
+            this._fontLinkLabel = new System.Windows.Forms.LinkLabel();
+            this.label8 = new System.Windows.Forms.Label();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this._mapPositionYTextBox = new System.Windows.Forms.TextBox();
@@ -64,18 +64,21 @@
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this._showClassesCheckBox = new System.Windows.Forms.CheckBox();
             this._swapMouseButtons = new System.Windows.Forms.CheckBox();
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this._clickIncrementsCountCheckbox = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.groupBox6.SuspendLayout();
+            this.groupBox7.SuspendLayout();
             this.SuspendLayout();
             // 
             // _okButton
             // 
             this._okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._okButton.Location = new System.Drawing.Point(290, 352);
+            this._okButton.Location = new System.Drawing.Point(548, 352);
             this._okButton.Name = "_okButton";
             this._okButton.Size = new System.Drawing.Size(75, 23);
             this._okButton.TabIndex = 12;
@@ -86,7 +89,7 @@
             // _cancelButton
             // 
             this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(371, 352);
+            this._cancelButton.Location = new System.Drawing.Point(629, 352);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
             this._cancelButton.TabIndex = 13;
@@ -234,37 +237,14 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this._fontLinkLabel);
-            this.groupBox3.Controls.Add(this.label8);
             this.groupBox3.Controls.Add(this._colorPanel);
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Location = new System.Drawing.Point(237, 15);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(209, 103);
+            this.groupBox3.Size = new System.Drawing.Size(233, 60);
             this.groupBox3.TabIndex = 16;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Appearance";
-            // 
-            // _fontLinkLabel
-            // 
-            this._fontLinkLabel.AutoSize = true;
-            this._fontLinkLabel.Font = new System.Drawing.Font("Lucida Sans Unicode", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this._fontLinkLabel.Location = new System.Drawing.Point(9, 76);
-            this._fontLinkLabel.Name = "_fontLinkLabel";
-            this._fontLinkLabel.Size = new System.Drawing.Size(90, 20);
-            this._fontLinkLabel.TabIndex = 6;
-            this._fontLinkLabel.TabStop = true;
-            this._fontLinkLabel.Text = "FontName";
-            this._fontLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this._fontLinkLabel_LinkClicked);
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(9, 56);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(102, 15);
-            this.label8.TabIndex = 5;
-            this.label8.Text = "Bingo Board Font:";
             // 
             // _colorPanel
             // 
@@ -283,6 +263,27 @@
             this.label5.Size = new System.Drawing.Size(153, 15);
             this.label5.TabIndex = 0;
             this.label5.Text = "Window Background Color:";
+            // 
+            // _fontLinkLabel
+            // 
+            this._fontLinkLabel.AutoSize = true;
+            this._fontLinkLabel.Font = new System.Drawing.Font("Lucida Sans Unicode", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this._fontLinkLabel.Location = new System.Drawing.Point(8, 43);
+            this._fontLinkLabel.Name = "_fontLinkLabel";
+            this._fontLinkLabel.Size = new System.Drawing.Size(90, 20);
+            this._fontLinkLabel.TabIndex = 18;
+            this._fontLinkLabel.TabStop = true;
+            this._fontLinkLabel.Text = "FontName";
+            this._fontLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this._fontLinkLabel_LinkClicked);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(8, 23);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(80, 15);
+            this.label8.TabIndex = 5;
+            this.label8.Text = "Font and Size:";
             // 
             // groupBox4
             // 
@@ -358,7 +359,7 @@
             this.groupBox5.Controls.Add(this._portTextBox);
             this.groupBox5.Controls.Add(this.label9);
             this.groupBox5.Controls.Add(this._hostServerCheckBox);
-            this.groupBox5.Location = new System.Drawing.Point(237, 130);
+            this.groupBox5.Location = new System.Drawing.Point(495, 15);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(209, 90);
             this.groupBox5.TabIndex = 17;
@@ -397,7 +398,7 @@
             this.groupBox6.Controls.Add(this._swapMouseButtons);
             this.groupBox6.Location = new System.Drawing.Point(237, 228);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(209, 115);
+            this.groupBox6.Size = new System.Drawing.Size(233, 115);
             this.groupBox6.TabIndex = 20;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Map";
@@ -406,7 +407,7 @@
             // 
             this._showClassesCheckBox.Location = new System.Drawing.Point(9, 59);
             this._showClassesCheckBox.Name = "_showClassesCheckBox";
-            this._showClassesCheckBox.Size = new System.Drawing.Size(194, 53);
+            this._showClassesCheckBox.Size = new System.Drawing.Size(218, 53);
             this._showClassesCheckBox.TabIndex = 2;
             this._showClassesCheckBox.Text = "Show random classes in an overlay on the map (for streaming)";
             this._showClassesCheckBox.UseVisualStyleBackColor = true;
@@ -415,10 +416,32 @@
             // 
             this._swapMouseButtons.Location = new System.Drawing.Point(9, 20);
             this._swapMouseButtons.Name = "_swapMouseButtons";
-            this._swapMouseButtons.Size = new System.Drawing.Size(194, 36);
+            this._swapMouseButtons.Size = new System.Drawing.Size(193, 36);
             this._swapMouseButtons.TabIndex = 1;
             this._swapMouseButtons.Text = "Swap mouse buttons              (Left = Draw, Right = Pan)";
             this._swapMouseButtons.UseVisualStyleBackColor = true;
+            // 
+            // groupBox7
+            // 
+            this.groupBox7.Controls.Add(this._clickIncrementsCountCheckbox);
+            this.groupBox7.Controls.Add(this._fontLinkLabel);
+            this.groupBox7.Controls.Add(this.label8);
+            this.groupBox7.Location = new System.Drawing.Point(237, 85);
+            this.groupBox7.Name = "groupBox7";
+            this.groupBox7.Size = new System.Drawing.Size(233, 135);
+            this.groupBox7.TabIndex = 17;
+            this.groupBox7.TabStop = false;
+            this.groupBox7.Text = "Bingo Board";
+            // 
+            // _clickIncrementsCountCheckbox
+            // 
+            this._clickIncrementsCountCheckbox.Location = new System.Drawing.Point(9, 71);
+            this._clickIncrementsCountCheckbox.Name = "_clickIncrementsCountCheckbox";
+            this._clickIncrementsCountCheckbox.Size = new System.Drawing.Size(219, 54);
+            this._clickIncrementsCountCheckbox.TabIndex = 19;
+            this._clickIncrementsCountCheckbox.Text = "Clicking on \"Counted\" square increments the counter instead of marking the square" +
+    "";
+            this._clickIncrementsCountCheckbox.UseVisualStyleBackColor = true;
             // 
             // SettingsDialog
             // 
@@ -426,7 +449,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(458, 387);
+            this.ClientSize = new System.Drawing.Size(716, 387);
+            this.Controls.Add(this.groupBox7);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.groupBox4);
@@ -452,6 +476,8 @@
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             this.groupBox6.ResumeLayout(false);
+            this.groupBox7.ResumeLayout(false);
+            this.groupBox7.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -494,5 +520,7 @@
         private GroupBox groupBox6;
         private CheckBox _swapMouseButtons;
         private CheckBox _showClassesCheckBox;
+        private GroupBox groupBox7;
+        private CheckBox _clickIncrementsCountCheckbox;
     }
 }

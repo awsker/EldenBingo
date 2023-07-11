@@ -418,5 +418,17 @@ namespace EldenBingo.Properties {
                 this["ShowClassesOnMap"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ClickIncrementsCountedSquares {
+            get {
+                return ((bool)(this["ClickIncrementsCountedSquares"]));
+            }
+            set {
+                this["ClickIncrementsCountedSquares"] = value;
+            }
+        }
     }
 }
