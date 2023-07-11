@@ -56,6 +56,15 @@ namespace EldenBingo.UI
             Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
+        
+        protected override void ClientChanged()
+        {
+            if (Client?.Room == null)
+                return;
+
+            setBoard(Client.Room.Match.Board);
+            updateBoardStatus(Client.Room.Match);
+        }
 
         protected override void RemoveClientListeners()
         {

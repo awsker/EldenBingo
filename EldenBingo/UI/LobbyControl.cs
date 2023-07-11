@@ -67,6 +67,13 @@ namespace EldenBingo.UI
             {
                 adminControl1.Client = Client;
             }
+            if (Client?.Room != null)
+            {
+                showHideAdminControls();
+                updateMatchStatus(Client.Room.Match.MatchStatus);
+                setMatchTimerLabel(Client.Room.Match.TimerString);
+                restartAndListenToTimer();
+            }
         }
 
         protected override void RemoveClientListeners()
@@ -75,6 +82,8 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+            Client.RemoveListener<ServerAvailableClasses>(availableClassesReceived);
+            Client.RemoveListener<ServerUserChat>(userChat);
         }
 
         private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)

@@ -35,6 +35,11 @@ namespace EldenBingo.UI
             Client.AddListener<ServerCurrentGameSettings>(receivedGameSettings);
         }
 
+        protected override void ClientChanged()
+        {
+            updateButtonsStatus();
+        }
+
         protected override void RemoveClientListeners()
         {
             if (Client == null)
@@ -200,7 +205,10 @@ namespace EldenBingo.UI
                 var inRoom = Client?.Room != null;
                 var admin = inRoom && Client?.LocalUser?.IsAdmin == true;
                 var matchInProgress = inRoom && (Client.Room.Match.Running || Client.Room.Match.MatchStatus == MatchStatus.Paused);
+                _browseJsonButton.Enabled = admin;
                 _uploadJsonButton.Enabled = admin;
+                _lobbySettingsButton.Enabled = admin;
+                _generateNewBoardButton.Enabled = admin;
                 _startMatchButton.Enabled = admin && !matchInProgress;
                 _pauseMatchButton.Enabled = admin && matchInProgress;
                 if (admin)

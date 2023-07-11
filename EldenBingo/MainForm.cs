@@ -347,11 +347,10 @@ namespace EldenBingo
             var c = Properties.Settings.Default.ControlBackColor;
 
             _consoleControl.BackColor = c;
-
-            _lobbyControl.Client = _client;
             _lobbyControl.BackColor = c;
-
-            tabControl1.TabPages.Remove(_lobbyPage);
+            _lobbyControl.HandleCreated += _lobbyControl_HandleCreated;
+            //Select (and initialize) the lobby control
+            tabControl1.SelectedIndex = 1;
 
             updateButtonAvailability();
 
@@ -365,6 +364,15 @@ namespace EldenBingo
             {
                 await initClientAsync(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
+        }
+
+        private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
+        {
+            //Make sure the lobby control has been visible once, so it's controls are initialized
+            tabControl1.TabPages.Remove(_lobbyPage);
+            tabControl1.SelectedIndex = 0;
+            _lobbyControl.HandleCreated -= _lobbyControl_HandleCreated;
+            _lobbyControl.Client = _client;
         }
 
         private void mainForm_SizeChanged(object? sender, EventArgs e)
