@@ -90,7 +90,7 @@ namespace EldenBingo.UI
                 var status = Client.BingoBoard.Squares[userCheckedArgs.Index];
                 status.Team = userCheckedArgs.TeamChecked;
                 Client.BingoBoard.Squares[userCheckedArgs.Index] = status;
-                updateSquare(Client.BingoBoard, userCheckedArgs.Index);
+                updateSquareStatus(Client.BingoBoard, userCheckedArgs.Index);
             }
         }
 
@@ -101,7 +101,7 @@ namespace EldenBingo.UI
                 var status = Client.BingoBoard.Squares[userMarkedArgs.Index];
                 status.Marked = userMarkedArgs.Marked;
                 Client.BingoBoard.Squares[userMarkedArgs.Index] = status;
-                updateSquare(Client.BingoBoard, userMarkedArgs.Index);
+                updateSquareStatus(Client.BingoBoard, userMarkedArgs.Index);
             }
         }
 
@@ -112,7 +112,7 @@ namespace EldenBingo.UI
                 var status = Client.BingoBoard.Squares[userCounterArgs.Index];
                 status.Counters = userCounterArgs.Counters;
                 Client.BingoBoard.Squares[userCounterArgs.Index] = status;
-                updateSquare(Client.BingoBoard, userCounterArgs.Index);
+                updateSquareStatus(Client.BingoBoard, userCounterArgs.Index);
             }
         }
 
@@ -244,6 +244,12 @@ namespace EldenBingo.UI
             var s = board.Squares[index];
             Squares[index].Text = s.Text;
             Squares[index].ToolTip = s.Tooltip;
+            updateSquareStatus(board, index);
+        }
+
+        private void updateSquareStatus(BingoBoard board, int index)
+        {
+            var s = board.Squares[index];
             Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
             Squares[index].Marked = s.Marked;
             Squares[index].Counters = s.Counters;
