@@ -29,10 +29,25 @@ namespace EldenBingoCommon
                 if (teamPlayers.Count == 1)
                     list.Add(new(team.Key, teamPlayers[0].Nick));
                 else if (teamPlayers.Count > 1)
-                    list.Add(new(team.Key, BingoConstants.GetTeamName(team.Key)));
+                    list.Add(new(team.Key, getUnifiedName(team.Key, teamPlayers)));
             }
 
             return list.OrderBy(pt => pt.Item1).ToList();
+        }
+
+        private static string getUnifiedName(int team, IList<T> teamPlayers)
+        {
+            string shortestName = string.Empty;
+            for(int i = 0; i < teamPlayers.Count; ++i)
+            {
+                if (i == 0 || teamPlayers[i].Nick.Length < shortestName.Length)
+                    shortestName = teamPlayers[i].Nick;
+            }
+            //If all names starts with the same sequence (CptDomo, CptDomo2, CptDomo-Spec etc..),
+            //use the shortest of these as the team name
+            if (teamPlayers.All(p => p.Nick.StartsWith(shortestName)))
+                return shortestName;
+            return BingoConstants.GetTeamName(team);
         }
 
         public virtual void AddUser(T user)
