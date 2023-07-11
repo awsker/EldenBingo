@@ -74,7 +74,7 @@ namespace EldenBingo.Rendering.Game
             AddGameObject(_background);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_texturesLoaded)
             {
