@@ -134,14 +134,7 @@ namespace EldenBingoServer
             if (user.IsSpectator)
                 return false;
             var maxCount = Squares[i].Count;
-            if (maxCount > 0)
-            {
-                return check.SetCounter(user.Team, Math.Clamp(oldCount + change, 0, maxCount));
-            } 
-            else
-            {
-                return check.SetCounter(user.Team, Math.Max(0, oldCount + change));
-            }
+            return check.SetCounter(user.Team, maxCount > 0 ? Math.Clamp(oldCount + change, 0, maxCount) : Math.Max(0, oldCount + change));
         }
 
         public bool UserClicked(int i, UserInRoom clicker, UserInRoom? onBehalfOf)
