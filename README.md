@@ -90,7 +90,7 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
 
 # Json Format
-The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips and categories.  
+The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories and counters.  
 ![image](https://github.com/awsker/EldenBingo/assets/604653/a560d869-6954-4db7-9218-f9c40b838909)
 
 Use the **tooltip** key to define a tooltip when hovering that square:  
