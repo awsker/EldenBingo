@@ -23,6 +23,8 @@ namespace EldenBingo.UI
         {
             void printAction()
             {
+                if (Disposing || IsDisposed)
+                    return;
                 _consoleTextBox.SelectionStart = _consoleTextBox.TextLength;
                 _consoleTextBox.SelectionLength = 0;
 
