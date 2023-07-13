@@ -392,7 +392,11 @@ namespace EldenBingoServer
 
                     if (board.UserClicked(tryCheck.Index, userInfo, userToSet))
                     {
-                        var userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, board.CheckStatus[tryCheck.Index].CheckedBy);
+                        var check = board.CheckStatus[tryCheck.Index];
+                        ServerUserChecked userCheck;
+                        lock (check) {
+                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, check.CheckedBy);
+                        }
                         await sendPacketToRoom(new Packet(userCheck), sender.Room);
                     }
                 }
@@ -412,8 +416,13 @@ namespace EldenBingoServer
 
                 if (board.UserMarked(tryMark.Index, userInfo))
                 {
-                    //Send marking to all players on the same team
-                    var userMarked = new ServerUserMarked(userInfo.Guid, tryMark.Index, board.CheckStatus[tryMark.Index].IsMarked(userInfo.Team));
+                    var check = board.CheckStatus[tryMark.Index];
+                    ServerUserMarked userMarked;
+                    lock (check)
+                    {
+                        //Send marking to all players on the same team
+                        userMarked = new ServerUserMarked(userInfo.Guid, tryMark.Index, check.IsMarked(userInfo.Team));
+                    }
                     await SendPacketToClients(new Packet(userMarked), sender.Room.Users.Where(u => u.Team == userInfo.Team).Select(c => c.Client));
                 }
             }
@@ -441,11 +450,15 @@ namespace EldenBingoServer
                     if (board.UserChangeCount(trySetCounter.Index, userToSet, trySetCounter.Change))
                     {
                         var tasks = new List<Task>();
-                        foreach (var recipient in sender.Room.Users.Where(u => u.IsSpectator || u.Team == userToSet.Team))
+                        var check = board.CheckStatus[trySetCounter.Index];
+                        lock (check)
                         {
-                            var userCounter = new ServerUserSetCounter(userInfo.Guid, trySetCounter.Index, board.CheckStatus[trySetCounter.Index].GetCounters(recipient, sender.Room.Users));
-                            var task = SendPacketToClient(new Packet(userCounter), recipient.Client);
-                            tasks.Add(task);
+                            foreach (var recipient in sender.Room.Users.Where(u => u.IsSpectator || u.Team == userToSet.Team))
+                            {
+                                var userCounter = new ServerUserSetCounter(userInfo.Guid, trySetCounter.Index, check.GetCounters(recipient, sender.Room.Users));
+                                var task = SendPacketToClient(new Packet(userCounter), recipient.Client);
+                                tasks.Add(task);
+                            }
                         }
                         await Task.WhenAll(tasks);
                     }
@@ -491,13 +504,6 @@ namespace EldenBingoServer
                 boardCopy.Squares[i] = squareData[i];
             return new ServerEntireBingoBoardUpdate(boardCopy.Squares);
         }
-
-        /*
-        private ServerBingoBoardStatusUpdate createBoardStatusPacket(ServerBingoBoard board, UserInRoom user)
-        {
-            var squareData = board.GetSquareDataForUser(user);
-            return new ServerBingoBoardStatusUpdate(squareData);
-        }*/
 
         private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
         {

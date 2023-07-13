@@ -130,11 +130,14 @@ namespace EldenBingoServer
             if (i < 0 || i >= 25 || change == 0)
                 return false;
             var check = CheckStatus[i];
-            var oldCount = check.GetCounter(user.Team) ?? 0;
-            if (user.IsSpectator)
-                return false;
-            var maxCount = Squares[i].Count;
-            return check.SetCounter(user.Team, maxCount > 0 ? Math.Clamp(oldCount + change, 0, maxCount) : Math.Max(0, oldCount + change));
+            lock (check)
+            {
+                var oldCount = check.GetCounter(user.Team) ?? 0;
+                if (user.IsSpectator)
+                    return false;
+                var maxCount = Squares[i].Count;
+                return check.SetCounter(user.Team, maxCount > 0 ? Math.Clamp(oldCount + change, 0, maxCount) : Math.Max(0, oldCount + change));
+            }
         }
 
         public bool UserClicked(int i, UserInRoom clicker, UserInRoom? onBehalfOf)
@@ -151,30 +154,33 @@ namespace EldenBingoServer
                 return false;
 
             var check = CheckStatus[i];
-            //Square not owned by any player or team, allow check
-            if (check.CheckedBy == null)
+            lock (check)
             {
-                if (onBehalfOf != null && !onBehalfOf.IsSpectator)
+                //Square not owned by any player or team, allow check
+                if (check.CheckedBy == null)
                 {
-                    return check.Check(onBehalfOf.Team);
+                    if (onBehalfOf != null && !onBehalfOf.IsSpectator)
+                    {
+                        return check.Check(onBehalfOf.Team);
+                    }
+                    return false;
                 }
-                return false;
-            }
-            if (clicker.IsSpectator && clicker.IsAdmin)
-            {
-                return CheckStatus[i].Uncheck();
-            }
-            //No owner of the action
-            if (onBehalfOf == null)
-                return false;
+                if (clicker.IsSpectator && clicker.IsAdmin)
+                {
+                    return CheckStatus[i].Uncheck();
+                }
+                //No owner of the action
+                if (onBehalfOf == null)
+                    return false;
 
-            //Square owned by this player's team -> allow it to be toggled off
-            if (check.CheckedBy.Value == onBehalfOf.Team)
-            {
-                return CheckStatus[i].Uncheck();
+                //Square owned by this player's team -> allow it to be toggled off
+                if (check.CheckedBy.Value == onBehalfOf.Team)
+                {
+                    return CheckStatus[i].Uncheck();
+                }
+                //Not allowed to toggle square, owned by other player/team
+                return false;
             }
-            //Not allowed to toggle square, owned by other player/team
-            return false;
         }
 
         /// <summary>
@@ -189,10 +195,13 @@ namespace EldenBingoServer
                 return false;
 
             var check = CheckStatus[i];
-            if (check.IsMarked(user.Team))
-                return check.Unmark(user.Team);
-            else
-                return check.Mark(user.Team);
+            lock (check)
+            {
+                if (check.IsMarked(user.Team))
+                    return check.Unmark(user.Team);
+                else
+                    return check.Mark(user.Team);
+            }
         }
     }
 }
