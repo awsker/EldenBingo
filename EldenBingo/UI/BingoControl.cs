@@ -280,34 +280,33 @@ namespace EldenBingo.UI
                         return;
 
                     var square = Client.Room.Match.Board.Squares[c.Index];
-                    if(square.Count <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
+                    var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
+                    if (square.MaxCount <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
                     {
-                        var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
                         await Client.SendPacketToServer(p);
                     } 
                     else
                     {
                         var currentTeamCount = c.Counters.FirstOrDefault(t => t.Team == userToSetFor.Team).Counter;
-                        if(currentTeamCount + 1 == square.Count)
+                        //Will reach the max count with this click, so include a check packet
+                        if(currentTeamCount + 1 == square.MaxCount)
                         {
                             //Increment 1
-                            var p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                            //Check square
-                            p.AddObject(new ClientTryCheck(c.Index, userToSetFor.Guid));
+                            p.AddObject(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
                             await Client.SendPacketToServer(p);
                         }
-                        else if(currentTeamCount == square.Count)
+                        //Already at max count, so decrease counter and include an uncheck packet
+                        else if(currentTeamCount == square.MaxCount)
                         {
-                            //Decrement 1
-                            var p = new Packet(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
-                            //Uncheck
-                            p.AddObject(new ClientTryCheck(c.Index, userToSetFor.Guid));
+                            //Decrement 1 - Only when the square is currently owned by this user's team
+                            if(square.Team == userToSetFor.Team)
+                                p.AddObject(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
                             await Client.SendPacketToServer(p);  
                         } 
                         else
                         {
                             //Increment 1
-                            var p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
+                            p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
                             await Client.SendPacketToServer(p);
                         }
                     }
