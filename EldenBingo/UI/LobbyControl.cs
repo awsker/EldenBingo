@@ -54,7 +54,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
-            Client.AddListener<ServerAvailableClasses>(availableClassesReceived);
+            Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
         }
 
@@ -82,7 +82,7 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
-            Client.RemoveListener<ServerAvailableClasses>(availableClassesReceived);
+            Client.RemoveListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.RemoveListener<ServerUserChat>(userChat);
         }
 
@@ -119,15 +119,15 @@ namespace EldenBingo.UI
             }
         }
 
-        private void availableClassesReceived(ClientModel? _, ServerAvailableClasses availableClassesArgs)
+        private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
-            if (availableClassesArgs.Classes.Length <= 0)
+            if (bingoBoardArgs.AvailableClasses.Length <= 0)
                 return;
 
-            var prep = availableClassesArgs.Classes.Length == 1 ? "Required class is:" : "Valid classes are:";
+            var prep = bingoBoardArgs.AvailableClasses.Length == 1 ? "Required class is:" : "Valid classes are:";
             var strings = new List<string>();
             var colors = new List<Color?>();
-            foreach (var cl in availableClassesArgs.Classes)
+            foreach (var cl in bingoBoardArgs.AvailableClasses)
             {
                 if (strings.Count == 0)
                     strings.Add(prep);

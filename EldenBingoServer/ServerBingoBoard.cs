@@ -101,7 +101,7 @@ namespace EldenBingoServer
 
     public class ServerBingoBoard : BingoBoard
     {
-        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares) : base(squares)
+        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses) : base(squares, availableClasses)
         {
             CheckStatus = new CheckStatus[25];
             Room = room;
@@ -120,7 +120,7 @@ namespace EldenBingoServer
             for (int i = 0; i < 25; ++i)
             {
                 var status = CheckStatus[i];
-                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, Squares[i].Count, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
+                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, Squares[i].MaxCount, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
             }
             return squares;
         }
@@ -135,7 +135,7 @@ namespace EldenBingoServer
                 var oldCount = check.GetCounter(user.Team) ?? 0;
                 if (user.IsSpectator)
                     return false;
-                var maxCount = Squares[i].Count;
+                var maxCount = Squares[i].MaxCount;
                 return check.SetCounter(user.Team, maxCount > 0 ? Math.Clamp(oldCount + change, 0, maxCount) : Math.Max(0, oldCount + change));
             }
         }

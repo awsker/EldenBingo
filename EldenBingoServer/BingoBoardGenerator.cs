@@ -8,7 +8,6 @@ namespace EldenBingoServer
         private readonly IList<BingoJsonObj> _list;
         private int _randomSeed;
         private Random _random;
-        private Random _classRandom;
 
         public int RandomSeed
         {
@@ -21,7 +20,6 @@ namespace EldenBingoServer
                 {
                     _randomSeed = value;
                     _random = value == 0 ? new Random() : new Random(value);
-                    _classRandom = value == 0 ? new Random() : new Random(_random.Next());
                 }
             }
         }
@@ -65,7 +63,7 @@ namespace EldenBingoServer
                     {
                         foreach (var e in elem.EnumerateArray())
                         {
-                            string categoryNameInner = e.GetString();
+                            string? categoryNameInner = e.GetString();
                             if (categoryNameInner != null)
                                 categories.Add(categoryNameInner);
                         }
@@ -119,12 +117,24 @@ namespace EldenBingoServer
                 squares = shuffleList(squares, _random).ToList();
             balanceBoard(squares);
 
-            return new ServerBingoBoard(room, squares.Select(s => new BingoBoardSquare(s.Text, s.Tooltip, s.Count, null, false, Array.Empty<TeamCounter>())).ToArray());
+            EldenRingClasses[] classes;
+            //Always randomize classes, even if they're not needed - to ensure consistency in random number generation
+            if (room.GameSettings.RandomClasses && room.GameSettings.NumberOfClasses > 0)
+            {
+                classes = randomizeAvailableClasses(room.GameSettings.ValidClasses, room.GameSettings.NumberOfClasses);
+            } 
+            else
+            {
+                classes = Array.Empty<EldenRingClasses>();
+                _random.Next(); //Skip a number to ensure consistency in random number generation
+            }
+            return new ServerBingoBoard(room, squares.Select(s => new BingoBoardSquare(s.Text, s.Tooltip, s.Count, null, false, Array.Empty<TeamCounter>())).ToArray(), classes);
         }
 
-        public EldenRingClasses[] RandomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)
+        private EldenRingClasses[] randomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)
         {
-            var classesQueue = new Queue<EldenRingClasses>(shuffleList(availableClasses, _classRandom));
+            var classRandom = new Random(_random.Next());
+            var classesQueue = new Queue<EldenRingClasses>(shuffleList(availableClasses, classRandom));
             var pickedClasses = new List<EldenRingClasses>();
             while(classesQueue.Count > 0 && pickedClasses.Count < numberOfClasses)
             {

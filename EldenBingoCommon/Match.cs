@@ -17,15 +17,12 @@ namespace EldenBingoCommon
         {
             MatchStatus = MatchStatus.NotRunning;
             ServerTimer = 0;
-            Classes = Array.Empty<EldenRingClasses>();
             updateMatchStatus();
         }
 
         public event EventHandler? MatchStatusChanged;
 
         public BingoBoard? Board { get; set; }
-
-        public EldenRingClasses[] Classes { get; set; }
 
         public int MatchMilliseconds
         {

@@ -210,7 +210,7 @@ namespace EldenBingo
 
             client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
-            client.AddListener<ServerAvailableClasses>(availableClasses);
+            client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
         }
 
         private void client_Connected(object? sender, EventArgs e)
@@ -233,10 +233,11 @@ namespace EldenBingo
             updateButtonAvailability();
         }
 
-        private void availableClasses(ClientModel? _, ServerAvailableClasses classesArgs)
+        private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
-            if (_mapWindow != null && _client.Room != null && _client.Room.Match.MatchStatus == MatchStatus.Running && Properties.Settings.Default.ShowClassesOnMap)
-                _mapWindow.ShowAvailableClasses(classesArgs.Classes);
+            if (Properties.Settings.Default.ShowClassesOnMap &&
+                _mapWindow != null && _client.Room != null && _client.Room.Match.MatchStatus == MatchStatus.Running && _client.Room.Match.MatchMilliseconds < 10000)
+                _mapWindow.ShowAvailableClasses(bingoBoardArgs.AvailableClasses);
         }
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
@@ -432,6 +433,7 @@ namespace EldenBingo
             client.OnRoomChanged -= client_RoomChanged;
             client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.RemoveListener<ServerJoinRoomDenied>(joinRoomDenied);
+            client.RemoveListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
         }
 
         private void server_OnStatus(object? sender, StringEventArgs e)
