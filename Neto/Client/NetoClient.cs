@@ -69,6 +69,44 @@ namespace Neto.Client
                 return "Connected";
         }
 
+        public async Task<bool> Connect(string address, int port)
+        {
+            var ipEndpoint = EndPointFromAddress(address, port, out string error);
+            if (ipEndpoint == null)
+            {
+                FireOnError(error);
+                return false;
+            }
+            if (_tcp != null && _tcp.Connected)
+            {
+                FireOnError("Already connected");
+                return false;
+            }
+            CancelToken = new CancellationTokenSource();
+            _tcp = new TcpClient(ipEndpoint.AddressFamily);
+            try
+            {
+                FireOnStatus($"Connecting to {address}:{port}...");
+                await _tcp.ConnectAsync(ipEndpoint, CancelToken.Token);
+
+                if (_tcp.Connected)
+                {
+                    FireOnStatus("Connected to server");
+                    _ = Task.Run(run);
+                }
+                else
+                {
+                    FireOnError($"Could not connect to {address}:{port}");
+                    CancelToken.Cancel();
+                }
+            }
+            catch (Exception e)
+            {
+                FireOnError($"Connect Error: {e.Message}");
+            }
+            return _tcp.Connected;
+        }
+
         public async Task<bool> Connect(IPEndPoint ipEndpoint)
         {
             if (_tcp != null && _tcp.Connected)
