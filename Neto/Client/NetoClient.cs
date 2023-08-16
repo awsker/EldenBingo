@@ -267,11 +267,16 @@ namespace Neto.Client
                 if (packet != null)
                     await handleIncomingPacket(packet);
             }
+            catch (OperationCanceledException)
+            {
+                //Do nothing, disconnect requested
+            }
             catch (Exception e)
             {
                 //Stream was closed, most likely due to the server shutting down
                 //but could also be because server sent malformed packet
                 FireOnError(e.Message);
+                CancelToken.Cancel();
             }
         }
     }
