@@ -93,6 +93,7 @@ namespace EldenBingo.Rendering.Game
             {
                 case Keyboard.Key.Num0:
                 case Keyboard.Key.Numpad0:
+                case Keyboard.Key.F:
                     return UIActions.FitAllPlayers;
 
                 case Keyboard.Key.Z:
