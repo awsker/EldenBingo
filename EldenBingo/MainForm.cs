@@ -324,7 +324,7 @@ namespace EldenBingo
             }
             else
             {
-                await _client.Connect(ipendpoint);
+                await _client.Connect(address, port);
                 updateButtonAvailability();
             }
         }
