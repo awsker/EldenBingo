@@ -216,6 +216,7 @@ namespace EldenBingo
 
         private void client_Disconnected(object? sender, StringEventArgs e)
         {
+            Invoke(hideLobbyTab);
             updateButtonAvailability();
         }
 
@@ -236,6 +237,38 @@ namespace EldenBingo
                 _mapWindow.ShowAvailableClasses(bingoBoardArgs.AvailableClasses);
         }
 
+        private void showLobbyTab()
+        {
+            void update()
+            {
+                if (!tabControl1.TabPages.Contains(_lobbyPage))
+                    tabControl1.TabPages.Add(_lobbyPage);
+                tabControl1.SelectedIndex = 1;
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
+        }
+
+        private void hideLobbyTab()
+        {
+            void update()
+            {
+                tabControl1.TabPages.Remove(_lobbyPage);
+                tabControl1.SelectedIndex = 0;
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
+        }
+
+
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
             if (_client == null)
@@ -249,13 +282,11 @@ namespace EldenBingo
                 }
                 if (_client.Room != null && _lobbyPage.Parent == null)
                 {
-                    tabControl1.TabPages.Add(_lobbyPage);
-                    tabControl1.SelectedIndex = 1;
+                    showLobbyTab();
                 }
                 if (_client.Room == null && _lobbyPage.Parent != null)
                 {
-                    tabControl1.TabPages.Remove(_lobbyPage);
-                    tabControl1.SelectedIndex = 0;
+                    hideLobbyTab();
                 }
                 _clientStatusTextBox.Text = _client.GetConnectionStatusString();
             }
