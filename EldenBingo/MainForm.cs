@@ -46,10 +46,6 @@ namespace EldenBingo
             _client = new Client();
             addClientListeners(_client);
 
-            if (Properties.Settings.Default.HostServerOnLaunch)
-            {
-                hostServer();
-            }
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
         }
@@ -345,6 +341,11 @@ namespace EldenBingo
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
+            if (Properties.Settings.Default.HostServerOnLaunch)
+            {
+                hostServer();
+            }
+
             var c = Properties.Settings.Default.ControlBackColor;
 
             _consoleControl.BackColor = c;
@@ -365,6 +366,7 @@ namespace EldenBingo
             {
                 await initClientAsync(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
+
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
