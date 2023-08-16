@@ -49,7 +49,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("localhost")]
+        [global::System.Configuration.DefaultSettingValueAttribute("bingobrawlers.com")]
         public string ServerAddress {
             get {
                 return ((string)(this["ServerAddress"]));
