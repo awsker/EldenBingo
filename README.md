@@ -90,14 +90,15 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
 
 # Json Format
-The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips and categories.  
-![json](https://github.com/awsker/EldenBingo/assets/604653/65a3209b-3ba5-4d4b-8ee7-d5638dcb9b9b)
+The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories and counters.  
+![image](https://github.com/awsker/EldenBingo/assets/604653/a560d869-6954-4db7-9218-f9c40b838909)
 
-
-Use the *tooltip* tag to define a tooltip when hovering that square:  
+Use the **tooltip** key to define a tooltip when hovering that square:  
  ![image](https://github.com/awsker/EldenBingo/assets/604653/a5f97ed4-9454-462a-bd31-8b2de1e186f7)
 
-Use the *category* tag to define a single category, or the *categories* tag to define an array of categories. These categories can be used in conjunction with the lobby setting *Max square in same category* to ensure that at most that number of categories will be present in one bingo board, in order to generate more balanced bingo boards.
+Use the **category** key to define a single category, or the **categories** key to define an array of categories. These categories can be used in conjunction with the lobby setting *Max square in same category* to ensure that at most that number of categories will be present in one bingo board, in order to generate more balanced bingo boards.
+
+Use the **count** key to define that the square requires a set number clicks to complete. When users click this square, it will increment the counter by 1 (as if scrolling the mouse wheel up) until this value is reached. This behaviour is optional and can be disabled in the Settings dialog by the user, in which case they must use their mouse wheel to manually track the count and click the square only when it's completed.
 
 # Credits
 * Tremwil on The Grand Archives discord
