@@ -41,6 +41,7 @@ You can also configure the rules of the lobby. You can enable a random pick of c
 
 Setting *Max square in same category* will ensure that at most that many squares in the same category will be included in one board. **0 means this feature is disabled**. For more info on the json format, see [Json Format](#json-format).  
 Setting a *Random seed* will ensure that the same sequence of boards and random classes are generated/picked. This sequence will reset when a new json is uploaded. **0 means a random seed will be used**.
+*Preparation time* creates an extra preparation phase at the beginning of the match, after the initial countdown, in which players can see the board and the available classes and plan ahead before the match starts.
 
 # Administrating a lobby
 You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only AdminSpectators (ie. a player that is both administrator and spectator) have special privileges (see [AdminSpectators](#adminspectators)).
