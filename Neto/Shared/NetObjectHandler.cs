@@ -65,9 +65,9 @@ namespace Neto.Shared
             }
         }
 
-        protected Packet[]? ReadPackets(byte[] bytes)
+        protected Packet?[] ReadPackets(byte[] bytes)
         {
-            var packets = new List<Packet>();
+            var packets = new List<Packet?>();
             try
             {
 
@@ -82,7 +82,7 @@ namespace Neto.Shared
             }
             catch (MessagePackSerializationException)
             {
-                return null;
+                packets.Add(null);
             }
             return packets.ToArray();
         }

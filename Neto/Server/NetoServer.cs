@@ -308,20 +308,23 @@ namespace Neto.Server
                 } while (!IsMessageTerminated(ms));
 
                 var packets = ReadPackets(ms.ToArray());
-                if (packets == null)
+                foreach (var packet in packets)
                 {
-                    //Drop client after 3 malformed packets
-                    if(++client.MalformedPackets == 3)
+                    if (packet == null)
                     {
-                        await KickClient(client);
-                        FireOnStatus($"Kicked client connected from {GetClientIp(client)}");
+                        //Drop client after 3 malformed packets
+                        if (++client.MalformedPackets >= 3)
+                        {
+                            await KickClient(client);
+                            FireOnStatus($"Kicked client connected from {GetClientIp(client)}");
+                            break;
+                        }
                     }
-                }
-                else
-                {
-                    client.MalformedPackets = Math.Max(0, client.MalformedPackets - 1);
-                    foreach(var packet in packets)
+                    else
+                    {
+                        client.MalformedPackets = Math.Max(0, client.MalformedPackets - 1);
                         await handleIncomingPacket(client, packet);
+                    }
                 }
             }
             catch (Exception e)

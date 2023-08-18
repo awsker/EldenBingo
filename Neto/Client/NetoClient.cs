@@ -268,9 +268,9 @@ namespace Neto.Client
                 } while (!IsMessageTerminated(ms));
 
                 var packets = ReadPackets(ms.ToArray());
-                if (packets != null)
+                foreach (var packet in packets)
                 {
-                    foreach (var packet in packets)
+                    if(packet != null)
                         await handleIncomingPacket(packet);
                 }
             }
