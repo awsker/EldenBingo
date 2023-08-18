@@ -55,25 +55,21 @@ namespace EldenBingo
             var ffName = Properties.Settings.Default.BingoFont;
             Font? font = null;
             var scale = Properties.Settings.Default.BingoFontSize / defaultSize;
-            if (!string.IsNullOrWhiteSpace(ffName) && isFontInstalled(ffName))
+            if (!string.IsNullOrWhiteSpace(ffName))
             {
-                var ff2 = new FontFamily(ffName);
-                font = new Font(ff2, size * scale, (FontStyle)Properties.Settings.Default.BingoFontStyle);
-                if (font.Name == ffName)
-                    return font;
+                try
+                {
+                    var ff2 = new FontFamily(ffName);
+                    font = new Font(ff2, size * scale, (FontStyle)Properties.Settings.Default.BingoFontStyle);
+                    if (font.Name == ffName)
+                        return font;
+                }
+                catch(ArgumentException)
+                {
+                    //Font was not found
+                }
             }
             return defaultFont;
-        }
-
-        private static bool isFontInstalled(string fontName)
-        {
-            using (var testFont = new Font(fontName, 8))
-            {
-                return 0 == string.Compare(
-                    fontName,
-                    testFont.Name,
-                    StringComparison.InvariantCultureIgnoreCase);
-            }
         }
 
         /// <summary>
@@ -169,7 +165,7 @@ namespace EldenBingo
                     coords = new ClientCoordinates(e.Coordinates.Value.X, e.Coordinates.Value.Y, e.Coordinates.Value.Angle, e.Coordinates.Value.IsUnderground);
                 else
                     coords = new ClientCoordinates(0, 0, 0, false);
-                
+
                 _ = _client.SendPacketToServer(new Packet(coords));
             }
         }
@@ -279,7 +275,6 @@ namespace EldenBingo
             update();
         }
 
-
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
             if (_client == null)
@@ -287,7 +282,7 @@ namespace EldenBingo
 
             void update()
             {
-                if(_client.Room != null)
+                if (_client.Room != null)
                 {
                     _lastRoom = _client.Room.Name;
                 }
@@ -408,7 +403,6 @@ namespace EldenBingo
             {
                 await initClientAsync(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
-
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
