@@ -7,9 +7,7 @@ namespace EldenBingo.Rendering.Game
     {
         private static bool _texturesLoaded;
         private static Texture[]? _classTextures;
-        private static Texture[]? _classTexts;
-        private static Texture _backgroundTexture;
-        private static Texture[]? _titleTextures;
+        private static Texture? _backgroundTexture;
 
         private CenteredBackgroundDrawable _background;
         private ClassDrawable[] _classes;
@@ -81,12 +79,8 @@ namespace EldenBingo.Rendering.Game
                     foreach (var tex in _classTextures)
                         tex.Dispose();
 
-                if (_classTexts != null)
-                    foreach (var tex in _classTexts)
-                        tex.Dispose();
-
                 _background.Dispose();
-                _backgroundTexture.Dispose();
+                _backgroundTexture?.Dispose();
             }
             Window.Resized -= window_Resized;
         }
