@@ -65,18 +65,26 @@ namespace Neto.Shared
             }
         }
 
-        protected Packet? ReadPacket(byte[] bytes)
+        protected Packet[]? ReadPackets(byte[] bytes)
         {
-            Packet packet;
+            var packets = new List<Packet>();
             try
             {
-                packet = MessagePackSerializer.Deserialize<Packet>(bytes, _cachedOptions);
+
+                var messagePackReader = new MessagePackReader(bytes);
+                while (!messagePackReader.End)
+                {
+                    var p = MessagePackSerializer.Deserialize<Packet>(ref messagePackReader, _cachedOptions);
+                    packets.Add(p);
+                    //Skip end message sequence
+                    messagePackReader.ReadRaw(NetConstants.EndOfMessage.Length);
+                }
             }
             catch (MessagePackSerializationException)
             {
                 return null;
             }
-            return packet;
+            return packets.ToArray();
         }
 
         protected void DispatchObjectsInPacket(CM? sender, Packet packet)

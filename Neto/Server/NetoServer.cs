@@ -307,8 +307,8 @@ namespace Neto.Server
                     ms.Write(buffer, 0, bytesRead);
                 } while (!IsMessageTerminated(ms));
 
-                var packet = ReadPacket(ms.ToArray());
-                if (packet == null)
+                var packets = ReadPackets(ms.ToArray());
+                if (packets == null)
                 {
                     //Drop client after 3 malformed packets
                     if(++client.MalformedPackets == 3)
@@ -320,7 +320,8 @@ namespace Neto.Server
                 else
                 {
                     client.MalformedPackets = Math.Max(0, client.MalformedPackets - 1);
-                    await handleIncomingPacket(client, packet);
+                    foreach(var packet in packets)
+                        await handleIncomingPacket(client, packet);
                 }
             }
             catch (Exception e)

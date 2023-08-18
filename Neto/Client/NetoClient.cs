@@ -237,6 +237,10 @@ namespace Neto.Client
                 CancelToken.Cancel();
                 FireOnStatus(e.Message);
             }
+            if (_tcp?.Connected == true)
+            {
+                _tcp.Close();
+            }
             FireOnDisconnect("Disconnected");
             FireOnStatus("Disconnected");
             _tcp = null;
@@ -263,9 +267,12 @@ namespace Neto.Client
                     ms.Write(buffer, 0, bytesRead);
                 } while (!IsMessageTerminated(ms));
 
-                var packet = ReadPacket(ms.ToArray());
-                if (packet != null)
-                    await handleIncomingPacket(packet);
+                var packets = ReadPackets(ms.ToArray());
+                if (packets != null)
+                {
+                    foreach (var packet in packets)
+                        await handleIncomingPacket(packet);
+                }
             }
             catch (OperationCanceledException)
             {
