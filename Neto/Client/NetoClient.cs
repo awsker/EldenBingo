@@ -270,8 +270,10 @@ namespace Neto.Client
                 var packets = ReadPackets(ms.ToArray());
                 foreach (var packet in packets)
                 {
-                    if(packet != null)
+                    if (packet != null)
+                    {
                         await handleIncomingPacket(packet);
+                    }
                 }
             }
             catch (OperationCanceledException)
