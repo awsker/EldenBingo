@@ -15,6 +15,7 @@ namespace EldenBingo
             //Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
             registerHandlers();
+            Disconnected += client_Disconnected;
         }
 
         internal event EventHandler? OnUsersChanged;
@@ -78,6 +79,11 @@ namespace EldenBingo
             Room = null;
             FireOnStatus("Left lobby");
             await SendPacketToServer(new Packet(new ClientRequestLeaveRoom()));
+        }
+
+        private void client_Disconnected(object? sender, StringEventArgs e)
+        {
+            Room = null;
         }
 
         private void registerHandlers()
