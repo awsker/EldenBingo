@@ -70,7 +70,6 @@ namespace Neto.Shared
             var packets = new List<Packet?>();
             try
             {
-
                 var messagePackReader = new MessagePackReader(bytes);
                 while (!messagePackReader.End)
                 {
