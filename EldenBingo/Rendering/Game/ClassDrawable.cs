@@ -5,10 +5,15 @@ namespace EldenBingo.Rendering.Game
 {
     internal class ClassDrawable : IDrawable, IUpdateable
     {
+        private const float MaxHeightProportionateToWindow = 0.8f;
+
+        //Fraction of movement remaining per second (position interpolation)
+        private const float InterpTime = 1.0f;
+
         private readonly Sprite _sprite;
         private readonly int _index;
         private readonly int _numClasses;
-        
+
         private Vector2u _renderTargetSize;
         private float _proportion;
         private Vector2f _targetSize;
@@ -17,11 +22,6 @@ namespace EldenBingo.Rendering.Game
         private float _interp = 0f;
         private float _opacity = 0f;
 
-        private const float MaxHeightProportionateToWindow = 0.8f;
-
-        //Fraction of movement remaining per second (position interpolation)
-        const float InterpTime = 1.0f;
-
         public ClassDrawable(Texture tex, int index, int numClasses, Vector2u renderTargetSize)
         {
             if (numClasses <= 0)
@@ -29,7 +29,7 @@ namespace EldenBingo.Rendering.Game
             _sprite = new Sprite(tex);
             _index = index;
             _numClasses = numClasses;
-            
+
             _renderTargetSize = renderTargetSize;
             _proportion = 1f;
             _interp = 0f;
@@ -42,11 +42,11 @@ namespace EldenBingo.Rendering.Game
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            _sprite.Color = new SFML.Graphics.Color(255, 255, 255, (byte)Math.Min(255,_opacity*255));
+            _sprite.Color = new SFML.Graphics.Color(255, 255, 255, (byte)Math.Min(255, _opacity * 255));
             target.Draw(_sprite, states);
         }
 
-        public void Dispose() 
+        public void Dispose()
         {
             _sprite.Dispose();
         }

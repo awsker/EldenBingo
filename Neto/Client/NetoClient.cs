@@ -7,7 +7,6 @@ namespace Neto.Client
 {
     public class NetoClient : NetObjectHandler<ClientModel>
     {
-        protected CancellationTokenSource CancelToken { get; private set; }
         private TcpClient? _tcp;
 
         public NetoClient()
@@ -20,8 +19,8 @@ namespace Neto.Client
         public event EventHandler<StringEventArgs>? Disconnected;
 
         public Guid ClientGuid { get; private set; }
-
         public bool IsConnected => _tcp?.Connected == true;
+        protected CancellationTokenSource CancelToken { get; private set; }
 
         public static IPEndPoint? EndPointFromAddress(string address, int port, out string error)
         {

@@ -2,6 +2,20 @@
 
 namespace EldenBingoCommon
 {
+    public enum EldenRingClasses
+    {
+        Vagabond,
+        Warrior,
+        Hero,
+        Bandit,
+        Astrologer,
+        Prophet,
+        Samurai,
+        Prisoner,
+        Confessor,
+        Wretch
+    }
+
     public struct ColorName
     {
         public ColorName(Color color, string name)
@@ -13,22 +27,6 @@ namespace EldenBingoCommon
         public Color Color { get; init; }
         public string Name { get; init; }
     }
-
-    public enum EldenRingClasses
-    {
-        Vagabond,
-        Warrior,
-        Hero, 
-        Bandit, 
-        Astrologer,
-        Prophet,
-        Samurai,
-        Prisoner, 
-        Confessor,
-        Wretch
-    }
-
-    
 
     public static class BingoConstants
     {

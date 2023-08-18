@@ -170,7 +170,6 @@ namespace EldenBingo.Rendering
                             continue;
 
                         Draw(draw);
-
                     }
                 }
                 AfterDraw?.Invoke(this, EventArgs.Empty);

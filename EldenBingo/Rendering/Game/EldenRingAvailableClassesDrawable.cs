@@ -13,7 +13,6 @@ namespace EldenBingo.Rendering.Game
 
         private CenteredBackgroundDrawable _background;
         private ClassDrawable[] _classes;
-        
 
         public EldenRingAvailableClassesDrawable(SimpleGameWindow window) : base(window)
         {

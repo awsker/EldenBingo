@@ -104,7 +104,6 @@
             _bingoMaxYTextBox.Enabled = _bingoCustomMaxSizeRadioButton.Checked;
         }
 
-
         private bool saveSettings()
         {
             Properties.Settings.Default.MapWindowCustomSize = _mapSizeCustomRadioButton.Checked;

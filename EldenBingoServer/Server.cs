@@ -11,10 +11,10 @@ namespace EldenBingoServer
     {
         //10 seconds countdown before match starts
         private const int MatchStartCountdown = 9999;
-        private const int RoomInactivityRemovalSeconds = 86400;
-        private System.Timers.Timer _roomClearTimer;
 
+        private const int RoomInactivityRemovalSeconds = 86400;
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
+        private System.Timers.Timer _roomClearTimer;
 
         public Server(int port) : base(port)
         {
@@ -262,7 +262,7 @@ namespace EldenBingoServer
                 if (userInfo.IsSpectator && !userInfo.IsAdmin)
                 {
                     await SendPacketToClients(packet, sender.Room.ClientModels.Where(u => u.IsSpectator && !u.IsAdmin));
-                } 
+                }
                 else
                 {
                     await sendPacketToRoom(packet, sender.Room);
@@ -300,7 +300,7 @@ namespace EldenBingoServer
                 await sendAdminStatusMessage(sender, $"Error reading bingo json file: {e.Message}", System.Drawing.Color.Red);
                 return;
             }
-            
+
             if (board != null)
             {
                 await setRoomBingoBoard(sender.Room, board);
@@ -384,7 +384,8 @@ namespace EldenBingoServer
                     {
                         var check = board.CheckStatus[tryCheck.Index];
                         ServerUserChecked userCheck;
-                        lock (check) {
+                        lock (check)
+                        {
                             userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, check.CheckedBy);
                         }
                         await sendPacketToRoom(new Packet(userCheck), sender.Room);
@@ -475,7 +476,7 @@ namespace EldenBingoServer
                 return;
 
             sender.Room.GameSettings = gameSettingsRequest.GameSettings;
-            if(sender.Room.BoardGenerator != null)
+            if (sender.Room.BoardGenerator != null)
             {
                 //Update the current board generator with the new random seed
                 sender.Room.BoardGenerator.RandomSeed = gameSettingsRequest.GameSettings.RandomSeed;
@@ -486,7 +487,7 @@ namespace EldenBingoServer
 
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
-            if(board == null)
+            if (board == null)
                 return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
             var squareData = board.GetSquareDataForUser(user);
             return new ServerEntireBingoBoardUpdate(squareData, board.AvailableClasses);
@@ -511,7 +512,7 @@ namespace EldenBingoServer
 
             //Construct a list of all users as UserInRoom and send these (we don't want to send the users as BingoClientInRoom since this type is unrecognized by the client)
             var currentUsers = new List<UserInRoom>();
-            foreach(var user in room.Users)
+            foreach (var user in room.Users)
             {
                 currentUsers.Add(new UserInRoom(user));
             }
@@ -521,7 +522,7 @@ namespace EldenBingoServer
             {
                 //Also send the bingo board if user should have it
                 bool matchLive = room.Match.MatchStatus >= MatchStatus.Running && room.Match.MatchMilliseconds >= 0;
-                if(matchLive || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
+                if (matchLive || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
                 {
                     packet.AddObject(createEntireBoardPacket(board, clientInRoom));
                 }
@@ -534,7 +535,7 @@ namespace EldenBingoServer
         {
             if (client.Room == null)
                 return;
-            
+
             var room = client.Room;
             var user = client.Room.RemoveUser(client);
             client.Room = null;
@@ -704,7 +705,7 @@ namespace EldenBingoServer
                         break;
                     }
             }
-            if(error == null)
+            if (error == null)
                 await sendMatchStatus(room);
             return new SetRoomStatusResult(error == null, error);
         }
@@ -720,7 +721,6 @@ namespace EldenBingoServer
             return (truelist, falselist);
         }
 
-
         private void _roomClearTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             removeNonActiveRooms(RoomInactivityRemovalSeconds);
@@ -735,15 +735,15 @@ namespace EldenBingoServer
                 //Don't remove rooms with users still connected
                 if (room.Value.NumUsers > 0)
                     continue;
-                
+
                 //Check if too long since last activity
-                if((now - room.Value.LastActivity).TotalSeconds > maxSecondsInactive)
+                if ((now - room.Value.LastActivity).TotalSeconds > maxSecondsInactive)
                 {
                     obsoleteRooms.Add(room.Key);
                 }
             }
             //Remove rooms after loop to avoid IEnumerable changed during enumeration exception
-            foreach(var roomName in obsoleteRooms)
+            foreach (var roomName in obsoleteRooms)
             {
                 _rooms.Remove(roomName, out _);
                 FireOnStatus($"Removed inactive lobby '{roomName}'");

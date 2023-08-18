@@ -56,7 +56,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
-        
+
         protected override void ClientChanged()
         {
             if (Client?.Room == null)
@@ -284,25 +284,25 @@ namespace EldenBingo.UI
                     if (square.MaxCount <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
                     {
                         await Client.SendPacketToServer(p);
-                    } 
+                    }
                     else
                     {
                         var currentTeamCount = c.Counters.FirstOrDefault(t => t.Team == userToSetFor.Team).Counter;
                         //Will reach the max count with this click, so include a check packet
-                        if(currentTeamCount + 1 == square.MaxCount)
+                        if (currentTeamCount + 1 == square.MaxCount)
                         {
                             //Increment 1
                             p.AddObject(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
                             await Client.SendPacketToServer(p);
                         }
                         //Already at max count, so decrease counter and include an uncheck packet
-                        else if(currentTeamCount == square.MaxCount)
+                        else if (currentTeamCount == square.MaxCount)
                         {
                             //Decrement 1 - Only when the square is currently owned by this user's team
-                            if(square.Team == userToSetFor.Team)
+                            if (square.Team == userToSetFor.Team)
                                 p.AddObject(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
-                            await Client.SendPacketToServer(p);  
-                        } 
+                            await Client.SendPacketToServer(p);
+                        }
                         else
                         {
                             //Increment 1
@@ -310,7 +310,6 @@ namespace EldenBingo.UI
                             await Client.SendPacketToServer(p);
                         }
                     }
-                   
                 }
             }
             if (e.Button == MouseButtons.Right)

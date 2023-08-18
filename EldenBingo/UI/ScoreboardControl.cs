@@ -77,7 +77,6 @@ namespace EldenBingo.UI
             updateRows();
         }
 
-
         private void scoreboardControl_SizeChanged(object? sender, EventArgs e)
         {
             foreach (var row in _rows)

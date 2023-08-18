@@ -29,6 +29,7 @@ namespace EldenBingo.Rendering
 
         //private RenderLayer _hudLayer;
         private EldenRingAvailableClassesDrawable? _availableClasses;
+
         private bool _showingClasses = false;
 
         static MapWindow()

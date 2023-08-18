@@ -191,7 +191,7 @@ namespace Neto.Server
                 _ = Task.Run(() => clientTcpListenerTask(client));
             }
             catch (OperationCanceledException)
-            {}
+            { }
             catch (SocketException)
             {
                 _cancelToken.Cancel();

@@ -1,8 +1,7 @@
-﻿using System.Drawing;
-
-namespace EldenBingoCommon
+﻿namespace EldenBingoCommon
 {
     #region Server to client
+
     public record ServerRoomNameSuggestion(string RoomName);
     public record ServerCreateRoomDenied(string Reason);
     public record ServerJoinRoomAccepted(string RoomName, UserInRoom[] Users, MatchStatus MatchStatus, int Timer);
@@ -18,9 +17,11 @@ namespace EldenBingoCommon
     public record ServerUserMarked(Guid UserGuid, int Index, bool Marked);
     public record ServerUserSetCounter(Guid UserGuid, int Index, TeamCounter[] Counters);
     public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
-    #endregion
+
+    #endregion Server to client
 
     #region Client to server
+
     public record ClientRequestRoomName();
     public record ClientRequestCreateRoom(string RoomName, string AdminPass, string Nick, int Team, BingoGameSettings Settings);
     public record ClientRequestJoinRoom(string RoomName, string AdminPass, string Nick, int Team);
@@ -35,5 +36,6 @@ namespace EldenBingoCommon
     public record ClientTrySetCounter(int Index, int Change, Guid ForUser);
     public record ClientSetGameSettings(BingoGameSettings GameSettings);
     public record ClientRequestCurrentGameSettings();
-    #endregion
+
+    #endregion Client to server
 }

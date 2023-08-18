@@ -15,6 +15,5 @@
         {
             return Team == counter.Team && Counter == counter.Counter;
         }
-
     }
 }

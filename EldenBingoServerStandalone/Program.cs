@@ -26,7 +26,7 @@ namespace EldenBingoServerStandalone
             server.OnError += server_OnError;
             server.OnStatus += server_OnStatus;
             server.Host();
-            
+
             Thread.Sleep(Timeout.Infinite);
         }
 

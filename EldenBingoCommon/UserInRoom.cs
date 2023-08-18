@@ -57,6 +57,7 @@
                 suffix.Add("Spectator");
             return str + (suffix.Any() ? $" [{string.Join(", ", suffix)}]" : string.Empty);
         }
+
         /*
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
         {

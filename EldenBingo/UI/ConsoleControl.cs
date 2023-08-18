@@ -1,9 +1,7 @@
-﻿using EldenBingoCommon;
-
-namespace EldenBingo.UI
+﻿namespace EldenBingo.UI
 {
     internal partial class ConsoleControl : UserControl
-    {        
+    {
         public ConsoleControl() : base()
         {
             InitializeComponent();

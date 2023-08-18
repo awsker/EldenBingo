@@ -9,23 +9,6 @@ namespace EldenBingoServer
         private int _randomSeed;
         private Random _random;
 
-        public int RandomSeed
-        {
-            get { return _randomSeed; }
-            set
-            {
-                //Only create a new Random when the seed changes. As long as we're using the same random seed, it will
-                //generate a sequence of boards based on that seed, but not the same board every time
-                if(value == 0 || value != _randomSeed)
-                {
-                    _randomSeed = value;
-                    _random = value == 0 ? new Random() : new Random(value);
-                }
-            }
-        }
-
-        public int CategoryLimit { get; set; }
-
         public BingoBoardGenerator(string json, int randomSeed)
         {
             var doc = JsonDocument.Parse(json);
@@ -54,12 +37,12 @@ namespace EldenBingoServer
                 if (row.TryGetProperty("category", out elem))
                 {
                     var categoryName = elem.GetString();
-                    if(categoryName != null)
+                    if (categoryName != null)
                         categories.Add(categoryName);
                 }
                 if (row.TryGetProperty("categories", out elem))
                 {
-                    if(elem.GetArrayLength() > 0)
+                    if (elem.GetArrayLength() > 0)
                     {
                         foreach (var e in elem.EnumerateArray())
                         {
@@ -77,6 +60,23 @@ namespace EldenBingoServer
             }
         }
 
+        public int RandomSeed
+        {
+            get { return _randomSeed; }
+            set
+            {
+                //Only create a new Random when the seed changes. As long as we're using the same random seed, it will
+                //generate a sequence of boards based on that seed, but not the same board every time
+                if (value == 0 || value != _randomSeed)
+                {
+                    _randomSeed = value;
+                    _random = value == 0 ? new Random() : new Random(value);
+                }
+            }
+        }
+
+        public int CategoryLimit { get; set; }
+
         public ServerBingoBoard? CreateBingoBoard(ServerRoom room)
         {
             var squareQueue = new Queue<BingoJsonObj>(shuffleList(_list, _random));
@@ -84,7 +84,7 @@ namespace EldenBingoServer
             var categoryCount = new Dictionary<string, int>();
 
             bool exceededCategoryLimit = false;
-            while(squareQueue.Count > 0 && squares.Count < 25)
+            while (squareQueue.Count > 0 && squares.Count < 25)
             {
                 var potentialSquare = squareQueue.Dequeue();
                 if (CategoryLimit > 0)
@@ -95,7 +95,7 @@ namespace EldenBingoServer
                         {
                             exceededCategoryLimit = true;
                             continue; //Category limit would be exceeded with this square, so we skip it
-                        } 
+                        }
                     }
                 }
                 //YES, include the square on the board
@@ -107,13 +107,13 @@ namespace EldenBingoServer
                     categoryCount[category] = count + 1;
                 }
             }
-            if(squares.Count != 25)
+            if (squares.Count != 25)
             {
                 return null;
             }
             //If category limit was exceeded by any square:
             //Shuffle the final squares, so we don't get a bias of category-less squares late in the board
-            if(exceededCategoryLimit)
+            if (exceededCategoryLimit)
                 squares = shuffleList(squares, _random).ToList();
             balanceBoard(squares);
 
@@ -122,7 +122,7 @@ namespace EldenBingoServer
             if (room.GameSettings.RandomClasses && room.GameSettings.NumberOfClasses > 0)
             {
                 classes = randomizeAvailableClasses(room.GameSettings.ValidClasses, room.GameSettings.NumberOfClasses);
-            } 
+            }
             else
             {
                 classes = Array.Empty<EldenRingClasses>();
@@ -136,7 +136,7 @@ namespace EldenBingoServer
             var classRandom = new Random(_random.Next());
             var classesQueue = new Queue<EldenRingClasses>(shuffleList(availableClasses, classRandom));
             var pickedClasses = new List<EldenRingClasses>();
-            while(classesQueue.Count > 0 && pickedClasses.Count < numberOfClasses)
+            while (classesQueue.Count > 0 && pickedClasses.Count < numberOfClasses)
             {
                 pickedClasses.Add(classesQueue.Dequeue());
             }

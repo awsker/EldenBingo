@@ -32,17 +32,6 @@ namespace EldenBingo.UI
             loadSettings();
         }
 
-        private void availableRoomNameData(ClientModel? _, ServerRoomNameSuggestion roomNameData)
-        {
-            void update() { RoomName = roomNameData.RoomName; };
-            if(InvokeRequired)
-            {
-                BeginInvoke(update);
-                return;
-            }
-            update();
-        }
-
         public string AdminPassword
         {
             get { return _adminPasswordTextBox.Text; }
@@ -65,6 +54,17 @@ namespace EldenBingo.UI
         {
             get { return _teamComboBox.SelectedIndex - 1; }
             set { _teamComboBox.SelectedIndex = (int)value + 1; }
+        }
+
+        private void availableRoomNameData(ClientModel? _, ServerRoomNameSuggestion roomNameData)
+        {
+            void update() { RoomName = roomNameData.RoomName; };
+            if (InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
         }
 
         private void _cancelButton_Click(object sender, EventArgs e)
@@ -143,22 +143,22 @@ namespace EldenBingo.UI
 
         private void _lobbySettingsButton_Click(object sender, EventArgs e)
         {
-            if(_gameSettingsControl == null)
+            if (_gameSettingsControl == null)
             {
                 createGameSettingsControl();
                 loadGameSettings();
-            } 
+            }
             else
             {
                 _gameSettingsControl.Visible = !_gameSettingsControl.Visible;
             }
-            
-            if(_gameSettingsControl.Visible)
+
+            if (_gameSettingsControl.Visible)
             {
                 Width = _gameSettingsControl.Location.X + _gameSettingsControl.Width + 20;
                 Height = Math.Max(Height, _gameSettingsControl.Location.Y + _gameSettingsControl.Height + 42);
                 _lobbySettingsButton.Text = "Lobby Settings <<";
-            } 
+            }
             else
             {
                 Width = _initWidth;
@@ -185,7 +185,7 @@ namespace EldenBingo.UI
 
         private void saveGameSettings()
         {
-            if(_gameSettingsControl != null)
+            if (_gameSettingsControl != null)
             {
                 var settings = _gameSettingsControl.Settings;
                 GameSettingsHelper.SaveToSettings(settings, Properties.Settings.Default);

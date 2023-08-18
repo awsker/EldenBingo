@@ -8,13 +8,13 @@ namespace EldenBingo.Rendering.Game
         private readonly Sprite _sprite;
 
         private Vector2u _renderTargetSize;
+
         public CenteredBackgroundDrawable(Texture tex, Vector2u renderTargetSize)
         {
             _sprite = new Sprite(tex);
             _renderTargetSize = renderTargetSize;
             SetTargetSize(renderTargetSize);
         }
-
 
         public bool Visible { get; set; } = true;
 

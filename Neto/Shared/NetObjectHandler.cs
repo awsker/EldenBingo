@@ -131,7 +131,7 @@ namespace Neto.Shared
             if (!_eventDispatchers.TryGetValue(typeName, out var dispatcher))
             {
                 var typeContainer = typeof(TypeContainer<,>);
-                var constructedListType = typeContainer.MakeGenericType(typeof(CM),type);
+                var constructedListType = typeContainer.MakeGenericType(typeof(CM), type);
                 try
                 {
                     var d = Activator.CreateInstance(constructedListType);

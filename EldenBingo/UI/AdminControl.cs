@@ -161,7 +161,7 @@ namespace EldenBingo.UI
         {
             void update()
             {
-                if(_hideAdminMessageTimer != null)
+                if (_hideAdminMessageTimer != null)
                     _hideAdminMessageTimer.Tick -= _hideAdminMessageTimer_Tick;
                 _adminStatusLabel.Text = text;
                 _adminStatusLabel.ForeColor = color;
@@ -263,7 +263,6 @@ namespace EldenBingo.UI
             }
             var request = new ClientRequestCurrentGameSettings();
             await Client.SendPacketToServer(new Packet(request));
-            
         }
 
         private void receivedGameSettings(ClientModel? _, ServerCurrentGameSettings gameSettingsArgs)
