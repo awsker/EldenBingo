@@ -5,7 +5,7 @@ namespace EldenBingo.Rendering
 {
     public class LerpCamera : ICamera
     {
-        private const float DTCHANGE = 2f;
+        private const float LERP_REMAINING_PER_SEC = 0.1f;
         private Vector2f _position, _size;
         private bool _snap;
         private Vector2f _targetPosition;
@@ -108,9 +108,7 @@ namespace EldenBingo.Rendering
             }
             else
             {
-                //Never lerp past the target
-                var d = (float)Math.Min(1.0, DTCHANGE * dt);
-
+                float d = (float)(1.0 - Math.Pow(LERP_REMAINING_PER_SEC, dt));
                 _position += (_targetPosition - _position) * d;
                 _zoom += (_targetZoom - _zoom) * d;
                 Changed = true;
