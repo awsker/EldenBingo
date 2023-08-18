@@ -36,7 +36,7 @@ When joining (or creating) a lobby, you will be asked to input a nickname and se
 ## Creating a lobby
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
-You can also configure the rules of the lobby. You can enable a random pick of classes, configure which ones should be in the pool, and set how many should be selected at random. Preparation time allows the players to review the classes and board for this amount of time before the match starts proper.
+You can also configure the rules of the lobby. You can enable a random pick of classes, configure which ones should be in the pool, and set how many should be selected at random. 
 ![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/9daf32c4-6d38-4fb0-ad77-bf2dbafeffb1)
 
 Setting *Max square in same category* will ensure that at most that many squares in the same category will be included in one board. **0 means this feature is disabled**. For more info on the json format, see [Json Format](#json-format).  
