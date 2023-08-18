@@ -57,7 +57,7 @@ namespace EldenBingo.Rendering.Game
             }
             Name = provider.Name;
             if (!string.IsNullOrWhiteSpace(Name))
-                NameTag = new Text(Name, Font, 26) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 2f };
+                NameTag = new Text(Name, Font, 42) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 3f };
         }
 
         public bool Enabled { get; set; } = true;
@@ -119,10 +119,10 @@ namespace EldenBingo.Rendering.Game
             var trans = Transform.Identity;
             trans.Translate(pos);
             trans.Rotate(Angle);
+
+            var cameraScaleAdjust = (float)Math.Pow(_window.Camera.Zoom, 0.85); 
             //Initial scale, scaled up to match window size
-            var scale = 0.38f;
-            //Scale map markers to the new scale
-            scale *= (float)Math.Pow(_window.Camera.Zoom, 0.85);
+            var scale = 0.62f * cameraScaleAdjust;
             trans.Scale(scale, scale);
             var st = new RenderStates(BlendMode.Alpha, trans, _playerArrowSprite.Texture, _shader);
 
@@ -132,23 +132,20 @@ namespace EldenBingo.Rendering.Game
 
             _window.Draw(_playerArrowSprite, st);
 
-            if (_coordinateProvider is MapCoordinateProviderHandler.LocalCoordinateProvider)
-            {
-                trans = Transform.Identity;
-                trans.Translate(pos);
-                trans.Scale(scale, scale);
-                st = new RenderStates(BlendMode.Alpha, trans, _playerIconSprite.Texture, _shader);
-                _window.Draw(_playerIconSprite, st);
-            }
+            trans = Transform.Identity;
+            trans.Translate(pos);
+            trans.Scale(scale, scale);
+            st = new RenderStates(BlendMode.Alpha, trans, _playerIconSprite.Texture, _shader);
+            _window.Draw(_playerIconSprite, st);
 
             if (_window.ShowPlayerNames && NameTag != null)
             {
                 var st2 = RenderStates.Default;
                 var trans2 = Transform.Identity;
-                var scale2 = 0.5f * _window.Camera.Zoom;
+                var scale2 = 0.5f * cameraScaleAdjust;
                 var bounds = NameTag.GetLocalBounds();
                 var width = bounds.Width * scale2;
-                var height = 15 * scale2;
+                var height = 40f * scale2;
                 trans2.Translate(new Vector2f(pos.X - width * 0.5f, pos.Y + height));
                 trans2.Scale(scale2, scale2);
                 st2.Transform = trans2;
@@ -173,13 +170,23 @@ namespace EldenBingo.Rendering.Game
 
         private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
         {
-            ValidPosition = true;
+            
             _previousX = X;
             _previousY = Y;
             _previousAngle = Angle;
             _targetX = x;
             _targetY = y;
             _targetAngle = convertAngle(angle);
+
+            if (!ValidPosition)
+            {
+                X = _targetX;
+                Y = _targetY;
+                Angle = _targetAngle;
+                ValidPosition = true;
+                return;
+            }
+            ValidPosition = true;
             if (dist(_previousX, _previousY, _targetX, _targetY) > 10)
             {
                 //Distance > 10, Teleport instead of interpolate
