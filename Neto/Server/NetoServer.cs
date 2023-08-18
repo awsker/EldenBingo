@@ -336,7 +336,7 @@ namespace Neto.Server
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Stream was closed, most likely due to the client shutting down
                 //but could also be because client sent malformed packet
