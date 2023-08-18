@@ -55,7 +55,7 @@ namespace EldenBingo
             var ffName = Properties.Settings.Default.BingoFont;
             Font? font = null;
             var scale = Properties.Settings.Default.BingoFontSize / defaultSize;
-            if (!string.IsNullOrWhiteSpace(ffName))
+            if (!string.IsNullOrWhiteSpace(ffName) && isFontInstalled(ffName))
             {
                 var ff2 = new FontFamily(ffName);
                 font = new Font(ff2, size * scale, (FontStyle)Properties.Settings.Default.BingoFontStyle);
@@ -63,6 +63,17 @@ namespace EldenBingo
                     return font;
             }
             return defaultFont;
+        }
+
+        private static bool isFontInstalled(string fontName)
+        {
+            using (var testFont = new Font(fontName, 8))
+            {
+                return 0 == string.Compare(
+                    fontName,
+                    testFont.Name,
+                    StringComparison.InvariantCultureIgnoreCase);
+            }
         }
 
         /// <summary>
@@ -517,7 +528,7 @@ namespace EldenBingo
             {
                 bool connected = _client?.IsConnected == true;
                 _connectButton.Visible = !connected;
-                _disconnectButton.Visible = false; //connected;
+                _disconnectButton.Visible = connected;
                 toolStripSeparator1.Visible = !connected;
 
                 bool inRoom = _client?.Room != null;
