@@ -9,6 +9,7 @@
         public enum PacketTypes
         {
             ServerRegisterAccepted,
+            ServerRegisterDenied,
             ServerClientDropped,
             ServerShutdown,
 

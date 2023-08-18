@@ -9,6 +9,7 @@ namespace EldenBingo.UI
         private static LobbyControl? _instance;
         private int _adminHeight = 0;
         private MatchStatus _lastMatchStatus;
+        private bool _lastPaused;
         private System.Timers.Timer? _timer;
 
         public LobbyControl() : base()
@@ -70,7 +71,7 @@ namespace EldenBingo.UI
             if (Client?.Room != null)
             {
                 showHideAdminControls();
-                updateMatchStatus(Client.Room.Match.MatchStatus);
+                updateMatchStatus(Client.Room.Match);
                 setMatchTimerLabel(Client.Room.Match.TimerString);
                 restartAndListenToTimer();
             }
@@ -190,7 +191,8 @@ namespace EldenBingo.UI
             {
                 //Set this so it doesn't print the new value
                 _lastMatchStatus = e.NewRoom.Match.MatchStatus;
-                updateMatchStatus(e.NewRoom.Match.MatchStatus);
+                _lastPaused = e.NewRoom.Match.Paused;
+                updateMatchStatus(e.NewRoom.Match);
                 setMatchTimerLabel(e.NewRoom.Match.TimerString);
                 restartAndListenToTimer();
                 e.NewRoom.Match.MatchStatusChanged += match_MatchStatusChanged;
@@ -245,7 +247,7 @@ namespace EldenBingo.UI
         {
             if (Client?.Room != null)
             {
-                updateMatchStatus(Client.Room.Match.MatchStatus);
+                updateMatchStatus(Client.Room.Match);
                 restartAndListenToTimer();
             }
         }
@@ -366,17 +368,18 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void updateMatchStatus(MatchStatus status)
+        private void updateMatchStatus(Match match)
         {
             void update()
             {
-                _matchStatusLabel.Text = Match.MatchStatusToString(status, out var color);
+                _matchStatusLabel.Text = Match.MatchStatusToString(match.MatchStatus, match.Paused, out var color);
                 _matchStatusLabel.ForeColor = color;
-                if (_lastMatchStatus != status)
+                if (_lastMatchStatus != match.MatchStatus || _lastPaused != match.Paused)
                 {
-                    updateMatchLog(new[] { "Match status changed to", Match.MatchStatusToString(status, out var color2) }, new Color?[] { null, color2 }, true);
+                    updateMatchLog(new[] { "Match status changed to", Match.MatchStatusToString(match.MatchStatus, match.Paused, out var color2) }, new Color?[] { null, color2 }, true);
                 }
-                _lastMatchStatus = status;
+                _lastMatchStatus = match.MatchStatus;
+                _lastPaused = match.Paused;
             }
             if (InvokeRequired)
             {

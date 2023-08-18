@@ -6,8 +6,8 @@ namespace EldenBingoCommon
     {
         NotRunning,
         Starting,
+        Preparation,
         Running,
-        Paused,
         Finished
     }
 
@@ -24,11 +24,37 @@ namespace EldenBingoCommon
 
         public BingoBoard? Board { get; set; }
 
+        public bool Paused { get; private set; }
+
+        public void Pause()
+        {
+            if (Paused)
+                return;
+
+            ForceTimer(MatchMilliseconds);
+            Paused = true;
+        }
+
+        public void Unpause()
+        {
+            if (!Paused)
+                return;
+
+            ForceTimer(MatchMilliseconds);
+            Paused = false;
+        }
+
+        public void ForceTimer(int timer)
+        {
+            ServerTimer = timer;
+            StatusChangedLocalDateTime = DateTime.Now;
+        }
+
         public int MatchMilliseconds
         {
             get
             {
-                return ServerTimer + (Running ? Convert.ToInt32((DateTime.Now - StatusChangedLocalDateTime).TotalMilliseconds) : 0);
+                return ServerTimer + (Running && !Paused ? Convert.ToInt32((DateTime.Now - StatusChangedLocalDateTime).TotalMilliseconds) : 0);
             }
         }
 
@@ -41,12 +67,10 @@ namespace EldenBingoCommon
         }
 
         public MatchStatus MatchStatus { get; private set; }
-        public bool Running => MatchStatus == MatchStatus.Starting || MatchStatus == MatchStatus.Running;
+        public bool Running => MatchStatus == MatchStatus.Starting || MatchStatus == MatchStatus.Preparation || MatchStatus == MatchStatus.Running;
         public int ServerTimer { get; private set; }
         public DateTime StatusChangedLocalDateTime { get; private set; }
-        //public event EventHandler? MatchTimerChanged;
-
-        //private System.Timers.Timer? _timer;
+        
         public string TimerString
         {
             get
@@ -65,8 +89,13 @@ namespace EldenBingoCommon
             }
         }
 
-        public static string MatchStatusToString(MatchStatus status, out Color color)
+        public static string MatchStatusToString(MatchStatus status, bool paused, out Color color)
         {
+            if (paused)
+            {
+                color = Color.Orange;
+                return "Paused";
+            }
             switch (status)
             {
                 case MatchStatus.NotRunning:
@@ -76,14 +105,14 @@ namespace EldenBingoCommon
                 case MatchStatus.Starting:
                     color = Color.Orange;
                     return "Starting...";
+                
+                case MatchStatus.Preparation:
+                    color = Color.BlueViolet;
+                    return "Preparation";
 
                 case MatchStatus.Running:
                     color = Color.Green;
                     return "Running";
-
-                case MatchStatus.Paused:
-                    color = Color.CadetBlue;
-                    return "Paused";
 
                 case MatchStatus.Finished:
                     color = Color.CadetBlue;
@@ -103,6 +132,17 @@ namespace EldenBingoCommon
             onMatchStatusChanged();
         }
 
+        public void UpdateMatchStatus(MatchStatus status, bool paused, int timer, BingoBoard? board = null)
+        {
+            ServerTimer = timer;
+            StatusChangedLocalDateTime = DateTime.Now;
+            MatchStatus = status;
+            Paused = paused;
+            if (board != null)
+                Board = board;
+            onMatchStatusChanged();
+        }
+
         private void onMatchStatusChanged()
         {
             MatchStatusChanged?.Invoke(this, EventArgs.Empty);
@@ -110,7 +150,7 @@ namespace EldenBingoCommon
 
         private void updateMatchStatus()
         {
-            UpdateMatchStatus(MatchStatus, ServerTimer, Board);
+            UpdateMatchStatus(MatchStatus, Paused, ServerTimer, Board);
         }
     }
 }

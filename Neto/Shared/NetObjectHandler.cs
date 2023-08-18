@@ -18,6 +18,7 @@ namespace Neto.Shared
             _assemblies = new HashSet<Assembly>();
             _eventDispatchers = new Dictionary<string, TypeContainer<CM>>();
             RegisterType(typeof(ServerRegisterAccepted));
+            RegisterType(typeof(ServerRegisterDenied));
             RegisterType(typeof(ClientRegister));
 
             _packetResolver = new PacketResolver((s) => getOrRegisterDispatcher(s)?.Type);

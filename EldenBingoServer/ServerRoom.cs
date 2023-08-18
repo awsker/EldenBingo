@@ -63,15 +63,39 @@ namespace EldenBingoServer
             return RemoveUser(client.ClientGuid);
         }
 
+        public void PauseMatch()
+        {
+            Match.Pause();
+            stopTimer();
+        }
+
+        public void UnpauseMatch()
+        {
+            Match.Unpause();
+            if (Match.MatchMilliseconds < 0 && (Match.MatchStatus == MatchStatus.Starting || Match.MatchStatus == MatchStatus.Preparation))
+            {
+                restartAndListenToTimer(Match.MatchMilliseconds * -1);
+            }
+            else
+            {
+                stopTimer();
+            }
+        }
+
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            TimerElapsed?.Invoke(_timer, EventArgs.Empty);
             stopTimer();
+            TimerElapsed?.Invoke(_timer, EventArgs.Empty);
         }
 
         private void match_MatchStatusChanged(object? sender, EventArgs e)
         {
             if (Match.MatchStatus == MatchStatus.Starting)
+            {
+                if (Match.MatchMilliseconds < 0)
+                    restartAndListenToTimer(Match.MatchMilliseconds * -1);
+            }
+            else if (Match.MatchStatus == MatchStatus.Preparation)
             {
                 if (Match.MatchMilliseconds < 0)
                     restartAndListenToTimer(Match.MatchMilliseconds * -1);

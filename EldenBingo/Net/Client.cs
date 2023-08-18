@@ -25,6 +25,8 @@ namespace EldenBingo
         public UserInRoom? LocalUser { get; private set; }
         public BingoBoard? BingoBoard => Room?.Match.Board;
 
+        public override string Version => EldenBingoCommon.Version.CurrentVersion;
+
         internal Room? Room
         {
             get
@@ -134,7 +136,7 @@ namespace EldenBingo
             if (!sameRoomAsBefore)
                 FireOnStatus($"Joined lobby '{joinAccepted.RoomName}'");
             var room = new Room(joinAccepted.RoomName);
-            room.Match.UpdateMatchStatus(joinAccepted.MatchStatus, joinAccepted.Timer);
+            room.Match.UpdateMatchStatus(joinAccepted.MatchStatus, joinAccepted.Paused, joinAccepted.Timer);
             foreach (var user in joinAccepted.Users)
                 room.AddUser(user);
 
@@ -157,7 +159,7 @@ namespace EldenBingo
         {
             if (Room != null)
             {
-                Room.Match.UpdateMatchStatus(matchStatus.MatchStatus, matchStatus.Timer);
+                Room.Match.UpdateMatchStatus(matchStatus.MatchStatus, matchStatus.Paused, matchStatus.Timer);
             }
         }
 

@@ -76,7 +76,7 @@ namespace EldenBingo.UI
 
         private async void _pauseMatchButton_Click(object sender, EventArgs e)
         {
-            await tryChangeMatchStatus(MatchStatus.Paused);
+            await tryTogglePause();
         }
 
         private async void _startMatchButton_Click(object sender, EventArgs e)
@@ -148,6 +148,15 @@ namespace EldenBingo.UI
             await Client.SendPacketToServer(p);
         }
 
+        private async Task tryTogglePause()
+        {
+            if (Client == null)
+                return;
+
+            var p = new Packet(new ClientTogglePause());
+            await Client.SendPacketToServer(p);
+        }
+
         private async Task tryChangeMatchStatus(MatchStatus status)
         {
             if (Client == null)
@@ -204,16 +213,16 @@ namespace EldenBingo.UI
             {
                 var inRoom = Client?.Room != null;
                 var admin = inRoom && Client?.LocalUser?.IsAdmin == true;
-                var matchInProgress = inRoom && (Client.Room.Match.Running || Client.Room.Match.MatchStatus == MatchStatus.Paused);
+                var matchStarted = Client?.Room != null && (Client.Room.Match.Running || Client.Room.Match.Paused);
                 _browseJsonButton.Enabled = admin;
                 _uploadJsonButton.Enabled = admin;
                 _lobbySettingsButton.Enabled = admin;
                 _generateNewBoardButton.Enabled = admin;
-                _startMatchButton.Enabled = admin && !matchInProgress;
-                _pauseMatchButton.Enabled = admin && matchInProgress;
+                _startMatchButton.Enabled = admin && !matchStarted;
+                _pauseMatchButton.Enabled = admin && matchStarted;
                 if (admin)
-                    _pauseMatchButton.Text = Client.Room.Match.MatchStatus == MatchStatus.Paused ? "Unpause Match" : "Pause Match";
-                _stopMatchButton.Enabled = admin && matchInProgress;
+                    _pauseMatchButton.Text = Client?.Room != null && Client.Room.Match.Paused ? "Unpause Match" : "Pause Match";
+                _stopMatchButton.Enabled = admin && matchStarted;
             }
             if (InvokeRequired)
             {

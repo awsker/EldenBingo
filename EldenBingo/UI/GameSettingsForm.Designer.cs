@@ -35,15 +35,18 @@
             // 
             // _gameSettingsControl
             // 
+            this._gameSettingsControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this._gameSettingsControl.Location = new System.Drawing.Point(3, 3);
             this._gameSettingsControl.Name = "_gameSettingsControl";
-            this._gameSettingsControl.Size = new System.Drawing.Size(232, 284);
+            this._gameSettingsControl.Size = new System.Drawing.Size(239, 308);
             this._gameSettingsControl.TabIndex = 0;
             // 
             // _cancelButton
             // 
             this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(160, 293);
+            this._cancelButton.Location = new System.Drawing.Point(167, 317);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
             this._cancelButton.TabIndex = 2;
@@ -54,7 +57,7 @@
             // _okButton
             // 
             this._okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._okButton.Location = new System.Drawing.Point(79, 293);
+            this._okButton.Location = new System.Drawing.Point(86, 317);
             this._okButton.Name = "_okButton";
             this._okButton.Size = new System.Drawing.Size(75, 23);
             this._okButton.TabIndex = 1;
@@ -68,7 +71,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(240, 323);
+            this.ClientSize = new System.Drawing.Size(247, 347);
             this.Controls.Add(this._okButton);
             this.Controls.Add(this._cancelButton);
             this.Controls.Add(this._gameSettingsControl);

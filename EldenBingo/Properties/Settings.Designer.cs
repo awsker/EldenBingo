@@ -430,5 +430,17 @@ namespace EldenBingo.Properties {
                 this["ClickIncrementsCountedSquares"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int GS_PreparationTime {
+            get {
+                return ((int)(this["GS_PreparationTime"]));
+            }
+            set {
+                this["GS_PreparationTime"] = value;
+            }
+        }
     }
 }

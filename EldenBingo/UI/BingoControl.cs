@@ -354,7 +354,7 @@ namespace EldenBingo.UI
                 }
                 else
                 {
-                    if (match.MatchStatus < MatchStatus.Running)
+                    if (match.MatchStatus < MatchStatus.Preparation)
                     {
                         _boardStatus = BoardStatusEnum.BoardSetNotRevealed;
                     }

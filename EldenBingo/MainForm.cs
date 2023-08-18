@@ -225,6 +225,11 @@ namespace EldenBingo
         {
             Invoke(hideLobbyTab);
             updateButtonAvailability();
+            BeginInvoke(new Action(() =>
+            {
+                _consoleControl.PrintToConsole(e.Message, Color.Red);
+                _clientStatusTextBox.Text = _client.GetConnectionStatusString();
+            }));
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
@@ -239,8 +244,11 @@ namespace EldenBingo
 
         private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
-            if (Properties.Settings.Default.ShowClassesOnMap &&
-                _mapWindow != null && _client.Room != null && _client.Room.Match.MatchStatus == MatchStatus.Running && _client.Room.Match.MatchMilliseconds < 10000)
+            if (Properties.Settings.Default.ShowClassesOnMap && _mapWindow != null && _client.Room != null &&
+                //If we got available classes in preparation phase, or within 20 seconds of the match starting -> Show the available classes
+                (_client.Room.Match.MatchStatus == MatchStatus.Preparation || 
+                _client.Room.Match.MatchStatus == MatchStatus.Running && _client.Room.Match.MatchMilliseconds < 20000)
+                )
                 _mapWindow.ShowAvailableClasses(bingoBoardArgs.AvailableClasses);
         }
 
@@ -522,7 +530,7 @@ namespace EldenBingo
             {
                 bool connected = _client?.IsConnected == true;
                 _connectButton.Visible = !connected;
-                _disconnectButton.Visible = connected;
+                _disconnectButton.Visible = false; // connected;
                 toolStripSeparator1.Visible = !connected;
 
                 bool inRoom = _client?.Room != null;

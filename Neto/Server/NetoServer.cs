@@ -34,6 +34,8 @@ namespace Neto.Server
 
         public event EventHandler<ClientEventArgs<CM>>? OnClientDisconnected;
 
+        public virtual string Version => "1";
+
         public IPAddress[] IPAddresses { get; init; }
         public int Port { get; init; }
         protected bool Hosting { get; private set; }
@@ -229,6 +231,13 @@ namespace Neto.Server
                     ClientRegister? objData = packet.GetObjectData<ClientRegister>();
                     if (objData?.Message != NetConstants.ClientRegisterString)
                     {
+                        await DropClient(client);
+                        return;
+                    }
+                    if (objData?.Version != Version)
+                    {
+                        var deniedPacket = new Packet(NetConstants.PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {objData?.Version}. Server is running version {Version}"));
+                        await SendPacketToClient(deniedPacket, client);
                         await DropClient(client);
                         return;
                     }

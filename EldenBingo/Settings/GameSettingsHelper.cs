@@ -29,7 +29,8 @@ namespace EldenBingo.Settings
                 classes,
                 settings.GS_NumClasses,
                 settings.GS_CategoryLimit,
-                settings.GS_RandomSeed);
+                settings.GS_RandomSeed,
+                settings.GS_PreparationTime);
 
             return gameSettings;
         }
@@ -41,6 +42,7 @@ namespace EldenBingo.Settings
             settings.GS_NumClasses = gameSettings.NumberOfClasses;
             settings.GS_CategoryLimit = gameSettings.CategoryLimit;
             settings.GS_RandomSeed = gameSettings.RandomSeed;
+            settings.GS_PreparationTime = gameSettings.PreparationTime;
             settings.Save();
         }
     }
