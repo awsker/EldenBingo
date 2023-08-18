@@ -9,7 +9,7 @@ namespace EldenBingo.GameInterop
     {
         private Client _client;
         private GameProcessHandler _gameHandler;
-        private LocalCoordinateProvider _localProvider;
+        private LocalCoordinateProvider? _localProvider = null;
         private IDictionary<Guid, NetUserCoordinateProvider> _netProviders;
         private MapWindow _window;
 
@@ -17,11 +17,10 @@ namespace EldenBingo.GameInterop
         {
             _window = window;
             _gameHandler = processHandler;
+            _gameHandler.ProcessReadingChanged += _gameHandler_ProcessReadingChanged;
             _client = client;
 
-            _localProvider = new LocalCoordinateProvider(_gameHandler);
-            _localProvider.User = _client.LocalUser;
-            _window.AddCoordinateProvider(_localProvider);
+            initLocalProvider();
 
             _netProviders = new Dictionary<Guid, NetUserCoordinateProvider>();
 
@@ -34,9 +33,39 @@ namespace EldenBingo.GameInterop
             removeClientListeners(_client);
         }
 
+        private void _gameHandler_ProcessReadingChanged(object? sender, EventArgs e)
+        {
+            initLocalProvider();
+        }
+
+        private void initLocalProvider()
+        {
+            if (_localProvider == null)
+            {
+                if (_gameHandler.ReadingProcess && (_client == null || _client?.LocalUser?.IsSpectator != true))
+                {
+                    _localProvider = new LocalCoordinateProvider(_gameHandler);
+                    _localProvider.User = _client?.LocalUser;
+                    _window.AddCoordinateProvider(_localProvider);
+                }
+            } 
+            else
+            {
+                if (!_gameHandler.ReadingProcess || _client != null && _client?.LocalUser?.IsSpectator == true)
+                {
+                    _window.RemoveCoordinateProvider(_localProvider.Guid);
+                    _localProvider = null;
+                }
+            }
+        }
+
         private void _client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
-            _localProvider.User = _client.LocalUser;
+            if (_localProvider != null)
+            {
+                _localProvider.User = _client.LocalUser;
+            }
+            initLocalProvider();
         }
 
         private void addClientListeners(Client client)
@@ -100,6 +129,7 @@ namespace EldenBingo.GameInterop
 
         internal class LocalCoordinateProvider : ICoordinateProvider
         {
+            private static readonly Guid LocalProviderGuid = Guid.NewGuid();
             private static readonly SFML.Graphics.Color DefaultColor = new SFML.Graphics.Color(240, 198, 53);
             private MapCoordinates? _lastCoordinates;
             private GameProcessHandler _processHandler;
@@ -130,7 +160,7 @@ namespace EldenBingo.GameInterop
                 }
             }
 
-            public Guid Guid { get; } = Guid.NewGuid();
+            public Guid Guid => LocalProviderGuid;
 
             public MapCoordinates? MapCoordinates
             {
@@ -163,13 +193,17 @@ namespace EldenBingo.GameInterop
                     lock (_userLock)
                     {
                         _user = value;
+                        if (_user == null || _user.IsSpectator)
+                        {
+                            MapCoordinates = null;
+                        }
                     }
                 }
             }
 
             private void _processHandler_CoordinatesChanged(object? sender, MapCoordinateEventArgs e)
             {
-                MapCoordinates = e.Coordinates;
+                MapCoordinates = _user?.IsSpectator == true ? null : e.Coordinates;
             }
         }
 

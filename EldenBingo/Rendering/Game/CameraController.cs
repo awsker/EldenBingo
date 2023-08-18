@@ -62,7 +62,10 @@ namespace EldenBingo.Rendering.Game
                 {
                     updateCameraZoomAndPosition();
                     if (_camera is LerpCamera lerp)
+                    {
+                        lerp.StopLerp();
                         lerp.Snap();
+                    }
                 }
             }
         }
@@ -223,9 +226,12 @@ namespace EldenBingo.Rendering.Game
             {
                 lock (_window.Players)
                 {
-                    if (i >= 0 && i < _window.Players.Count)
+                    var enabledPlayersArray = _window.Players.Where(p => p.Enabled).ToArray();
+                    if (i >= 0 && i < enabledPlayersArray.Length)
                     {
-                        CameraFollowTarget = _window.Players[i.Value];
+                        var newTarget = enabledPlayersArray[i.Value];
+                        if (newTarget != CameraFollowTarget)
+                            CameraFollowTarget = newTarget;
                     }
                 }
             }

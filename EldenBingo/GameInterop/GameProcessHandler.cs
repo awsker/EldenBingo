@@ -34,10 +34,26 @@ namespace EldenBingo.GameInterop
         private MapCoordinates? _lastCoordinates;
         private Thread? _scanGameThread;
         private string? _steam_appid_path;
+        private bool _readingProcess;
 
         public event EventHandler<MapCoordinateEventArgs>? CoordinatesChanged;
 
         public event EventHandler<StatusEventArgs>? StatusChanged;
+
+        public event EventHandler? ProcessReadingChanged;
+
+        public bool ReadingProcess
+        {
+            get { return _readingProcess; }
+            set
+            {
+                if (value != _readingProcess)
+                {
+                    _readingProcess = value;
+                    ProcessReadingChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
 
         public MapCoordinates? LastCoordinates => _lastCoordinates;
 
@@ -529,6 +545,7 @@ namespace EldenBingo.GameInterop
                         //If process was found
                         if (_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
                         {
+                            ReadingProcess = true;
                             var coordinates = readPlayerCoordinates();
                             //Coordinates changed or 10 polls since last send
                             if (_lastCoordinates.HasValue != coordinates.HasValue ||
@@ -547,6 +564,10 @@ namespace EldenBingo.GameInterop
                             Thread.Sleep(100);
                             //Jump to next loop
                             continue;
+                        }
+                        else
+                        {
+                            ReadingProcess = false;
                         }
                     }
                 }
