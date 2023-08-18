@@ -86,7 +86,8 @@ namespace EldenBingo.UI
 
         private async void _stopMatchButton_Click(object sender, EventArgs e)
         {
-            await tryChangeMatchStatus(MatchStatus.Finished);
+            if(MessageBox.Show("Stop match? The match will end immediately", "Stop match", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                await tryChangeMatchStatus(MatchStatus.Finished);
         }
 
         private async void _uploadJsonButton_Click(object sender, EventArgs e)
