@@ -27,13 +27,20 @@
 
         private void _fontLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var dialog = new FontDialog();
-            dialog.FontMustExist = true;
-            dialog.Font = _fontLinkLabel.Font;
-            if (dialog.ShowDialog(this) == DialogResult.OK)
+            try
             {
-                _fontLinkLabel.Font = dialog.Font;
-                _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
+                var dialog = new FontDialog();
+                dialog.FontMustExist = true;
+                dialog.Font = _fontLinkLabel.Font;
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    _fontLinkLabel.Font = dialog.Font;
+                    _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
+                }
+            } 
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
