@@ -351,3 +351,6 @@ MigrationBackup/
 
 #Textures
 EldenBingo/Textures/Map/**
+
+#Bat files
+*.bat
