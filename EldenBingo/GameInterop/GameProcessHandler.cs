@@ -2,7 +2,6 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Security.Principal;
-using System.ServiceProcess;
 using System.Text.RegularExpressions;
 
 namespace EldenBingo.GameInterop
@@ -10,8 +9,7 @@ namespace EldenBingo.GameInterop
     public enum GameRunningStatus
     {
         NotRunning,
-        RunningWithEAC,
-        RunningWithoutEAC
+        Running,
     }
 
     public class GameProcessHandler : IDisposable
@@ -142,23 +140,7 @@ namespace EldenBingo.GameInterop
                 await Task.Delay(500);
                 return GameRunningStatus.NotRunning;
             }
-            return IsEACRunning() ? GameRunningStatus.RunningWithEAC : GameRunningStatus.RunningWithoutEAC;
-        }
-
-        public void KillGameAndEAC()
-        {
-            var process = GetGameProcess();
-            foreach (var sc in GetEACServices())
-            {
-                if (sc != null && sc.Status != ServiceControllerStatus.Stopped && sc.Status != ServiceControllerStatus.StopPending)
-                    sc.Stop();
-            }
-            if (process != null)
-            {
-                process.Kill();
-                process.WaitForExit(3000);
-                process.Close();
-            }
+            return GameRunningStatus.Running;
         }
 
         /// <summary>
@@ -390,26 +372,6 @@ namespace EldenBingo.GameInterop
             return gameExePath;
         }
 
-        private ServiceController[] GetEACServices()
-        {
-            return ServiceController.GetServices().Where(service => service.ServiceName.Contains("EasyAntiCheat")).ToArray();
-        }
-
-        private bool IsEACRunning()
-        {
-            foreach (var sc in GetEACServices())
-            {
-                bool eacRunning = sc.Status == ServiceControllerStatus.Running ||
-                             sc.Status == ServiceControllerStatus.ContinuePending ||
-                             sc.Status == ServiceControllerStatus.StartPending;
-                if (eacRunning)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         /// <summary>
         /// Write a status to the status bar.
         /// </summary>
@@ -529,11 +491,6 @@ namespace EldenBingo.GameInterop
                     }
                     else //Process found
                     {
-                        if (IsEACRunning())
-                        {
-                            UpdateStatus("EAC is running...", ErrorColor);
-                            continue;
-                        }
                         //New process found (different from previous)
                         if (_gameProc == null || _gameProc.Id != process.Id)
                         {

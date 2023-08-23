@@ -502,25 +502,6 @@ namespace EldenBingo
             {
                 await _processHandler.SafeStartGame();
             }
-            else if (res == GameRunningStatus.RunningWithEAC)
-            {
-                if (IsAdministrator())
-                {
-                    DialogResult result = MessageBox.Show("Game is already running with EAC active!\n\n" +
-                        "Do you want to close and restart it in offline mode without EAC?\n\n", Application.ProductName, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
-                    if (result == DialogResult.Yes)
-                    {
-                        _processHandler.KillGameAndEAC();
-                        await Task.Delay(2000);
-                        await _processHandler.SafeStartGame();
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Game is already running with EAC active!\n\n" +
-                        "Restart this application as administrator if you want it to be able to restart Elden Ring without EAC", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-            }
             //Do nothing if game is already running without EAC
         }
 
