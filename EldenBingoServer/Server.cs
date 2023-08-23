@@ -680,7 +680,7 @@ namespace EldenBingoServer
                     {
                         if (currentStatus == MatchStatus.NotRunning || currentStatus == MatchStatus.Finished)
                         {
-                            room.Match.UpdateMatchStatus(status, 0, null);
+                            room.Match.UpdateMatchStatus(status, false, 0, null);
                             break;
                         }
                         error = "Stop match before resetting";
@@ -730,7 +730,7 @@ namespace EldenBingoServer
                     }
                 default:
                     {
-                        room.Match.UpdateMatchStatus(status, room.Match.MatchMilliseconds, null);
+                        room.Match.UpdateMatchStatus(status, false, room.Match.MatchMilliseconds, null);
                         break;
                     }
             }
