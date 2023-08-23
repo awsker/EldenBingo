@@ -148,10 +148,24 @@ namespace EldenBingo.GameInterop
         public void KillGameAndEAC()
         {
             var process = GetGameProcess();
-            foreach (var sc in GetEACServices())
+            try
             {
-                if (sc != null && sc.Status != ServiceControllerStatus.Stopped && sc.Status != ServiceControllerStatus.StopPending)
-                    sc.Stop();
+                foreach (var sc in GetEACServices())
+                {
+                    try
+                    {
+                        if (sc != null && sc.Status != ServiceControllerStatus.Stopped && sc.Status != ServiceControllerStatus.StopPending)
+                            sc.Stop();
+                    }
+                    catch(Exception e)
+                    {
+                        MessageBox.Show($"Error stopping EAC: {e.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            catch(Exception)
+            {
+                //Ignore any errors when trying to get EAC service
             }
             if (process != null)
             {
@@ -397,6 +411,7 @@ namespace EldenBingo.GameInterop
 
         private bool IsEACRunning()
         {
+
             foreach (var sc in GetEACServices())
             {
                 bool eacRunning = sc.Status == ServiceControllerStatus.Running ||
