@@ -71,7 +71,7 @@
             this._classLimitCheckBox.Name = "_classLimitCheckBox";
             this._classLimitCheckBox.Size = new System.Drawing.Size(136, 19);
             this._classLimitCheckBox.TabIndex = 1;
-            this._classLimitCheckBox.Text = "Randomized Classes:";
+            this._classLimitCheckBox.Text = "Limit Starting Classes:";
             this._classLimitCheckBox.UseVisualStyleBackColor = true;
             this._classLimitCheckBox.CheckedChanged += new System.EventHandler(this._classLimitCheckBox_CheckedChanged);
             // 
