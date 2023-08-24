@@ -313,7 +313,8 @@
             // 
             // MainForm
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.ClientSize = new System.Drawing.Size(947, 688);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.splitContainer1);

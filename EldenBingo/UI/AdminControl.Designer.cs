@@ -168,7 +168,8 @@
             // 
             // AdminControl
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.Controls.Add(this._lobbySettingsButton);
             this.Controls.Add(this._adminStatusLabel);
             this.Controls.Add(this.label3);

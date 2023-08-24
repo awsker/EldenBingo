@@ -191,7 +191,8 @@
             // CreateLobbyForm
             // 
             this.AcceptButton = this._createButton;
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.CancelButton = this._cancelButton;
             this.ClientSize = new System.Drawing.Size(258, 256);
             this.Controls.Add(this._lobbySettingsButton);

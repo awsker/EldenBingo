@@ -220,7 +220,8 @@
             // 
             // LobbyControl
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.Controls.Add(this.splitContainer1);
             this.Name = "LobbyControl";
             this.Size = new System.Drawing.Size(1055, 567);
