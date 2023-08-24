@@ -153,7 +153,14 @@ namespace EldenBingo
 
         private void _openMapButton_Click(object sender, EventArgs e)
         {
-            openMapWindow();
+            try
+            {
+                openMapWindow();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening map window: ${ex.Message}");
+            }
         }
 
         private void _processHandler_CoordinatesChanged(object? sender, MapCoordinateEventArgs e)
