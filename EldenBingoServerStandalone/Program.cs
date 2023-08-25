@@ -27,7 +27,15 @@ namespace EldenBingoServerStandalone
             server.OnStatus += server_OnStatus;
             server.Host();
 
-            Thread.Sleep(Timeout.Infinite);
+            var waitHandle = new ManualResetEvent(false);
+            Console.CancelKeyPress += (o, e) =>
+            {
+                e.Cancel = true;
+                Console.WriteLine("Stopping server...");
+                waitHandle.Set();
+            };
+            waitHandle.WaitOne();
+            server.Stop();
         }
 
         private static void server_OnStatus(object? sender, StringEventArgs e)
