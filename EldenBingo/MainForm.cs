@@ -544,7 +544,7 @@ namespace EldenBingo
             {
                 bool connected = _client?.IsConnected == true;
                 _connectButton.Visible = !connected;
-                _disconnectButton.Visible = false; // connected;
+                _disconnectButton.Visible = connected;
                 toolStripSeparator1.Visible = !connected;
 
                 bool inRoom = _client?.Room != null;
