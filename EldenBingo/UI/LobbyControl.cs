@@ -208,6 +208,30 @@ namespace EldenBingo.UI
                 updateBingoMaximumSize();
                 updateBingoSize();
             }
+            if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize) ||
+                e.PropertyName == nameof(Properties.Settings.Default.BingoFontStyle))
+            {
+                updateScoreboardFont();
+            }
+        }
+
+        private void updateScoreboardFont()
+        {
+            void update()
+            {
+                var font = MainForm.GetFontFromSettings(_scoreboardControl.Font, 12f);
+                if (font != _scoreboardControl.Font)
+                {
+                    _scoreboardControl.Font = font;
+                }
+            }
+            if(InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
         }
 
         private void initHideLabel()
@@ -231,6 +255,7 @@ namespace EldenBingo.UI
             initHideLabel();
             updateBingoSize();
             updateBingoMaximumSize();
+            updateScoreboardFont();
         }
 
         private void lobbyControl_SizeChanged(object? sender, EventArgs e)

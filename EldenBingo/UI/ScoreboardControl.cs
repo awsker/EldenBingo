@@ -5,6 +5,7 @@ namespace EldenBingo.UI
 {
     internal class ScoreboardControl : ClientUserControl
     {
+        private const int RowPaddingBottom = 3;
         private IList<ScoreboardRowControl> _rows;
 
         public ScoreboardControl()
@@ -21,6 +22,7 @@ namespace EldenBingo.UI
                 base.Font = value;
                 foreach (var row in _rows)
                     row.Font = value;
+                updateHeight();
             }
         }
 
@@ -85,6 +87,29 @@ namespace EldenBingo.UI
             }
         }
 
+        private void updateHeight()
+        {
+            void update()
+            {
+                var currentY = 0;
+                int? squareHeight = null;
+                foreach (var row in _rows)
+                {
+                    row.Location = new Point(0, currentY);
+                    if (!squareHeight.HasValue)
+                        squareHeight = row.SquareSize().Height;
+                    currentY += squareHeight.Value + RowPaddingBottom;
+                }
+                Height = _rows.Count * ((squareHeight ?? 0) + RowPaddingBottom);
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
+        }
+
         private void updateRows()
         {
             void update()
@@ -97,25 +122,28 @@ namespace EldenBingo.UI
                     return;
 
                 var currentY = 0;
-                const int rowHeight = 25;
-                const int rowPaddingBottom = 3;
+
+                int? squareHeight = null;
                 foreach (var teamCount in room.GetCheckedSquaresPerTeam())
                 {
                     var control = new ScoreboardRowControl();
+
                     var team = teamCount.Item1;
                     control.Color = BingoConstants.GetTeamColor(team);
                     control.CounterText = teamCount.Item3.ToString();
                     control.TextColor = BingoConstants.GetTeamColorBright(team);
                     control.NameText = teamCount.Item2;
                     control.Width = Width;
-                    control.Height = rowHeight;
                     control.Font = Font;
+                    if (!squareHeight.HasValue)
+                        squareHeight = control.SquareSize().Height;
+                    control.Height = squareHeight.Value;
                     Controls.Add(control);
                     control.Location = new Point(0, currentY);
-                    currentY += rowHeight + rowPaddingBottom;
+                    currentY += squareHeight.Value + RowPaddingBottom;
                     _rows.Add(control);
                 }
-                Height = _rows.Count * (rowHeight + rowPaddingBottom);
+                Height = _rows.Count * ((squareHeight ?? 0) + RowPaddingBottom);
             }
             if (InvokeRequired)
             {
@@ -127,6 +155,9 @@ namespace EldenBingo.UI
 
         internal class ScoreboardRowControl : Control
         {
+            private const int PaddingInsideSquare = 4;
+            private const int NameTextMarginLeft = 7;
+
             public ScoreboardRowControl()
             {
                 NameText = "";
@@ -148,19 +179,26 @@ namespace EldenBingo.UI
                 TextColor = BingoConstants.GetTeamColorBright(team);
             }
 
+            public Size SquareSize()
+            {
+                var measure = TextRenderer.MeasureText("00", Font);
+                return new Size(Math.Max(35, measure.Width + PaddingInsideSquare), Math.Max(22, measure.Height + PaddingInsideSquare));
+            }
+
             protected override void OnPaint(PaintEventArgs e)
             {
                 if (Font == null)
                     return;
-                const int squareWidth = 35;
-                const int padding = 4;
-                const int nameTextMarginLeft = 7;
+
+                var squareSize = SquareSize();
+                Height = squareSize.Height;
+
+                var rect = new Rectangle(0, 0, squareSize.Width, squareSize.Height);
+                var nameRect = new Rectangle(rect.Width + NameTextMarginLeft, 0, Math.Max(0, Width - rect.Width - NameTextMarginLeft), rect.Height);
+
                 var g = e.Graphics;
-                var measure = TextRenderer.MeasureText(CounterText, Font);
-                var rect = new Rectangle(0, 0, Math.Max(squareWidth, measure.Width + padding), Math.Min(Height, measure.Height + padding));
-                var nameRect = new Rectangle(rect.Width + nameTextMarginLeft, 0, Math.Max(0, Width - rect.Width - nameTextMarginLeft), rect.Height);
                 g.FillRectangle(new SolidBrush(Color), rect);
-                g.DrawRectangle(new Pen(Color.FromArgb(96, 0, 0, 0)), new Rectangle(0, 0, Math.Max(squareWidth, measure.Width + padding) - 1, Math.Min(Height, measure.Height + padding - 1)));
+                g.DrawRectangle(new Pen(Color.FromArgb(96, 0, 0, 0)), new Rectangle(0, 0, rect.Width - 1, rect.Height - 1));
                 TextRenderer.DrawText(e, CounterText, Font, rect, Color.White, flags: TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 TextRenderer.DrawText(e, NameText, Font, nameRect, TextColor, flags: TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
