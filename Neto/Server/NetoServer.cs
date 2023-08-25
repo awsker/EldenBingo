@@ -324,8 +324,9 @@ namespace Neto.Server
                         //Drop client after 3 malformed packets
                         if (++client.MalformedPackets >= 3)
                         {
+                            var ip = GetClientIp(client);
                             await KickClient(client);
-                            FireOnStatus($"Kicked client connected from {GetClientIp(client)}");
+                            FireOnStatus($"Client connected from IP {ip} sent too many malformed packets");
                             break;
                         }
                     }
