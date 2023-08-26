@@ -22,7 +22,7 @@ namespace EldenBingoServer
             LastActivity = DateTime.Now;
         }
 
-        public event EventHandler? TimerElapsed;
+        public event EventHandler<RoomEventArgs>? TimerElapsed;
 
         public string AdminPassword { get; init; }
         public BingoBoardGenerator? BoardGenerator { get; set; }
@@ -85,7 +85,7 @@ namespace EldenBingoServer
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
             stopTimer();
-            TimerElapsed?.Invoke(_timer, EventArgs.Empty);
+            TimerElapsed?.Invoke(_timer, new RoomEventArgs(this));
         }
 
         private void match_MatchStatusChanged(object? sender, EventArgs e)

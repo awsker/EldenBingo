@@ -12,7 +12,7 @@ namespace EldenBingoServer
         //10 seconds countdown before match starts
         private const int MatchStartCountdown = 9999;
 
-        private const int RoomInactivityRemovalSeconds = 86400;
+        private const int RoomInactivityRemovalSeconds = 3600;
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
         private System.Timers.Timer _roomClearTimer;
 
@@ -26,10 +26,12 @@ namespace EldenBingoServer
             registerHandlers();
 
             //Start the room clearing timer
-            _roomClearTimer = new System.Timers.Timer(3600000); //Check for inactive rooms once every hour (3600 seconds * 1000 ms)
+            _roomClearTimer = new System.Timers.Timer(RoomInactivityRemovalSeconds * 1000); //Check for inactive rooms once every hour (3600 seconds * 1000 ms)
             _roomClearTimer.Elapsed += _roomClearTimer_Elapsed;
             _roomClearTimer.Start();
         }
+
+        public IEnumerable<ServerRoom> Rooms => _rooms.Values;
 
         protected override async Task DropClient(BingoClientModel client)
         {
@@ -193,10 +195,31 @@ namespace EldenBingoServer
                 throw new ApplicationException("Room already exists");
             }
             var room = new ServerRoom(roomName, adminPass, creator, settings);
-            room.TimerElapsed += (o, e) => onMatchTimerElapsed(room);
+            room.TimerElapsed += onRoomTimerElapsed;
             _rooms[roomName] = room;
             FireOnStatus($"Lobby '{roomName}' was created");
             return room;
+        }
+
+        private async void onRoomTimerElapsed(object? sender, RoomEventArgs e)
+        {
+            var room = e.Room;
+            //Start game when countdown reaches 0
+            if (room.Match.MatchStatus == MatchStatus.Starting)
+            {
+                if (room.GameSettings.PreparationTime > 0)
+                {
+                    await startPreparation(room);
+                }
+                else
+                {
+                    await startMatch(room);
+                }
+            }
+            else if (room.Match.MatchStatus == MatchStatus.Preparation)
+            {
+                await startMatch(room);
+            }
         }
 
         private async void joinRoomRequested(BingoClientModel? sender, ClientRequestJoinRoom request)
@@ -574,26 +597,6 @@ namespace EldenBingoServer
             }
         }
 
-        private async void onMatchTimerElapsed(ServerRoom room)
-        {
-            //Start game when countdown reaches 0
-            if (room.Match.MatchStatus == MatchStatus.Starting)
-            {
-                if (room.GameSettings.PreparationTime > 0)
-                {
-                    await startPreparation(room);
-                }
-                else
-                {
-                    await startMatch(room);
-                }
-            }
-            else if (room.Match.MatchStatus == MatchStatus.Preparation)
-            {
-                await startMatch(room);
-            }
-        }
-
         private async Task startPreparation(ServerRoom room)
         {
             await setRoomMatchStatus(room, MatchStatus.Preparation);
@@ -774,8 +777,16 @@ namespace EldenBingoServer
             //Remove rooms after loop to avoid IEnumerable changed during enumeration exception
             foreach (var roomName in obsoleteRooms)
             {
-                _rooms.Remove(roomName, out _);
+                removeRoom(roomName);
                 FireOnStatus($"Removed inactive lobby '{roomName}'");
+            }
+        }
+        
+        private void removeRoom(string roomName)
+        {
+            if (_rooms.Remove(roomName, out var room))
+            {
+                room.TimerElapsed -= onRoomTimerElapsed;
             }
         }
     }
