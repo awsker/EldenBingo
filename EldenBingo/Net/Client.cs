@@ -50,7 +50,7 @@ namespace EldenBingo
         {
             if (!IsConnected)
                 return "Not connected";
-            if (CancelToken.IsCancellationRequested)
+            if (CancellationToken.IsCancellationRequested)
                 return "Stopping...";
             if (Room == null)
                 return "Connected - Not in a lobby";

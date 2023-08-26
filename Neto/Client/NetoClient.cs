@@ -11,7 +11,7 @@ namespace Neto.Client
 
         public NetoClient()
         {
-            CancelToken = new CancellationTokenSource();
+            CancellationToken = new CancellationTokenSource();
         }
 
         public event EventHandler? Connected;
@@ -22,7 +22,7 @@ namespace Neto.Client
 
         public Guid ClientGuid { get; private set; }
         public bool IsConnected => _tcp?.Connected == true;
-        protected CancellationTokenSource CancelToken { get; private set; }
+        protected CancellationTokenSource CancellationToken { get; private set; }
 
         public static IPEndPoint? EndPointFromAddress(string address, int port, out string error)
         {
@@ -64,7 +64,7 @@ namespace Neto.Client
         {
             if (!IsConnected)
                 return "Not connected";
-            if (CancelToken.IsCancellationRequested)
+            if (CancellationToken.IsCancellationRequested)
                 return "Stopping...";
             else
                 return "Connected";
@@ -83,12 +83,12 @@ namespace Neto.Client
                 FireOnError("Already connected");
                 return false;
             }
-            CancelToken = new CancellationTokenSource();
+            CancellationToken = new CancellationTokenSource();
             _tcp = new TcpClient(ipEndpoint.AddressFamily);
             try
             {
                 FireOnStatus($"Connecting to {address}:{port}...");
-                await _tcp.ConnectAsync(ipEndpoint, CancelToken.Token);
+                await _tcp.ConnectAsync(ipEndpoint, CancellationToken.Token);
 
                 if (_tcp.Connected)
                 {
@@ -98,7 +98,7 @@ namespace Neto.Client
                 else
                 {
                     FireOnError($"Could not connect to {address}:{port}");
-                    CancelToken.Cancel();
+                    CancellationToken.Cancel();
                 }
             }
             catch (Exception e)
@@ -115,12 +115,12 @@ namespace Neto.Client
                 FireOnError("Already connected");
                 return false;
             }
-            CancelToken = new CancellationTokenSource();
+            CancellationToken = new CancellationTokenSource();
             _tcp = new TcpClient(ipEndpoint.AddressFamily);
             try
             {
                 FireOnStatus($"Connecting to {ipEndpoint}...");
-                await _tcp.ConnectAsync(ipEndpoint, CancelToken.Token);
+                await _tcp.ConnectAsync(ipEndpoint, CancellationToken.Token);
 
                 if (_tcp.Connected)
                 {
@@ -130,7 +130,7 @@ namespace Neto.Client
                 else
                 {
                     FireOnError($"Could not connect to {ipEndpoint.Address}:{ipEndpoint.Port}");
-                    CancelToken.Cancel();
+                    CancellationToken.Cancel();
                 }
             }
             catch (Exception e)
@@ -143,12 +143,12 @@ namespace Neto.Client
         public async Task Disconnect()
         {
             await SendPacketToServer(new Packet(NetConstants.PacketTypes.ClientDisconnect));
-            CancelToken.Cancel();
+            CancellationToken.Cancel();
         }
 
         public async Task SendPacketToServer(Packet p)
         {
-            if (CancelToken.IsCancellationRequested || _tcp == null || !_tcp.Connected)
+            if (CancellationToken.IsCancellationRequested || _tcp == null || !_tcp.Connected)
             {
                 FireOnError($"Error sending message to server: Not connected");
                 return;
@@ -167,13 +167,13 @@ namespace Neto.Client
             try
             {
                 var stream = _tcp.GetStream();
-                await stream.WriteAsync(data, CancelToken.Token);
+                await stream.WriteAsync(data, CancellationToken.Token);
             }
             catch (OperationCanceledException)
             { }
             catch (Exception e)
             {
-                CancelToken.Cancel();
+                CancellationToken.Cancel();
                 FireOnError($"Error sending message to server: {e.Message}");
             }
         }
@@ -211,12 +211,12 @@ namespace Neto.Client
                     await Disconnect();
                     break;
                 case NetConstants.PacketTypes.ServerClientDropped:
-                    CancelToken.Cancel();
+                    CancellationToken.Cancel();
                     FireOnDisconnect("Kicked from server");
                     break;
 
                 case NetConstants.PacketTypes.ServerShutdown:
-                    CancelToken.Cancel();
+                    CancellationToken.Cancel();
                     FireOnDisconnect("Server shutting down");
                     break;
 
@@ -232,14 +232,14 @@ namespace Neto.Client
             {
                 var registerPacket = new Packet(NetConstants.PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version));
                 await SendPacketToServer(registerPacket);
-                while (!CancelToken.IsCancellationRequested)
+                while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
                 {
                     await waitForPacketAsync();
                 }
             }
             catch (Exception e)
             {
-                CancelToken.Cancel();
+                CancellationToken.Cancel();
                 FireOnStatus(e.Message);
             }
             if (_tcp?.Connected == true)
@@ -260,13 +260,11 @@ namespace Neto.Client
             try
             {
                 MemoryStream ms = new MemoryStream(size);
-                var dataChunks = new List<byte>();
                 do
                 {
-                    ms.Seek(0, SeekOrigin.End);
                     byte[] buffer = new byte[size];
-                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), CancelToken.Token);
-                    if (CancelToken.IsCancellationRequested)
+                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), CancellationToken.Token);
+                    if (CancellationToken.IsCancellationRequested || _tcp?.Connected != true)
                         return;
                     ms.Write(buffer, 0, bytesRead);
                 } while (!IsMessageTerminated(ms));
@@ -289,7 +287,7 @@ namespace Neto.Client
                 //Stream was closed, most likely due to the server shutting down
                 //but could also be because server sent malformed packet
                 FireOnError(e.Message);
-                CancelToken.Cancel();
+                CancellationToken.Cancel();
             }
         }
     }

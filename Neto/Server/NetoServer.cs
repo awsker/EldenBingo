@@ -205,7 +205,7 @@ namespace Neto.Server
             var ip = GetClientIp(client);
             try
             {
-                while (!client.CancellationToken.IsCancellationRequested)
+                while (client.TcpClient.Connected && !client.CancellationToken.IsCancellationRequested)
                 {
                     await waitForPacketAsync(client);
                 }
@@ -305,13 +305,11 @@ namespace Neto.Server
             try
             {
                 MemoryStream ms = new MemoryStream(size);
-                var dataChunks = new List<byte>();
                 do
                 {
-                    ms.Seek(0, SeekOrigin.End);
                     byte[] buffer = new byte[size];
                     var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), client.CancellationToken.Token);
-                    if (client.CancellationToken.IsCancellationRequested)
+                    if (client.CancellationToken.IsCancellationRequested || !client.TcpClient.Connected)
                         return;
                     ms.Write(buffer, 0, bytesRead);
                 } while (!IsMessageTerminated(ms));
