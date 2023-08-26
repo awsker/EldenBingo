@@ -6,6 +6,9 @@ namespace EldenBingoServerStandalone
 {
     internal static class Program
     {
+        private static bool _stopCalled = false;
+        private static Server _server;
+
         private static void log(string text)
         {
             var timestamp = DateTime.Now.ToString();
@@ -22,20 +25,45 @@ namespace EldenBingoServerStandalone
                     Console.WriteLine("Invalid port");
                 }
             }
-            var server = new Server(port);
-            server.OnError += server_OnError;
-            server.OnStatus += server_OnStatus;
-            server.Host();
+            _server = new Server(port);
+            _server.OnError += server_OnError;
+            _server.OnStatus += server_OnStatus;
+            _server.Host();
 
+            var keyboardListenThread = new Thread(new ThreadStart(listenKeyBoardEvent));
+            keyboardListenThread.Start();
             var waitHandle = new ManualResetEvent(false);
+            
             Console.CancelKeyPress += (o, e) =>
             {
                 e.Cancel = true;
                 Console.WriteLine("Stopping server...");
+                _stopCalled = true;
                 waitHandle.Set();
             };
             waitHandle.WaitOne();
-            server.Stop();
+            _server.Stop();
+        }
+
+        private static void listenKeyBoardEvent()
+        {
+            while(!_stopCalled)
+            {
+                if(Console.KeyAvailable)
+                {
+                    var key = Console.ReadKey(true);
+                    if(key.KeyChar == 'r')
+                    {
+                        Console.WriteLine("----------------------");
+                        foreach (var room in _server.Rooms)
+                        {
+                            Console.WriteLine($"{room.Name}: {room.Users.Count} users");
+                        }
+                        Console.WriteLine("----------------------");
+                    }
+                }
+                Thread.Sleep(50);
+            }
         }
 
         private static void server_OnStatus(object? sender, StringEventArgs e)
