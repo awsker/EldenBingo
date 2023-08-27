@@ -54,12 +54,12 @@ namespace EldenBingoServerStandalone
                     var key = Console.ReadKey(true);
                     if(key.KeyChar == 'r')
                     {
-                        Console.WriteLine("----------------------");
+                        Console.WriteLine("---- Current Rooms ----");
                         foreach (var room in _server.Rooms)
                         {
                             Console.WriteLine($"{room.Name}: {room.Users.Count} users");
                         }
-                        Console.WriteLine("----------------------");
+                        Console.WriteLine("-----------------------");
                     }
                 }
                 Thread.Sleep(50);
