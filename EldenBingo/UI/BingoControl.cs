@@ -294,24 +294,22 @@ namespace EldenBingo.UI
                     //Will reach the max count with this click, so include a check packet
                     if (currentTeamCount + 1 == square.MaxCount)
                     {
-                        //Increment 1
+                        //Increment 1 and check the square
                         p.AddObject(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                        await Client.SendPacketToServer(p);
                     }
                     //Already at max count, so decrease counter and include an uncheck packet
                     else if (currentTeamCount == square.MaxCount)
                     {
-                        //Decrement 1 - Only when the square is currently owned by this user's team
+                        //Decrement 1 and uncheck the square - Only when the square is currently owned by this user's team
                         if (square.Team == userToSetFor.Team)
                             p.AddObject(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
-                        await Client.SendPacketToServer(p);
                     }
-                    else
+                    else if (square.Team != userToSetFor.Team)
                     {
-                        //Increment 1
+                        //Increment 1 if the team doesn't already own the square
                         p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                        await Client.SendPacketToServer(p);
                     }
+                    await Client.SendPacketToServer(p);
                 }
             }
             if (e.Button == MouseButtons.Right && Client.Room.Match.MatchStatus >= MatchStatus.Preparation)
