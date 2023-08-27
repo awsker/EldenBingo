@@ -255,21 +255,9 @@ namespace Neto.Client
             if (_tcp == null)
                 return;
 
-            var stream = _tcp.GetStream();
-            var size = _tcp.ReceiveBufferSize;
             try
             {
-                MemoryStream ms = new MemoryStream(size);
-                do
-                {
-                    byte[] buffer = new byte[size];
-                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), CancellationToken.Token);
-                    if (CancellationToken.IsCancellationRequested || _tcp?.Connected != true)
-                        return;
-                    ms.Write(buffer, 0, bytesRead);
-                } while (!IsMessageTerminated(ms));
-
-                var packets = ReadPackets(ms.ToArray());
+                var packets = await ReadPackets(_tcp, CancellationToken);
                 foreach (var packet in packets)
                 {
                     if (packet != null)

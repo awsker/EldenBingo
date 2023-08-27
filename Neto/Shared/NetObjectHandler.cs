@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using System.Net.Sockets;
 using System.Reflection;
 
 namespace Neto.Shared
@@ -66,7 +67,35 @@ namespace Neto.Shared
             }
         }
 
-        protected Packet?[] ReadPackets(byte[] bytes)
+        protected async Task<Packet?[]> ReadPackets(TcpClient client, CancellationTokenSource cancelToken)
+        {
+            var stream = client.GetStream();
+            var size = client.ReceiveBufferSize;
+            try
+            {
+                MemoryStream ms = new MemoryStream(size);
+                do
+                {
+                    byte[] buffer = new byte[size];
+                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), cancelToken.Token);
+                    //0 bytes read when connection closed on the other end
+                    if (bytesRead == 0)
+                        cancelToken.Cancel();
+                    if (cancelToken.IsCancellationRequested || client?.Connected != true)
+                        return Array.Empty<Packet?>();
+                    ms.Write(buffer, 0, bytesRead);
+                } while (!IsMessageTerminated(ms));
+
+                return readPackets(ms.ToArray());
+            }
+            catch (OperationCanceledException)
+            {
+                //Do nothing, disconnect requested
+                return Array.Empty<Packet?>();
+            }
+        }
+
+        private Packet?[] readPackets(byte[] bytes)
         {
             var packets = new List<Packet?>();
             try

@@ -300,21 +300,9 @@ namespace Neto.Server
 
         private async Task waitForPacketAsync(CM client)
         {
-            var stream = client.TcpClient.GetStream();
-            var size = client.TcpClient.ReceiveBufferSize;
             try
             {
-                MemoryStream ms = new MemoryStream(size);
-                do
-                {
-                    byte[] buffer = new byte[size];
-                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), client.CancellationToken.Token);
-                    if (client.CancellationToken.IsCancellationRequested || !client.TcpClient.Connected)
-                        return;
-                    ms.Write(buffer, 0, bytesRead);
-                } while (!IsMessageTerminated(ms));
-
-                var packets = ReadPackets(ms.ToArray());
+                var packets = await ReadPackets(client.TcpClient, client.CancellationToken);
                 foreach (var packet in packets)
                 {
                     if (packet == null)
@@ -324,7 +312,7 @@ namespace Neto.Server
                         {
                             var ip = GetClientIp(client);
                             await KickClient(client);
-                            FireOnStatus($"Client connected from IP {ip} sent too many malformed packets");
+                            FireOnStatus($"Client ({ip}) sent too many malformed packets");
                             break;
                         }
                     }
