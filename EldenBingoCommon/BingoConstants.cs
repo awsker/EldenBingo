@@ -37,12 +37,12 @@ namespace EldenBingoCommon
             new ColorName(Color.FromArgb(190, 18, 16), "Red"),
             new ColorName(Color.FromArgb(9, 92, 168), "Blue"),
             new ColorName(Color.FromArgb(5, 149, 15), "Green"),
-            new ColorName(Color.FromArgb(193, 112, 0), "Orange"),
+            new ColorName(Color.FromArgb(205, 128, 4), "Orange"),
             new ColorName(Color.FromArgb(135, 35, 208), "Purple"),
             new ColorName(Color.FromArgb(78, 204, 204), "Cyan"),
             new ColorName(Color.FromArgb(237, 115, 216), "Pink"),
-            new ColorName(Color.FromArgb(112, 79, 41), "Brown"),
-            new ColorName(Color.FromArgb(196, 179, 0), "Yellow")
+            new ColorName(Color.FromArgb(131, 80, 22), "Brown"),
+            new ColorName(Color.FromArgb(215, 195, 0), "Yellow")
         };
 
         public static Color[] ClassColors = new Color[]
