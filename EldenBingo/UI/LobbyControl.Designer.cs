@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.panel2 = new System.Windows.Forms.Panel();
+            this._bingoBoardPanel = new System.Windows.Forms.Panel();
             this._bingoControl = new EldenBingo.UI.BingoControl();
-            this.panel1 = new System.Windows.Forms.Panel();
+            this._lobbyStatusPanel = new System.Windows.Forms.Panel();
             this._scoreboardControl = new EldenBingo.UI.ScoreboardControl();
             this._logBoxBorderPanel = new System.Windows.Forms.Panel();
-            this._chatTextBox = new System.Windows.Forms.TextBox();
             this._logTextBox = new EldenBingo.UI.RichTextBoxCustom();
+            this._chatTextBox = new System.Windows.Forms.TextBox();
             this._timerLabel = new System.Windows.Forms.Label();
             this._matchStatusLabel = new System.Windows.Forms.Label();
             this.adminControl1 = new EldenBingo.UI.AdminControl();
@@ -45,8 +45,8 @@
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this.panel2.SuspendLayout();
-            this.panel1.SuspendLayout();
+            this._bingoBoardPanel.SuspendLayout();
+            this._lobbyStatusPanel.SuspendLayout();
             this._logBoxBorderPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -59,8 +59,8 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.panel2);
-            this.splitContainer1.Panel1.Controls.Add(this.panel1);
+            this.splitContainer1.Panel1.Controls.Add(this._bingoBoardPanel);
+            this.splitContainer1.Panel1.Controls.Add(this._lobbyStatusPanel);
             this.splitContainer1.Panel1.Controls.Add(this.adminControl1);
             // 
             // splitContainer1.Panel2
@@ -72,14 +72,14 @@
             this.splitContainer1.SplitterDistance = 851;
             this.splitContainer1.TabIndex = 0;
             // 
-            // panel2
+            // _bingoBoardPanel
             // 
-            this.panel2.Controls.Add(this._bingoControl);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(0, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(581, 421);
-            this.panel2.TabIndex = 1;
+            this._bingoBoardPanel.Controls.Add(this._bingoControl);
+            this._bingoBoardPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._bingoBoardPanel.Location = new System.Drawing.Point(0, 0);
+            this._bingoBoardPanel.Name = "_bingoBoardPanel";
+            this._bingoBoardPanel.Size = new System.Drawing.Size(581, 421);
+            this._bingoBoardPanel.TabIndex = 1;
             // 
             // _bingoControl
             // 
@@ -89,17 +89,17 @@
             this._bingoControl.Size = new System.Drawing.Size(568, 408);
             this._bingoControl.TabIndex = 0;
             // 
-            // panel1
+            // _lobbyStatusPanel
             // 
-            this.panel1.Controls.Add(this._scoreboardControl);
-            this.panel1.Controls.Add(this._logBoxBorderPanel);
-            this.panel1.Controls.Add(this._timerLabel);
-            this.panel1.Controls.Add(this._matchStatusLabel);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(581, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(270, 421);
-            this.panel1.TabIndex = 2;
+            this._lobbyStatusPanel.Controls.Add(this._scoreboardControl);
+            this._lobbyStatusPanel.Controls.Add(this._logBoxBorderPanel);
+            this._lobbyStatusPanel.Controls.Add(this._timerLabel);
+            this._lobbyStatusPanel.Controls.Add(this._matchStatusLabel);
+            this._lobbyStatusPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this._lobbyStatusPanel.Location = new System.Drawing.Point(581, 0);
+            this._lobbyStatusPanel.Name = "_lobbyStatusPanel";
+            this._lobbyStatusPanel.Size = new System.Drawing.Size(270, 421);
+            this._lobbyStatusPanel.TabIndex = 2;
             // 
             // _scoreboardControl
             // 
@@ -116,48 +116,49 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._logBoxBorderPanel.BackColor = System.Drawing.SystemColors.WindowFrame;
-            this._logBoxBorderPanel.Controls.Add(this._chatTextBox);
+            this._logBoxBorderPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._logBoxBorderPanel.Controls.Add(this._logTextBox);
+            this._logBoxBorderPanel.Controls.Add(this._chatTextBox);
             this._logBoxBorderPanel.Location = new System.Drawing.Point(5, 104);
             this._logBoxBorderPanel.Name = "_logBoxBorderPanel";
             this._logBoxBorderPanel.Padding = new System.Windows.Forms.Padding(1);
             this._logBoxBorderPanel.Size = new System.Drawing.Size(259, 316);
             this._logBoxBorderPanel.TabIndex = 9;
             // 
-            // _chatTextBox
-            // 
-            this._chatTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
-            this._chatTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this._chatTextBox.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this._chatTextBox.ForeColor = System.Drawing.Color.White;
-            this._chatTextBox.Location = new System.Drawing.Point(1, 292);
-            this._chatTextBox.MaxLength = 327670;
-            this._chatTextBox.Name = "_chatTextBox";
-            this._chatTextBox.PlaceholderText = "Send a message";
-            this._chatTextBox.AutoSize = false;
-            this._chatTextBox.Size = new System.Drawing.Size(257, 23);
-            this._chatTextBox.TabIndex = 9;
-            this._chatTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._chatTextBox_KeyPress);
-            // 
             // _logTextBox
             // 
-            this._logTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this._logTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
             this._logTextBox.BorderColor = System.Drawing.SystemColors.WindowFrame;
             this._logTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this._logTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this._logTextBox.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this._logTextBox.ForeColor = System.Drawing.Color.White;
             this._logTextBox.Location = new System.Drawing.Point(1, 1);
+            this._logTextBox.MustHideCaret = true;
             this._logTextBox.Name = "_logTextBox";
             this._logTextBox.ReadOnly = true;
             this._logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this._logTextBox.Size = new System.Drawing.Size(257, 290);
+            this._logTextBox.Size = new System.Drawing.Size(255, 286);
             this._logTextBox.TabIndex = 8;
+            this._logTextBox.TabStop = false;
             this._logTextBox.Text = "";
             this._logTextBox.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this._logTextBox_LinkClicked);
-            this._logTextBox.MustHideCaret = true;
+            // 
+            // _chatTextBox
+            // 
+            this._chatTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this._chatTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this._chatTextBox.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this._chatTextBox.ForeColor = System.Drawing.Color.White;
+            this._chatTextBox.Location = new System.Drawing.Point(1, 287);
+            this._chatTextBox.Margin = new System.Windows.Forms.Padding(0);
+            this._chatTextBox.MaxLength = 327670;
+            this._chatTextBox.Multiline = false;
+            this._chatTextBox.Name = "_chatTextBox";
+            this._chatTextBox.PlaceholderText = "Send a message";
+            this._chatTextBox.AutoSize = false;
+            this._chatTextBox.Size = new System.Drawing.Size(255, 26);
+            this._chatTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._chatTextBox_KeyPress);
             // 
             // _timerLabel
             // 
@@ -196,11 +197,7 @@
             this._clientList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._clientList.Client = null;
             this._clientList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._clientList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this._clientList.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this._clientList.FormattingEnabled = true;
-            this._clientList.IntegralHeight = false;
-            this._clientList.ItemHeight = 20;
             this._clientList.Location = new System.Drawing.Point(0, 0);
             this._clientList.Name = "_clientList";
             this._clientList.Size = new System.Drawing.Size(200, 502);
@@ -220,8 +217,8 @@
             // 
             // LobbyControl
             // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.Controls.Add(this.splitContainer1);
             this.Name = "LobbyControl";
             this.Size = new System.Drawing.Size(1055, 567);
@@ -229,9 +226,10 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
+            this._bingoBoardPanel.ResumeLayout(false);
+            this._lobbyStatusPanel.ResumeLayout(false);
             this._logBoxBorderPanel.ResumeLayout(false);
+            this._logBoxBorderPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -240,8 +238,8 @@
 
         private SplitContainer splitContainer1;
         private ClientListControl _clientList;
-        private Panel panel1;
-        private Panel panel2;
+        private Panel _lobbyStatusPanel;
+        private Panel _bingoBoardPanel;
         private Label _timerLabel;
         private Label _matchStatusLabel;
         private AdminControl adminControl1;

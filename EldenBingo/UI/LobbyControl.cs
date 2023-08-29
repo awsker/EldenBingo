@@ -17,8 +17,13 @@ namespace EldenBingo.UI
             InitializeComponent();
             _instance = this;
             _adminHeight = adminControl1.Height;
+            
             listenToSettingsChanged();
             Load += lobbyControl_Load;
+            
+            splitContainer1.SplitterDistance = Width - Convert.ToInt32(200f * this.DefaultScaleFactors().Width);
+            _adminInfoLabel.Height = Convert.ToInt32(_adminInfoLabel.Height * this.DefaultScaleFactors().Height);
+
             SizeChanged += lobbyControl_SizeChanged;
             splitContainer1.Panel1.SizeChanged += panel1_SizeChanged;
         }
@@ -158,9 +163,9 @@ namespace EldenBingo.UI
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
         {
             var startPosY = _scoreboardControl.Bottom + 3;
-            var height = panel1.Height - startPosY;
+            var height = _lobbyStatusPanel.Height - startPosY;
             _logBoxBorderPanel.Location = new Point(_logBoxBorderPanel.Location.X, startPosY);
-            _logBoxBorderPanel.Height = height;
+            _logBoxBorderPanel.Height = _lobbyStatusPanel.Height - _logBoxBorderPanel.Location.Y - 3;
         }
 
         private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -239,6 +244,7 @@ namespace EldenBingo.UI
             var ll = new LinkLabel() { Text = "(Hide)", AutoSize = true, Font = _adminInfoLabel.Font };
             _adminInfoLabel.Controls.Add(ll);
             ll.Location = new Point(_adminInfoLabel.Width - ll.Width, _adminInfoLabel.Height - ll.Height);
+            ll.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             ll.Click += (o, e) =>
             {
                 _adminInfoLabel.Hide();
@@ -347,7 +353,8 @@ namespace EldenBingo.UI
 
         private void updateBingoSize()
         {
-            _bingoControl.Size = new Size(panel2.Width - 6, panel2.Height - 6);
+            var maxSize = _bingoBoardPanel.Size - new Size(_bingoControl.Location);
+            _bingoControl.Size = maxSize;
         }
 
         private void clearMatchLog()

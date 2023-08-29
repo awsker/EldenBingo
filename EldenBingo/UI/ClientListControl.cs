@@ -4,51 +4,49 @@ using Neto.Shared;
 
 namespace EldenBingo.UI
 {
-    internal class ClientListControl : RichListBox
+    internal partial class ClientListControl : ClientUserControl
     {
-        private Client? _client;
-
-        public ClientListControl() : base()
+        public ClientListControl()
         {
+            InitializeComponent();
+            var factor = this.DefaultScaleFactors();
+            _clientList.ItemHeight = Convert.ToInt32(20f * factor.Height);
         }
 
-        public Client? Client
+        public object SelectedItem => _clientList.SelectedItem;
+
+        public override Color BackColor
         {
-            get { return _client; }
-            set
+            get => _clientList.BackColor;
+            set => _clientList.BackColor = value;
+        }
+
+        protected override void AddClientListeners()
+        {
+            if (Client != null)
             {
-                if (_client != value)
-                {
-                    if (_client != null)
-                        RemoveClientListeners();
-                    _client = value;
-                    ClientChanged();
-                    if (_client != null)
-                        AddClientListeners();
-                }
+                Client.OnRoomChanged += client_RoomChanged;
+                Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+                Client.AddListener<ServerUserJoinedRoom>(userJoined);
+                Client.AddListener<ServerUserLeftRoom>(userLeft);
             }
         }
 
-        protected virtual void AddClientListeners()
-        {
-            Client.OnRoomChanged += client_RoomChanged;
-            Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
-            Client.AddListener<ServerUserJoinedRoom>(userJoined);
-            Client.AddListener<ServerUserLeftRoom>(userLeft);
-        }
-
-        protected virtual void ClientChanged()
+        protected override void ClientChanged()
         {
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
         }
 
-        protected virtual void RemoveClientListeners()
+        protected override void RemoveClientListeners()
         {
-            Client.OnRoomChanged -= client_RoomChanged;
-            Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
-            Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
-            Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+            if (Client != null)
+            {
+                Client.OnRoomChanged -= client_RoomChanged;
+                Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+                Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
+                Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+            }
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
@@ -73,7 +71,7 @@ namespace EldenBingo.UI
         {
             void clear()
             {
-                Items.Clear();
+                _clientList.Items.Clear();
             }
             if (InvokeRequired)
             {
@@ -94,16 +92,16 @@ namespace EldenBingo.UI
             void update()
             {
                 Guid selectedGuid = Guid.Empty;
-                if (SelectedItem is UserInRoom selectedUser)
+                if (_clientList.SelectedItem is UserInRoom selectedUser)
                 {
                     selectedGuid = selectedUser.Guid;
                 }
-                Items.Clear();
+                _clientList.Items.Clear();
                 foreach (var user in room.GetClientsSorted())
                 {
-                    Items.Add(user);
+                    _clientList.Items.Add(user);
                     if (user.Guid == selectedGuid)
-                        SelectedIndex = Items.Count - 1;
+                        _clientList.SelectedIndex = _clientList.Items.Count - 1;
                 }
             }
             if (InvokeRequired)
