@@ -78,7 +78,7 @@
             // _okButton
             // 
             this._okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._okButton.Location = new System.Drawing.Point(548, 352);
+            this._okButton.Location = new System.Drawing.Point(548, 356);
             this._okButton.Name = "_okButton";
             this._okButton.Size = new System.Drawing.Size(75, 23);
             this._okButton.TabIndex = 12;
@@ -89,7 +89,7 @@
             // _cancelButton
             // 
             this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(629, 352);
+            this._cancelButton.Location = new System.Drawing.Point(629, 356);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
             this._cancelButton.TabIndex = 13;
@@ -107,14 +107,14 @@
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(12, 15);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(200, 103);
+            this.groupBox1.Size = new System.Drawing.Size(200, 107);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Map Initial Size";
             // 
             // _mapSizeCustomYTextBox
             // 
-            this._mapSizeCustomYTextBox.Location = new System.Drawing.Point(117, 72);
+            this._mapSizeCustomYTextBox.Location = new System.Drawing.Point(117, 74);
             this._mapSizeCustomYTextBox.Name = "_mapSizeCustomYTextBox";
             this._mapSizeCustomYTextBox.Size = new System.Drawing.Size(54, 23);
             this._mapSizeCustomYTextBox.TabIndex = 5;
@@ -122,7 +122,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(94, 75);
+            this.label2.Location = new System.Drawing.Point(94, 77);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(17, 15);
             this.label2.TabIndex = 5;
@@ -152,7 +152,7 @@
             // 
             // _mapSizeCustomXTextBox
             // 
-            this._mapSizeCustomXTextBox.Location = new System.Drawing.Point(30, 72);
+            this._mapSizeCustomXTextBox.Location = new System.Drawing.Point(30, 74);
             this._mapSizeCustomXTextBox.Name = "_mapSizeCustomXTextBox";
             this._mapSizeCustomXTextBox.Size = new System.Drawing.Size(54, 23);
             this._mapSizeCustomXTextBox.TabIndex = 4;
@@ -160,7 +160,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 75);
+            this.label1.Location = new System.Drawing.Point(7, 77);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(17, 15);
             this.label1.TabIndex = 1;
@@ -176,7 +176,7 @@
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Location = new System.Drawing.Point(12, 239);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 104);
+            this.groupBox2.Size = new System.Drawing.Size(200, 107);
             this.groupBox2.TabIndex = 11;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Bingo Board Max Size";
@@ -206,7 +206,7 @@
             this._bingoCustomMaxSizeRadioButton.TabIndex = 13;
             this._bingoCustomMaxSizeRadioButton.TabStop = true;
             this._bingoCustomMaxSizeRadioButton.Text = "Custom Max Size";
-            this._bingoCustomMaxSizeRadioButton.UseVisualStyleBackColor = true;
+            this._bingoCustomMaxSizeRadioButton.UseVisualStyleBackColor = false;
             // 
             // _bingoNoMaxSizeRadioButton
             // 
@@ -295,7 +295,7 @@
             this.groupBox4.Controls.Add(this.label7);
             this.groupBox4.Location = new System.Drawing.Point(12, 130);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(200, 103);
+            this.groupBox4.Size = new System.Drawing.Size(200, 107);
             this.groupBox4.TabIndex = 6;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Map Initial Position";
@@ -398,27 +398,27 @@
             this.groupBox6.Controls.Add(this._swapMouseButtons);
             this.groupBox6.Location = new System.Drawing.Point(237, 228);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(233, 115);
+            this.groupBox6.Size = new System.Drawing.Size(233, 118);
             this.groupBox6.TabIndex = 20;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Map";
             // 
             // _showClassesCheckBox
             // 
-            this._showClassesCheckBox.Location = new System.Drawing.Point(9, 59);
+            this._showClassesCheckBox.Location = new System.Drawing.Point(9, 65);
             this._showClassesCheckBox.Name = "_showClassesCheckBox";
-            this._showClassesCheckBox.Size = new System.Drawing.Size(218, 53);
+            this._showClassesCheckBox.Size = new System.Drawing.Size(218, 41);
             this._showClassesCheckBox.TabIndex = 2;
-            this._showClassesCheckBox.Text = "Show random classes in an overlay on the map (for streaming)";
+            this._showClassesCheckBox.Text = "Show available classes in an overlay on the map (for streaming)";
             this._showClassesCheckBox.UseVisualStyleBackColor = true;
             // 
             // _swapMouseButtons
             // 
-            this._swapMouseButtons.Location = new System.Drawing.Point(9, 20);
+            this._swapMouseButtons.Location = new System.Drawing.Point(9, 19);
             this._swapMouseButtons.Name = "_swapMouseButtons";
-            this._swapMouseButtons.Size = new System.Drawing.Size(193, 36);
+            this._swapMouseButtons.Size = new System.Drawing.Size(218, 40);
             this._swapMouseButtons.TabIndex = 1;
-            this._swapMouseButtons.Text = "Swap mouse buttons              (Left = Draw, Right = Pan)";
+            this._swapMouseButtons.Text = "Swap mouse buttons***(Left = Draw, Right = Pan)";
             this._swapMouseButtons.UseVisualStyleBackColor = true;
             // 
             // groupBox7
@@ -449,7 +449,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(716, 387);
+            this.ClientSize = new System.Drawing.Size(716, 391);
             this.Controls.Add(this.groupBox7);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox5);
@@ -465,6 +465,7 @@
             this.Name = "SettingsDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Settings";
+            this.Load += new System.EventHandler(this.SettingsDialog_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);

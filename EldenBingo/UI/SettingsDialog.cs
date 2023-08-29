@@ -197,5 +197,10 @@
             Properties.Settings.Default.Save();
             return true;
         }
+
+        private void SettingsDialog_Load(object sender, EventArgs e)
+        {
+            _swapMouseButtons.Text = _swapMouseButtons.Text.Replace("***", "\r\n");
+        }
     }
 }
