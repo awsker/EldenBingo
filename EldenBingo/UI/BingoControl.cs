@@ -216,8 +216,10 @@ namespace EldenBingo.UI
             const float maxFont = 20f;
             var squareHeight = Squares[0].Height;
             var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
+            var scale = this.DefaultScaleFactors();
             var fontSize = minFont + (maxFont - minFont) * frac;
-            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f);
+            
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f / scale.Height);
             var font = MainForm.GetFontFromSettings(Font, fontSize);
             for (int i = 0; i < 25; ++i)
             {
@@ -503,7 +505,7 @@ namespace EldenBingo.UI
 
             private void drawBingoText(PaintEventArgs e)
             {
-                const int textUp = 3;
+                const int textUp = 2;
                 var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
                 var f = Font;
                 Size size = TextRenderer.MeasureText(Text, f, new Size(ClientRectangle.Width, ClientRectangle.Height));

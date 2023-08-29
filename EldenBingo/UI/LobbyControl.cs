@@ -162,10 +162,23 @@ namespace EldenBingo.UI
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
         {
-            var startPosY = _scoreboardControl.Bottom + 3;
-            var height = _lobbyStatusPanel.Height - startPosY;
-            _logBoxBorderPanel.Location = new Point(_logBoxBorderPanel.Location.X, startPosY);
-            _logBoxBorderPanel.Height = _lobbyStatusPanel.Height - _logBoxBorderPanel.Location.Y - 3;
+            updateScoreboardControlLocationAndSize();
+        }
+
+        private void updateScoreboardControlLocationAndSize()
+        {
+            void update()
+            {
+                var startPosY = _scoreboardControl.Bottom + 3;
+                _logBoxBorderPanel.Location = new Point(_logBoxBorderPanel.Location.X, startPosY);
+                _logBoxBorderPanel.Height = _lobbyStatusPanel.Height - _logBoxBorderPanel.Location.Y - 3;
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(update);
+                return;
+            }
+            update();
         }
 
         private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -225,7 +238,7 @@ namespace EldenBingo.UI
         {
             void update()
             {
-                var font = MainForm.GetFontFromSettings(_scoreboardControl.Font, 12f);
+                var font = MainForm.GetFontFromSettings(_scoreboardControl.Font, 14f);
                 if (font != _scoreboardControl.Font)
                 {
                     _scoreboardControl.Font = font;
@@ -262,6 +275,7 @@ namespace EldenBingo.UI
             updateBingoSize();
             updateBingoMaximumSize();
             updateScoreboardFont();
+            updateScoreboardControlLocationAndSize();
         }
 
         private void lobbyControl_SizeChanged(object? sender, EventArgs e)

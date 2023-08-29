@@ -53,12 +53,12 @@ namespace EldenBingo
         public static Font GetFontFromSettings(Font defaultFont, float size, float defaultSize = 12f)
         {
             var ffName = Properties.Settings.Default.BingoFont;
-            Font? font = null;
             var scale = Properties.Settings.Default.BingoFontSize / defaultSize;
             if (!string.IsNullOrWhiteSpace(ffName))
             {
                 try
                 {
+                    Font? font;
                     var ff2 = new FontFamily(ffName);
                     font = new Font(ff2, size * scale, (FontStyle)Properties.Settings.Default.BingoFontStyle);
                     if (font.Name == ffName)
@@ -431,8 +431,10 @@ namespace EldenBingo
 
         private void mainForm_SizeChanged(object? sender, EventArgs e)
         {
-            Properties.Settings.Default.MainWindowSizeX = Width;
-            Properties.Settings.Default.MainWindowSizeY = Height;
+            var scale = this.DefaultScaleFactors();
+            //We store the Width and Height in 96 DPI scale, so need to convert the window width and height
+            Properties.Settings.Default.MainWindowSizeX = Convert.ToInt32(Width / scale.Width);
+            Properties.Settings.Default.MainWindowSizeY = Convert.ToInt32(Height / scale.Height);
         }
 
         private void openMapWindow()
