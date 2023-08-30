@@ -66,6 +66,8 @@
             this._swapMouseButtons = new System.Windows.Forms.CheckBox();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
             this._clickIncrementsCountCheckbox = new System.Windows.Forms.CheckBox();
+            this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this._soundCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -73,6 +75,7 @@
             this.groupBox5.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox7.SuspendLayout();
+            this.groupBox8.SuspendLayout();
             this.SuspendLayout();
             // 
             // _okButton
@@ -443,6 +446,26 @@
     "";
             this._clickIncrementsCountCheckbox.UseVisualStyleBackColor = true;
             // 
+            // groupBox8
+            // 
+            this.groupBox8.Controls.Add(this._soundCheckBox);
+            this.groupBox8.Location = new System.Drawing.Point(495, 116);
+            this.groupBox8.Name = "groupBox8";
+            this.groupBox8.Size = new System.Drawing.Size(209, 66);
+            this.groupBox8.TabIndex = 21;
+            this.groupBox8.TabStop = false;
+            this.groupBox8.Text = "Sounds";
+            // 
+            // _soundCheckBox
+            // 
+            this._soundCheckBox.AutoSize = true;
+            this._soundCheckBox.Location = new System.Drawing.Point(12, 25);
+            this._soundCheckBox.Name = "_soundCheckBox";
+            this._soundCheckBox.Size = new System.Drawing.Size(128, 19);
+            this._soundCheckBox.TabIndex = 20;
+            this._soundCheckBox.Text = "Enable alert sounds";
+            this._soundCheckBox.UseVisualStyleBackColor = true;
+            // 
             // SettingsDialog
             // 
             this.AcceptButton = this._okButton;
@@ -450,6 +473,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this._cancelButton;
             this.ClientSize = new System.Drawing.Size(716, 391);
+            this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox5);
@@ -479,6 +503,8 @@
             this.groupBox6.ResumeLayout(false);
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
+            this.groupBox8.ResumeLayout(false);
+            this.groupBox8.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -523,5 +549,7 @@
         private CheckBox _showClassesCheckBox;
         private GroupBox groupBox7;
         private CheckBox _clickIncrementsCountCheckbox;
+        private GroupBox groupBox8;
+        private CheckBox _soundCheckBox;
     }
 }

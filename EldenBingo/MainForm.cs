@@ -8,6 +8,7 @@ using EldenBingoCommon;
 using EldenBingoServer;
 using Neto.Shared;
 using SFML.System;
+using System.Media;
 using System.Security.Principal;
 
 namespace EldenBingo
@@ -21,6 +22,7 @@ namespace EldenBingo
         private Thread? _mapWindowThread;
         private Server? _server = null;
         private string _lastRoom = string.Empty;
+        private SoundPlayer? _soundPlayer;
 
         public MainForm()
         {
@@ -29,7 +31,7 @@ namespace EldenBingo
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
-
+            
             if (Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
             {
                 Width = Properties.Settings.Default.MainWindowSizeX;
@@ -47,7 +49,21 @@ namespace EldenBingo
             addClientListeners(_client);
 
             listenToSettingsChanged();
+            initSounds();
             SizeChanged += mainForm_SizeChanged;
+        }
+
+        private void initSounds()
+        {
+            try
+            {
+                if(_soundPlayer == null)
+                    _soundPlayer = new SoundPlayer("./Sfx/square_claimed.wav");
+            } 
+            catch(Exception)
+            {
+                _soundPlayer = null;
+            }
         }
 
         public static Font GetFontFromSettings(Font defaultFont, float size, float defaultSize = 12f)
@@ -221,6 +237,7 @@ namespace EldenBingo
             client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
+            client.AddListener<ServerUserChecked>(userCheckedSquare);
         }
 
         private void client_Connected(object? sender, EventArgs e)
@@ -257,6 +274,21 @@ namespace EldenBingo
                 _client.Room.Match.MatchStatus == MatchStatus.Running && _client.Room.Match.MatchMilliseconds < 20000)
                 )
                 _mapWindow.ShowAvailableClasses(bingoBoardArgs.AvailableClasses);
+        }
+
+        private void userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
+        {
+            if (Properties.Settings.Default.PlaySounds && _soundPlayer != null)
+            {
+                try
+                {
+                    _soundPlayer.Play();
+                } 
+                catch(Exception)
+                {
+                    _soundPlayer = null;
+                }
+            }
         }
 
         private void showLobbyTab()
@@ -349,6 +381,10 @@ namespace EldenBingo
             {
                 if (_server == null && Properties.Settings.Default.HostServerOnLaunch)
                     hostServer();
+            }
+            if (e.PropertyName == nameof(Properties.Settings.Default.PlaySounds))
+            {
+                initSounds();
             }
         }
 

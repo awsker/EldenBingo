@@ -454,5 +454,17 @@ namespace EldenBingo.Properties {
                 this["IsFirstRun"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PlaySounds {
+            get {
+                return ((bool)(this["PlaySounds"]));
+            }
+            set {
+                this["PlaySounds"] = value;
+            }
+        }
     }
 }
