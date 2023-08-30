@@ -238,7 +238,7 @@ namespace EldenBingo.UI
         {
             void update()
             {
-                var font = MainForm.GetFontFromSettings(_scoreboardControl.Font, 14f);
+                var font = MainForm.GetFontFromSettings(_scoreboardControl.Font, 12f);
                 if (font != _scoreboardControl.Font)
                 {
                     _scoreboardControl.Font = font;
