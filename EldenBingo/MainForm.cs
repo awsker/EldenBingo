@@ -3,6 +3,7 @@ using EldenBingo.Net;
 using EldenBingo.Properties;
 using EldenBingo.Rendering;
 using EldenBingo.Settings;
+using EldenBingo.Sfx;
 using EldenBingo.UI;
 using EldenBingoCommon;
 using EldenBingoServer;
@@ -22,7 +23,7 @@ namespace EldenBingo
         private Thread? _mapWindowThread;
         private Server? _server = null;
         private string _lastRoom = string.Empty;
-        private SoundPlayer? _soundPlayer;
+        private SoundLibrary _sounds;
 
         public MainForm()
         {
@@ -31,7 +32,8 @@ namespace EldenBingo
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
-            
+            _sounds = new SoundLibrary();
+
             if (Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
             {
                 Width = Properties.Settings.Default.MainWindowSizeX;
@@ -41,6 +43,7 @@ namespace EldenBingo
             FormClosing += (o, e) =>
             {
                 _processHandler.Dispose();
+                _sounds.Dispose();
                 _mapWindow?.DisposeDrawablesOnExit();
                 _mapWindow?.Stop();
                 _client?.Disconnect();
@@ -49,21 +52,7 @@ namespace EldenBingo
             addClientListeners(_client);
 
             listenToSettingsChanged();
-            initSounds();
             SizeChanged += mainForm_SizeChanged;
-        }
-
-        private void initSounds()
-        {
-            try
-            {
-                if(_soundPlayer == null)
-                    _soundPlayer = new SoundPlayer("./Sfx/square_claimed.wav");
-            } 
-            catch(Exception)
-            {
-                _soundPlayer = null;
-            }
         }
 
         public static Font GetFontFromSettings(Font defaultFont, float size, float defaultSize = 12f)
@@ -278,16 +267,9 @@ namespace EldenBingo
 
         private void userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
         {
-            if (Properties.Settings.Default.PlaySounds && _soundPlayer != null)
+            if (Properties.Settings.Default.PlaySounds && userCheckedSquareArgs.TeamChecked.HasValue)
             {
-                try
-                {
-                    _soundPlayer.Play();
-                } 
-                catch(Exception)
-                {
-                    _soundPlayer = null;
-                }
+                _sounds.PlaySound(SoundType.SquareClaimed);
             }
         }
 
@@ -381,10 +363,6 @@ namespace EldenBingo
             {
                 if (_server == null && Properties.Settings.Default.HostServerOnLaunch)
                     hostServer();
-            }
-            if (e.PropertyName == nameof(Properties.Settings.Default.PlaySounds))
-            {
-                initSounds();
             }
         }
 

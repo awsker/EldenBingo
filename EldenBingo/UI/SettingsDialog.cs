@@ -89,6 +89,7 @@
             _clickIncrementsCountCheckbox.Checked = Properties.Settings.Default.ClickIncrementsCountedSquares;
 
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
+            _volumeTrackBar.Value = Convert.ToInt32(Properties.Settings.Default.SoundVolume / 10f);
 
             updateSizeEnable();
             updatePositionEnable();
@@ -197,6 +198,7 @@
             Properties.Settings.Default.ClickIncrementsCountedSquares = _clickIncrementsCountCheckbox.Checked;
 
             Properties.Settings.Default.PlaySounds = _soundCheckBox.Checked;
+            Properties.Settings.Default.SoundVolume = Math.Clamp(_volumeTrackBar.Value * 10, 0, 100);
 
             Properties.Settings.Default.Save();
             return true;

@@ -67,7 +67,9 @@
             this.groupBox7 = new System.Windows.Forms.GroupBox();
             this._clickIncrementsCountCheckbox = new System.Windows.Forms.CheckBox();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this._volumeTrackBar = new System.Windows.Forms.TrackBar();
             this._soundCheckBox = new System.Windows.Forms.CheckBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -76,6 +78,7 @@
             this.groupBox6.SuspendLayout();
             this.groupBox7.SuspendLayout();
             this.groupBox8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._volumeTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
             // _okButton
@@ -448,13 +451,22 @@
             // 
             // groupBox8
             // 
+            this.groupBox8.Controls.Add(this.label10);
+            this.groupBox8.Controls.Add(this._volumeTrackBar);
             this.groupBox8.Controls.Add(this._soundCheckBox);
             this.groupBox8.Location = new System.Drawing.Point(495, 116);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(209, 66);
+            this.groupBox8.Size = new System.Drawing.Size(209, 121);
             this.groupBox8.TabIndex = 21;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Sounds";
+            // 
+            // _volumeTrackBar
+            // 
+            this._volumeTrackBar.Location = new System.Drawing.Point(6, 76);
+            this._volumeTrackBar.Name = "_volumeTrackBar";
+            this._volumeTrackBar.Size = new System.Drawing.Size(197, 45);
+            this._volumeTrackBar.TabIndex = 21;
             // 
             // _soundCheckBox
             // 
@@ -465,6 +477,15 @@
             this._soundCheckBox.TabIndex = 20;
             this._soundCheckBox.Text = "Enable alert sounds";
             this._soundCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(12, 55);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(47, 15);
+            this.label10.TabIndex = 22;
+            this.label10.Text = "Volume";
             // 
             // SettingsDialog
             // 
@@ -505,6 +526,7 @@
             this.groupBox7.PerformLayout();
             this.groupBox8.ResumeLayout(false);
             this.groupBox8.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._volumeTrackBar)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -551,5 +573,7 @@
         private CheckBox _clickIncrementsCountCheckbox;
         private GroupBox groupBox8;
         private CheckBox _soundCheckBox;
+        private TrackBar _volumeTrackBar;
+        private Label label10;
     }
 }
