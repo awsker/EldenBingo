@@ -6,6 +6,8 @@ namespace EldenBingo.Rendering.Game
 {
     public class PlayerDrawable : IDrawable, IUpdateable
     {
+        private static readonly Texture _playerTexture;
+        private static readonly Texture _playerIconTexture;
         private static readonly Sprite _playerArrowSprite;
         private static readonly Sprite _playerIconSprite;
         private static readonly Shader? _shader;
@@ -22,13 +24,13 @@ namespace EldenBingo.Rendering.Game
         {
             Font = new SFML.Graphics.Font("LibraSans.ttf");
 
-            var pTex = new Texture("./Textures/player.png");
-            pTex.Smooth = true;
-            _playerArrowSprite = new Sprite(pTex);
+            _playerTexture = new Texture("./Textures/player.png");
+            _playerTexture.Smooth = true;
+            _playerArrowSprite = new Sprite(_playerTexture);
             _playerArrowSprite.Origin = new Vector2f(33f, 86f);
-            var pIconTex = new Texture("./Textures/player-icon.png");
-            pIconTex.Smooth = true;
-            _playerIconSprite = new Sprite(pIconTex);
+            _playerIconTexture = new Texture("./Textures/player-icon.png");
+            _playerIconTexture.Smooth = true;
+            _playerIconSprite = new Sprite(_playerIconTexture);
             _playerIconSprite.Origin = new Vector2f(34f, 34f);
 
             try
@@ -76,6 +78,8 @@ namespace EldenBingo.Rendering.Game
         {
             _playerArrowSprite.Dispose();
             _playerIconSprite.Dispose();
+            _playerTexture.Dispose();
+            _playerIconTexture.Dispose();
             _shader?.Dispose();
         }
 
