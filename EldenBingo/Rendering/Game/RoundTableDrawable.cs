@@ -5,16 +5,18 @@ namespace EldenBingo.Rendering.Game
 {
     public class RoundTableDrawable : IDrawable
     {
+        private static Texture _roundTableTexture;
         private static Sprite _sprite;
+
         private readonly Vector2f RoundTablePosition = new Vector2f(1750f, MapWindow.FullMapHeight - 1750f);
         private readonly Vector2f RoundTableZoomOffset = new Vector2f(35f, 35f);
         private MapWindow _window;
 
         static RoundTableDrawable()
         {
-            var rtTex = new Texture("./Textures/RoundTable.png");
-            rtTex.Smooth = true;
-            _sprite = new Sprite(rtTex);
+            _roundTableTexture = new Texture("./Textures/RoundTable.png");
+            _roundTableTexture.Smooth = true;
+            _sprite = new Sprite(_roundTableTexture);
             _sprite.Origin = new Vector2f(113f, 113f);
         }
 
@@ -30,6 +32,7 @@ namespace EldenBingo.Rendering.Game
 
         public static void DisposeStatic()
         {
+            _roundTableTexture.Dispose();
             _sprite.Dispose();
         }
 
