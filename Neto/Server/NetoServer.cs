@@ -94,15 +94,7 @@ namespace Neto.Server
                 FireOnError(e.Message);
                 return;
             }
-            try
-            {
-                var stream = client.TcpClient.GetStream();
-                await stream.WriteAsync(data, client.CancellationToken.Token);
-            }
-            catch
-            {
-                await DropClient(client);
-            }
+            await sendBytesToClient(data, client);
         }
 
         protected virtual async Task DropClient(CM client)
@@ -143,15 +135,7 @@ namespace Neto.Server
             }
             foreach (var client in clients)
             {
-                try
-                {
-                    var stream = client.TcpClient.GetStream();
-                    await stream.WriteAsync(data, client.CancellationToken.Token);
-                }
-                catch
-                {
-                    await DropClient(client);
-                }
+                await sendBytesToClient(data, client);
             }
         }
 
@@ -159,6 +143,19 @@ namespace Neto.Server
         {
             var clientsToInclude = onlyRegistered ? _clients.Where(c => c.IsRegistered && c.ClientGuid != except) : _clients.Where(c => c.ClientGuid != except);
             await SendPacketToClients(p, clientsToInclude);
+        }
+
+        private async Task sendBytesToClient(byte[] bytes, CM client)
+        {
+            try
+            {
+                var stream = client.TcpClient.GetStream();
+                await stream.WriteAsync(bytes, client.CancellationToken.Token);
+            }
+            catch
+            {
+                await DropClient(client);
+            }
         }
 
         private static IPAddress[] getIpAddresses()
