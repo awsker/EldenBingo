@@ -272,8 +272,8 @@ namespace EldenBingo.UI
         private void lobbyControl_Load(object? sender, EventArgs e)
         {
             initHideLabel();
-            updateBingoSize();
             updateBingoMaximumSize();
+            updateBingoSize();
             updateScoreboardFont();
             updateScoreboardControlLocationAndSize();
         }
