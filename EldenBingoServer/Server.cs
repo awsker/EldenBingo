@@ -570,8 +570,8 @@ namespace EldenBingoServer
             if (room.Match.Board is ServerBingoBoard board)
             {
                 //Also send the bingo board if user should have it
-                bool matchLive = room.Match.MatchStatus >= MatchStatus.Preparation && room.Match.MatchMilliseconds >= 0;
-                if (matchLive || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
+                bool boardIsAvailableToAll = room.Match.MatchStatus >= MatchStatus.Preparation;
+                if (boardIsAvailableToAll || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
                 {
                     packet.AddObject(createEntireBoardPacket(board, clientInRoom));
                 }
