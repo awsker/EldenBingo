@@ -35,9 +35,9 @@ namespace EldenBingoServer
 
         protected override async Task DropClient(BingoClientModel client)
         {
-            if (Hosting && client.Room != null)
+            if (client.Room != null)
                 await leaveUserRoom(client);
-            client.Stop();
+            await base.DropClient(client);
         }
 
         private async Task<bool> confirm(BingoClientModel client, bool? admin = null, bool? spectator = null, bool? inRoom = null, bool? hasBingoBoard = null, bool? gameStarted = null)
