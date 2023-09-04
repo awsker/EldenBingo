@@ -14,6 +14,11 @@ namespace Neto.Client
             CancellationToken = new CancellationTokenSource();
         }
 
+        ~NetoClient()
+        {
+            CancellationToken.Dispose();
+        }
+
         public event EventHandler? Connected;
 
         public event EventHandler<StringEventArgs>? Disconnected;
@@ -166,11 +171,12 @@ namespace Neto.Client
             }
             try
             {
-                var stream = _tcp.GetStream();
-                await stream.WriteAsync(data, CancellationToken.Token);
+                using (var cts = new CancellationTokenSource(5000))
+                {
+                    var stream = _tcp.GetStream();
+                    await stream.WriteAsync(data, cts.Token).ConfigureAwait(false);
+                }
             }
-            catch (OperationCanceledException)
-            { }
             catch (Exception e)
             {
                 CancellationToken.Cancel();

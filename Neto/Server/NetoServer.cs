@@ -30,6 +30,11 @@ namespace Neto.Server
                 _clientModelConstructor = clientModelConstructor;
         }
 
+        ~NetoServer()
+        {
+            _cancelToken.Dispose();
+        }
+
         public event EventHandler<ClientEventArgs<CM>>? OnClientConnected;
 
         public event EventHandler<ClientEventArgs<CM>>? OnClientDisconnected;
@@ -133,10 +138,14 @@ namespace Neto.Server
                 FireOnError(e.Message);
                 return;
             }
+            var tasks = new List<Task>();
+            
             foreach (var client in clients)
             {
-                await sendBytesToClient(data, client);
+                var t = sendBytesToClient(data, client);
+                tasks.Add(t);
             }
+            await Task.WhenAll(tasks);
         }
 
         protected async Task SendPacketToAllClientsExcept(Packet p, Guid except, bool onlyRegistered = false)
@@ -149,8 +158,21 @@ namespace Neto.Server
         {
             try
             {
+                if (!client.TcpClient.Connected)
+                {
+                    await DropClient(client);
+                }
                 var stream = client.TcpClient.GetStream();
-                await stream.WriteAsync(bytes, client.CancellationToken.Token);
+                using (var cts = new CancellationTokenSource(5000))
+                {
+                    await stream.WriteAsync(bytes, cts.Token).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                var ip = GetClientIp(client);
+                FireOnStatus($"Sending data to client timed out. Dropping client. ({ip})");
+                await DropClient(client);
             }
             catch
             {
@@ -184,6 +206,7 @@ namespace Neto.Server
             try
             {
                 var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
+                tcpClient.GetStream().WriteTimeout = 10000;
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 _clients.Add(client);
                 FireOnStatus($"Client connected ({GetClientIp(client)})");
