@@ -104,8 +104,9 @@ namespace EldenBingo
             _ = _client.RequestRoomName();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
+                var roomName = form.RoomName.Trim();
                 await _client.CreateRoom(
-                    form.RoomName,
+                    roomName,
                     form.AdminPassword,
                     form.Nickname,
                     form.Team,
@@ -135,8 +136,9 @@ namespace EldenBingo
             form.RoomName = _lastRoom;
             if (form.ShowDialog(this) == DialogResult.OK)
             {
+                _lastRoom = form.RoomName.Trim();
                 await _client.JoinRoom(
-                    form.RoomName,
+                    _lastRoom,
                     form.AdminPassword,
                     form.Nickname,
                     form.Team);
@@ -311,10 +313,6 @@ namespace EldenBingo
 
             void update()
             {
-                if (_client.Room != null)
-                {
-                    _lastRoom = _client.Room.Name;
-                }
                 if (_client.Room != null && _lobbyPage.Parent == null)
                 {
                     showLobbyTab();
