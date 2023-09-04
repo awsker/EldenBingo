@@ -169,9 +169,9 @@ namespace EldenBingoServer
                 return;
             string? deniedReason = null;
             if (string.IsNullOrWhiteSpace(request.RoomName))
-                deniedReason = "Invalid room name";
+                deniedReason = "Invalid lobby name";
             else if (_rooms.TryGetValue(request.RoomName, out _))
-                deniedReason = "Room already exists";
+                deniedReason = "Lobby with that name already exists";
             else if (string.IsNullOrWhiteSpace(request.Nick))
                 deniedReason = "Invalid nickname";
             if (deniedReason != null)
@@ -192,7 +192,7 @@ namespace EldenBingoServer
         {
             if (_rooms.TryGetValue(roomName, out _))
             {
-                throw new ApplicationException("Room already exists");
+                throw new ApplicationException("Lobby already exists");
             }
             var room = new ServerRoom(roomName, adminPass, creator, settings);
             room.TimerElapsed += onRoomTimerElapsed;
@@ -230,11 +230,11 @@ namespace EldenBingoServer
             string? deniedReason = null;
             ServerRoom? room = null;
             if (string.IsNullOrWhiteSpace(request.RoomName))
-                deniedReason = "Invalid room name";
+                deniedReason = "Invalid lobby name";
             else if (!_rooms.TryGetValue(request.RoomName, out room))
-                deniedReason = "Room doesn't exist";
+                deniedReason = "Lobby doesn't exist";
             else if (room != null && sender.Room == room)
-                deniedReason = "Already in this room";
+                deniedReason = "Already in this lobby";
             else if (string.IsNullOrWhiteSpace(request.Nick))
                 deniedReason = "Invalid nickname";
             else if (room != null && room.Users.Any(c => c.Nick == request.Nick))
