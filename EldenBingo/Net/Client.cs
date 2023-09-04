@@ -134,7 +134,7 @@ namespace EldenBingo
             var sameRoomAsBefore = Room != null && Room.Name == joinAccepted.RoomName;
 
             if (!sameRoomAsBefore)
-                FireOnStatus($"Joined lobby '{joinAccepted.RoomName}'");
+                FireOnStatus($"Joined lobby");
             var room = new Room(joinAccepted.RoomName);
             room.Match.UpdateMatchStatus(joinAccepted.MatchStatus, joinAccepted.Paused, joinAccepted.Timer);
             foreach (var user in joinAccepted.Users)
