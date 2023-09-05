@@ -96,6 +96,14 @@ namespace EldenBingo
 
         private async void _connectButton_Click(object sender, EventArgs e)
         {
+            lock (_connectLock)
+            {
+                if (_connecting)
+                {
+                    _consoleControl.PrintToConsole("Already connecting...", Color.Red);
+                    return;
+                }
+            }
             var form = new ConnectForm();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
@@ -105,17 +113,17 @@ namespace EldenBingo
 
         private async Task connect(string address, int port)
         {
+            lock (_connectLock)
+            {
+                if (_connecting)
+                    return;
+
+                _connecting = true;
+            }
             try
             {
-                lock (_connectLock)
-                {
-                    if (_connecting)
-                        return;
-
-                    _connecting = true;
-                }
                 var connectRetries = 5;
-                while (connectRetries > 0)
+                while (_connecting && connectRetries > 0)
                 {
                     try
                     {
@@ -171,14 +179,16 @@ namespace EldenBingo
 
         private async void _disconnectButton_Click(object sender, EventArgs e)
         {
-            if (_client?.IsConnected != true)
+            if (_client?.IsConnected != true && !_connecting)
                 return;
 
             var res = MessageBox.Show(this, "Disconnect from server?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (res == DialogResult.Yes)
             {
+                _connecting = false;
                 _autoReconnect = false;
-                await _client.Disconnect();
+                if(_client?.IsConnected == true)
+                    await _client.Disconnect();
                 updateButtonAvailability();
             }
         }
@@ -636,8 +646,10 @@ namespace EldenBingo
             BeginInvoke(new Action(() =>
             {
                 bool connected = _client?.IsConnected == true;
-                _connectButton.Visible = !connected;
-                _disconnectButton.Visible = connected;
+                var connectingOrConnected = _connecting || connected;
+                _connectButton.Visible = !connectingOrConnected;
+                _disconnectButton.Visible = connectingOrConnected;
+                
                 toolStripSeparator1.Visible = !connected;
 
                 bool inRoom = _client?.Room != null;
