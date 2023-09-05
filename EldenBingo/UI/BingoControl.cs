@@ -1,4 +1,5 @@
 ﻿using EldenBingo.Net;
+using EldenBingo.Util;
 using EldenBingoCommon;
 using Neto.Shared;
 using System.Drawing.Drawing2D;
@@ -13,6 +14,9 @@ namespace EldenBingo.UI
         private string[] _boardStatusStrings = { "Waiting for match to start...", "Click to reveal...", "Match Starting...", "" };
         private bool _revealed = false;
         private BingoSquareControl[] Squares;
+        private MainForm? _form;
+
+        private KeyHandler? _keyHandler;
 
         public BingoControl() : base()
         {
@@ -35,6 +39,7 @@ namespace EldenBingo.UI
             _gridControl.SizeChanged += _gridControl_SizeChanged;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
         }
+
 
         private enum BoardStatusEnum
         {
@@ -164,6 +169,24 @@ namespace EldenBingo.UI
         {
             _gridControl.UpdateGrid();
             recalculateFontSizeForSquares();
+            _form = FindForm() as MainForm;
+            if (_form != null)
+            {
+                _form.HotkeyPressed += mainForm_HotkeyPressed;
+            }
+            setupClickHotkey();
+        }
+
+        private async void mainForm_HotkeyPressed(object? sender, HotkeyEventArgs e)
+        {
+            foreach (var square in Squares)
+            {
+                if (square.MouseOver)
+                {
+                    await clickSquare(square);
+                    return;
+                }
+            }
         }
 
         private void bingoControl_SizeChanged(object? sender, EventArgs e)
@@ -200,6 +223,21 @@ namespace EldenBingo.UI
                 e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize))
             {
                 recalculateFontSizeForSquares();
+            }
+            if (e.PropertyName == nameof(Properties.Settings.Default.ClickHotkey))
+            {
+                setupClickHotkey();
+            }
+        }
+
+        private void setupClickHotkey()
+        {
+            _keyHandler?.Unregister();
+            var key = (Keys)Properties.Settings.Default.ClickHotkey;
+            if (_form != null && key != Keys.None && key != Keys.Escape)
+            {
+                _keyHandler = new KeyHandler(key, _form);
+                _keyHandler.Register();
             }
         }
 
@@ -280,45 +318,63 @@ namespace EldenBingo.UI
 
             if (e.Button == MouseButtons.Left && Client.Room.Match.MatchStatus >= MatchStatus.Running)
             {
-                var userToSetFor = getUserToSetFor();
-                if (userToSetFor == null)
-                    return;
-
-                var square = Client.Room.Match.Board.Squares[c.Index];
-                var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
-                if (square.MaxCount <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
-                {
-                    await Client.SendPacketToServer(p);
-                }
-                else
-                {
-                    var currentTeamCount = c.Counters.FirstOrDefault(t => t.Team == userToSetFor.Team).Counter;
-                    //Will reach the max count with this click, so include a check packet
-                    if (currentTeamCount + 1 == square.MaxCount)
-                    {
-                        //Increment 1 and check the square
-                        p.AddObject(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                    }
-                    //Already at max count, so decrease counter and include an uncheck packet
-                    else if (currentTeamCount == square.MaxCount)
-                    {
-                        //Decrement 1 and uncheck the square - Only when the square is currently owned by this user's team
-                        if (square.Team == userToSetFor.Team)
-                            p.AddObject(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
-                    }
-                    else if (square.Team != userToSetFor.Team)
-                    {
-                        //Increment 1 if the team doesn't already own the square
-                        p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                    }
-                    await Client.SendPacketToServer(p);
-                }
+                await clickSquare(c);
             }
             if (e.Button == MouseButtons.Right && Client.Room.Match.MatchStatus >= MatchStatus.Preparation)
             {
-                var p = new Packet(new ClientTryMark(c.Index));
+                await markSquare(c);
+            }
+        }
+
+        private async Task clickSquare(BingoSquareControl c)
+        {
+            //No room or no board set in room
+            if (Client?.Room?.Match?.Board == null)
+                return;
+
+            var userToSetFor = getUserToSetFor();
+            if (userToSetFor == null)
+                return;
+
+            var square = Client.Room.Match.Board.Squares[c.Index];
+            var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
+            if (square.MaxCount <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
+            {
                 await Client.SendPacketToServer(p);
             }
+            else
+            {
+                var currentTeamCount = c.Counters.FirstOrDefault(t => t.Team == userToSetFor.Team).Counter;
+                //Will reach the max count with this click, so include a check packet
+                if (currentTeamCount + 1 == square.MaxCount)
+                {
+                    //Increment 1 and check the square
+                    p.AddObject(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
+                }
+                //Already at max count, so decrease counter and include an uncheck packet
+                else if (currentTeamCount == square.MaxCount)
+                {
+                    //Decrement 1 and uncheck the square - Only when the square is currently owned by this user's team
+                    if (square.Team == userToSetFor.Team)
+                        p.AddObject(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
+                }
+                else if (square.Team != userToSetFor.Team)
+                {
+                    //Increment 1 if the team doesn't already own the square
+                    p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
+                }
+                await Client.SendPacketToServer(p);
+            }
+        }
+
+        private async Task markSquare(BingoSquareControl c)
+        {
+            //No room or no board set in room
+            if (Client?.Room?.Match?.Board == null)
+                return;
+
+            var p = new Packet(new ClientTryMark(c.Index));
+            await Client.SendPacketToServer(p);
         }
 
         private async void square_MouseWheel(object? sender, MouseEventArgs e)
@@ -379,7 +435,7 @@ namespace EldenBingo.UI
             private Color _color;
             private TeamCounter[] _counters;
             private bool _marked;
-            private bool _mouseOver;
+            public bool MouseOver;
 
             public BingoSquareControl(int index, string text, string tooltip)
             {
@@ -392,12 +448,12 @@ namespace EldenBingo.UI
                 var control = this;
                 MouseEnter += (o, e) =>
                 {
-                    _mouseOver = true;
+                    MouseOver = true;
                     control.Invalidate();
                 };
                 MouseLeave += (o, e) =>
                 {
-                    _mouseOver = false;
+                    MouseOver = false;
                     control.Invalidate();
                 };
             }
@@ -558,7 +614,7 @@ namespace EldenBingo.UI
                 bool isChecked = _color.A == 255;
                 var color = isChecked ? _color : BgColor;
 
-                if (_mouseOver)
+                if (MouseOver)
                 {
                     color = color.Brighten(0.14f);
                 }

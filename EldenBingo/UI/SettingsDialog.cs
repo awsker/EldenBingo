@@ -4,6 +4,9 @@
     {
         private const float fontSize = 12f;
 
+        private Keys _outOfFocusKey, _outOfFocusKeyWhenDialogOpened;
+        private bool _rebindingKey = false;
+
         public SettingsDialog()
         {
             InitializeComponent();
@@ -13,6 +16,7 @@
         private void _cancelButton_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
+            Properties.Settings.Default.ClickHotkey = (int) _outOfFocusKeyWhenDialogOpened;
             Close();
         }
 
@@ -91,9 +95,15 @@
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
             _volumeTrackBar.Value = Convert.ToInt32(Properties.Settings.Default.SoundVolume / 10f);
 
+            _outOfFocusKeyWhenDialogOpened = _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
+
+            //This will unregister the previous hotkey if set, so it can be detected in this dialog
+            Properties.Settings.Default.ClickHotkey = (int)Keys.None;
+
             updateSizeEnable();
             updatePositionEnable();
             updateMaxSizeEnable();
+            updateOutOfFocusText();
         }
 
         private void updateSizeEnable()
@@ -200,6 +210,8 @@
             Properties.Settings.Default.PlaySounds = _soundCheckBox.Checked;
             Properties.Settings.Default.SoundVolume = Math.Clamp(_volumeTrackBar.Value * 10, 0, 100);
 
+            Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
+
             Properties.Settings.Default.Save();
             return true;
         }
@@ -208,5 +220,43 @@
         {
             _swapMouseButtons.Text = _swapMouseButtons.Text.Replace("***", "\r\n");
         }
+
+        private void _outOfFocusClickTextBox_Enter(object sender, EventArgs e)
+        {
+            _rebindingKey = true;
+            updateOutOfFocusText();
+        }
+
+        private void _outOfFocusClickTextBox_Leave(object sender, EventArgs e)
+        {
+            _rebindingKey = false;
+            updateOutOfFocusText();
+        }
+
+        private void _outOfFocusClickTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(_rebindingKey)
+            {
+                if (e.KeyCode != Keys.Escape)
+                    _outOfFocusKey = e.KeyCode;
+                _rebindingKey = false;
+                updateOutOfFocusText();
+                label11.Focus();
+            }
+        }
+
+        private void updateOutOfFocusText()
+        {
+            if(_rebindingKey)
+            {
+                _outOfFocusClickTextBox.Text = "Press a key...";
+            }
+            else
+            {
+                _outOfFocusClickTextBox.Text = _outOfFocusKey.ToString().ToUpper();
+            }
+        }
+
+        
     }
 }

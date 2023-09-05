@@ -478,5 +478,17 @@ namespace EldenBingo.Properties {
                 this["SoundVolume"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ClickHotkey {
+            get {
+                return ((int)(this["ClickHotkey"]));
+            }
+            set {
+                this["ClickHotkey"] = value;
+            }
+        }
     }
 }

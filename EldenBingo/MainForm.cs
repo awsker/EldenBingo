@@ -9,7 +9,6 @@ using EldenBingoCommon;
 using EldenBingoServer;
 using Neto.Shared;
 using SFML.System;
-using System.Media;
 using System.Security.Principal;
 
 namespace EldenBingo
@@ -24,6 +23,10 @@ namespace EldenBingo
         private Server? _server = null;
         private string _lastRoom = string.Empty;
         private SoundLibrary _sounds;
+
+        private const int WM_HOTKEY_MSG_ID = 0x0312;
+
+        public event EventHandler<HotkeyEventArgs>? HotkeyPressed;
 
         public MainForm()
         {
@@ -447,6 +450,15 @@ namespace EldenBingo
             //We store the Width and Height in 96 DPI scale, so need to convert the window width and height
             Properties.Settings.Default.MainWindowSizeX = Convert.ToInt32(Width / scale.Width);
             Properties.Settings.Default.MainWindowSizeY = Convert.ToInt32(Height / scale.Height);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_HOTKEY_MSG_ID)
+            {
+                HotkeyPressed?.Invoke(this, new HotkeyEventArgs(m.WParam.ToInt32()));
+            }
+            base.WndProc(ref m);
         }
 
         private void openMapWindow()

@@ -65,11 +65,13 @@
             this._showClassesCheckBox = new System.Windows.Forms.CheckBox();
             this._swapMouseButtons = new System.Windows.Forms.CheckBox();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this._outOfFocusClickTextBox = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
             this._clickIncrementsCountCheckbox = new System.Windows.Forms.CheckBox();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.label10 = new System.Windows.Forms.Label();
             this._volumeTrackBar = new System.Windows.Forms.TrackBar();
             this._soundCheckBox = new System.Windows.Forms.CheckBox();
-            this.label10 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -84,7 +86,7 @@
             // _okButton
             // 
             this._okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._okButton.Location = new System.Drawing.Point(548, 356);
+            this._okButton.Location = new System.Drawing.Point(574, 401);
             this._okButton.Name = "_okButton";
             this._okButton.Size = new System.Drawing.Size(75, 23);
             this._okButton.TabIndex = 12;
@@ -95,7 +97,7 @@
             // _cancelButton
             // 
             this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(629, 356);
+            this._cancelButton.Location = new System.Drawing.Point(655, 401);
             this._cancelButton.Name = "_cancelButton";
             this._cancelButton.Size = new System.Drawing.Size(75, 23);
             this._cancelButton.TabIndex = 13;
@@ -180,7 +182,7 @@
             this.groupBox2.Controls.Add(this._bingoNoMaxSizeRadioButton);
             this.groupBox2.Controls.Add(this._bingoMaxXTextBox);
             this.groupBox2.Controls.Add(this.label4);
-            this.groupBox2.Location = new System.Drawing.Point(12, 239);
+            this.groupBox2.Location = new System.Drawing.Point(12, 251);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(200, 107);
             this.groupBox2.TabIndex = 11;
@@ -299,7 +301,7 @@
             this.groupBox4.Controls.Add(this._mapPositionRelativeRadioButton);
             this.groupBox4.Controls.Add(this._mapPositionXTextBox);
             this.groupBox4.Controls.Add(this.label7);
-            this.groupBox4.Location = new System.Drawing.Point(12, 130);
+            this.groupBox4.Location = new System.Drawing.Point(12, 133);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(200, 107);
             this.groupBox4.TabIndex = 6;
@@ -367,7 +369,7 @@
             this.groupBox5.Controls.Add(this._hostServerCheckBox);
             this.groupBox5.Location = new System.Drawing.Point(495, 15);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(209, 90);
+            this.groupBox5.Size = new System.Drawing.Size(233, 90);
             this.groupBox5.TabIndex = 17;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Server";
@@ -402,7 +404,7 @@
             // 
             this.groupBox6.Controls.Add(this._showClassesCheckBox);
             this.groupBox6.Controls.Add(this._swapMouseButtons);
-            this.groupBox6.Location = new System.Drawing.Point(237, 228);
+            this.groupBox6.Location = new System.Drawing.Point(237, 292);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(233, 118);
             this.groupBox6.TabIndex = 20;
@@ -429,15 +431,37 @@
             // 
             // groupBox7
             // 
+            this.groupBox7.Controls.Add(this._outOfFocusClickTextBox);
+            this.groupBox7.Controls.Add(this.label11);
             this.groupBox7.Controls.Add(this._clickIncrementsCountCheckbox);
             this.groupBox7.Controls.Add(this._fontLinkLabel);
             this.groupBox7.Controls.Add(this.label8);
             this.groupBox7.Location = new System.Drawing.Point(237, 85);
             this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(233, 135);
+            this.groupBox7.Size = new System.Drawing.Size(233, 195);
             this.groupBox7.TabIndex = 17;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "Bingo Board";
+            // 
+            // _outOfFocusClickTextBox
+            // 
+            this._outOfFocusClickTextBox.Location = new System.Drawing.Point(9, 160);
+            this._outOfFocusClickTextBox.Name = "_outOfFocusClickTextBox";
+            this._outOfFocusClickTextBox.ReadOnly = true;
+            this._outOfFocusClickTextBox.Size = new System.Drawing.Size(105, 23);
+            this._outOfFocusClickTextBox.TabIndex = 21;
+            this._outOfFocusClickTextBox.Enter += new System.EventHandler(this._outOfFocusClickTextBox_Enter);
+            this._outOfFocusClickTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this._outOfFocusClickTextBox_KeyDown);
+            this._outOfFocusClickTextBox.Leave += new System.EventHandler(this._outOfFocusClickTextBox_Leave);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(9, 134);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(186, 15);
+            this.label11.TabIndex = 20;
+            this.label11.Text = "Out-of-focus click key (Keyboard)";
             // 
             // _clickIncrementsCountCheckbox
             // 
@@ -456,16 +480,26 @@
             this.groupBox8.Controls.Add(this._soundCheckBox);
             this.groupBox8.Location = new System.Drawing.Point(495, 116);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(209, 121);
+            this.groupBox8.Size = new System.Drawing.Size(233, 121);
             this.groupBox8.TabIndex = 21;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Sounds";
             // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(12, 52);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(47, 15);
+            this.label10.TabIndex = 22;
+            this.label10.Text = "Volume";
+            // 
             // _volumeTrackBar
             // 
-            this._volumeTrackBar.Location = new System.Drawing.Point(6, 76);
+            this._volumeTrackBar.AutoSize = false;
+            this._volumeTrackBar.Location = new System.Drawing.Point(6, 73);
             this._volumeTrackBar.Name = "_volumeTrackBar";
-            this._volumeTrackBar.Size = new System.Drawing.Size(197, 45);
+            this._volumeTrackBar.Size = new System.Drawing.Size(221, 35);
             this._volumeTrackBar.TabIndex = 21;
             // 
             // _soundCheckBox
@@ -478,22 +512,12 @@
             this._soundCheckBox.Text = "Enable alert sounds";
             this._soundCheckBox.UseVisualStyleBackColor = true;
             // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(12, 55);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(47, 15);
-            this.label10.TabIndex = 22;
-            this.label10.Text = "Volume";
-            // 
             // SettingsDialog
             // 
             this.AcceptButton = this._okButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(716, 391);
+            this.ClientSize = new System.Drawing.Size(742, 436);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
             this.Controls.Add(this.groupBox6);
@@ -575,5 +599,7 @@
         private CheckBox _soundCheckBox;
         private TrackBar _volumeTrackBar;
         private Label label10;
+        private TextBox _outOfFocusClickTextBox;
+        private Label label11;
     }
 }
