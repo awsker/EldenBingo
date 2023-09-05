@@ -4,16 +4,16 @@
     {
         private List<object> _objects;
 
-        public Packet(params object[] objectsToSend) : this(NetConstants.PacketTypes.ObjectData, objectsToSend)
+        public Packet(params object[] objectsToSend) : this(PacketTypes.ObjectData, objectsToSend)
         { }
 
-        internal Packet(NetConstants.PacketTypes packetType, params object[] objectsToSend)
+        internal Packet(PacketTypes packetType, params object[] objectsToSend)
         {
             PacketType = packetType;
             _objects = new List<object>(objectsToSend ?? Array.Empty<object>());
         }
 
-        public NetConstants.PacketTypes PacketType { get; }
+        public PacketTypes PacketType { get; }
 
         public int NumObjects => Objects.Count;
 

@@ -112,9 +112,9 @@ namespace Neto.Server
             client.Stop();
         }
 
-        protected async Task KickClient(CM client)
+        protected async Task KickClient(CM client, string reason)
         {
-            var packet = new Packet(NetConstants.PacketTypes.ServerClientDropped);
+            var packet = new Packet(PacketTypes.ServerClientDropped, new ServerKicked(reason));
             await SendPacketToClient(packet, client);
             await DropClient(client);
         }
@@ -240,14 +240,14 @@ namespace Neto.Server
         private async Task handleIncomingPacket(CM client, Packet packet)
         {
             //A non-registered client's first packet better be ClientRegister, otherwise kicked and socket closed
-            if (!client.IsRegistered && packet.PacketType != NetConstants.PacketTypes.ClientRegister)
+            if (!client.IsRegistered && packet.PacketType != PacketTypes.ClientRegister)
             {
                 await DropClient(client);
                 return;
             }
             switch (packet.PacketType)
             {
-                case NetConstants.PacketTypes.ClientRegister:
+                case PacketTypes.ClientRegister:
                     ClientRegister? objData = packet.GetObjectData<ClientRegister>();
                     if (objData?.Message != NetConstants.ClientRegisterString)
                     {
@@ -256,7 +256,7 @@ namespace Neto.Server
                     }
                     if (objData?.Version != Version)
                     {
-                        var deniedPacket = new Packet(NetConstants.PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {objData?.Version}. Server is running version {Version}"));
+                        var deniedPacket = new Packet(PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {objData?.Version}. Server is running version {Version}"));
                         await SendPacketToClient(deniedPacket, client);
                         await DropClient(client);
                         return;
@@ -264,17 +264,17 @@ namespace Neto.Server
                     if (!client.IsRegistered)
                     {
                         client.IsRegistered = true;
-                        var acceptPacket = new Packet(NetConstants.PacketTypes.ServerRegisterAccepted, new ServerRegisterAccepted(NetConstants.ServerRegisterString, client.ClientGuid));
+                        var acceptPacket = new Packet(PacketTypes.ServerRegisterAccepted, new ServerRegisterAccepted(NetConstants.ServerRegisterString, client.ClientGuid));
                         await SendPacketToClient(acceptPacket, client);
                         fireOnClientConnected(client);
                     }
                     break;
 
-                case NetConstants.PacketTypes.ClientDisconnect:
+                case PacketTypes.ClientDisconnect:
                     await DropClient(client);
                     break;
 
-                case NetConstants.PacketTypes.ObjectData:
+                case PacketTypes.ObjectData:
                     DispatchObjectsInPacket(client, packet);
                     break;
             }
@@ -310,7 +310,7 @@ namespace Neto.Server
 
         private async Task sendShutdownToAll()
         {
-            var packet = new Packet(NetConstants.PacketTypes.ServerShutdown);
+            var packet = new Packet(PacketTypes.ServerShutdown);
             await SendPacketToAllClients(packet);
             foreach (var c in _clients)
             {
@@ -331,8 +331,8 @@ namespace Neto.Server
                         if (++client.MalformedPackets >= 3)
                         {
                             var ip = GetClientIp(client);
-                            await KickClient(client);
-                            FireOnStatus($"Client ({ip}) sent too many malformed packets");
+                            await KickClient(client, "Sent too many malformed packets");
+                            FireOnStatus($"Client ({ip}) kicked for sending too many malformed packets");
                             break;
                         }
                     }

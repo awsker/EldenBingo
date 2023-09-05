@@ -6,17 +6,26 @@
         public const string ClientRegisterString = "hello";
         public static readonly byte[] EndOfMessage = new byte[] { 0xFB, 0xFC, 0xFD, 0xFE };
 
-        public enum PacketTypes
-        {
-            ServerRegisterAccepted,
-            ServerRegisterDenied,
-            ServerClientDropped,
-            ServerShutdown,
+        
+    }
 
-            ClientRegister,
-            ClientDisconnect,
+    public enum ConnectionResult
+    {
+        Connected,
+        Denied,
+        Exception,
+    }
 
-            ObjectData,
-        }
+    public enum PacketTypes
+    {
+        ServerRegisterAccepted,
+        ServerRegisterDenied,
+        ServerClientDropped,
+        ServerShutdown,
+
+        ClientRegister,
+        ClientDisconnect,
+
+        ObjectData,
     }
 }

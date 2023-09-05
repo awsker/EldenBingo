@@ -2,6 +2,7 @@
 using Neto.Shared;
 using System.Net;
 using System.Net.Sockets;
+using Neto.Shared;
 
 namespace Neto.Client
 {
@@ -22,6 +23,8 @@ namespace Neto.Client
         public event EventHandler? Connected;
 
         public event EventHandler<StringEventArgs>? Disconnected;
+
+        public event EventHandler? Kicked;
 
         public virtual string Version => "1";
 
@@ -75,18 +78,18 @@ namespace Neto.Client
                 return "Connected";
         }
 
-        public async Task<bool> Connect(string address, int port)
+        public async Task<ConnectionResult> Connect(string address, int port)
         {
             var ipEndpoint = EndPointFromAddress(address, port, out string error);
             if (ipEndpoint == null)
             {
                 FireOnError(error);
-                return false;
+                return ConnectionResult.Denied;
             }
             if (_tcp != null && _tcp.Connected)
             {
                 FireOnError("Already connected");
-                return false;
+                return ConnectionResult.Denied;
             }
             CancellationToken = new CancellationTokenSource();
             _tcp = new TcpClient(ipEndpoint.AddressFamily);
@@ -98,7 +101,7 @@ namespace Neto.Client
                 if (_tcp.Connected)
                 {
                     FireOnStatus("Connected to server");
-                    _ = Task.Run(run);
+                    _ = run();
                 }
                 else
                 {
@@ -109,8 +112,9 @@ namespace Neto.Client
             catch (Exception e)
             {
                 FireOnError($"Connect Error: {e.Message}");
+                return ConnectionResult.Exception;
             }
-            return _tcp.Connected;
+            return _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
         }
 
         public async Task<bool> Connect(IPEndPoint ipEndpoint)
@@ -147,7 +151,7 @@ namespace Neto.Client
 
         public async Task Disconnect()
         {
-            await SendPacketToServer(new Packet(NetConstants.PacketTypes.ClientDisconnect));
+            await SendPacketToServer(new Packet(PacketTypes.ClientDisconnect));
             CancellationToken.Cancel();
         }
 
@@ -194,11 +198,16 @@ namespace Neto.Client
             Disconnected?.Invoke(this, new StringEventArgs(message));
         }
 
+        private void FireOnKicked()
+        {
+            Kicked?.Invoke(this, EventArgs.Empty);
+        }
+
         private async Task handleIncomingPacket(Packet packet)
         {
             switch (packet.PacketType)
             {
-                case NetConstants.PacketTypes.ServerRegisterAccepted:
+                case PacketTypes.ServerRegisterAccepted:
                     ServerRegisterAccepted? objData = packet.GetObjectData<ServerRegisterAccepted>();
                     if (objData?.Message == NetConstants.ServerRegisterString)
                     {
@@ -211,22 +220,27 @@ namespace Neto.Client
                         await Disconnect();
                     }
                     break;
-                case NetConstants.PacketTypes.ServerRegisterDenied:
+                case PacketTypes.ServerRegisterDenied:
                     ServerRegisterDenied? deniedData = packet.GetObjectData<ServerRegisterDenied>();
                     FireOnDisconnect($"Registration denied: {deniedData?.Message ?? "Unknown reason"}");
                     await Disconnect();
                     break;
-                case NetConstants.PacketTypes.ServerClientDropped:
+                case PacketTypes.ServerClientDropped:
                     CancellationToken.Cancel();
-                    FireOnDisconnect("Kicked from server");
+                    ServerKicked? kickedData = packet.GetObjectData<ServerKicked>();
+                    FireOnKicked();
+                    if (kickedData != null)
+                        FireOnDisconnect($"Kicked from server: {kickedData.Reason}");
+                    else
+                        FireOnDisconnect($"Kicked from server");
                     break;
 
-                case NetConstants.PacketTypes.ServerShutdown:
+                case PacketTypes.ServerShutdown:
                     CancellationToken.Cancel();
                     FireOnDisconnect("Server shutting down");
                     break;
 
-                case NetConstants.PacketTypes.ObjectData:
+                case PacketTypes.ObjectData:
                     DispatchObjectsInPacket(null, packet);
                     break;
             }
@@ -236,7 +250,7 @@ namespace Neto.Client
         {
             try
             {
-                var registerPacket = new Packet(NetConstants.PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version));
+                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version));
                 await SendPacketToServer(registerPacket);
                 while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
                 {
@@ -252,8 +266,8 @@ namespace Neto.Client
             {
                 _tcp.Close();
             }
-            FireOnDisconnect("Disconnected");
             _tcp = null;
+            FireOnDisconnect("Disconnected");
         }
 
         private async Task waitForPacketAsync()

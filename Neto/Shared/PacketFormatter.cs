@@ -16,7 +16,7 @@ namespace Neto.Shared
         {
             options.Security.DepthStep(ref reader);
             var _ = reader.ReadArrayHeader();
-            var packetType = (NetConstants.PacketTypes)reader.ReadByte();
+            var packetType = (PacketTypes)reader.ReadByte();
             var objectCount = reader.ReadInt32();
             var objects = new List<object>();
             for (int i = 0; i < objectCount; ++i)

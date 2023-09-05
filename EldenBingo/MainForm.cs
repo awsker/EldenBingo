@@ -22,7 +22,11 @@ namespace EldenBingo
         private Thread? _mapWindowThread;
         private Server? _server = null;
         private string _lastRoom = string.Empty;
+        private string _lastAdminPass = string.Empty;
         private SoundLibrary _sounds;
+        private bool _autoReconnect;
+        private static object _connectLock = new object();
+        private bool _connecting = false;
 
         private const int WM_HOTKEY_MSG_ID = 0x0312;
 
@@ -45,6 +49,7 @@ namespace EldenBingo
 
             FormClosing += (o, e) =>
             {
+                _autoReconnect = false;
                 _processHandler.Dispose();
                 _sounds.Dispose();
                 _mapWindow?.DisposeDrawablesOnExit();
@@ -94,7 +99,53 @@ namespace EldenBingo
             var form = new ConnectForm();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
-                await initClientAsync(form.Address, form.Port);
+                await connect(form.Address, form.Port);
+            }
+        }
+
+        private async Task connect(string address, int port)
+        {
+            try
+            {
+                lock (_connectLock)
+                {
+                    if (_connecting)
+                        return;
+
+                    _connecting = true;
+                }
+                var connectRetries = 5;
+                while (connectRetries > 0)
+                {
+                    try
+                    {
+                        ConnectionResult connectResult = await initClientAsync(address, port);
+                        if (connectResult == ConnectionResult.Connected)
+                        {
+                            if (_autoReconnect && !string.IsNullOrEmpty(_lastRoom))
+                            {
+                                await _client.JoinRoom(
+                                _lastRoom,
+                                _lastAdminPass,
+                                Properties.Settings.Default.Nickname,
+                                Properties.Settings.Default.Team);
+                            }
+                            //Set the flag to automatically reconnect. This will be set to false if a disconnect is triggered manually or by kick
+                            _autoReconnect = true;
+                            return; //Successfully connected, so we return immediately
+                        }
+                    }
+                    catch
+                    {
+                        //Try again
+                    }
+                    --connectRetries;
+                    await Task.Delay(2000);
+                }
+            }
+            finally
+            {
+                _connecting = false;
             }
         }
 
@@ -107,10 +158,11 @@ namespace EldenBingo
             _ = _client.RequestRoomName();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
-                var roomName = form.RoomName.Trim();
+                _lastRoom = form.RoomName.Trim();
+                _lastAdminPass = form.AdminPassword;
                 await _client.CreateRoom(
-                    roomName,
-                    form.AdminPassword,
+                    _lastRoom,
+                    _lastAdminPass,
                     form.Nickname,
                     form.Team,
                     GameSettingsHelper.ReadFromSettings(Properties.Settings.Default));
@@ -125,6 +177,7 @@ namespace EldenBingo
             var res = MessageBox.Show(this, "Disconnect from server?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (res == DialogResult.Yes)
             {
+                _autoReconnect = false;
                 await _client.Disconnect();
                 updateButtonAvailability();
             }
@@ -140,6 +193,7 @@ namespace EldenBingo
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 _lastRoom = form.RoomName.Trim();
+                _lastAdminPass = form.AdminPassword;
                 await _client.JoinRoom(
                     _lastRoom,
                     form.AdminPassword,
@@ -224,6 +278,7 @@ namespace EldenBingo
 
             client.Connected += client_Connected;
             client.Disconnected += client_Disconnected;
+            client.Kicked += client_Kicked;
             client.OnStatus += client_OnStatus;
             client.OnError += client_OnError;
             client.OnRoomChanged += client_RoomChanged;
@@ -239,15 +294,25 @@ namespace EldenBingo
             updateButtonAvailability();
         }
 
-        private void client_Disconnected(object? sender, StringEventArgs e)
+        private async void client_Disconnected(object? sender, StringEventArgs e)
         {
             Invoke(hideLobbyTab);
             updateButtonAvailability();
-            BeginInvoke(new Action(() =>
+            BeginInvoke(() =>
             {
                 _consoleControl.PrintToConsole(e.Message, Color.Red);
                 _clientStatusTextBox.Text = _client.GetConnectionStatusString();
-            }));
+            });
+            if (_autoReconnect && !string.IsNullOrWhiteSpace(Properties.Settings.Default.ServerAddress))
+            {
+                await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
+            }
+            _autoReconnect = false;
+        }
+
+        private void client_Kicked(object? sender, EventArgs e)
+        {
+            _autoReconnect = false; //So we don't reconnect automatically after kick
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
@@ -378,21 +443,23 @@ namespace EldenBingo
             }
         }
 
-        private async Task initClientAsync(string address, int port)
+        private async Task<ConnectionResult> initClientAsync(string address, int port)
         {
             if (_client.IsConnected == true)
                 await _client.Disconnect();
             updateButtonAvailability();
 
-            var ipendpoint = Client.EndPointFromAddress(address, port, out string error);
+            var ipendpoint = Neto.Client.NetoClient.EndPointFromAddress(address, port, out string error);
             if (ipendpoint == null)
             {
                 MessageBox.Show(this, error, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return ConnectionResult.Denied;
             }
             else
             {
-                await _client.Connect(address, port);
+                var connectResult = await _client.Connect(address, port);
                 updateButtonAvailability();
+                return connectResult;
             }
         }
 
@@ -431,7 +498,7 @@ namespace EldenBingo
 
             if (Properties.Settings.Default.AutoConnect && !string.IsNullOrWhiteSpace(Properties.Settings.Default.ServerAddress))
             {
-                await initClientAsync(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
+                await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
         }
 
