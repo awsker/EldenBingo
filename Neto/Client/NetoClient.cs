@@ -2,7 +2,6 @@
 using Neto.Shared;
 using System.Net;
 using System.Net.Sockets;
-using Neto.Shared;
 
 namespace Neto.Client
 {
