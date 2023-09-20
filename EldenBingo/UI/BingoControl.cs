@@ -14,7 +14,6 @@ namespace EldenBingo.UI
         private string[] _boardStatusStrings = { "Waiting for match to start...", "Click to reveal...", "Match Starting...", "" };
         private bool _revealed = false;
         private BingoSquareControl[] Squares;
-        private MainForm? _form;
 
         private KeyHandler? _keyHandler;
 
@@ -169,15 +168,10 @@ namespace EldenBingo.UI
         {
             _gridControl.UpdateGrid();
             recalculateFontSizeForSquares();
-            _form = FindForm() as MainForm;
-            if (_form != null)
-            {
-                _form.HotkeyPressed += mainForm_HotkeyPressed;
-            }
             setupClickHotkey();
         }
 
-        private async void mainForm_HotkeyPressed(object? sender, HotkeyEventArgs e)
+        private async void hotkeyPressed(object? sender, EventArgs e)
         {
             foreach (var square in Squares)
             {
@@ -232,12 +226,16 @@ namespace EldenBingo.UI
 
         private void setupClickHotkey()
         {
-            _keyHandler?.Unregister();
             var key = (Keys)Properties.Settings.Default.ClickHotkey;
-            if (_form != null && key != Keys.None && key != Keys.Escape)
+            if (key != Keys.None && key != Keys.Escape)
             {
-                _keyHandler = new KeyHandler(key, _form);
-                _keyHandler.Register();
+                if (_keyHandler != null)
+                {
+                    _keyHandler.KeyPressed -= hotkeyPressed;
+                    _keyHandler.Stop();
+                }
+                _keyHandler = new KeyHandler(key);
+                _keyHandler.KeyPressed += hotkeyPressed;
             }
         }
 

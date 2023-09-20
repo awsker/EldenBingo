@@ -4,36 +4,57 @@ namespace EldenBingo.Util
 {
     public class KeyHandler
     {
-        [DllImport("user32.dll")]
-        private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+        private const int WM_KEYDOWN = 0x8000;
 
-        [DllImport("user32.dll")]
-        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        [DllImport("User32.dll")]
+        public static extern short GetAsyncKeyState(Keys keys);
 
-        private int key;
-        private IntPtr hWnd;
-        private int id;
+        private Keys key;
+        private bool _running = false;
+        private bool _pressed = false;
+        private Thread? _thread;
 
-        public KeyHandler(Keys key, Form form)
+        public event EventHandler? KeyPressed, KeyReleased;
+
+        public KeyHandler(Keys key)
         {
-            this.key = (int)key;
-            this.hWnd = form.Handle;
-            id = this.GetHashCode();
+            this.key = key;
+            Start();
         }
 
-        public override int GetHashCode()
+        public void Start()
         {
-            return key ^ hWnd.ToInt32();
+            if (!_running)
+            {
+                _running = true;
+                _thread = new Thread(poll);
+                _thread.Start();
+            }
         }
 
-        public bool Register()
+        private void poll()
         {
-            return RegisterHotKey(hWnd, id, 0, key);
+            while(_running)
+            {
+                var status = GetAsyncKeyState(key);
+                
+                if(!_pressed && (status & WM_KEYDOWN) > 0)
+                {
+                    _pressed = true;
+                    KeyPressed?.Invoke(this, EventArgs.Empty);
+                }
+                if(_pressed && (status & WM_KEYDOWN) == 0)
+                {
+                    _pressed = false;
+                    KeyReleased?.Invoke(this, EventArgs.Empty);
+                }
+                Thread.Sleep(20);
+            }
         }
 
-        public bool Unregister()
+        public void Stop()
         {
-            return UnregisterHotKey(hWnd, id);
+            _running = false;
         }
     }
 }
