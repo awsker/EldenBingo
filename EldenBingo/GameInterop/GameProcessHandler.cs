@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using Microsoft.Win32;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -411,15 +412,23 @@ namespace EldenBingo.GameInterop
 
         private bool IsEACRunning()
         {
-            foreach (var sc in GetEACServices())
+            try
             {
-                bool eacRunning = sc.Status == ServiceControllerStatus.Running ||
-                             sc.Status == ServiceControllerStatus.ContinuePending ||
-                             sc.Status == ServiceControllerStatus.StartPending;
-                if (eacRunning)
+                foreach (var sc in GetEACServices())
                 {
-                    return true;
+                    bool eacRunning = sc.Status == ServiceControllerStatus.Running ||
+                                 sc.Status == ServiceControllerStatus.ContinuePending ||
+                                 sc.Status == ServiceControllerStatus.StartPending;
+                    if (eacRunning)
+                    {
+                        return true;
+                    }
                 }
+            }
+            catch(Win32Exception)
+            {
+                //Exception reading services, let the app continue
+                return false;
             }
             return false;
         }
@@ -528,7 +537,15 @@ namespace EldenBingo.GameInterop
             {
                 if (!_startup)
                 {
-                    var process = GetGameProcess();
+                    Process? process = null;
+                    try
+                    {
+                        process = GetGameProcess();
+                    } 
+                    catch (Win32Exception)
+                    {
+                        //This seems to happen sometimes when the game is just starting. Ignore it and wait for next loop
+                    }
                     if (process == null) //No process found
                     {
                         //If we already had a reference to the process, the game has exited
