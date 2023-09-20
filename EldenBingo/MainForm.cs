@@ -154,6 +154,7 @@ namespace EldenBingo
             finally
             {
                 _connecting = false;
+                updateButtonAvailability();
             }
         }
 
