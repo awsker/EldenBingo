@@ -139,7 +139,7 @@ namespace EldenBingo.Rendering.Game
             {
                 x = boundingBox.Value.Left + boundingBox.Value.Width * 0.5f;
                 y = boundingBox.Value.Top + boundingBox.Value.Height * 0.5f;
-                boundingBox = boundingBox.Value.Extrude(Math.Max(boundingBox.Value.Width, boundingBox.Value.Height) * 0.1f);
+                boundingBox = boundingBox.Value.Extrude(Math.Max(boundingBox.Value.Width, boundingBox.Value.Height) * 0.13f);
                 _camera.Position = new Vector2f(x, y);
                 var zoom = Math.Max(1f, Math.Max(boundingBox.Value.Width / _camera.Size.X, boundingBox.Value.Height / _camera.Size.Y));
                 setZoom(zoom);
