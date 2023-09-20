@@ -54,6 +54,9 @@
     <None Update="Sfx\square_claimed.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Textures\car.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Textures\Classes\Astrologer.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

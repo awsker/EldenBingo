@@ -10,8 +10,13 @@ namespace EldenBingo.Rendering.Game
         private static readonly Texture _playerIconTexture;
         private static readonly Sprite _playerArrowSprite;
         private static readonly Sprite _playerIconSprite;
+        private static readonly Texture _playerCarTexture;
+        private static readonly Sprite _playerCarSprite;
         private static readonly Shader? _shader;
         private static readonly SFML.Graphics.Font Font;
+
+        private Texture? _playerHeadTexture;
+        private Sprite? _playerHeadSprite;
 
         private float _targetX, _targetY, _targetAngle, _previousX, _previousY, _previousAngle, _interpTime, _angleDiff;
         private float _timeLeftToInterpolate = 0f;
@@ -32,6 +37,11 @@ namespace EldenBingo.Rendering.Game
             _playerIconTexture.Smooth = true;
             _playerIconSprite = new Sprite(_playerIconTexture);
             _playerIconSprite.Origin = new Vector2f(34f, 34f);
+
+            _playerCarTexture = new Texture("./Textures/car.png");
+            _playerCarTexture.Smooth = true;
+            _playerCarSprite = new Sprite(_playerCarTexture);
+            _playerCarSprite.Origin = new Vector2f(39f, 72f);
 
             try
             {
@@ -60,6 +70,8 @@ namespace EldenBingo.Rendering.Game
             Name = provider.Name;
             if (!string.IsNullOrWhiteSpace(Name))
                 NameTag = new Text(Name, Font, 42) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 3f };
+            //if(!string.IsNullOrEmpty(Name))
+            //    InitPlayerHead();
         }
 
         public bool Enabled { get; set; } = true;
@@ -80,6 +92,10 @@ namespace EldenBingo.Rendering.Game
             _playerIconSprite.Dispose();
             _playerTexture.Dispose();
             _playerIconTexture.Dispose();
+
+            _playerCarSprite.Dispose();
+            _playerCarTexture.Dispose();
+
             _shader?.Dispose();
         }
 
@@ -126,7 +142,7 @@ namespace EldenBingo.Rendering.Game
 
             var cameraScaleAdjust = (float)Math.Pow(_window.Camera.Zoom, 0.85); 
             //Initial scale, scaled up to match window size
-            var scale = 0.62f * cameraScaleAdjust;
+            var scale = 0.55f * cameraScaleAdjust;
             trans.Scale(scale, scale);
             var st = new RenderStates(BlendMode.Alpha, trans, _playerArrowSprite.Texture, _shader);
 
@@ -134,13 +150,16 @@ namespace EldenBingo.Rendering.Game
             _shader?.SetUniform("alpha", Underground ? 0.4f : 1.0f);
             _shader?.SetUniform("tint", color);
 
-            _window.Draw(_playerArrowSprite, st);
+            _window.Draw(_playerCarSprite, st);
 
-            trans = Transform.Identity;
-            trans.Translate(pos);
-            trans.Scale(scale, scale);
-            st = new RenderStates(BlendMode.Alpha, trans, _playerIconSprite.Texture, _shader);
-            _window.Draw(_playerIconSprite, st);
+            if (_playerHeadSprite != null)
+            {
+                trans = Transform.Identity;
+                trans.Translate(pos);
+                trans.Scale(scale, scale);
+                st = new RenderStates(BlendMode.Alpha, trans, _playerHeadSprite.Texture, null);
+                _window.Draw(_playerHeadSprite, st);
+            }
 
             if (_window.ShowPlayerNames && NameTag != null)
             {
@@ -157,6 +176,42 @@ namespace EldenBingo.Rendering.Game
             }
         }
 
+        public void InitPlayerHead()
+        {
+            if (string.IsNullOrWhiteSpace(Name))
+                return;
+
+            string spriteName = "";
+            if(Name.StartsWith("pup", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "pup.png";
+            if (Name.StartsWith("catalyst", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "catalystz.png";
+            if (Name.StartsWith("zoodle", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "zoodle.png";
+            if (Name.Contains("bri", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "bbb.png";
+            if (Name.Contains("npt", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "npt.png";
+            if (Name.Contains("cbd", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "cbd.png";
+            if (Name.Contains("bushy", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "bushy.png";
+            if (Name.Contains("aggy", StringComparison.InvariantCultureIgnoreCase))
+                spriteName = "aggy.png";
+
+            if(!string.IsNullOrWhiteSpace(spriteName))
+            {
+                _playerHeadTexture = new Texture($"./Textures/Heads/{spriteName}");
+                _playerHeadTexture.Smooth = true;
+
+                _playerHeadSprite = new Sprite(_playerHeadTexture);
+                _playerHeadSprite.Origin = new Vector2f(_playerHeadTexture.Size.X * 0.5f, _playerHeadTexture.Size.Y * 0.5f);
+
+                var scale = 0.8f * 100f / _playerHeadTexture.Size.Y;
+                _playerHeadSprite.Scale = new Vector2f(scale, scale);
+            }
+        }
+
         public Vector2f GetConvertedPosition()
         {
             var pos = new Vector2f(X, Y);
@@ -170,11 +225,12 @@ namespace EldenBingo.Rendering.Game
         public void Dispose()
         {
             NameTag?.Dispose();
+            _playerHeadSprite?.Dispose();
+            _playerHeadTexture?.Dispose();
         }
 
         private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
         {
-            
             _previousX = X;
             _previousY = Y;
             _previousAngle = Angle;
