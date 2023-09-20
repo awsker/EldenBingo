@@ -226,7 +226,7 @@ namespace EldenBingo.GameInterop
                     lock (_user)
                     {
                         var col = _user.ColorBright;
-                        return new SFML.Graphics.Color(col.R, col.B, col.B);
+                        return new SFML.Graphics.Color(col.R, col.G, col.B);
                     }
                 }
             }
