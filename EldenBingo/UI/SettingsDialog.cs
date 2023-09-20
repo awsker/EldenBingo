@@ -237,8 +237,7 @@
         {
             if(_rebindingKey)
             {
-                if (e.KeyCode != Keys.Escape)
-                    _outOfFocusKey = e.KeyCode;
+                _outOfFocusKey = e.KeyCode == Keys.Escape ? Keys.None : e.KeyCode;
                 _rebindingKey = false;
                 updateOutOfFocusText();
                 label11.Focus();
