@@ -79,7 +79,7 @@
 
             _fontLinkLabel.Font = MainForm.GetFontFromSettings(_fontLinkLabel.Font, fontSize);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
-            _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
+            _outOfFocusKeyWhenDialogOpened = _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
@@ -95,7 +95,8 @@
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
             _volumeTrackBar.Value = Convert.ToInt32(Properties.Settings.Default.SoundVolume / 10f);
 
-            _outOfFocusKeyWhenDialogOpened = _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
+            _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
+            _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
 
             //This will unregister the previous hotkey if set, so it can be detected in this dialog
             Properties.Settings.Default.ClickHotkey = (int)Keys.None;
@@ -211,6 +212,8 @@
             Properties.Settings.Default.SoundVolume = Math.Clamp(_volumeTrackBar.Value * 10, 0, 100);
 
             Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
+
+            Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
 
             Properties.Settings.Default.Save();
             return true;

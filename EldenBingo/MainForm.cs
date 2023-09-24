@@ -259,11 +259,10 @@ namespace EldenBingo
 
         private void _settingsButton_Click(object sender, EventArgs e)
         {
+            TopMost = false;
             var settingsDialog = new SettingsDialog();
             var res = settingsDialog.ShowDialog(this);
-            if (res == DialogResult.OK)
-            {
-            }
+            TopMost = Properties.Settings.Default.AlwaysOnTop;
         }
 
         private async void _startGameButton_Click(object sender, EventArgs e)
@@ -437,6 +436,10 @@ namespace EldenBingo
                 if (_server == null && Properties.Settings.Default.HostServerOnLaunch)
                     hostServer();
             }
+            if (e.PropertyName == nameof(Properties.Settings.Default.AlwaysOnTop))
+            {
+                TopMost = Properties.Settings.Default.AlwaysOnTop;
+            }
         }
 
         private void hostServer()
@@ -507,6 +510,7 @@ namespace EldenBingo
             {
                 await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
+            TopMost = Properties.Settings.Default.AlwaysOnTop;
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
