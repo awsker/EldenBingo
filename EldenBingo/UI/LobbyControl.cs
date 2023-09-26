@@ -25,7 +25,7 @@ namespace EldenBingo.UI
             _adminInfoLabel.Height = Convert.ToInt32(_adminInfoLabel.Height * this.DefaultScaleFactors().Height);
 
             SizeChanged += lobbyControl_SizeChanged;
-            splitContainer1.Panel1.SizeChanged += panel1_SizeChanged;
+            splitContainer1.Panel1.SizeChanged += bingoPanel_SizeChanged;
         }
 
         public static UserInRoom? CurrentlyOnBehalfOfUser
@@ -273,19 +273,19 @@ namespace EldenBingo.UI
         {
             initHideLabel();
             updateBingoMaximumSize();
-            updateBingoSize();
+            updateBingoPanelSize();
             updateScoreboardFont();
             updateScoreboardControlLocationAndSize();
         }
 
         private void lobbyControl_SizeChanged(object? sender, EventArgs e)
         {
-            updateBingoSize();
+            updateBingoPanelSize();
         }
 
-        private void panel1_SizeChanged(object? sender, EventArgs e)
+        private void bingoPanel_SizeChanged(object? sender, EventArgs e)
         {
-            updateBingoSize();
+            updateBingoPanelSize();
         }
 
         private void match_MatchStatusChanged(object? sender, EventArgs e)
@@ -365,9 +365,30 @@ namespace EldenBingo.UI
             }
         }
 
+        private void updateBingoPanelSize()
+        {
+            var maxWidth = splitContainer1.Panel1.Width - splitContainer1.SplitterWidth - Convert.ToInt32(270f * this.DefaultScaleFactors().Width);
+            var maxHeight = splitContainer1.Panel1.Height - (adminControl1.Visible ? _adminHeight : 0);
+            if(Properties.Settings.Default.BingoBoardMaximumSize)
+            {
+                maxWidth = Math.Min(maxWidth, Properties.Settings.Default.BingoMaxSizeX + _bingoControl.Location.X + 3);
+                maxHeight = Math.Min(maxHeight, Properties.Settings.Default.BingoMaxSizeY + _bingoControl.Location.Y + 3);
+            }
+            if(maxWidth > maxHeight * 1.1f)
+            {
+                maxWidth = (int)(maxHeight * 1.1f);
+            }
+            else if (maxHeight > maxHeight / 1.1f)
+            {
+                maxHeight = (int)(maxHeight / 1.1f);
+            }
+            _bingoBoardPanel.Width = maxWidth;
+            updateBingoSize();
+        }
+
         private void updateBingoSize()
         {
-            var maxSize = _bingoBoardPanel.Size - new Size(_bingoControl.Location);
+            var maxSize = _bingoBoardPanel.Size - new Size(_bingoControl.Location) - new Size(3, 3);
             _bingoControl.Size = maxSize;
         }
 

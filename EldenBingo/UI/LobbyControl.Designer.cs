@@ -29,8 +29,6 @@
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this._bingoBoardPanel = new System.Windows.Forms.Panel();
-            this._bingoControl = new EldenBingo.UI.BingoControl();
             this._lobbyStatusPanel = new System.Windows.Forms.Panel();
             this._scoreboardControl = new EldenBingo.UI.ScoreboardControl();
             this._logBoxBorderPanel = new System.Windows.Forms.Panel();
@@ -38,6 +36,8 @@
             this._chatTextBox = new System.Windows.Forms.TextBox();
             this._timerLabel = new System.Windows.Forms.Label();
             this._matchStatusLabel = new System.Windows.Forms.Label();
+            this._bingoBoardPanel = new System.Windows.Forms.Panel();
+            this._bingoControl = new EldenBingo.UI.BingoControl();
             this.adminControl1 = new EldenBingo.UI.AdminControl();
             this._clientList = new EldenBingo.UI.ClientListControl();
             this._adminInfoLabel = new System.Windows.Forms.Label();
@@ -45,9 +45,9 @@
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this._bingoBoardPanel.SuspendLayout();
             this._lobbyStatusPanel.SuspendLayout();
             this._logBoxBorderPanel.SuspendLayout();
+            this._bingoBoardPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -59,8 +59,8 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this._bingoBoardPanel);
             this.splitContainer1.Panel1.Controls.Add(this._lobbyStatusPanel);
+            this.splitContainer1.Panel1.Controls.Add(this._bingoBoardPanel);
             this.splitContainer1.Panel1.Controls.Add(this.adminControl1);
             // 
             // splitContainer1.Panel2
@@ -72,30 +72,13 @@
             this.splitContainer1.SplitterDistance = 851;
             this.splitContainer1.TabIndex = 0;
             // 
-            // _bingoBoardPanel
-            // 
-            this._bingoBoardPanel.Controls.Add(this._bingoControl);
-            this._bingoBoardPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._bingoBoardPanel.Location = new System.Drawing.Point(0, 0);
-            this._bingoBoardPanel.Name = "_bingoBoardPanel";
-            this._bingoBoardPanel.Size = new System.Drawing.Size(581, 421);
-            this._bingoBoardPanel.TabIndex = 1;
-            // 
-            // _bingoControl
-            // 
-            this._bingoControl.Client = null;
-            this._bingoControl.Location = new System.Drawing.Point(5, 5);
-            this._bingoControl.Name = "_bingoControl";
-            this._bingoControl.Size = new System.Drawing.Size(568, 408);
-            this._bingoControl.TabIndex = 0;
-            // 
             // _lobbyStatusPanel
             // 
             this._lobbyStatusPanel.Controls.Add(this._scoreboardControl);
             this._lobbyStatusPanel.Controls.Add(this._logBoxBorderPanel);
             this._lobbyStatusPanel.Controls.Add(this._timerLabel);
             this._lobbyStatusPanel.Controls.Add(this._matchStatusLabel);
-            this._lobbyStatusPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this._lobbyStatusPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this._lobbyStatusPanel.Location = new System.Drawing.Point(581, 0);
             this._lobbyStatusPanel.Name = "_lobbyStatusPanel";
             this._lobbyStatusPanel.Size = new System.Drawing.Size(270, 421);
@@ -112,10 +95,9 @@
             // 
             // _logBoxBorderPanel
             // 
-            this._logBoxBorderPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this._logBoxBorderPanel.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this._logBoxBorderPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this._logBoxBorderPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(118)))), ((int)(((byte)(110)))), ((int)(((byte)(97)))));
             this._logBoxBorderPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this._logBoxBorderPanel.Controls.Add(this._logTextBox);
             this._logBoxBorderPanel.Controls.Add(this._chatTextBox);
@@ -158,6 +140,7 @@
             this._chatTextBox.PlaceholderText = "Send a message";
             this._chatTextBox.AutoSize = false;
             this._chatTextBox.Size = new System.Drawing.Size(255, 26);
+            this._chatTextBox.TabIndex = 9;
             this._chatTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this._chatTextBox_KeyPress);
             // 
             // _timerLabel
@@ -173,8 +156,6 @@
             // 
             // _matchStatusLabel
             // 
-            this._matchStatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this._matchStatusLabel.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this._matchStatusLabel.ForeColor = System.Drawing.Color.White;
             this._matchStatusLabel.Location = new System.Drawing.Point(3, 4);
@@ -182,6 +163,26 @@
             this._matchStatusLabel.Size = new System.Drawing.Size(264, 23);
             this._matchStatusLabel.TabIndex = 7;
             this._matchStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // _bingoBoardPanel
+            // 
+            this._bingoBoardPanel.Controls.Add(this._bingoControl);
+            this._bingoBoardPanel.Dock = System.Windows.Forms.DockStyle.Left;
+            this._bingoBoardPanel.Location = new System.Drawing.Point(0, 0);
+            this._bingoBoardPanel.Name = "_bingoBoardPanel";
+            this._bingoBoardPanel.Size = new System.Drawing.Size(581, 421);
+            this._bingoBoardPanel.TabIndex = 1;
+            // 
+            // _bingoControl
+            // 
+            this._bingoControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this._bingoControl.Client = null;
+            this._bingoControl.Location = new System.Drawing.Point(5, 5);
+            this._bingoControl.Name = "_bingoControl";
+            this._bingoControl.Size = new System.Drawing.Size(568, 408);
+            this._bingoControl.TabIndex = 0;
             // 
             // adminControl1
             // 
@@ -226,10 +227,9 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            this._bingoBoardPanel.ResumeLayout(false);
             this._lobbyStatusPanel.ResumeLayout(false);
             this._logBoxBorderPanel.ResumeLayout(false);
-            this._logBoxBorderPanel.PerformLayout();
+            this._bingoBoardPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

@@ -17,12 +17,14 @@ namespace EldenBingo.UI
 
         private KeyHandler? _keyHandler;
 
+        public const float AspectRatio = 1.1f;
+
         public BingoControl() : base()
         {
             InitializeComponent();
             _boardStatusLabel.ForeColor = TextColor;
             _boardStatusLabel.BackColor = BgColor;
-            _gridControl.SetAspectRatio(1.1f);
+            _gridControl.SetAspectRatio(AspectRatio);
             _gridControl.MaintainAspectRatio = true;
             Squares = new BingoSquareControl[25];
             for (int i = 0; i < 25; ++i)

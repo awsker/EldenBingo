@@ -101,6 +101,7 @@ namespace EldenBingo
                 }
             }
             var form = new ConnectForm();
+            form.TopMost = true;
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 await connect(form.Address, form.Port);
@@ -160,6 +161,7 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, true);
+            form.TopMost = true;
             _ = _client.RequestRoomName();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
@@ -196,6 +198,7 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, false);
+            form.TopMost = true;
             form.RoomName = _lastRoom;
             if (form.ShowDialog(this) == DialogResult.OK)
             {
@@ -259,10 +262,9 @@ namespace EldenBingo
 
         private void _settingsButton_Click(object sender, EventArgs e)
         {
-            TopMost = false;
             var settingsDialog = new SettingsDialog();
+            settingsDialog.TopMost = true;
             var res = settingsDialog.ShowDialog(this);
-            TopMost = Properties.Settings.Default.AlwaysOnTop;
         }
 
         private async void _startGameButton_Click(object sender, EventArgs e)
@@ -302,7 +304,9 @@ namespace EldenBingo
 
         private async void client_Disconnected(object? sender, StringEventArgs e)
         {
-            Invoke(hideLobbyTab);
+            if (Disposing || IsDisposed)
+                return;
+            BeginInvoke(hideLobbyTab);
             updateButtonAvailability();
             BeginInvoke(() =>
             {
