@@ -39,8 +39,11 @@ namespace EldenBingo
 
             if (Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
             {
+                var prev = AutoScaleMode;
+                AutoScaleMode = AutoScaleMode.None;
                 Width = Properties.Settings.Default.MainWindowSizeX;
                 Height = Properties.Settings.Default.MainWindowSizeY;
+                AutoScaleMode = prev;
             }
 
             FormClosing += (o, e) =>
@@ -528,10 +531,8 @@ namespace EldenBingo
 
         private void mainForm_SizeChanged(object? sender, EventArgs e)
         {
-            var scale = this.DefaultScaleFactors();
-            //We store the Width and Height in 96 DPI scale, so need to convert the window width and height
-            Properties.Settings.Default.MainWindowSizeX = Convert.ToInt32(Width / scale.Width);
-            Properties.Settings.Default.MainWindowSizeY = Convert.ToInt32(Height / scale.Height);
+            Properties.Settings.Default.MainWindowSizeX = Width;
+            Properties.Settings.Default.MainWindowSizeY = Height;
         }
 
         private void openMapWindow()

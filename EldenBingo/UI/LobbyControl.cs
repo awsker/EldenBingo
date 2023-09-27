@@ -224,7 +224,7 @@ namespace EldenBingo.UI
                 e.PropertyName == nameof(Properties.Settings.Default.BingoBoardMaximumSize))
             {
                 updateBingoMaximumSize();
-                updateBingoSize();
+                updateBingoPanelSize();
             }
             if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
                 e.PropertyName == nameof(Properties.Settings.Default.BingoFontSize) ||
