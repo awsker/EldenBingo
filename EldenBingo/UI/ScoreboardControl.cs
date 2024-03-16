@@ -93,14 +93,21 @@ namespace EldenBingo.UI
             {
                 var currentY = 0;
                 int? squareHeight = null;
-                foreach (var row in _rows)
+                if (_rows.Count == 0)
                 {
-                    row.Location = new Point(0, currentY);
-                    if (!squareHeight.HasValue)
-                        squareHeight = row.SquareSize().Height;
-                    currentY += squareHeight.Value + RowPaddingBottom;
+                    squareHeight = ScoreboardRowControl.SquareSize(Font).Height;
                 }
-                Height = _rows.Count * ((squareHeight ?? 0) + RowPaddingBottom);
+                else
+                {
+                    foreach (var row in _rows)
+                    {
+                        row.Location = new Point(0, currentY);
+                        if (!squareHeight.HasValue)
+                            squareHeight = row.SquareSize().Height;
+                        currentY += squareHeight.Value + RowPaddingBottom;
+                    }
+                }
+                Height = Math.Max(2, _rows.Count) * ((squareHeight ?? 0) + RowPaddingBottom);
             }
             if (InvokeRequired)
             {
@@ -143,7 +150,7 @@ namespace EldenBingo.UI
                     currentY += squareHeight.Value + RowPaddingBottom;
                     _rows.Add(control);
                 }
-                Height = _rows.Count * ((squareHeight ?? 0) + RowPaddingBottom);
+                updateHeight();
             }
             if (InvokeRequired)
             {
@@ -181,7 +188,12 @@ namespace EldenBingo.UI
 
             public Size SquareSize()
             {
-                var measure = TextRenderer.MeasureText("00", Font);
+                return SquareSize(Font);
+            }
+
+            public static Size SquareSize(Font font)
+            {
+                var measure = TextRenderer.MeasureText("00", font);
                 return new Size(Math.Max(35, measure.Width + PaddingInsideSquare), Math.Max(22, measure.Height + PaddingInsideSquare));
             }
 
