@@ -16,7 +16,7 @@
         private void _cancelButton_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-            Properties.Settings.Default.ClickHotkey = (int) _outOfFocusKeyWhenDialogOpened;
+            Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKeyWhenDialogOpened;
             Close();
         }
 
@@ -41,7 +41,7 @@
                     _fontLinkLabel.Font = dialog.Font;
                     _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
                 }
-            } 
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -238,7 +238,7 @@
 
         private void _outOfFocusClickTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if(_rebindingKey)
+            if (_rebindingKey)
             {
                 _outOfFocusKey = e.KeyCode == Keys.Escape ? Keys.None : e.KeyCode;
                 _rebindingKey = false;
@@ -249,7 +249,7 @@
 
         private void updateOutOfFocusText()
         {
-            if(_rebindingKey)
+            if (_rebindingKey)
             {
                 _outOfFocusClickTextBox.Text = "Press a key...";
             }
@@ -259,6 +259,6 @@
             }
         }
 
-        
+
     }
 }
