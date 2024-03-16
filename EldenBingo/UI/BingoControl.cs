@@ -379,22 +379,30 @@ namespace EldenBingo.UI
 
         private async void square_MouseWheel(object? sender, MouseEventArgs e)
         {
-            if (Client == null || sender is not BingoSquareControl c)
+            if (sender is not BingoSquareControl c)
                 return;
 
             if (e.Delta != 0)
             {
-                //Must be in a room
-                if (Client.Room?.Match?.Board != null && Client.Room.Match.MatchStatus >= MatchStatus.Running)
-                {
-                    var userToSetFor = getUserToSetFor();
-                    if (userToSetFor == null || userToSetFor.IsSpectator)
-                        return;
-                    var change = Math.Max(-1, Math.Min(1, e.Delta));
+                var change = Math.Max(-1, Math.Min(1, e.Delta));
+                await changeSquareCounter(c, change);
+            }
+        }
 
-                    var p = new Packet(new ClientTrySetCounter(c.Index, change, userToSetFor.Guid));
-                    await Client.SendPacketToServer(p);
-                }
+        private async Task changeSquareCounter(BingoSquareControl c, int change)
+        {
+            //No room or no board set in room
+            if (Client?.Room?.Match?.Board == null)
+                return;
+
+            var userToSetFor = getUserToSetFor();
+            if (userToSetFor == null || userToSetFor.IsSpectator)
+                return;
+
+            if (Client.Room?.Match?.Board != null && Client.Room.Match.MatchStatus >= MatchStatus.Running)
+            {
+                var p = new Packet(new ClientTrySetCounter(c.Index, change, userToSetFor.Guid));
+                await Client.SendPacketToServer(p);
             }
         }
 
