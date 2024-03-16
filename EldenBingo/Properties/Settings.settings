@@ -102,7 +102,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ClickIncrementsCountedSquares" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="GS_PreparationTime" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
