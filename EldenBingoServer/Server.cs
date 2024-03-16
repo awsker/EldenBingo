@@ -409,12 +409,14 @@ namespace EldenBingoServer
                     if (board.UserClicked(tryCheck.Index, userInfo, userToSet))
                     {
                         var check = board.CheckStatus[tryCheck.Index];
+                        ServerSquareUpdate squareUpdate;
                         ServerUserChecked userCheck;
                         lock (check)
                         {
+                            squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(userInfo, tryCheck.Index), tryCheck.Index);
                             userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, check.CheckedBy);
                         }
-                        await sendPacketToRoom(new Packet(userCheck), sender.Room);
+                        await sendPacketToRoom(new Packet(squareUpdate, userCheck), sender.Room);
                     }
                 }
             }
@@ -434,13 +436,12 @@ namespace EldenBingoServer
                 if (board.UserMarked(tryMark.Index, userInfo))
                 {
                     var check = board.CheckStatus[tryMark.Index];
-                    ServerUserMarked userMarked;
+                    ServerSquareUpdate squareUpdate;
                     lock (check)
                     {
-                        //Send marking to all players on the same team
-                        userMarked = new ServerUserMarked(userInfo.Guid, tryMark.Index, check.IsMarked(userInfo.Team));
+                        squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(userInfo, tryMark.Index), tryMark.Index);
                     }
-                    await SendPacketToClients(new Packet(userMarked), sender.Room.Users.Where(u => u.Team == userInfo.Team).Select(c => c.Client));
+                    await SendPacketToClient(new Packet(squareUpdate), sender);
                 }
             }
         }
@@ -470,10 +471,10 @@ namespace EldenBingoServer
                         var check = board.CheckStatus[trySetCounter.Index];
                         lock (check)
                         {
-                            foreach (var recipient in sender.Room.Users.Where(u => u.IsSpectator || u.Team == userToSet.Team))
+                            foreach (var recipient in sender.Room.Users.Where(u => u.IsSpectator || u == userToSet))
                             {
-                                var userCounter = new ServerUserSetCounter(userInfo.Guid, trySetCounter.Index, check.GetCounters(recipient, sender.Room.Users));
-                                var task = SendPacketToClient(new Packet(userCounter), recipient.Client);
+                                ServerSquareUpdate squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(recipient, trySetCounter.Index), trySetCounter.Index);
+                                var task = SendPacketToClient(new Packet(squareUpdate), recipient.Client);
                                 tasks.Add(task);
                             }
                         }

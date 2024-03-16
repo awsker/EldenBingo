@@ -2,6 +2,6 @@
 {
     public static class Version
     {
-        public static string CurrentVersion => "0.8.0";
+        public static string CurrentVersion => "0.9.0";
     }
 }

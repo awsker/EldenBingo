@@ -8,16 +8,17 @@ namespace EldenBingo.UI
 {
     internal partial class BingoControl : ClientUserControl
     {
+        public const float AspectRatio = 1.1f;
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
         private BoardStatusEnum _boardStatus;
         private string[] _boardStatusStrings = { "Waiting for match to start...", "Click to reveal...", "Match Starting...", "" };
         private bool _revealed = false;
         private BingoSquareControl[] Squares;
+        private bool _showTeamMarks;
+        private bool _showTeamCounters;
 
         private KeyHandler? _keyHandler;
-
-        public const float AspectRatio = 1.1f;
 
         public BingoControl() : base()
         {
@@ -41,7 +42,6 @@ namespace EldenBingo.UI
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
         }
 
-
         private enum BoardStatusEnum
         {
             NoBoard,
@@ -50,15 +50,21 @@ namespace EldenBingo.UI
             BoardRevealed,
         }
 
+        public void UpdateBoard()
+        {
+            if (Client?.Room?.Match != null)
+            {
+                setBoard(Client.Room.Match.Board);
+            }
+        }
+
         protected override void AddClientListeners()
         {
             if (Client == null)
                 return;
 
             Client.OnRoomChanged += onRoomChanged;
-            Client.AddListener<ServerUserChecked>(userChecked);
-            Client.AddListener<ServerUserMarked>(userMarked);
-            Client.AddListener<ServerUserSetCounter>(userSetCounter);
+            Client.AddListener<ServerSquareUpdate>(squareUpdate);
             Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
@@ -78,9 +84,7 @@ namespace EldenBingo.UI
                 return;
 
             Client.OnRoomChanged -= onRoomChanged;
-            Client.RemoveListener<ServerUserChecked>(userChecked);
-            Client.RemoveListener<ServerUserMarked>(userMarked);
-            Client.RemoveListener<ServerUserSetCounter>(userSetCounter);
+            Client.RemoveListener<ServerSquareUpdate>(squareUpdate);
             Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
         }
@@ -98,36 +102,12 @@ namespace EldenBingo.UI
             }
         }
 
-        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
+        private void squareUpdate(ClientModel? _, ServerSquareUpdate update)
         {
-            if (Client?.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < 25)
+            if (Client?.BingoBoard != null && update.Index >= 0 && update.Index < 25)
             {
-                var status = Client.BingoBoard.Squares[userCheckedArgs.Index];
-                status.Team = userCheckedArgs.TeamChecked;
-                Client.BingoBoard.Squares[userCheckedArgs.Index] = status;
-                updateSquareStatus(Client.BingoBoard, userCheckedArgs.Index);
-            }
-        }
-
-        private void userMarked(ClientModel? _, ServerUserMarked userMarkedArgs)
-        {
-            if (Client?.BingoBoard != null && userMarkedArgs.Index >= 0 && userMarkedArgs.Index < 25)
-            {
-                var status = Client.BingoBoard.Squares[userMarkedArgs.Index];
-                status.Marked = userMarkedArgs.Marked;
-                Client.BingoBoard.Squares[userMarkedArgs.Index] = status;
-                updateSquareStatus(Client.BingoBoard, userMarkedArgs.Index);
-            }
-        }
-
-        private void userSetCounter(ClientModel? _, ServerUserSetCounter userCounterArgs)
-        {
-            if (Client?.BingoBoard != null && userCounterArgs.Index >= 0 && userCounterArgs.Index < 25)
-            {
-                var status = Client.BingoBoard.Squares[userCounterArgs.Index];
-                status.Counters = userCounterArgs.Counters;
-                Client.BingoBoard.Squares[userCounterArgs.Index] = status;
-                updateSquareStatus(Client.BingoBoard, userCounterArgs.Index);
+                Client.BingoBoard.Squares[update.Index] = update.Square;
+                updateSquareStatus(Client.BingoBoard, update.Index);
             }
         }
 
@@ -200,7 +180,7 @@ namespace EldenBingo.UI
                     Squares[i].ToolTip = string.Empty;
                     Squares[i].Color = Color.Empty;
                     Squares[i].Marked = false;
-                    Squares[i].Counters = Array.Empty<TeamCounter>();
+                    Squares[i].Counters = Array.Empty<SquareCounter>();
                 }
                 Invalidate();
             }
@@ -256,7 +236,7 @@ namespace EldenBingo.UI
             var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
             var scale = this.DefaultScaleFactors();
             var fontSize = minFont + (maxFont - minFont) * frac;
-            
+
             _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f / scale.Height);
             var font = MainForm.GetFontFromSettings(Font, fontSize);
             for (int i = 0; i < 25; ++i)
@@ -439,11 +419,11 @@ namespace EldenBingo.UI
 
         private class BingoSquareControl : Control
         {
+            public bool MouseOver;
             private readonly ToolTip _toolTip;
             private Color _color;
-            private TeamCounter[] _counters;
+            private SquareCounter[] _counters;
             private bool _marked;
-            public bool MouseOver;
 
             public BingoSquareControl(int index, string text, string tooltip)
             {
@@ -452,7 +432,7 @@ namespace EldenBingo.UI
                 Text = text;
                 _toolTip = new ToolTip();
                 ToolTip = tooltip;
-                _counters = new TeamCounter[0];
+                _counters = new SquareCounter[0];
                 var control = this;
                 MouseEnter += (o, e) =>
                 {
@@ -479,7 +459,7 @@ namespace EldenBingo.UI
                 }
             }
 
-            public TeamCounter[] Counters
+            public SquareCounter[] Counters
             {
                 get { return _counters; }
                 set

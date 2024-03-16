@@ -128,7 +128,18 @@ namespace EldenBingoServer
                 classes = Array.Empty<EldenRingClasses>();
                 _random.Next(); //Skip a number to ensure consistency in random number generation
             }
-            return new ServerBingoBoard(room, squares.Select(s => new BingoBoardSquare(s.Text, s.Tooltip, s.Count, null, false, Array.Empty<TeamCounter>())).ToArray(), classes);
+            return new ServerBingoBoard(room, 
+                squares.Select(s => 
+                    new BingoBoardSquare(
+                        s.Text, 
+                        s.Tooltip, 
+                        s.Count, 
+                        null, 
+                        false, 
+                        Array.Empty<SquareCounter>()
+                    )
+                ).ToArray(), 
+            classes);
         }
 
         private EldenRingClasses[] randomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)

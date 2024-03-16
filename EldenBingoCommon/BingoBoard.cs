@@ -14,7 +14,7 @@
         public EldenRingClasses[] AvailableClasses { get; init; }
     }
 
-    public record struct BingoBoardSquare(string Text, string Tooltip, int MaxCount, int? Team, bool Marked, TeamCounter[] Counters)
+    public record struct BingoBoardSquare(string Text, string Tooltip, int MaxCount, int? Team, bool Marked, SquareCounter[] Counters)
     {
         public bool Checked => Team.HasValue;
         public override string ToString()

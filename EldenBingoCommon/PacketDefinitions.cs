@@ -13,9 +13,8 @@
     public record ServerUserChat(Guid UserGuid, string Message);
     public record ServerMatchStatusUpdate(MatchStatus MatchStatus, bool Paused, int Timer);
     public record ServerEntireBingoBoardUpdate(BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses);
+    public record ServerSquareUpdate(BingoBoardSquare Square, int Index);
     public record ServerUserChecked(Guid UserGuid, int Index, int? TeamChecked);
-    public record ServerUserMarked(Guid UserGuid, int Index, bool Marked);
-    public record ServerUserSetCounter(Guid UserGuid, int Index, TeamCounter[] Counters);
     public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
 
     #endregion Server to client

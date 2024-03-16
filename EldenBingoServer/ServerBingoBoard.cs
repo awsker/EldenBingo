@@ -9,14 +9,14 @@ namespace EldenBingoServer
         {
             Time = DateTime.Now;
             CheckedBy = null;
-            MarkedBy = new HashSet<int>();
-            CountersBy = new ConcurrentDictionary<int, int>();
+            MarkedBy = new HashSet<Guid>();
+            PlayerCounters = new ConcurrentDictionary<Guid, int>();
         }
 
         public int? CheckedBy { get; set; }
         public DateTime Time { get; init; }
-        private IDictionary<int, int> CountersBy { get; init; }
-        private ISet<int> MarkedBy { get; init; }
+        private IDictionary<Guid, int> PlayerCounters { get; init; }
+        private ISet<Guid> MarkedBy { get; init; }
 
         public bool Check(int team)
         {
@@ -38,64 +38,76 @@ namespace EldenBingoServer
             return false;
         }
 
-        public bool Mark(int team)
+        public bool Mark(UserInRoom player)
         {
             //If no changes need to be made, return false
-            return MarkedBy.Add(team);
+            return MarkedBy.Add(player.Guid);
         }
 
-        public bool Unmark(int team)
+        public bool Unmark(UserInRoom player)
         {
-            return MarkedBy.Remove(team);
+            return MarkedBy.Remove(player.Guid);
         }
 
-        public bool IsMarked(int team)
+        public bool IsMarked(UserInRoom player)
         {
-            return MarkedBy.Contains(team);
+            return MarkedBy.Contains(player.Guid);
         }
 
-        public int? GetCounter(int team)
+        public int? GetCounter(UserInRoom player)
         {
-            if (CountersBy.TryGetValue(team, out int counter))
+            if (PlayerCounters.TryGetValue(player.Guid, out int counter))
             {
                 return counter;
             }
             return null;
         }
 
-        public bool SetCounter(int team, int? counter)
+        public int? GetCounterByTeam(int team, IEnumerable<UserInRoom> players)
         {
-            if (team < 0)
-                return false;
+            int? counter = null;
+            foreach(var player in players.Where(p => p.Team == team))
+            {
+                var c = GetCounter(player);
+                if (c.HasValue)
+                {
+                    counter = Math.Max(counter ?? 0, c.Value);
+                }
+            }
+            return counter;
+        }
 
+        public bool SetCounter(Guid player, int? counter)
+        {
             if (counter.HasValue && counter.Value > 0)
             {
-                CountersBy.TryGetValue(team, out int c);
-                CountersBy[team] = counter.Value;
+                PlayerCounters.TryGetValue(player, out int c);
+                PlayerCounters[player] = counter.Value;
                 return counter != c;
             }
             else
-                return CountersBy.Remove(team);
+                return PlayerCounters.Remove(player);
         }
 
-        public TeamCounter[] GetCounters(UserInRoom recipient, IEnumerable<UserInRoom> users)
+        public SquareCounter[] GetCountersForPlayer(UserInRoom recipient, IEnumerable<UserInRoom> players)
         {
-            var listOfTeams = Room<UserInRoom>.GetPlayerTeams(users);
-            var counters = new TeamCounter[listOfTeams.Count];
+            var listOfTeams = Room<UserInRoom>.GetPlayerTeams(players);
+            var counters = new SquareCounter[listOfTeams.Count];
             for (int i = 0; i < listOfTeams.Count; ++i)
             {
                 var team = listOfTeams[i];
-                if (!recipient.IsSpectator && recipient.Team != team.Item1)
-                    continue;
-                CountersBy.TryGetValue(team.Item1, out int c);
-                counters[i] = new TeamCounter(team.Item1, c);
+                int? teamCount = null;
+                if(recipient.IsSpectator)
+                {
+                    teamCount = GetCounterByTeam(team.Item1, players);
+                } 
+                else if(recipient.Team == team.Item1)
+                {
+                    teamCount = GetCounter(recipient);
+                }
+                counters[i] = new SquareCounter(team.Item1, teamCount ?? 0);
             }
             return counters;
-        }
-
-        public bool UnsetCounter(int team)
-        {
-            return CountersBy.Remove(team);
         }
     }
 
@@ -119,10 +131,21 @@ namespace EldenBingoServer
             var squares = new BingoBoardSquare[25];
             for (int i = 0; i < 25; ++i)
             {
-                var status = CheckStatus[i];
-                squares[i] = new BingoBoardSquare(Squares[i].Text, Squares[i].Tooltip, Squares[i].MaxCount, status.CheckedBy, status.IsMarked(user.Team), status.GetCounters(user, Room.Users));
+                squares[i] = GetSquareDataForUser(user, i);
             }
             return squares;
+        }
+
+        public BingoBoardSquare GetSquareDataForUser(UserInRoom user, int index)
+        {
+            var status = CheckStatus[index];
+            return new BingoBoardSquare(
+                Squares[index].Text,
+                Squares[index].Tooltip,
+                Squares[index].MaxCount,
+                status.CheckedBy,
+                status.IsMarked(user),
+                status.GetCountersForPlayer(user, Room.Users));
         }
 
         public bool UserChangeCount(int i, UserInRoom user, int change)
@@ -132,11 +155,11 @@ namespace EldenBingoServer
             var check = CheckStatus[i];
             lock (check)
             {
-                var oldCount = check.GetCounter(user.Team) ?? 0;
+                var oldCount = check.GetCounter(user) ?? 0;
                 if (user.IsSpectator)
                     return false;
                 var maxCount = Squares[i].MaxCount;
-                return check.SetCounter(user.Team, maxCount > 0 ? Math.Clamp(oldCount + change, 0, maxCount) : Math.Max(0, oldCount + change));
+                return check.SetCounter(user.Guid, maxCount > 0 ? Math.Clamp(oldCount + change, 0, maxCount) : Math.Max(0, oldCount + change));
             }
         }
 
@@ -197,10 +220,10 @@ namespace EldenBingoServer
             var check = CheckStatus[i];
             lock (check)
             {
-                if (check.IsMarked(user.Team))
-                    return check.Unmark(user.Team);
+                if (check.IsMarked(user))
+                    return check.Unmark(user);
                 else
-                    return check.Mark(user.Team);
+                    return check.Mark(user);
             }
         }
     }
