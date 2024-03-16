@@ -9,7 +9,12 @@ namespace EldenBingo.UI
             InitializeComponent();
             fillClassList();
             updateEnabling();
+            _randomSeedUpDown.ValueChanged += (o, e) => SeedChanged?.Invoke();
         }
+
+        public int CurrentSeed => Convert.ToInt32(_randomSeedUpDown.Value);
+
+        public Action SeedChanged;
 
         public BingoGameSettings Settings
         {
@@ -65,6 +70,11 @@ namespace EldenBingo.UI
         private void _classLimitCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             updateEnabling();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            _randomSeedUpDown.Value = 0;
         }
     }
 }

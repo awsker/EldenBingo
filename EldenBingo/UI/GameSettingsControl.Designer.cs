@@ -28,166 +28,148 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this._classesListBox = new System.Windows.Forms.CheckedListBox();
-            this._classLimitCheckBox = new System.Windows.Forms.CheckBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this._numClassesUpDown = new System.Windows.Forms.NumericUpDown();
-            this._maxCategoryUpDown = new System.Windows.Forms.NumericUpDown();
-            this._randomSeedUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label3 = new System.Windows.Forms.Label();
-            this._preparationTimeUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label4 = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this._numClassesUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this._maxCategoryUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this._randomSeedUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this._preparationTimeUpDown)).BeginInit();
-            this.SuspendLayout();
+            label1 = new Label();
+            _classesListBox = new CheckedListBox();
+            _classLimitCheckBox = new CheckBox();
+            label2 = new Label();
+            _numClassesUpDown = new NumericUpDown();
+            _maxCategoryUpDown = new NumericUpDown();
+            _randomSeedUpDown = new NumericUpDown();
+            label3 = new Label();
+            _preparationTimeUpDown = new NumericUpDown();
+            label4 = new Label();
+            button1 = new Button();
+            ((System.ComponentModel.ISupportInitialize)_numClassesUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)_maxCategoryUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)_randomSeedUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)_preparationTimeUpDown).BeginInit();
+            SuspendLayout();
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(4, 257);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(83, 15);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Random Seed:";
+            label1.AutoSize = true;
+            label1.Location = new Point(4, 257);
+            label1.Name = "label1";
+            label1.Size = new Size(83, 15);
+            label1.TabIndex = 6;
+            label1.Text = "Random Seed:";
             // 
             // _classesListBox
             // 
-            this._classesListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this._classesListBox.CheckOnClick = true;
-            this._classesListBox.FormattingEnabled = true;
-            this._classesListBox.Location = new System.Drawing.Point(4, 32);
-            this._classesListBox.Name = "_classesListBox";
-            this._classesListBox.Size = new System.Drawing.Size(231, 184);
-            this._classesListBox.TabIndex = 3;
+            _classesListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _classesListBox.CheckOnClick = true;
+            _classesListBox.FormattingEnabled = true;
+            _classesListBox.Location = new Point(4, 32);
+            _classesListBox.Name = "_classesListBox";
+            _classesListBox.Size = new Size(231, 184);
+            _classesListBox.TabIndex = 3;
             // 
             // _classLimitCheckBox
             // 
-            this._classLimitCheckBox.AutoSize = true;
-            this._classLimitCheckBox.Location = new System.Drawing.Point(6, 5);
-            this._classLimitCheckBox.Name = "_classLimitCheckBox";
-            this._classLimitCheckBox.Size = new System.Drawing.Size(136, 19);
-            this._classLimitCheckBox.TabIndex = 1;
-            this._classLimitCheckBox.Text = "Limit Starting Classes:";
-            this._classLimitCheckBox.UseVisualStyleBackColor = true;
-            this._classLimitCheckBox.CheckedChanged += new System.EventHandler(this._classLimitCheckBox_CheckedChanged);
+            _classLimitCheckBox.AutoSize = true;
+            _classLimitCheckBox.Location = new Point(6, 5);
+            _classLimitCheckBox.Name = "_classLimitCheckBox";
+            _classLimitCheckBox.Size = new Size(141, 19);
+            _classLimitCheckBox.TabIndex = 1;
+            _classLimitCheckBox.Text = "Limit Starting Classes:";
+            _classLimitCheckBox.UseVisualStyleBackColor = true;
+            _classLimitCheckBox.CheckedChanged += _classLimitCheckBox_CheckedChanged;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(4, 227);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(169, 15);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "Max squares in same category:";
+            label2.AutoSize = true;
+            label2.Location = new Point(4, 227);
+            label2.Name = "label2";
+            label2.Size = new Size(169, 15);
+            label2.TabIndex = 4;
+            label2.Text = "Max squares in same category:";
             // 
             // _numClassesUpDown
             // 
-            this._numClassesUpDown.Location = new System.Drawing.Point(172, 4);
-            this._numClassesUpDown.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this._numClassesUpDown.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this._numClassesUpDown.Name = "_numClassesUpDown";
-            this._numClassesUpDown.Size = new System.Drawing.Size(62, 23);
-            this._numClassesUpDown.TabIndex = 2;
-            this._numClassesUpDown.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
+            _numClassesUpDown.Location = new Point(172, 4);
+            _numClassesUpDown.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            _numClassesUpDown.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            _numClassesUpDown.Name = "_numClassesUpDown";
+            _numClassesUpDown.Size = new Size(62, 23);
+            _numClassesUpDown.TabIndex = 2;
+            _numClassesUpDown.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // _maxCategoryUpDown
             // 
-            this._maxCategoryUpDown.Location = new System.Drawing.Point(186, 225);
-            this._maxCategoryUpDown.Maximum = new decimal(new int[] {
-            25,
-            0,
-            0,
-            0});
-            this._maxCategoryUpDown.Name = "_maxCategoryUpDown";
-            this._maxCategoryUpDown.Size = new System.Drawing.Size(48, 23);
-            this._maxCategoryUpDown.TabIndex = 5;
+            _maxCategoryUpDown.Location = new Point(186, 225);
+            _maxCategoryUpDown.Maximum = new decimal(new int[] { 25, 0, 0, 0 });
+            _maxCategoryUpDown.Name = "_maxCategoryUpDown";
+            _maxCategoryUpDown.Size = new Size(48, 23);
+            _maxCategoryUpDown.TabIndex = 5;
             // 
             // _randomSeedUpDown
             // 
-            this._randomSeedUpDown.Location = new System.Drawing.Point(99, 255);
-            this._randomSeedUpDown.Maximum = new decimal(new int[] {
-            2147483647,
-            0,
-            0,
-            0});
-            this._randomSeedUpDown.Minimum = new decimal(new int[] {
-            -2147483648,
-            0,
-            0,
-            -2147483648});
-            this._randomSeedUpDown.Name = "_randomSeedUpDown";
-            this._randomSeedUpDown.Size = new System.Drawing.Size(81, 23);
-            this._randomSeedUpDown.TabIndex = 7;
+            _randomSeedUpDown.Location = new Point(99, 255);
+            _randomSeedUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
+            _randomSeedUpDown.Minimum = new decimal(new int[] { int.MinValue, 0, 0, int.MinValue });
+            _randomSeedUpDown.Name = "_randomSeedUpDown";
+            _randomSeedUpDown.Size = new Size(81, 23);
+            _randomSeedUpDown.TabIndex = 7;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 287);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(100, 15);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Preparation Time:";
+            label3.AutoSize = true;
+            label3.Location = new Point(4, 287);
+            label3.Name = "label3";
+            label3.Size = new Size(100, 15);
+            label3.TabIndex = 8;
+            label3.Text = "Preparation Time:";
             // 
             // _preparationTimeUpDown
             // 
-            this._preparationTimeUpDown.Location = new System.Drawing.Point(114, 284);
-            this._preparationTimeUpDown.Maximum = new decimal(new int[] {
-            2147483647,
-            0,
-            0,
-            0});
-            this._preparationTimeUpDown.Name = "_preparationTimeUpDown";
-            this._preparationTimeUpDown.Size = new System.Drawing.Size(66, 23);
-            this._preparationTimeUpDown.TabIndex = 9;
+            _preparationTimeUpDown.Location = new Point(114, 284);
+            _preparationTimeUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
+            _preparationTimeUpDown.Name = "_preparationTimeUpDown";
+            _preparationTimeUpDown.Size = new Size(66, 23);
+            _preparationTimeUpDown.TabIndex = 9;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(185, 287);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(50, 15);
-            this.label4.TabIndex = 10;
-            this.label4.Text = "seconds";
+            label4.AutoSize = true;
+            label4.Location = new Point(185, 287);
+            label4.Name = "label4";
+            label4.Size = new Size(50, 15);
+            label4.TabIndex = 10;
+            label4.Text = "seconds";
+            // 
+            // button1
+            // 
+            button1.Location = new Point(185, 255);
+            button1.Name = "button1";
+            button1.Size = new Size(51, 23);
+            button1.TabIndex = 11;
+            button1.Text = "Reset";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // GameSettingsControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this._preparationTimeUpDown);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this._randomSeedUpDown);
-            this.Controls.Add(this._maxCategoryUpDown);
-            this.Controls.Add(this._numClassesUpDown);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this._classLimitCheckBox);
-            this.Controls.Add(this._classesListBox);
-            this.Controls.Add(this.label1);
-            this.Name = "GameSettingsControl";
-            this.Size = new System.Drawing.Size(239, 310);
-            ((System.ComponentModel.ISupportInitialize)(this._numClassesUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this._maxCategoryUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this._randomSeedUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this._preparationTimeUpDown)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            Controls.Add(button1);
+            Controls.Add(label4);
+            Controls.Add(_preparationTimeUpDown);
+            Controls.Add(label3);
+            Controls.Add(_randomSeedUpDown);
+            Controls.Add(_maxCategoryUpDown);
+            Controls.Add(_numClassesUpDown);
+            Controls.Add(label2);
+            Controls.Add(_classLimitCheckBox);
+            Controls.Add(_classesListBox);
+            Controls.Add(label1);
+            Name = "GameSettingsControl";
+            Size = new Size(239, 310);
+            ((System.ComponentModel.ISupportInitialize)_numClassesUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)_maxCategoryUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)_randomSeedUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)_preparationTimeUpDown).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -202,5 +184,6 @@
         private Label label3;
         private NumericUpDown _preparationTimeUpDown;
         private Label label4;
+        private Button button1;
     }
 }

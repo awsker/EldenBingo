@@ -28,190 +28,203 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this._roomNameTextBox = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this._nicknameTextBox = new System.Windows.Forms.TextBox();
-            this._adminPasswordTextBox = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this._colorPanel = new System.Windows.Forms.Panel();
-            this._teamComboBox = new System.Windows.Forms.ComboBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this._cancelButton = new System.Windows.Forms.Button();
-            this._createButton = new System.Windows.Forms.Button();
-            this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
-            this._lobbySettingsButton = new System.Windows.Forms.Button();
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            _roomNameTextBox = new TextBox();
+            label1 = new Label();
+            label2 = new Label();
+            _nicknameTextBox = new TextBox();
+            _adminPasswordTextBox = new TextBox();
+            label3 = new Label();
+            label5 = new Label();
+            groupBox1 = new GroupBox();
+            _colorPanel = new Panel();
+            _teamComboBox = new ComboBox();
+            groupBox2 = new GroupBox();
+            _cancelButton = new Button();
+            _createButton = new Button();
+            errorProvider1 = new ErrorProvider(components);
+            _lobbySettingsButton = new Button();
+            _seedLabel = new Label();
+            groupBox1.SuspendLayout();
+            groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
+            SuspendLayout();
             // 
             // _roomNameTextBox
             // 
-            this._roomNameTextBox.Location = new System.Drawing.Point(111, 23);
-            this._roomNameTextBox.Name = "_roomNameTextBox";
-            this._roomNameTextBox.Size = new System.Drawing.Size(113, 23);
-            this._roomNameTextBox.TabIndex = 7;
+            _roomNameTextBox.Location = new Point(111, 23);
+            _roomNameTextBox.Name = "_roomNameTextBox";
+            _roomNameTextBox.Size = new Size(113, 23);
+            _roomNameTextBox.TabIndex = 7;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 26);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(75, 15);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Room name:";
+            label1.AutoSize = true;
+            label1.Location = new Point(6, 26);
+            label1.Name = "label1";
+            label1.Size = new Size(75, 15);
+            label1.TabIndex = 6;
+            label1.Text = "Room name:";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 25);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(64, 15);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Nickname:";
+            label2.AutoSize = true;
+            label2.Location = new Point(6, 25);
+            label2.Name = "label2";
+            label2.Size = new Size(64, 15);
+            label2.TabIndex = 0;
+            label2.Text = "Nickname:";
             // 
             // _nicknameTextBox
             // 
-            this._nicknameTextBox.Location = new System.Drawing.Point(111, 22);
-            this._nicknameTextBox.Name = "_nicknameTextBox";
-            this._nicknameTextBox.Size = new System.Drawing.Size(113, 23);
-            this._nicknameTextBox.TabIndex = 1;
+            _nicknameTextBox.Location = new Point(111, 22);
+            _nicknameTextBox.Name = "_nicknameTextBox";
+            _nicknameTextBox.Size = new Size(113, 23);
+            _nicknameTextBox.TabIndex = 1;
             // 
             // _adminPasswordTextBox
             // 
-            this._adminPasswordTextBox.Location = new System.Drawing.Point(111, 53);
-            this._adminPasswordTextBox.Name = "_adminPasswordTextBox";
-            this._adminPasswordTextBox.PasswordChar = '*';
-            this._adminPasswordTextBox.PlaceholderText = "(optional)";
-            this._adminPasswordTextBox.Size = new System.Drawing.Size(113, 23);
-            this._adminPasswordTextBox.TabIndex = 9;
+            _adminPasswordTextBox.Location = new Point(111, 53);
+            _adminPasswordTextBox.Name = "_adminPasswordTextBox";
+            _adminPasswordTextBox.PasswordChar = '*';
+            _adminPasswordTextBox.PlaceholderText = "(optional)";
+            _adminPasswordTextBox.Size = new Size(113, 23);
+            _adminPasswordTextBox.TabIndex = 9;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 56);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(99, 15);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Admin Password:";
+            label3.AutoSize = true;
+            label3.Location = new Point(6, 56);
+            label3.Name = "label3";
+            label3.Size = new Size(99, 15);
+            label3.TabIndex = 8;
+            label3.Text = "Admin Password:";
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 57);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(38, 15);
-            this.label5.TabIndex = 4;
-            this.label5.Text = "Team:";
+            label5.AutoSize = true;
+            label5.Location = new Point(6, 57);
+            label5.Name = "label5";
+            label5.Size = new Size(38, 15);
+            label5.TabIndex = 4;
+            label5.Text = "Team:";
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this._colorPanel);
-            this.groupBox1.Controls.Add(this._teamComboBox);
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.label5);
-            this.groupBox1.Controls.Add(this._nicknameTextBox);
-            this.groupBox1.Location = new System.Drawing.Point(12, 9);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(235, 86);
-            this.groupBox1.TabIndex = 5;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "User Info";
+            groupBox1.Controls.Add(_colorPanel);
+            groupBox1.Controls.Add(_teamComboBox);
+            groupBox1.Controls.Add(label2);
+            groupBox1.Controls.Add(label5);
+            groupBox1.Controls.Add(_nicknameTextBox);
+            groupBox1.Location = new Point(12, 9);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(235, 86);
+            groupBox1.TabIndex = 5;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "User Info";
             // 
             // _colorPanel
             // 
-            this._colorPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this._colorPanel.Location = new System.Drawing.Point(80, 53);
-            this._colorPanel.Name = "_colorPanel";
-            this._colorPanel.Size = new System.Drawing.Size(26, 25);
-            this._colorPanel.TabIndex = 3;
+            _colorPanel.BorderStyle = BorderStyle.FixedSingle;
+            _colorPanel.Location = new Point(80, 53);
+            _colorPanel.Name = "_colorPanel";
+            _colorPanel.Size = new Size(26, 25);
+            _colorPanel.TabIndex = 3;
             // 
             // _teamComboBox
             // 
-            this._teamComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this._teamComboBox.FormattingEnabled = true;
-            this._teamComboBox.Location = new System.Drawing.Point(111, 54);
-            this._teamComboBox.Name = "_teamComboBox";
-            this._teamComboBox.Size = new System.Drawing.Size(113, 23);
-            this._teamComboBox.TabIndex = 5;
+            _teamComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            _teamComboBox.FormattingEnabled = true;
+            _teamComboBox.Location = new Point(111, 54);
+            _teamComboBox.Name = "_teamComboBox";
+            _teamComboBox.Size = new Size(113, 23);
+            _teamComboBox.TabIndex = 5;
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Controls.Add(this._roomNameTextBox);
-            this.groupBox2.Controls.Add(this._adminPasswordTextBox);
-            this.groupBox2.Controls.Add(this.label3);
-            this.groupBox2.Location = new System.Drawing.Point(12, 101);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(235, 87);
-            this.groupBox2.TabIndex = 0;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Room Info";
+            groupBox2.Controls.Add(label1);
+            groupBox2.Controls.Add(_roomNameTextBox);
+            groupBox2.Controls.Add(_adminPasswordTextBox);
+            groupBox2.Controls.Add(label3);
+            groupBox2.Location = new Point(12, 101);
+            groupBox2.Name = "groupBox2";
+            groupBox2.Size = new Size(235, 87);
+            groupBox2.TabIndex = 0;
+            groupBox2.TabStop = false;
+            groupBox2.Text = "Room Info";
             // 
             // _cancelButton
             // 
-            this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this._cancelButton.Location = new System.Drawing.Point(172, 223);
-            this._cancelButton.Name = "_cancelButton";
-            this._cancelButton.Size = new System.Drawing.Size(75, 23);
-            this._cancelButton.TabIndex = 11;
-            this._cancelButton.Text = "Cancel";
-            this._cancelButton.UseVisualStyleBackColor = true;
-            this._cancelButton.Click += new System.EventHandler(this._cancelButton_Click);
+            _cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            _cancelButton.Location = new Point(172, 223);
+            _cancelButton.Name = "_cancelButton";
+            _cancelButton.Size = new Size(75, 23);
+            _cancelButton.TabIndex = 11;
+            _cancelButton.Text = "Cancel";
+            _cancelButton.UseVisualStyleBackColor = true;
+            _cancelButton.Click += _cancelButton_Click;
             // 
             // _createButton
             // 
-            this._createButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this._createButton.Location = new System.Drawing.Point(91, 223);
-            this._createButton.Name = "_createButton";
-            this._createButton.Size = new System.Drawing.Size(75, 23);
-            this._createButton.TabIndex = 10;
-            this._createButton.Text = "OK";
-            this._createButton.UseVisualStyleBackColor = true;
-            this._createButton.Click += new System.EventHandler(this._createButton_Click);
+            _createButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            _createButton.Location = new Point(91, 223);
+            _createButton.Name = "_createButton";
+            _createButton.Size = new Size(75, 23);
+            _createButton.TabIndex = 10;
+            _createButton.Text = "OK";
+            _createButton.UseVisualStyleBackColor = true;
+            _createButton.Click += _createButton_Click;
             // 
             // errorProvider1
             // 
-            this.errorProvider1.ContainerControl = this;
+            errorProvider1.ContainerControl = this;
             // 
             // _lobbySettingsButton
             // 
-            this._lobbySettingsButton.Location = new System.Drawing.Point(92, 193);
-            this._lobbySettingsButton.Name = "_lobbySettingsButton";
-            this._lobbySettingsButton.Size = new System.Drawing.Size(155, 23);
-            this._lobbySettingsButton.TabIndex = 12;
-            this._lobbySettingsButton.Text = "Lobby Settings >>";
-            this._lobbySettingsButton.UseVisualStyleBackColor = true;
-            this._lobbySettingsButton.Click += new System.EventHandler(this._lobbySettingsButton_Click);
+            _lobbySettingsButton.Location = new Point(92, 193);
+            _lobbySettingsButton.Name = "_lobbySettingsButton";
+            _lobbySettingsButton.Size = new Size(155, 23);
+            _lobbySettingsButton.TabIndex = 12;
+            _lobbySettingsButton.Text = "Lobby Settings >>";
+            _lobbySettingsButton.UseVisualStyleBackColor = true;
+            _lobbySettingsButton.Click += _lobbySettingsButton_Click;
+            // 
+            // _seedLabel
+            // 
+            _seedLabel.AutoSize = true;
+            _seedLabel.ForeColor = Color.DarkGreen;
+            _seedLabel.Location = new Point(12, 197);
+            _seedLabel.Name = "_seedLabel";
+            _seedLabel.Size = new Size(44, 15);
+            _seedLabel.TabIndex = 13;
+            _seedLabel.Text = "Seed: 0";
+            _seedLabel.Visible = false;
             // 
             // CreateLobbyForm
             // 
-            this.AcceptButton = this._createButton;
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-			this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(258, 256);
-            this.Controls.Add(this._lobbySettingsButton);
-            this.Controls.Add(this._createButton);
-            this.Controls.Add(this._cancelButton);
-            this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "CreateLobbyForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Create Lobby";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.CreateLobbyForm_FormClosing);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).EndInit();
-            this.ResumeLayout(false);
-
+            AcceptButton = _createButton;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            CancelButton = _cancelButton;
+            ClientSize = new Size(258, 256);
+            Controls.Add(_seedLabel);
+            Controls.Add(_lobbySettingsButton);
+            Controls.Add(_createButton);
+            Controls.Add(_cancelButton);
+            Controls.Add(groupBox2);
+            Controls.Add(groupBox1);
+            FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            Name = "CreateLobbyForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Create Lobby";
+            FormClosing += CreateLobbyForm_FormClosing;
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            groupBox2.ResumeLayout(false);
+            groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)errorProvider1).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -231,5 +244,6 @@
         private ErrorProvider errorProvider1;
         private Panel _colorPanel;
         private Button _lobbySettingsButton;
+        private Label _seedLabel;
     }
 }

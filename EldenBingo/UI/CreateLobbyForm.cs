@@ -17,6 +17,7 @@ namespace EldenBingo.UI
             _initWidth = Width;
             _initHeight = Height;
             _client = client;
+            
             if (!create)
             {
                 Text = "Join Lobby";
@@ -28,8 +29,25 @@ namespace EldenBingo.UI
             {
                 client.AddListener<ServerRoomNameSuggestion>(availableRoomNameData);
             }
+
             initTeamComboBox();
             loadSettings();
+            if(create)
+                updateSeedLabel();
+        }
+
+        private void updateSeedLabel()
+        {
+            if (_gameSettingsControl != null)
+            {
+                _seedLabel.Text = $"Seed: {_gameSettingsControl.CurrentSeed}";
+                _seedLabel.Visible = _gameSettingsControl.CurrentSeed != 0;
+            } 
+            else
+            {
+                _seedLabel.Text = $"Seed: {Properties.Settings.Default.GS_RandomSeed}";
+                _seedLabel.Visible = Properties.Settings.Default.GS_RandomSeed != 0;
+            }
         }
 
         public string AdminPassword
@@ -171,6 +189,7 @@ namespace EldenBingo.UI
         {
             var control = new GameSettingsControl();
             control.Location = new Point(Width - 14, 4);
+            control.SeedChanged += () => updateSeedLabel();
             Controls.Add(control);
             _gameSettingsControl = control;
         }
