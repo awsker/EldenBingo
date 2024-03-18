@@ -89,23 +89,22 @@ namespace EldenBingoServer
                 return PlayerCounters.Remove(player);
         }
 
-        public SquareCounter[] GetCountersForPlayer(UserInRoom recipient, IEnumerable<UserInRoom> players)
+        public SquareCounter[] GetCountersForPlayer(UserInRoom recipient, IEnumerable<UserInRoom> players, IList<Team> teams)
         {
-            var listOfTeams = Room<UserInRoom>.GetPlayerTeams(players);
-            var counters = new SquareCounter[listOfTeams.Count];
-            for (int i = 0; i < listOfTeams.Count; ++i)
+            var counters = new SquareCounter[teams.Count];
+            for (int i = 0; i < teams.Count; ++i)
             {
-                var team = listOfTeams[i];
+                var team = teams[i];
                 int? teamCount = null;
                 if(recipient.IsSpectator)
                 {
-                    teamCount = GetCounterByTeam(team.Item1, players);
+                    teamCount = GetCounterByTeam(team.Index, players);
                 } 
-                else if(recipient.Team == team.Item1)
+                else if(recipient.Team == team.Index)
                 {
                     teamCount = GetCounter(recipient);
                 }
-                counters[i] = new SquareCounter(team.Item1, teamCount ?? 0);
+                counters[i] = new SquareCounter(team.Index, teamCount ?? 0);
             }
             return counters;
         }
@@ -130,23 +129,26 @@ namespace EldenBingoServer
         public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {
             var squares = new BingoBoardSquare[25];
+            var teams = Room.GetActiveTeams(Room.Users, this);
             for (int i = 0; i < 25; ++i)
             {
-                squares[i] = GetSquareDataForUser(user, i);
+                squares[i] = GetSquareDataForUser(user, i, teams);
             }
             return squares;
         }
 
-        public BingoBoardSquare GetSquareDataForUser(UserInRoom user, int index)
+        public BingoBoardSquare GetSquareDataForUser(UserInRoom user, int index, IList<Team> teams = null)
         {
             var status = CheckStatus[index];
+            if (teams == null)
+                teams = Room.GetActiveTeams(Room.Users, this);
             return new BingoBoardSquare(
                 Squares[index].Text,
                 Squares[index].Tooltip,
                 Squares[index].MaxCount,
                 status.CheckedBy,
                 status.IsMarked(user),
-                status.GetCountersForPlayer(user, Room.Users));
+                status.GetCountersForPlayer(user, Room.Users, teams));
         }
 
         public bool UserChangeCount(int i, UserInRoom user, int change)

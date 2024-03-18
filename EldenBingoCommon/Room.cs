@@ -17,22 +17,31 @@ namespace EldenBingoCommon
         public int NumUsers => UsersDict.Count;
         protected ConcurrentDictionary<Guid, T> UsersDict { get; init; }
 
-        public static IList<(int, string)> GetPlayerTeams(IEnumerable<T> players)
+        public virtual IList<Team> GetActiveTeams(IEnumerable<T> players, BingoBoard? board)
         {
             var teams = players.ToLookup(p => p.Team);
-            var list = new List<(int, string)>();
+            var dict = new Dictionary<int, string>();
             foreach (var team in teams)
             {
                 if (team.Key == -1)
                     continue;
                 var teamPlayers = team.ToList();
                 if (teamPlayers.Count == 1)
-                    list.Add(new(team.Key, teamPlayers[0].Nick));
+                    dict.Add(team.Key, teamPlayers[0].Nick);
                 else if (teamPlayers.Count > 1)
-                    list.Add(new(team.Key, getUnifiedName(team.Key, teamPlayers)));
+                    dict.Add(team.Key, GetUnifiedName(team.Key, teamPlayers));
             }
-
-            return list.OrderBy(pt => pt.Item1).ToList();
+            if(board != null)
+            {
+                foreach(var sq in board.Squares)
+                {
+                    if(sq.Team.HasValue && !dict.ContainsKey(sq.Team.Value))
+                    {
+                        dict.Add(sq.Team.Value, GetUnifiedName(sq.Team.Value, new T[0]));
+                    }
+                }
+            }
+            return dict.Select(kv => new Team(kv.Key, kv.Value)).OrderBy(pt => pt.Index).ToList();
         }
 
         public virtual void AddUser(T user)
@@ -47,9 +56,9 @@ namespace EldenBingoCommon
         public IList<CheckPerTeam> GetCheckedSquaresPerTeam()
         {
             var list = new List<CheckPerTeam>();
-            foreach (var pt in GetPlayerTeams())
+            foreach (var team in GetActiveTeams())
             {
-                list.Add(new CheckPerTeam(pt.Item1, pt.Item2, 0, 0));
+                list.Add(new CheckPerTeam(team, 0, 0));
             }
             if (Match?.Board == null)
             {
@@ -59,11 +68,11 @@ namespace EldenBingoCommon
             var bingosPerTeam = getBingosPerTeam();
             for (int i = 0; i < list.Count; ++i)
             {
-                if (squaresCountPerTeam.TryGetValue(list[i].Team, out int c))
+                if (squaresCountPerTeam.TryGetValue(list[i].Team.Index, out int c))
                 {
                     list[i].Squares = c;
                 }
-                if (bingosPerTeam.TryGetValue(list[i].Team, out int b))
+                if (bingosPerTeam.TryGetValue(list[i].Team.Index, out int b))
                 {
                     list[i].Bingos = b;
                 }
@@ -162,9 +171,9 @@ namespace EldenBingoCommon
             return UsersDict.Values.OrderBy(u => u, cmp).ToList();
         }
 
-        public IList<(int, string)> GetPlayerTeams()
+        public IList<Team> GetActiveTeams()
         {
-            return GetPlayerTeams(Users);
+            return GetActiveTeams(Users, Match?.Board);
         }
 
         public virtual bool RemoveUser(T client)
@@ -178,7 +187,7 @@ namespace EldenBingoCommon
             return obj ?? null;
         }
 
-        private static string getUnifiedName(int team, IList<T> teamPlayers)
+        protected string GetUnifiedName(int team, IList<T> teamPlayers)
         {
             string shortestName = string.Empty;
             for (int i = 0; i < teamPlayers.Count; ++i)
@@ -188,7 +197,7 @@ namespace EldenBingoCommon
             }
             //If all names starts with the same sequence (CptDomo, CptDomo2, CptDomo-Spec etc..),
             //use the shortest of these as the team name
-            if (teamPlayers.All(p => p.Nick.StartsWith(shortestName)))
+            if (!string.IsNullOrWhiteSpace(shortestName) && teamPlayers.All(p => p.Nick.StartsWith(shortestName)))
                 return shortestName;
             return BingoConstants.GetTeamName(team);
         }
@@ -196,17 +205,27 @@ namespace EldenBingoCommon
 
     public class CheckPerTeam
     {
-        public int Team;
-        public string Name;
+        public Team Team;
         public int Squares;
         public int Bingos;
 
-        public CheckPerTeam(int team, string name, int squares, int bingos)
+        public CheckPerTeam(Team team, int squares, int bingos)
         {
             Team = team;
-            Name = name;
             Squares = squares;
             Bingos = bingos;
+        }
+    }
+
+    public struct Team
+    {
+        public int Index;
+        public string Name;
+
+        public Team(int index, string name)
+        {
+            Index = index;
+            Name = name;
         }
     }
 }

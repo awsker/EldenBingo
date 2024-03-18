@@ -33,6 +33,7 @@ namespace EldenBingo.UI
 
             Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            Client.AddListener<ServerEntireBingoBoardUpdate>(entireBoardUpdate);
             Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
@@ -49,6 +50,7 @@ namespace EldenBingo.UI
 
             Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
+            Client.RemoveListener<ServerEntireBingoBoardUpdate>(entireBoardUpdate);
             Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
@@ -60,6 +62,11 @@ namespace EldenBingo.UI
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
+        {
+            updateRows();
+        }
+
+        private void entireBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate update)
         {
             updateRows();
         }
@@ -137,10 +144,10 @@ namespace EldenBingo.UI
                     var control = new ScoreboardRowControl();
 
                     var team = teamCount.Team;
-                    control.Color = BingoConstants.GetTeamColor(team);
+                    control.Color = BingoConstants.GetTeamColor(team.Index);
                     control.CounterText = (teamCount.Squares + teamCount.Bingos * pointsPerBingo).ToString();
-                    control.TextColor = BingoConstants.GetTeamColorBright(team);
-                    control.NameText = teamCount.Name;
+                    control.TextColor = BingoConstants.GetTeamColorBright(team.Index);
+                    control.NameText = team.Name;
                     control.Width = Width;
                     control.Font = Font;
                     if (!squareHeight.HasValue)

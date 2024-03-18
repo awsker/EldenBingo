@@ -83,6 +83,33 @@ namespace EldenBingoServer
             }
         }
 
+        public override IList<Team> GetActiveTeams(IEnumerable<BingoClientInRoom> players, BingoBoard? board)
+        {
+            var teams = players.ToLookup(p => p.Team);
+            var dict = new Dictionary<int, string>();
+            foreach (var team in teams)
+            {
+                if (team.Key == -1)
+                    continue;
+                var teamPlayers = team.ToList();
+                if (teamPlayers.Count == 1)
+                    dict.Add(team.Key, teamPlayers[0].Nick);
+                else if (teamPlayers.Count > 1)
+                    dict.Add(team.Key, GetUnifiedName(team.Key, teamPlayers));
+            }
+            if (board is ServerBingoBoard serverboard)
+            {
+                foreach (var sq in serverboard.CheckStatus)
+                {
+                    if (sq.CheckedBy.HasValue && !dict.ContainsKey(sq.CheckedBy.Value))
+                    {
+                        dict.Add(sq.CheckedBy.Value, GetUnifiedName(sq.CheckedBy.Value, new BingoClientInRoom[0]));
+                    }
+                }
+            }
+            return dict.Select(kv => new Team(kv.Key, kv.Value)).OrderBy(pt => pt.Index).ToList();
+        }
+
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
             stopTimer();
