@@ -39,10 +39,13 @@
             _preparationTimeUpDown = new NumericUpDown();
             label4 = new Label();
             button1 = new Button();
+            label5 = new Label();
+            _bonusPointsUpDown = new NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)_numClassesUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_maxCategoryUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_randomSeedUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_preparationTimeUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)_bonusPointsUpDown).BeginInit();
             SuspendLayout();
             // 
             // label1
@@ -50,9 +53,9 @@
             label1.AutoSize = true;
             label1.Location = new Point(4, 257);
             label1.Name = "label1";
-            label1.Size = new Size(83, 15);
+            label1.Size = new Size(82, 15);
             label1.TabIndex = 6;
-            label1.Text = "Random Seed:";
+            label1.Text = "Random seed:";
             // 
             // _classesListBox
             // 
@@ -69,9 +72,9 @@
             _classLimitCheckBox.AutoSize = true;
             _classLimitCheckBox.Location = new Point(6, 5);
             _classLimitCheckBox.Name = "_classLimitCheckBox";
-            _classLimitCheckBox.Size = new Size(141, 19);
+            _classLimitCheckBox.Size = new Size(138, 19);
             _classLimitCheckBox.TabIndex = 1;
-            _classLimitCheckBox.Text = "Limit Starting Classes:";
+            _classLimitCheckBox.Text = "Limit starting classes:";
             _classLimitCheckBox.UseVisualStyleBackColor = true;
             _classLimitCheckBox.CheckedChanged += _classLimitCheckBox_CheckedChanged;
             // 
@@ -116,9 +119,9 @@
             label3.AutoSize = true;
             label3.Location = new Point(4, 287);
             label3.Name = "label3";
-            label3.Size = new Size(100, 15);
-            label3.TabIndex = 8;
-            label3.Text = "Preparation Time:";
+            label3.Size = new Size(98, 15);
+            label3.TabIndex = 9;
+            label3.Text = "Preparation time:";
             // 
             // _preparationTimeUpDown
             // 
@@ -126,7 +129,7 @@
             _preparationTimeUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
             _preparationTimeUpDown.Name = "_preparationTimeUpDown";
             _preparationTimeUpDown.Size = new Size(66, 23);
-            _preparationTimeUpDown.TabIndex = 9;
+            _preparationTimeUpDown.TabIndex = 10;
             // 
             // label4
             // 
@@ -134,7 +137,7 @@
             label4.Location = new Point(185, 287);
             label4.Name = "label4";
             label4.Size = new Size(50, 15);
-            label4.TabIndex = 10;
+            label4.TabIndex = 11;
             label4.Text = "seconds";
             // 
             // button1
@@ -142,15 +145,34 @@
             button1.Location = new Point(185, 255);
             button1.Name = "button1";
             button1.Size = new Size(51, 23);
-            button1.TabIndex = 11;
+            button1.TabIndex = 8;
             button1.Text = "Reset";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(4, 317);
+            label5.Name = "label5";
+            label5.Size = new Size(131, 15);
+            label5.TabIndex = 12;
+            label5.Text = "Bonus points for bingo:";
+            // 
+            // _bonusPointsUpDown
+            // 
+            _bonusPointsUpDown.Location = new Point(143, 315);
+            _bonusPointsUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
+            _bonusPointsUpDown.Name = "_bonusPointsUpDown";
+            _bonusPointsUpDown.Size = new Size(66, 23);
+            _bonusPointsUpDown.TabIndex = 13;
             // 
             // GameSettingsControl
             // 
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
+            Controls.Add(_bonusPointsUpDown);
+            Controls.Add(label5);
             Controls.Add(button1);
             Controls.Add(label4);
             Controls.Add(_preparationTimeUpDown);
@@ -163,11 +185,12 @@
             Controls.Add(_classesListBox);
             Controls.Add(label1);
             Name = "GameSettingsControl";
-            Size = new Size(239, 310);
+            Size = new Size(239, 343);
             ((System.ComponentModel.ISupportInitialize)_numClassesUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)_maxCategoryUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)_randomSeedUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)_preparationTimeUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)_bonusPointsUpDown).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -185,5 +208,7 @@
         private NumericUpDown _preparationTimeUpDown;
         private Label label4;
         private Button button1;
+        private Label label5;
+        private NumericUpDown _bonusPointsUpDown;
     }
 }

@@ -353,7 +353,12 @@ namespace EldenBingoServer
             else if (await confirm(sender, gameStarted: false))
             {
                 ServerBingoBoard? board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
-                if (board != null)
+                if (board == null)
+                {
+                    await sendAdminStatusMessage(sender, $"Error generating bingo board: No valid board possible", System.Drawing.Color.Red);
+                    return;
+                } 
+                else
                 {
                     await setRoomBingoBoard(sender.Room, board);
                     await sendAdminStatusMessage(sender, "New board generated!", System.Drawing.Color.Green);
@@ -369,6 +374,19 @@ namespace EldenBingoServer
             if (!await confirm(sender, admin: true, inRoom: true))
                 return;
 
+            if (matchStatus.MatchStatus == MatchStatus.Starting && sender.Room.Match != null && sender.Room.BoardGenerator != null)
+            {
+                //Generate a board if no board is set or if the current board was used in last bingo
+                if(sender.Room.Match.Board == null || sender.Room.BoardAlreadyUsed)
+                {
+                    var board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
+                    if (board != null)
+                    {
+                        await setRoomBingoBoard(sender.Room, board);
+                    }
+                }
+            }
+
             //Can always change status to "Not running", all others require that bingo board is generated
             if (matchStatus.MatchStatus > MatchStatus.NotRunning && !await confirm(sender, hasBingoBoard: true))
                 return;
@@ -379,11 +397,18 @@ namespace EldenBingoServer
             {
                 await sendAdminStatusMessage(sender, result.ErrorMessage, System.Drawing.Color.Red);
             }
-            if (result.Success && matchStatus.MatchStatus == MatchStatus.Starting)
+            if (result.Success)
             {
-                var p = new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
-                //Reset the board for all players (except AdminSpectators, who already have the new board)
-                await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
+                if (matchStatus.MatchStatus == MatchStatus.Starting)
+                {
+                    var p = new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), 0));
+                    //Reset the board for all players (except AdminSpectators, who already have the new board)
+                    await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
+                } 
+                if (matchStatus.MatchStatus == MatchStatus.Finished)
+                {
+                    sender.Room.BoardAlreadyUsed = true;
+                }
             }
         }
 
@@ -538,9 +563,9 @@ namespace EldenBingoServer
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
-                return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
+                return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), 0);
             var squareData = board.GetSquareDataForUser(user);
-            return new ServerEntireBingoBoardUpdate(squareData, board.AvailableClasses);
+            return new ServerEntireBingoBoardUpdate(squareData, board.AvailableClasses, board.PointsPerBingoLine);
         }
 
         private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
@@ -634,7 +659,7 @@ namespace EldenBingoServer
             if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
             {
                 //No board set, so we send an empty board
-                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
+                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), 0)), room);
                 return;
             }
 
@@ -667,6 +692,7 @@ namespace EldenBingoServer
         private async Task setRoomBingoBoard(ServerRoom room, ServerBingoBoard board)
         {
             room.Match.Board = board;
+            room.BoardAlreadyUsed = false;
             await setRoomMatchStatus(room, MatchStatus.NotRunning);
             await sendBoardAndClasses(room);
         }

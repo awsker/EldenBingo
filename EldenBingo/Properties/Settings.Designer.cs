@@ -502,5 +502,17 @@ namespace EldenBingo.Properties {
                 this["AlwaysOnTop"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int GS_BonusPerBingo {
+            get {
+                return ((int)(this["GS_BonusPerBingo"]));
+            }
+            set {
+                this["GS_BonusPerBingo"] = value;
+            }
+        }
     }
 }

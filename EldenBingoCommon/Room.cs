@@ -44,40 +44,111 @@ namespace EldenBingoCommon
         /// Get number of checked squares per team
         /// </summary>
         /// <returns>Team, TeamName, Count</returns>
-        public IList<(int, string, int)> GetCheckedSquaresPerTeam()
+        public IList<CheckPerTeam> GetCheckedSquaresPerTeam()
         {
-            var list = new List<(int, string, int)>();
+            var list = new List<CheckPerTeam>();
             foreach (var pt in GetPlayerTeams())
             {
-                list.Add(new(pt.Item1, pt.Item2, 0));
+                list.Add(new CheckPerTeam(pt.Item1, pt.Item2, 0, 0));
             }
             if (Match?.Board == null)
             {
                 return list;
             }
-            var dict = new Dictionary<int, int>();
+            var squaresCountPerTeam = getSquaresPerTeam();
+            var bingosPerTeam = getBingosPerTeam();
+            for (int i = 0; i < list.Count; ++i)
+            {
+                if (squaresCountPerTeam.TryGetValue(list[i].Team, out int c))
+                {
+                    list[i].Squares = c;
+                }
+                if (bingosPerTeam.TryGetValue(list[i].Team, out int b))
+                {
+                    list[i].Bingos = b;
+                }
+            }
+            return list;
+        }
+
+        private Dictionary<int, int> getSquaresPerTeam()
+        {
+            var squaresCountPerTeam = new Dictionary<int, int>();
+            if (Match?.Board == null)
+            {
+                return squaresCountPerTeam;
+            }
             foreach (var square in Match.Board.Squares)
             {
                 if (!square.Team.HasValue)
                     continue;
 
-                if (dict.TryGetValue(square.Team.Value, out int c))
+                if (squaresCountPerTeam.TryGetValue(square.Team.Value, out int c))
                 {
-                    dict[square.Team.Value] = c + 1;
+                    squaresCountPerTeam[square.Team.Value] = c + 1;
                 }
                 else
                 {
-                    dict[square.Team.Value] = 1;
+                    squaresCountPerTeam[square.Team.Value] = 1;
                 }
             }
-            for (int i = 0; i < list.Count; ++i)
+            return squaresCountPerTeam;
+        }
+
+        private Dictionary<int, int> getBingosPerTeam()
+        {
+            var bingosPerTeam = new Dictionary<int, int>();
+            if (Match?.Board?.Squares == null || Match.Board.Squares.Length != 25)
+                return bingosPerTeam;
+
+            for(int x = 0; x < 5; ++x)
             {
-                if (dict.TryGetValue(list[i].Item1, out int c))
+                findBingo(bingosPerTeam, x, 0, 0, 1);
+            }
+
+            for (int y = 0; y < 5; ++y)
+            {
+                findBingo(bingosPerTeam, 0, y, 1, 0);
+            }
+            //Top-left to bottom-right
+            findBingo(bingosPerTeam, 0, 0, 1, 1);
+            //Bottom-left to top-right
+            findBingo(bingosPerTeam, 0, 4, 1, -1);
+
+            return bingosPerTeam;
+        }
+
+        private void findBingo(Dictionary<int, int> bingos, int startx, int starty, int dx, int dy)
+        {
+            if (Match?.Board?.Squares == null || Match.Board.Squares.Length != 25)
+                return;
+
+            int index(int x, int y) { return x + y * 5; }
+            int x = startx;
+            int y = starty;
+            int? team = null;
+            for(int i = 0; i < 5; ++i)
+            {
+                var s = Match.Board.Squares[index(x, y)];
+                if (!s.Team.HasValue)
+                    return;
+                if (team.HasValue && team.Value != s.Team.Value)
+                    return;
+                team = s.Team.Value;
+                x += dx;
+                y += dy;
+            }
+            if(team.HasValue)
+            {
+                if(bingos.TryGetValue(team.Value, out var b) )
                 {
-                    list[i] = (list[i].Item1, list[i].Item2, c);
+                    bingos[team.Value] = b + 1;
+                } 
+                else
+                {
+                    bingos[team.Value] = 1;
                 }
             }
-            return list;
         }
 
         public T? GetUser(Guid userGuid)
@@ -120,6 +191,22 @@ namespace EldenBingoCommon
             if (teamPlayers.All(p => p.Nick.StartsWith(shortestName)))
                 return shortestName;
             return BingoConstants.GetTeamName(team);
+        }
+    }
+
+    public class CheckPerTeam
+    {
+        public int Team;
+        public string Name;
+        public int Squares;
+        public int Bingos;
+
+        public CheckPerTeam(int team, string name, int squares, int bingos)
+        {
+            Team = team;
+            Name = name;
+            Squares = squares;
+            Bingos = bingos;
         }
     }
 }

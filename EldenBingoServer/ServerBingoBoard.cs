@@ -113,7 +113,7 @@ namespace EldenBingoServer
 
     public class ServerBingoBoard : BingoBoard
     {
-        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses) : base(squares, availableClasses)
+        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses, int pointsPerBingo) : base(squares, availableClasses, pointsPerBingo)
         {
             CheckStatus = new CheckStatus[25];
             Room = room;
@@ -125,6 +125,7 @@ namespace EldenBingoServer
 
         public CheckStatus[] CheckStatus { get; init; }
         internal ServerRoom Room { get; init; }
+
 
         public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {

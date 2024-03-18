@@ -131,15 +131,16 @@ namespace EldenBingo.UI
                 var currentY = 0;
 
                 int? squareHeight = null;
+                int pointsPerBingo = room.Match?.Board?.PointsPerBingoLine ?? 0;
                 foreach (var teamCount in room.GetCheckedSquaresPerTeam())
                 {
                     var control = new ScoreboardRowControl();
 
-                    var team = teamCount.Item1;
+                    var team = teamCount.Team;
                     control.Color = BingoConstants.GetTeamColor(team);
-                    control.CounterText = teamCount.Item3.ToString();
+                    control.CounterText = (teamCount.Squares + teamCount.Bingos * pointsPerBingo).ToString();
                     control.TextColor = BingoConstants.GetTeamColorBright(team);
-                    control.NameText = teamCount.Item2;
+                    control.NameText = teamCount.Name;
                     control.Width = Width;
                     control.Font = Font;
                     if (!squareHeight.HasValue)

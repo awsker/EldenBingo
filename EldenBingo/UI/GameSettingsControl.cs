@@ -31,7 +31,8 @@ namespace EldenBingo.UI
                     Convert.ToInt32(_numClassesUpDown.Value),//Number of classes to pick
                     Convert.ToInt32(_maxCategoryUpDown.Value),//Max number of squares in the same category
                     Convert.ToInt32(_randomSeedUpDown.Value), //Random seed
-                    Convert.ToInt32(_preparationTimeUpDown.Value) //Preparation time in seconds
+                    Convert.ToInt32(_preparationTimeUpDown.Value), //Preparation time in seconds
+                    Convert.ToInt32(_bonusPointsUpDown.Value) //Bonus points for a bingo line
                 );
             }
             set
@@ -49,6 +50,7 @@ namespace EldenBingo.UI
                 _maxCategoryUpDown.Value = value.CategoryLimit;
                 _randomSeedUpDown.Value = value.RandomSeed;
                 _preparationTimeUpDown.Value = value.PreparationTime;
+                _bonusPointsUpDown.Value = value.PointsPerBingoLine;
                 updateEnabling();
             }
         }

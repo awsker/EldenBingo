@@ -139,7 +139,7 @@ namespace EldenBingoServer
                         Array.Empty<SquareCounter>()
                     )
                 ).ToArray(), 
-            classes);
+            classes, room.GameSettings.PointsPerBingoLine);
         }
 
         private EldenRingClasses[] randomizeAvailableClasses(IEnumerable<EldenRingClasses> availableClasses, int numberOfClasses)

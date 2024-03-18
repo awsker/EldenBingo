@@ -30,6 +30,7 @@ namespace EldenBingoServer
         public DateTime CreateTime { get; init; }
         public DateTime LastActivity { get; set; }
         public BingoGameSettings GameSettings { get; set; }
+        public bool BoardAlreadyUsed { get; set; }
 
         public BingoClientInRoom AddUser(BingoClientModel client, string nick, string adminPass, int team)
         {

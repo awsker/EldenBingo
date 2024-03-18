@@ -28,59 +28,56 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this._gameSettingsControl = new EldenBingo.UI.GameSettingsControl();
-            this._cancelButton = new System.Windows.Forms.Button();
-            this._okButton = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            _gameSettingsControl = new GameSettingsControl();
+            _cancelButton = new Button();
+            _okButton = new Button();
+            SuspendLayout();
             // 
             // _gameSettingsControl
             // 
-            this._gameSettingsControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this._gameSettingsControl.Location = new System.Drawing.Point(3, 3);
-            this._gameSettingsControl.Name = "_gameSettingsControl";
-            this._gameSettingsControl.Size = new System.Drawing.Size(239, 308);
-            this._gameSettingsControl.TabIndex = 0;
+            _gameSettingsControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            _gameSettingsControl.Location = new Point(3, 3);
+            _gameSettingsControl.Name = "_gameSettingsControl";
+            _gameSettingsControl.Size = new Size(239, 341);
+            _gameSettingsControl.TabIndex = 0;
             // 
             // _cancelButton
             // 
-            this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(167, 317);
-            this._cancelButton.Name = "_cancelButton";
-            this._cancelButton.Size = new System.Drawing.Size(75, 23);
-            this._cancelButton.TabIndex = 2;
-            this._cancelButton.Text = "Cancel";
-            this._cancelButton.UseVisualStyleBackColor = true;
-            this._cancelButton.Click += new System.EventHandler(this._cancelButton_Click);
+            _cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            _cancelButton.Location = new Point(167, 350);
+            _cancelButton.Name = "_cancelButton";
+            _cancelButton.Size = new Size(75, 23);
+            _cancelButton.TabIndex = 2;
+            _cancelButton.Text = "Cancel";
+            _cancelButton.UseVisualStyleBackColor = true;
+            _cancelButton.Click += _cancelButton_Click;
             // 
             // _okButton
             // 
-            this._okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._okButton.Location = new System.Drawing.Point(86, 317);
-            this._okButton.Name = "_okButton";
-            this._okButton.Size = new System.Drawing.Size(75, 23);
-            this._okButton.TabIndex = 1;
-            this._okButton.Text = "OK";
-            this._okButton.UseVisualStyleBackColor = true;
-            this._okButton.Click += new System.EventHandler(this._okButton_Click);
+            _okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            _okButton.Location = new Point(86, 350);
+            _okButton.Name = "_okButton";
+            _okButton.Size = new Size(75, 23);
+            _okButton.TabIndex = 1;
+            _okButton.Text = "OK";
+            _okButton.UseVisualStyleBackColor = true;
+            _okButton.Click += _okButton_Click;
             // 
             // GameSettingsForm
             // 
-            this.AcceptButton = this._okButton;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(247, 347);
-            this.Controls.Add(this._okButton);
-            this.Controls.Add(this._cancelButton);
-            this.Controls.Add(this._gameSettingsControl);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "GameSettingsForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Lobby Settings";
-            this.ResumeLayout(false);
-
+            AcceptButton = _okButton;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            CancelButton = _cancelButton;
+            ClientSize = new Size(247, 380);
+            Controls.Add(_okButton);
+            Controls.Add(_cancelButton);
+            Controls.Add(_gameSettingsControl);
+            FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            Name = "GameSettingsForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Lobby Settings";
+            ResumeLayout(false);
         }
 
         #endregion
