@@ -582,8 +582,10 @@ namespace EldenBingo.UI
                     else if (i == _counters.Length - 1)
                         leftXPos = Width - size.Width;
                     else
-                        leftXPos = Convert.ToInt32(Width / (i + 1f) - size.Width / 2f);
-
+                    {
+                        var widthBetweenLeftAndRight = Width - size.Width;
+                        leftXPos = Convert.ToInt32(i * (widthBetweenLeftAndRight / (_counters.Length - 1f)));
+                    }
                     int yPos = Height - size.Height;
                     var color = BingoConstants.GetTeamColorBright(c.Team);
                     TextRenderer.DrawText(e, c.Counter.ToString(), counterFont, new Rectangle(leftXPos + 1, yPos + 1, size.Width, size.Height), shadowColor, flags: counterFlags);
