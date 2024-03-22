@@ -184,7 +184,7 @@ namespace EldenBingo.UI
                     linename = "unknown";
                     break;
             }
-            updateMatchLog(new string[] {update.Bingo.Name, $" BINGO on {linename}!" }, new Color?[]{ BingoConstants.GetTeamColorBright(update.Bingo.Team), null }, true);
+            updateMatchLog(new string[] {update.Bingo.Name, $"BINGO on {linename}!" }, new Color?[]{ BingoConstants.GetTeamColorBright(update.Bingo.Team), null }, true);
         }
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
