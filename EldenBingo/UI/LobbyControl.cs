@@ -1,6 +1,5 @@
 ﻿using EldenBingo.Net;
 using EldenBingoCommon;
-using Microsoft.VisualBasic.ApplicationServices;
 using Neto.Shared;
 
 namespace EldenBingo.UI
@@ -371,6 +370,7 @@ namespace EldenBingo.UI
                 adminControl1.Visible = isAdmin;
                 adminControl1.Height = isAdmin ? _adminHeight : 0;
                 _adminInfoLabel.Visible = isAdmin && Client?.LocalUser?.IsSpectator == true;
+                updateBingoPanelSize();
             }
             if (InvokeRequired)
             {
