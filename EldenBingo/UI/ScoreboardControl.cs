@@ -31,16 +31,7 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            Client.AddListener<ServerUserChecked>(userChecked);
-            Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
-            Client.AddListener<ServerEntireBingoBoardUpdate>(entireBoardUpdate);
-            Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
-            Client.AddListener<ServerUserJoinedRoom>(userJoined);
-            Client.AddListener<ServerUserLeftRoom>(userLeft);
-        }
-
-        protected override void ClientChanged()
-        {
+            Client.AddListener<ServerScoreboardUpdate>(scoreBoardUpdate);
         }
 
         protected override void RemoveClientListeners()
@@ -48,42 +39,7 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
 
-            Client.RemoveListener<ServerUserChecked>(userChecked);
-            Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
-            Client.RemoveListener<ServerEntireBingoBoardUpdate>(entireBoardUpdate);
-            Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
-            Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
-            Client.RemoveListener<ServerUserLeftRoom>(userLeft);
-        }
-
-        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
-        {
-            updateRows();
-        }
-
-        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
-        {
-            updateRows();
-        }
-
-        private void entireBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate update)
-        {
-            updateRows();
-        }
-
-        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatusUpdate)
-        {
-            updateRows();
-        }
-
-        private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
-        {
-            updateRows();
-        }
-
-        private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
-        {
-            updateRows();
+            Client.RemoveListener<ServerScoreboardUpdate>(scoreBoardUpdate);
         }
 
         private void scoreboardControl_SizeChanged(object? sender, EventArgs e)
@@ -92,6 +48,11 @@ namespace EldenBingo.UI
             {
                 row.Width = Width;
             }
+        }
+
+        private void scoreBoardUpdate(ClientModel? _, ServerScoreboardUpdate update)
+        {
+            updateRows(update.Scoreboard);
         }
 
         private void updateHeight()
@@ -124,7 +85,7 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void updateRows()
+        private void updateRows(TeamScore[] scores)
         {
             void update()
             {
@@ -138,16 +99,14 @@ namespace EldenBingo.UI
                 var currentY = 0;
 
                 int? squareHeight = null;
-                int pointsPerBingo = room.Match?.Board?.PointsPerBingoLine ?? 0;
-                foreach (var teamCount in room.GetCheckedSquaresPerTeam())
+                foreach (var teamScore in scores)
                 {
                     var control = new ScoreboardRowControl();
 
-                    var team = teamCount.Team;
-                    control.Color = BingoConstants.GetTeamColor(team.Index);
-                    control.CounterText = (teamCount.Squares + teamCount.Bingos * pointsPerBingo).ToString();
-                    control.TextColor = BingoConstants.GetTeamColorBright(team.Index);
-                    control.NameText = team.Name;
+                    control.Color = BingoConstants.GetTeamColor(teamScore.Team);
+                    control.CounterText = teamScore.Score.ToString();
+                    control.TextColor = BingoConstants.GetTeamColorBright(teamScore.Team);
+                    control.NameText = teamScore.Name;
                     control.Width = Width;
                     control.Font = Font;
                     if (!squareHeight.HasValue)

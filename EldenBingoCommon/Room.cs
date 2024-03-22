@@ -17,6 +17,12 @@ namespace EldenBingoCommon
         public int NumUsers => UsersDict.Count;
         protected ConcurrentDictionary<Guid, T> UsersDict { get; init; }
 
+        public virtual void AddUser(T user)
+        {
+            UsersDict[user.Guid] = user;
+        }
+
+        /*
         public virtual IList<Team> GetActiveTeams(IEnumerable<T> players, BingoBoard? board)
         {
             var teams = players.ToLookup(p => p.Team);
@@ -44,10 +50,13 @@ namespace EldenBingoCommon
             return dict.Select(kv => new Team(kv.Key, kv.Value)).OrderBy(pt => pt.Index).ToList();
         }
 
-        public virtual void AddUser(T user)
+
+
+        public IList<Team> GetActiveTeams()
         {
-            UsersDict[user.Guid] = user;
+            return GetActiveTeams(Users, Match?.Board);
         }
+
 
         /// <summary>
         /// Get number of checked squares per team
@@ -158,7 +167,7 @@ namespace EldenBingoCommon
                     bingos[team.Value] = 1;
                 }
             }
-        }
+        }*/
 
         public T? GetUser(Guid userGuid)
         {
@@ -169,11 +178,6 @@ namespace EldenBingoCommon
         {
             var cmp = new UserComparer<T>();
             return UsersDict.Values.OrderBy(u => u, cmp).ToList();
-        }
-
-        public IList<Team> GetActiveTeams()
-        {
-            return GetActiveTeams(Users, Match?.Board);
         }
 
         public virtual bool RemoveUser(T client)
@@ -200,32 +204,6 @@ namespace EldenBingoCommon
             if (!string.IsNullOrWhiteSpace(shortestName) && teamPlayers.All(p => p.Nick.StartsWith(shortestName)))
                 return shortestName;
             return BingoConstants.GetTeamName(team);
-        }
-    }
-
-    public class CheckPerTeam
-    {
-        public Team Team;
-        public int Squares;
-        public int Bingos;
-
-        public CheckPerTeam(Team team, int squares, int bingos)
-        {
-            Team = team;
-            Squares = squares;
-            Bingos = bingos;
-        }
-    }
-
-    public struct Team
-    {
-        public int Index;
-        public string Name;
-
-        public Team(int index, string name)
-        {
-            Index = index;
-            Name = name;
         }
     }
 }

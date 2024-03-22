@@ -12,7 +12,9 @@
     public record ServerAdminStatusMessage(string Message, int Color);
     public record ServerUserChat(Guid UserGuid, string Message);
     public record ServerMatchStatusUpdate(MatchStatus MatchStatus, bool Paused, int Timer);
-    public record ServerEntireBingoBoardUpdate(BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses, int PointsPerBingo);
+    public record ServerEntireBingoBoardUpdate(BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses);
+    public record ServerScoreboardUpdate(TeamScore[] Scoreboard);
+    public record ServerBingoAchievedUpdate(BingoLine Bingo);
     public record ServerSquareUpdate(BingoBoardSquare Square, int Index);
     public record ServerUserChecked(Guid UserGuid, int Index, int? TeamChecked);
     public record ServerCurrentGameSettings(BingoGameSettings GameSettings);

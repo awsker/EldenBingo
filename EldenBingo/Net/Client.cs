@@ -151,7 +151,7 @@ namespace EldenBingo
         {
             if (Room != null)
             {
-                Room.Match.Board = boardUpdate.Squares.Length != 25 ? null : new BingoBoard(boardUpdate.Squares, boardUpdate.AvailableClasses, boardUpdate.PointsPerBingo);
+                Room.Match.Board = boardUpdate.Squares.Length != 25 ? null : new BingoBoard(boardUpdate.Squares, boardUpdate.AvailableClasses);
             }
         }
 

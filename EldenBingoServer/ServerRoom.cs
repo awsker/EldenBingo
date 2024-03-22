@@ -1,6 +1,7 @@
 ﻿using EldenBingoCommon;
 using Neto.Shared;
 using System.Timers;
+using System.Xml.Linq;
 
 namespace EldenBingoServer
 {
@@ -83,9 +84,9 @@ namespace EldenBingoServer
             }
         }
 
-        public override IList<Team> GetActiveTeams(IEnumerable<BingoClientInRoom> players, BingoBoard? board)
+        public IList<Team> GetActiveTeams()
         {
-            var teams = players.ToLookup(p => p.Team);
+            var teams = Users.ToLookup(p => p.Team);
             var dict = new Dictionary<int, string>();
             foreach (var team in teams)
             {
@@ -97,17 +98,85 @@ namespace EldenBingoServer
                 else if (teamPlayers.Count > 1)
                     dict.Add(team.Key, GetUnifiedName(team.Key, teamPlayers));
             }
-            if (board is ServerBingoBoard serverboard)
+            if (Match.Board is ServerBingoBoard serverboard)
             {
                 foreach (var sq in serverboard.CheckStatus)
                 {
-                    if (sq.CheckedBy.HasValue && !dict.ContainsKey(sq.CheckedBy.Value))
+                    if (sq.Team.HasValue && !dict.ContainsKey(sq.Team.Value))
                     {
-                        dict.Add(sq.CheckedBy.Value, GetUnifiedName(sq.CheckedBy.Value, new BingoClientInRoom[0]));
+                        dict.Add(sq.Team.Value, GetUnifiedName(sq.Team.Value, new BingoClientInRoom[0]));
                     }
                 }
             }
             return dict.Select(kv => new Team(kv.Key, kv.Value)).OrderBy(pt => pt.Index).ToList();
+        }
+
+        /*
+        /// <summary>
+        /// Get number of checked squares per team
+        /// </summary>
+        /// <returns>Team, TeamName, Count</returns>
+        public IList<TeamScore> GetSquaresPerTeam()
+        {
+            var list = new List<TeamScore>();
+            var activeTeams = GetActiveTeams();
+            foreach (var team in GetActiveTeams())
+            {
+                list.Add(new TeamScore(team.Index, team.Name, 0));
+            }
+            if (Match?.Board == null)
+            {
+                return list;
+            }
+            var squaresCountPerTeam = getSquaresPerTeam();
+            //var bingosPerTeam = getBingosPerTeam(activeTeams);
+            for (int i = 0; i < list.Count; ++i)
+            {
+                if (squaresCountPerTeam.TryGetValue(list[i].Team, out int squares))
+                {
+                    var score = list[i];
+                    score.Score += squares;
+                    list[i] = score;
+                }
+                if (bingosPerTeam.TryGetValue(list[i].Team, out var bingoLines))
+                {
+                    var score = list[i];
+                    score.Score += bingoLines.Count * GameSettings.PointsPerBingoLine;
+                    list[i] = score;
+                }
+            }
+            return list;
+        }*/
+
+        public Dictionary<int, int> GetSquaresPerTeam()
+        {
+            var squaresCountPerTeam = new Dictionary<int, int>();
+            if (Match.Board is not ServerBingoBoard board)
+            {
+                return squaresCountPerTeam;
+            }
+            foreach (var square in board.CheckStatus)
+            {
+                if (!square.Team.HasValue)
+                    continue;
+
+                if (squaresCountPerTeam.TryGetValue(square.Team.Value, out int c))
+                {
+                    squaresCountPerTeam[square.Team.Value] = c + 1;
+                }
+                else
+                {
+                    squaresCountPerTeam[square.Team.Value] = 1;
+                }
+            }
+            return squaresCountPerTeam;
+        }
+
+        public IDictionary<int, IList<BingoLine>> GetBingos()
+        {
+            if(Match.Board is not ServerBingoBoard board)
+                return new Dictionary<int, IList<BingoLine>>();
+            return board.GetBingosPerTeam(GetActiveTeams());
         }
 
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)

@@ -1,5 +1,6 @@
 ﻿using EldenBingo.Net;
 using EldenBingoCommon;
+using Microsoft.VisualBasic.ApplicationServices;
 using Neto.Shared;
 
 namespace EldenBingo.UI
@@ -62,6 +63,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserLeftRoom>(userLeft);
             Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
+            Client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
         }
 
         protected override void ClientChanged()
@@ -90,6 +92,7 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.RemoveListener<ServerUserChat>(userChat);
+            Client.RemoveListener<ServerBingoAchievedUpdate>(bingoAchieved);
         }
 
         private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
@@ -158,6 +161,30 @@ namespace EldenBingo.UI
                         new Color?[] { user.ColorBright, null, null }, true);
                 }
             }
+        }
+
+        private void bingoAchieved(ClientModel? _, ServerBingoAchievedUpdate update)
+        {
+            string linename;
+            switch(update.Bingo.Type)
+            {
+                case 0:
+                    linename = $"column {update.Bingo.BingoIndex + 1}";
+                    break;
+                case 1:
+                    linename = $"row {update.Bingo.BingoIndex + 1}";
+                    break;
+                case 2:
+                    linename = $"diagonal TL->BR";
+                    break;
+                case 3:
+                     linename = $"diagonal BL->TR";
+                    break;
+                default:
+                    linename = "unknown";
+                    break;
+            }
+            updateMatchLog(new string[] {update.Bingo.Name, $" BINGO on {linename}!" }, new Color?[]{ BingoConstants.GetTeamColorBright(update.Bingo.Team), null }, true);
         }
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)

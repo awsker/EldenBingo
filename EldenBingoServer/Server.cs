@@ -401,7 +401,7 @@ namespace EldenBingoServer
             {
                 if (matchStatus.MatchStatus == MatchStatus.Starting)
                 {
-                    var p = new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), 0));
+                    var p = new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
                     //Reset the board for all players (except AdminSpectators, who already have the new board)
                     await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
                 } 
@@ -431,17 +431,29 @@ namespace EldenBingoServer
                     if (userToSet == null)
                         return;
 
+                    var bingosBefore = board.BingoSet;
                     if (board.UserClicked(tryCheck.Index, userInfo, userToSet))
                     {
+                        var tasks = new List<Task>();
                         var check = board.CheckStatus[tryCheck.Index];
                         ServerSquareUpdate squareUpdate;
                         ServerUserChecked userCheck;
+                        ServerScoreboardUpdate scoreboard = createScoreboardUpdatePacket(sender.Room);
+                        ServerBingoAchievedUpdate[] bingos = board.BingoSet.Except(bingosBefore).Select(b => new ServerBingoAchievedUpdate(b)).ToArray();
                         lock (check)
                         {
-                            squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(userInfo, tryCheck.Index), tryCheck.Index);
-                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, check.CheckedBy);
+                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, check.Team);
+                            foreach (var recipient in sender.Room.Users)
+                            {
+                                squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(recipient, tryCheck.Index), tryCheck.Index);
+                                var packet = new Packet(squareUpdate, userCheck, scoreboard);
+                                foreach (var bingo in bingos)
+                                    packet.AddObject(bingo);
+                                var task = SendPacketToClient(packet, recipient.Client);
+                                tasks.Add(task);
+                            }
                         }
-                        await sendPacketToRoom(new Packet(squareUpdate, userCheck), sender.Room);
+                        await Task.WhenAll(tasks);
                     }
                 }
             }
@@ -563,9 +575,38 @@ namespace EldenBingoServer
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
-                return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), 0);
+                return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
             var squareData = board.GetSquareDataForUser(user);
-            return new ServerEntireBingoBoardUpdate(squareData, board.AvailableClasses, board.PointsPerBingoLine);
+            return new ServerEntireBingoBoardUpdate(squareData, board.AvailableClasses);
+        }
+
+        private ServerScoreboardUpdate createScoreboardUpdatePacket(ServerRoom room)
+        {
+            var teams = room.GetActiveTeams();
+            var teamScores = new List<TeamScore>(teams.Select(t => new TeamScore(t.Index, t.Name, 0)));
+
+            if (room.Match.Board is ServerBingoBoard board)
+            {
+                var squaresPerTeam = board.GetSquaresPerTeam();
+                var bingosPerTeam = board.BingosPerTeam;
+
+                for (int i = 0; i < teamScores.Count; ++i)
+                {
+                    if (squaresPerTeam.TryGetValue(teamScores[i].Team, out int squares))
+                    {
+                        var score = teamScores[i];
+                        score.Score += squares;
+                        teamScores[i] = score;
+                    }
+                    if (bingosPerTeam.TryGetValue(teamScores[i].Team, out var bingoLines))
+                    {
+                        var score = teamScores[i];
+                        score.Score += bingoLines.Count * room.GameSettings.PointsPerBingoLine;
+                        teamScores[i] = score;
+                    }
+                }
+            }
+            return new ServerScoreboardUpdate(teamScores.ToArray());
         }
 
         private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
@@ -575,14 +616,15 @@ namespace EldenBingoServer
 
             BingoClientInRoom clientInRoom = room.AddUser(client, nick, adminPass, team);
 
+            var scoreboard = createScoreboardUpdatePacket(room);
             //Only send new user to room if there are any other clients present
             if (room.NumUsers > 1)
             {
-                //Send the user as a UserInRoom (we don't want to a BingoClientInRoom since this type is unrecognized by the client)
+                //Send the user as a UserInRoom (we don't want to send a BingoClientInRoom since this type is unrecognized by the client)
                 var user = new UserInRoom(clientInRoom);
                 var joinPacket = new ServerUserJoinedRoom(user);
                 //Send join message to all clients already in the room
-                await sendPacketToRoomExcept(new Packet(joinPacket), room, client.ClientGuid);
+                await sendPacketToRoomExcept(new Packet(joinPacket, scoreboard), room, client.ClientGuid);
             }
 
             //Construct a list of all users as UserInRoom and send these (we don't want to send the users as BingoClientInRoom since this type is unrecognized by the client)
@@ -602,6 +644,7 @@ namespace EldenBingoServer
                     packet.AddObject(createEntireBoardPacket(board, clientInRoom));
                 }
             }
+            packet.AddObject(scoreboard);
             //Send all users currently present in the room to the new client
             await SendPacketToClient(packet, client);
         }
@@ -618,8 +661,9 @@ namespace EldenBingoServer
             if (user != null)
             {
                 var leftPacket = new ServerUserLeftRoom(new UserInRoom(user));
+                var scoreboard = createScoreboardUpdatePacket(room);
                 //Send user leaving packet to all users remaining in the room
-                await sendPacketToRoom(new Packet(leftPacket), room);
+                await sendPacketToRoom(new Packet(leftPacket, scoreboard), room);
             }
         }
 
@@ -659,7 +703,7 @@ namespace EldenBingoServer
             if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
             {
                 //No board set, so we send an empty board
-                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), 0)), room);
+                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
                 return;
             }
 
@@ -695,6 +739,7 @@ namespace EldenBingoServer
             room.BoardAlreadyUsed = false;
             await setRoomMatchStatus(room, MatchStatus.NotRunning);
             await sendBoardAndClasses(room);
+            await sendPacketToRoom(new Packet(createScoreboardUpdatePacket(room)), room);
         }
 
         private record struct SetRoomStatusResult(bool Success, string? ErrorMessage);

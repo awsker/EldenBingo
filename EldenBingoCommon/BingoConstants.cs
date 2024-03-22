@@ -16,16 +16,23 @@ namespace EldenBingoCommon
         Wretch
     }
 
-    public struct ColorName
+    public record struct Team(int Index, string Name);
+
+    public record struct TeamScore(int Team, string Name, int Score);
+
+    public readonly record struct ColorName(Color Color, string Name);
+
+    public record struct BingoLine(int Team, string Name, int Type, int BingoIndex) : IEquatable<BingoLine>
     {
-        public ColorName(Color color, string name)
+        public bool Equals(BingoLine other)
         {
-            Color = color;
-            Name = name;
+            return Team == other.Team && Type == other.Type && BingoIndex == other.BingoIndex;
         }
 
-        public Color Color { get; init; }
-        public string Name { get; init; }
+        public override int GetHashCode()
+        {
+            return Team.GetHashCode() ^ (61 + Type.GetHashCode()) ^ (1337 + BingoIndex.GetHashCode());
+        }
     }
 
     public static class BingoConstants

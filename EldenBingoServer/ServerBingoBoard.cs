@@ -8,21 +8,21 @@ namespace EldenBingoServer
         public CheckStatus()
         {
             Time = DateTime.Now;
-            CheckedBy = null;
+            Team = null;
             MarkedBy = new HashSet<Guid>();
             PlayerCounters = new ConcurrentDictionary<Guid, int>();
         }
 
-        public int? CheckedBy { get; set; }
+        public int? Team { get; set; }
         public DateTime Time { get; init; }
         private IDictionary<Guid, int> PlayerCounters { get; init; }
         private ISet<Guid> MarkedBy { get; init; }
 
         public bool Check(int team)
         {
-            if (team >= 0 && CheckedBy != team)
+            if (team >= 0 && Team != team)
             {
-                CheckedBy = team;
+                Team = team;
                 return true;
             }
             return false;
@@ -30,9 +30,9 @@ namespace EldenBingoServer
 
         public bool Uncheck()
         {
-            if (CheckedBy != null)
+            if (Team != null)
             {
-                CheckedBy = null;
+                Team = null;
                 return true;
             }
             return false;
@@ -112,7 +112,7 @@ namespace EldenBingoServer
 
     public class ServerBingoBoard : BingoBoard
     {
-        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses, int pointsPerBingo) : base(squares, availableClasses, pointsPerBingo)
+        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses) : base(squares, availableClasses)
         {
             CheckStatus = new CheckStatus[25];
             Room = room;
@@ -120,16 +120,27 @@ namespace EldenBingoServer
             {
                 CheckStatus[i] = new CheckStatus();
             }
+            _lastBingos = new Dictionary<int, IList<BingoLine>>();
         }
 
         public CheckStatus[] CheckStatus { get; init; }
         internal ServerRoom Room { get; init; }
+        private IDictionary<int, IList<BingoLine>> _lastBingos;
 
+        public IDictionary<int, IList<BingoLine>> BingosPerTeam
+        {
+            get { return _lastBingos; }
+        }
+
+        public ISet<BingoLine> BingoSet
+        {
+            get { return new HashSet<BingoLine>(_lastBingos.Values.SelectMany(t => t)); }
+        }
 
         public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {
             var squares = new BingoBoardSquare[25];
-            var teams = Room.GetActiveTeams(Room.Users, this);
+            var teams = Room.GetActiveTeams();
             for (int i = 0; i < 25; ++i)
             {
                 squares[i] = GetSquareDataForUser(user, i, teams);
@@ -137,16 +148,15 @@ namespace EldenBingoServer
             return squares;
         }
 
-        public BingoBoardSquare GetSquareDataForUser(UserInRoom user, int index, IList<Team> teams = null)
+        public BingoBoardSquare GetSquareDataForUser(UserInRoom user, int index, IList<Team>? teams = null)
         {
             var status = CheckStatus[index];
-            if (teams == null)
-                teams = Room.GetActiveTeams(Room.Users, this);
+            teams ??= Room.GetActiveTeams();
             return new BingoBoardSquare(
                 Squares[index].Text,
                 Squares[index].Tooltip,
                 Squares[index].MaxCount,
-                status.CheckedBy,
+                status.Team,
                 status.IsMarked(user),
                 status.GetCountersForPlayer(user, Room.Users, teams));
         }
@@ -166,7 +176,7 @@ namespace EldenBingoServer
             }
         }
 
-        public bool UserClicked(int i, UserInRoom clicker, UserInRoom? onBehalfOf)
+        public bool UserClicked(int i, UserInRoom clicker, UserInRoom onBehalfOf)
         {
             if (i < 0 || i >= 25)
                 return false;
@@ -182,30 +192,28 @@ namespace EldenBingoServer
             var check = CheckStatus[i];
             lock (check)
             {
+                bool checkChanged = false;
                 //Square not owned by any player or team, allow check
-                if (check.CheckedBy == null)
+                if (check.Team == null)
                 {
-                    if (onBehalfOf != null && !onBehalfOf.IsSpectator)
-                    {
-                        return check.Check(onBehalfOf.Team);
-                    }
-                    return false;
+                    if (!onBehalfOf.IsSpectator)
+                        checkChanged = check.Check(onBehalfOf.Team);
                 }
-                if (clicker.IsSpectator && clicker.IsAdmin)
+                //Allow admin spectators to uncheck squares
+                else if (clicker.IsSpectator && clicker.IsAdmin)
                 {
-                    return CheckStatus[i].Uncheck();
+                    checkChanged = CheckStatus[i].Uncheck();
                 }
-                //No owner of the action
-                if (onBehalfOf == null)
-                    return false;
-
                 //Square owned by this player's team -> allow it to be toggled off
-                if (check.CheckedBy.Value == onBehalfOf.Team)
+                else if (check.Team.Value == onBehalfOf.Team)
                 {
-                    return CheckStatus[i].Uncheck();
+                    checkChanged = CheckStatus[i].Uncheck();
                 }
-                //Not allowed to toggle square, owned by other player/team
-                return false;
+                if(checkChanged)
+                {
+                    _lastBingos = Room.GetBingos();
+                }
+                return checkChanged;
             }
         }
 
@@ -229,5 +237,99 @@ namespace EldenBingoServer
                     return check.Mark(user);
             }
         }
+
+
+        public Dictionary<int, int> GetSquaresPerTeam()
+        {
+            var squaresCountPerTeam = new Dictionary<int, int>();
+            
+            foreach (var square in CheckStatus)
+            {
+                if (!square.Team.HasValue)
+                    continue;
+
+                if (squaresCountPerTeam.TryGetValue(square.Team.Value, out int c))
+                {
+                    squaresCountPerTeam[square.Team.Value] = c + 1;
+                }
+                else
+                {
+                    squaresCountPerTeam[square.Team.Value] = 1;
+                }
+            }
+            return squaresCountPerTeam;
+        }
+
+
+        public IDictionary<int, IList<BingoLine>> GetBingosPerTeam(IList<Team> teams)
+        {
+            var teamsDict = teams.ToDictionary(t => t.Index, t => t);
+            var bingosPerTeam = new Dictionary<int, IList<BingoLine>>();
+            if (CheckStatus.Length != 25)
+                return bingosPerTeam;
+
+            void findBingo(int startx, int starty, int dx, int dy)
+            {
+                int index(int x, int y) { return x + y * 5; }
+                int x = startx;
+                int y = starty;
+                int? team = null;
+                for (int i = 0; i < 5; ++i)
+                {
+                    var s = CheckStatus[index(x, y)];
+                    if (!s.Team.HasValue)
+                        return;
+                    if (team.HasValue && team.Value != s.Team.Value)
+                        return;
+                    team = s.Team.Value;
+                    x += dx;
+                    y += dy;
+                }
+                if (team.HasValue)
+                {
+                    if (!bingosPerTeam.TryGetValue(team.Value, out var list))
+                    {
+                        list = bingosPerTeam[team.Value] = new List<BingoLine>();
+                    }
+                    int bingoType = 0;
+                    int lineIndex = 0;
+                    if (dx > 0 && dy > 0)
+                        bingoType = 2;
+                    else if (dx > 0 && dy < 0)
+                        bingoType = 3;
+                    else if (dy > 0)
+                    {
+                        bingoType = 0;
+                        lineIndex = startx;
+                    }
+                    else if (dx > 0)
+                    {
+                        bingoType = 1;
+                        lineIndex = starty;
+                    }
+                    if (teamsDict.TryGetValue(team.Value, out var team2))
+                    {
+                        list.Add(new BingoLine(team2.Index, team2.Name, bingoType, lineIndex));
+                    }
+                }
+            }
+            for (int x = 0; x < 5; ++x)
+            {
+                findBingo(x, 0, 0, 1);
+            }
+
+            for (int y = 0; y < 5; ++y)
+            {
+                findBingo(0, y, 1, 0);
+            }
+            //Top-left to bottom-right
+            findBingo(0, 0, 1, 1);
+            //Bottom-left to top-right
+            findBingo(0, 4, 1, -1);
+
+            return bingosPerTeam;
+        }
+
+
     }
 }
