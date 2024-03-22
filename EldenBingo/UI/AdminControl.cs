@@ -289,13 +289,30 @@ namespace EldenBingo.UI
 
             async void openWindow()
             {
+                Control parent = this;
+                while(parent.Parent != null)
+                {
+                    parent = parent.Parent;
+                }
+
+                var mainForm = parent as MainForm;
+                if (mainForm != null)
+                {
+                    mainForm.TopMost = false;
+                }
+
                 var form = new GameSettingsForm();
                 form.Settings = settings;
+
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     GameSettingsHelper.SaveToSettings(form.Settings, Properties.Settings.Default);
                     var request = new ClientSetGameSettings(form.Settings);
                     await Client.SendPacketToServer(new Packet(request));
+                }
+                if (mainForm != null)
+                {
+                    mainForm.TopMost = Properties.Settings.Default.AlwaysOnTop;
                 }
             }
             if (InvokeRequired)
