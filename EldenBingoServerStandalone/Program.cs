@@ -58,6 +58,10 @@ namespace EldenBingoServerStandalone
                         foreach (var room in _server.Rooms)
                         {
                             Console.WriteLine($"{room.Name}: {room.Users.Count} users");
+                            foreach(var client in room.Users)
+                            {
+                                Console.WriteLine($"\t{client.Nick}");
+                            }
                         }
                         Console.WriteLine("-----------------------");
                     }
