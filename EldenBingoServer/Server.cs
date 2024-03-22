@@ -539,6 +539,7 @@ namespace EldenBingoServer
             if (!await confirm(sender, admin: true, inRoom: true))
                 return;
 
+            var oldScorePerBingo = sender.Room.GameSettings.PointsPerBingoLine;
             sender.Room.GameSettings = gameSettingsRequest.GameSettings;
             if (sender.Room.BoardGenerator != null)
             {
@@ -546,7 +547,12 @@ namespace EldenBingoServer
                 sender.Room.BoardGenerator.RandomSeed = gameSettingsRequest.GameSettings.RandomSeed;
                 sender.Room.BoardGenerator.CategoryLimit = gameSettingsRequest.GameSettings.CategoryLimit;
             }
-            await sendAdminStatusMessage(sender, "New lobby settings set", System.Drawing.Color.Green);
+            if (oldScorePerBingo != gameSettingsRequest.GameSettings.PointsPerBingoLine)
+            {
+                var packet = createScoreboardUpdatePacket(sender.Room);
+                _ = sendPacketToRoom(new Packet(packet), sender.Room);
+            }
+            await sendAdminStatusMessage(sender, "New lobby settings set", Color.Green);
         }
 
         private async void clientTogglePause(BingoClientModel? sender, ClientTogglePause pauseRequest)
