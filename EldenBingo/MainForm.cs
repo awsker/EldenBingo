@@ -305,9 +305,11 @@ namespace EldenBingo
             updateButtonAvailability();
         }
 
+        private bool FormReady => !Disposing && !IsDisposed && IsHandleCreated;
+
         private async void client_Disconnected(object? sender, StringEventArgs e)
         {
-            if (Disposing || IsDisposed)
+            if (!FormReady)
                 return;
             BeginInvoke(hideLobbyTab);
             updateButtonAvailability();
@@ -414,20 +416,26 @@ namespace EldenBingo
 
         private void client_OnStatus(object? sender, StringEventArgs e)
         {
-            BeginInvoke(new Action(() =>
+            if (FormReady)
             {
-                _consoleControl.PrintToConsole(e.Message, Color.LightBlue);
-                _clientStatusTextBox.Text = _client.GetConnectionStatusString();
-            }));
+                BeginInvoke(new Action(() =>
+                {
+                    _consoleControl.PrintToConsole(e.Message, Color.LightBlue);
+                    _clientStatusTextBox.Text = _client.GetConnectionStatusString();
+                }));
+            }
         }
 
         private void client_OnError(object? sender, StringEventArgs e)
         {
-            BeginInvoke(new Action(() =>
+            if (FormReady)
             {
-                _consoleControl.PrintToConsole(e.Message, Color.Red);
-                _clientStatusTextBox.Text = _client.GetConnectionStatusString();
-            }));
+                BeginInvoke(new Action(() =>
+                {
+                    _consoleControl.PrintToConsole(e.Message, Color.Red);
+                    _clientStatusTextBox.Text = _client.GetConnectionStatusString();
+                }));
+            }
         }
 
         private void default_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -640,6 +648,8 @@ namespace EldenBingo
 
         private void updateButtonAvailability()
         {
+            if (!FormReady)
+                return;
             BeginInvoke(new Action(() =>
             {
                 bool connected = _client?.IsConnected == true;
