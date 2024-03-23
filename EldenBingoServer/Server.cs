@@ -194,12 +194,23 @@ namespace EldenBingoServer
             {
                 throw new ApplicationException("Lobby already exists");
             }
+            settings = validateGameSettings(settings);
             var room = new ServerRoom(roomName, adminPass, creator, settings);
             room.TimerElapsed += onRoomTimerElapsed;
             _rooms[roomName] = room;
             FireOnStatus($"Lobby '{roomName}' was created");
             return room;
         }
+
+        private BingoGameSettings validateGameSettings(BingoGameSettings settings)
+        {
+            settings.BoardSize = Math.Clamp(settings.BoardSize, 3, 8);
+            settings.PreparationTime = Math.Max(0, settings.PreparationTime);
+            settings.NumberOfClasses = Math.Max(1, settings.NumberOfClasses);
+            settings.CategoryLimit = Math.Max(0, settings.CategoryLimit);
+            return settings;
+        }
+
 
         private async void onRoomTimerElapsed(object? sender, RoomEventArgs e)
         {
@@ -376,8 +387,8 @@ namespace EldenBingoServer
 
             if (matchStatus.MatchStatus == MatchStatus.Starting && sender.Room.Match != null && sender.Room.BoardGenerator != null)
             {
-                //Generate a board if no board is set or if the current board was used in last bingo
-                if(sender.Room.Match.Board == null || sender.Room.BoardAlreadyUsed)
+                //Generate a board if no board is set or if the current board was used in last bingo, or if current board is wrong size
+                if(sender.Room.Match.Board == null || sender.Room.BoardAlreadyUsed || sender.Room.Match.Board.Size != sender.Room.GameSettings.BoardSize)
                 {
                     var board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
                     if (board != null)
@@ -401,7 +412,7 @@ namespace EldenBingoServer
             {
                 if (matchStatus.MatchStatus == MatchStatus.Starting)
                 {
-                    var p = new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
+                    var p = new Packet(new ServerEntireBingoBoardUpdate(0, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
                     //Reset the board for all players (except AdminSpectators, who already have the new board)
                     await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
                 } 
@@ -540,19 +551,29 @@ namespace EldenBingoServer
                 return;
 
             var oldScorePerBingo = sender.Room.GameSettings.PointsPerBingoLine;
-            sender.Room.GameSettings = gameSettingsRequest.GameSettings;
+            var settings = validateGameSettings(gameSettingsRequest.GameSettings);
+            sender.Room.GameSettings = settings;
             if (sender.Room.BoardGenerator != null)
             {
                 //Update the current board generator with the new random seed
-                sender.Room.BoardGenerator.RandomSeed = gameSettingsRequest.GameSettings.RandomSeed;
-                sender.Room.BoardGenerator.CategoryLimit = gameSettingsRequest.GameSettings.CategoryLimit;
+                sender.Room.BoardGenerator.RandomSeed = settings.RandomSeed;
+                sender.Room.BoardGenerator.CategoryLimit = settings.CategoryLimit;
             }
-            if (oldScorePerBingo != gameSettingsRequest.GameSettings.PointsPerBingoLine)
+            if (oldScorePerBingo != settings.PointsPerBingoLine)
             {
                 var packet = createScoreboardUpdatePacket(sender.Room);
                 _ = sendPacketToRoom(new Packet(packet), sender.Room);
             }
-            await sendAdminStatusMessage(sender, "New lobby settings set", Color.Green);
+            var matchInProgress = sender.Room?.Match?.MatchStatus > MatchStatus.NotRunning && sender.Room?.Match?.MatchStatus < MatchStatus.Finished;
+            //If size was changed when match was not running and the generated board size is different than the new one -> Generate new board
+            if (!matchInProgress && sender.Room?.Match?.Board != null && sender.Room.Match.Board.Size != settings.BoardSize)
+            {
+                clientRandomizeBoard(sender, new ClientRandomizeBoard());
+            }
+            else
+            {
+                await sendAdminStatusMessage(sender, "New lobby settings set", Color.Green);
+            }
         }
 
         private async void clientTogglePause(BingoClientModel? sender, ClientTogglePause pauseRequest)
@@ -581,9 +602,9 @@ namespace EldenBingoServer
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
-                return new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
+                return new ServerEntireBingoBoardUpdate(0, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
             var squareData = board.GetSquareDataForUser(user);
-            return new ServerEntireBingoBoardUpdate(squareData, board.AvailableClasses);
+            return new ServerEntireBingoBoardUpdate(board.Size, squareData, board.AvailableClasses);
         }
 
         private ServerScoreboardUpdate createScoreboardUpdatePacket(ServerRoom room)
@@ -709,7 +730,7 @@ namespace EldenBingoServer
             if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
             {
                 //No board set, so we send an empty board
-                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
+                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(0, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
                 return;
             }
 

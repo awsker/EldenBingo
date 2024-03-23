@@ -25,6 +25,7 @@ namespace EldenBingo.Settings
                 }
             }
             var gameSettings = new BingoGameSettings(
+                settings.GS_BoardSize,
                 settings.GS_RandomizeClasses,
                 classes,
                 settings.GS_NumClasses,
@@ -38,6 +39,7 @@ namespace EldenBingo.Settings
 
         internal static void SaveToSettings(BingoGameSettings gameSettings, Properties.Settings settings)
         {
+            settings.GS_BoardSize = gameSettings.BoardSize;
             settings.GS_RandomizeClasses = gameSettings.RandomClasses;
             settings.GS_Classes = string.Join(",", gameSettings.ValidClasses.Select(c => (int)c));
             settings.GS_NumClasses = gameSettings.NumberOfClasses;

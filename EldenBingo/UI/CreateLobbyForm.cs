@@ -174,7 +174,7 @@ namespace EldenBingo.UI
             if (_gameSettingsControl.Visible)
             {
                 Width = _gameSettingsControl.Location.X + _gameSettingsControl.Width + 20;
-                Height = Math.Max(Height, _gameSettingsControl.Location.Y + _gameSettingsControl.Height + 42);
+                Height = Math.Max(Height, _gameSettingsControl.Location.Y + _gameSettingsControl.Height + 76);
                 _lobbySettingsButton.Text = "Lobby Settings <<";
             }
             else

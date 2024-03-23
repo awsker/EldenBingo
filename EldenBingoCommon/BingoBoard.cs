@@ -2,16 +2,20 @@
 {
     public class BingoBoard
     {
-        public BingoBoard(BingoBoardSquare[] squares, EldenRingClasses[] availableClasses)
+        public BingoBoard(int size, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses)
         {
-            if (squares.Length != 25)
-                throw new ArgumentException("Needs exactly 25 squares");
+            Size = size;
+            if (squares.Length != size * size)
+                throw new ArgumentException($"Needs exactly {size * size} squares");
             Squares = squares;
             AvailableClasses = availableClasses;
         }
 
+        public int Size { get; init; }
+        public int SquareCount => Size * Size;
         public BingoBoardSquare[] Squares { get; init; }
         public EldenRingClasses[] AvailableClasses { get; init; }
+        
     }
 
     public record struct BingoBoardSquare(string Text, string Tooltip, int MaxCount, int? Team, bool Marked, SquareCounter[] Counters)

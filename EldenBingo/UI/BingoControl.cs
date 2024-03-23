@@ -22,6 +22,7 @@ namespace EldenBingo.UI
         private System.Timers.Timer? _timer;
 
         private KeyHandler? _keyHandler;
+        private int _size;
 
         public BingoControl() : base()
         {
@@ -31,15 +32,8 @@ namespace EldenBingo.UI
             _boardStatusLabel.BackColor = BgColor;
             _gridControl.SetAspectRatio(AspectRatio);
             _gridControl.MaintainAspectRatio = true;
-            Squares = new BingoSquareControl[25];
-            for (int i = 0; i < 25; ++i)
-            {
-                var c = new BingoSquareControl(i, string.Empty, string.Empty);
-                Squares[i] = c;
-                _gridControl.Controls.Add(c);
-                c.MouseDown += square_MouseDown;
-                c.MouseWheel += square_MouseWheel;
-            }
+            _size = 0;
+            initSquareControls(_size);
             Load += bingoControl_Load;
             SizeChanged += bingoControl_SizeChanged;
             _gridControl.SizeChanged += _gridControl_SizeChanged;
@@ -54,14 +48,46 @@ namespace EldenBingo.UI
             BoardRevealed,
         }
 
+        private void initSquareControls(int size)
+        {
+            var targetSquares = size * size;
+            _gridControl.GridWidth = size;
+            _gridControl.GridHeight = size;
+            if (_size > size)
+            {
+                while(_gridControl.Controls.Count > targetSquares)
+                {
+                    _gridControl.Controls.RemoveAt(_gridControl.Controls.Count - 1);
+                }
+            }
+            else if(_size < size)
+            {
+                int i = _gridControl.Controls.Count;
+                while (_gridControl.Controls.Count < targetSquares)
+                {
+                    var squareControl = new BingoSquareControl(i++, string.Empty, string.Empty);
+                    squareControl.MouseDown += square_MouseDown;
+                    squareControl.MouseWheel += square_MouseWheel;
+                    _gridControl.Controls.Add(squareControl);
+                }
+            }
+            if (_size != size) 
+            {
+                var squareList = new List<BingoSquareControl>(_gridControl.Controls.OfType<BingoSquareControl>());
+                Squares = squareList.ToArray();
+                _size = size;
+            }
+            
+        }
+
         public void FlashBingo(BingoLine bingo)
         {
             void flashSquares(int startx, int starty, int dx, int dy)
             {
-                int index(int x, int y) { return y * 5 + x; }
+                int index(int x, int y) { return y * _size + x; }
                 var x = startx;
                 var y = starty;
-                for (int i = 0; i < 5; ++i)
+                for (int i = 0; i < _size; ++i)
                 {
                     Squares[index(x, y)].BingoAnimationTimer = BingoAnimationTimerMax;
                     x += dx;
@@ -83,7 +109,7 @@ namespace EldenBingo.UI
                     break;
 
                 case 3:
-                    flashSquares(0, 4, 1, -1);
+                    flashSquares(0, _size - 1, 1, -1);
                     break;
             }
             if (_timer == null)
@@ -172,7 +198,7 @@ namespace EldenBingo.UI
 
         private void squareUpdate(ClientModel? _, ServerSquareUpdate update)
         {
-            if (Client?.BingoBoard != null && update.Index >= 0 && update.Index < 25)
+            if (Client?.BingoBoard != null && update.Index >= 0 && update.Index < _size * _size)
             {
                 Client.BingoBoard.Squares[update.Index] = update.Square;
                 updateSquareStatus(Client.BingoBoard, update.Index);
@@ -247,14 +273,7 @@ namespace EldenBingo.UI
         {
             void update()
             {
-                for (int i = 0; i < 25; ++i)
-                {
-                    Squares[i].Text = string.Empty;
-                    Squares[i].ToolTip = string.Empty;
-                    Squares[i].Color = Color.Empty;
-                    Squares[i].Marked = false;
-                    Squares[i].Counters = Array.Empty<SquareCounter>();
-                }
+                initSquareControls(0);
                 Invalidate();
             }
             if (InvokeRequired)
@@ -304,17 +323,21 @@ namespace EldenBingo.UI
             const float minHeight = 1f;
             const float maxHeight = 200f;
             const float minFont = 1f;
-            const float maxFont = 20f;
+            const float maxFont = 20f; 
+            var scale = this.DefaultScaleFactors();
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, 16f);
+
+            if (Squares == null || Squares.Length == 0)
+                return;
             var squareHeight = Squares[0].Height;
             var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
-            var scale = this.DefaultScaleFactors();
+            
             var fontSize = minFont + (maxFont - minFont) * frac;
-
-            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, fontSize * 2f / scale.Height);
             var font = MainForm.GetFontFromSettings(Font, fontSize);
-            for (int i = 0; i < 25; ++i)
+            
+            foreach(var square in Squares)
             {
-                Squares[i].Font = font;
+                square.Font = font;
             }
         }
 
@@ -327,7 +350,10 @@ namespace EldenBingo.UI
                     clearBoard();
                     return;
                 }
-                for (int i = 0; i < 25; ++i)
+
+                initSquareControls(board.Size);
+                recalculateFontSizeForSquares();
+                for (int i = 0; i < board.SquareCount; ++i)
                 {
                     updateSquare(board, i);
                 }

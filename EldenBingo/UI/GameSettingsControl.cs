@@ -14,6 +14,12 @@ namespace EldenBingo.UI
 
         public int CurrentSeed => Convert.ToInt32(_randomSeedUpDown.Value);
 
+        private int BoardSize
+        {
+            get { return _boardSizeComboBox.SelectedIndex + 3; }
+            set { _boardSizeComboBox.SelectedIndex = value - 3; }
+        }
+
         public Action SeedChanged;
 
         public BingoGameSettings Settings
@@ -26,6 +32,7 @@ namespace EldenBingo.UI
                     classSet.Add((EldenRingClasses)checkedClass);
                 }
                 return new BingoGameSettings(
+                    BoardSize,
                     _classLimitCheckBox.Checked,
                     classSet,
                     Convert.ToInt32(_numClassesUpDown.Value),//Number of classes to pick
@@ -37,6 +44,7 @@ namespace EldenBingo.UI
             }
             set
             {
+                BoardSize = value.BoardSize;
                 for (int i = 0; i < _classesListBox.Items.Count; i++)
                 {
                     _classesListBox.SetItemChecked(i, false);

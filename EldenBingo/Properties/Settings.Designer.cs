@@ -514,5 +514,17 @@ namespace EldenBingo.Properties {
                 this["GS_BonusPerBingo"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int GS_BoardSize {
+            get {
+                return ((int)(this["GS_BoardSize"]));
+            }
+            set {
+                this["GS_BoardSize"] = value;
+            }
+        }
     }
 }

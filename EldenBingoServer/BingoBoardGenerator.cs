@@ -54,10 +54,6 @@ namespace EldenBingoServer
                 }
                 _list.Add(new BingoJsonObj(text, tooltip, count, weight, categories.ToArray()));
             }
-            if (_list.Count < 25)
-            {
-                throw new ArgumentException("Json didn't contain at least 25 items", nameof(json));
-            }
         }
 
         public int RandomSeed
@@ -83,8 +79,9 @@ namespace EldenBingoServer
             var squares = new List<BingoJsonObj>();
             var categoryCount = new Dictionary<string, int>();
 
+            var numSquares = room.GameSettings.BoardSize * room.GameSettings.BoardSize;
             bool exceededCategoryLimit = false;
-            while (squareQueue.Count > 0 && squares.Count < 25)
+            while (squareQueue.Count > 0 && squares.Count < numSquares)
             {
                 var potentialSquare = squareQueue.Dequeue();
                 if (CategoryLimit > 0)
@@ -107,7 +104,7 @@ namespace EldenBingoServer
                     categoryCount[category] = count + 1;
                 }
             }
-            if (squares.Count != 25)
+            if (squares.Count != numSquares)
             {
                 return null;
             }
@@ -128,7 +125,8 @@ namespace EldenBingoServer
                 classes = Array.Empty<EldenRingClasses>();
                 _random.Next(); //Skip a number to ensure consistency in random number generation
             }
-            return new ServerBingoBoard(room, 
+            return new ServerBingoBoard(room,
+                room.GameSettings.BoardSize,
                 squares.Select(s => 
                     new BingoBoardSquare(
                         s.Text, 

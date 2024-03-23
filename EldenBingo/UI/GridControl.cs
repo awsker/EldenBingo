@@ -181,7 +181,7 @@
         {
             var w = Width;
             var h = Height;
-            if (w == 0 || h == 0)
+            if (w == 0 || h == 0 || GridWidth == 0 || GridHeight == 0)
                 return;
             var squaresTotalWidth = (w - PaddingX * (GridWidth - 1) - 2 * BorderX);
             var squaresTotalHeight = (h - PaddingY * (GridHeight - 1) - 2 * BorderY);

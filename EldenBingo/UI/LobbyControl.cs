@@ -96,7 +96,7 @@ namespace EldenBingo.UI
 
         private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
         {
-            if (Client?.Room != null && Client.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < 25)
+            if (Client?.Room != null && Client.BingoBoard != null && userCheckedArgs.Index >= 0 && userCheckedArgs.Index < Client.BingoBoard.SquareCount)
             {
                 var user = Client.Room.GetUser(userCheckedArgs.UserGuid);
                 var playerName = user?.Nick ?? "Unknown";

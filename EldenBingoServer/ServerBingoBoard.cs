@@ -112,11 +112,12 @@ namespace EldenBingoServer
 
     public class ServerBingoBoard : BingoBoard
     {
-        internal ServerBingoBoard(ServerRoom room, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses) : base(squares, availableClasses)
+        internal ServerBingoBoard(ServerRoom room, int size, BingoBoardSquare[] squares, EldenRingClasses[] availableClasses) : base(size, squares, availableClasses)
         {
-            CheckStatus = new CheckStatus[25];
+            var sizeSqr = size * size;
+            CheckStatus = new CheckStatus[sizeSqr];
             Room = room;
-            for (int i = 0; i < 25; ++i)
+            for (int i = 0; i < CheckStatus.Length; ++i)
             {
                 CheckStatus[i] = new CheckStatus();
             }
@@ -139,9 +140,9 @@ namespace EldenBingoServer
 
         public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {
-            var squares = new BingoBoardSquare[25];
+            var squares = new BingoBoardSquare[SquareCount];
             var teams = Room.GetActiveTeams();
-            for (int i = 0; i < 25; ++i)
+            for (int i = 0; i < SquareCount; ++i)
             {
                 squares[i] = GetSquareDataForUser(user, i, teams);
             }
@@ -163,7 +164,7 @@ namespace EldenBingoServer
 
         public bool UserChangeCount(int i, UserInRoom user, int change)
         {
-            if (i < 0 || i >= 25 || change == 0)
+            if (i < 0 || i >= SquareCount || change == 0)
                 return false;
             var check = CheckStatus[i];
             lock (check)
@@ -178,7 +179,7 @@ namespace EldenBingoServer
 
         public bool UserClicked(int i, UserInRoom clicker, UserInRoom onBehalfOf)
         {
-            if (i < 0 || i >= 25)
+            if (i < 0 || i >= SquareCount)
                 return false;
 
             //Spectators that are not admins cannot click
@@ -225,7 +226,7 @@ namespace EldenBingoServer
         /// <returns>True if any markings were changed</returns>
         public bool UserMarked(int i, UserInRoom user)
         {
-            if (i < 0 || i >= 25)
+            if (i < 0 || i >= SquareCount)
                 return false;
 
             var check = CheckStatus[i];
@@ -265,16 +266,14 @@ namespace EldenBingoServer
         {
             var teamsDict = teams.ToDictionary(t => t.Index, t => t);
             var bingosPerTeam = new Dictionary<int, IList<BingoLine>>();
-            if (CheckStatus.Length != 25)
-                return bingosPerTeam;
-
+            
             void findBingo(int startx, int starty, int dx, int dy)
             {
-                int index(int x, int y) { return x + y * 5; }
+                int index(int x, int y) { return x + y * Size; }
                 int x = startx;
                 int y = starty;
                 int? team = null;
-                for (int i = 0; i < 5; ++i)
+                for (int i = 0; i < Size; ++i)
                 {
                     var s = CheckStatus[index(x, y)];
                     if (!s.Team.HasValue)
@@ -313,19 +312,19 @@ namespace EldenBingoServer
                     }
                 }
             }
-            for (int x = 0; x < 5; ++x)
+            for (int x = 0; x < Size; ++x)
             {
                 findBingo(x, 0, 0, 1);
             }
 
-            for (int y = 0; y < 5; ++y)
+            for (int y = 0; y < Size; ++y)
             {
                 findBingo(0, y, 1, 0);
             }
             //Top-left to bottom-right
             findBingo(0, 0, 1, 1);
             //Bottom-left to top-right
-            findBingo(0, 4, 1, -1);
+            findBingo(0, Size - 1, 1, -1);
 
             return bingosPerTeam;
         }
