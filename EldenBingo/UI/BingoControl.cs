@@ -10,7 +10,7 @@ namespace EldenBingo.UI
     internal partial class BingoControl : ClientUserControl
     {
         public const float AspectRatio = 1.1f;
-        private const float BingoAnimationTimerMax = 1.5f;
+        private const float BingoAnimationTimerMax = 3.0f;
         private const int AnimationIntervalMs = 20;
 
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
@@ -324,8 +324,7 @@ namespace EldenBingo.UI
             const float maxHeight = 200f;
             const float minFont = 1f;
             const float maxFont = 20f; 
-            var scale = this.DefaultScaleFactors();
-            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, 16f);
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, 18f);
 
             if (Squares == null || Squares.Length == 0)
                 return;
@@ -704,8 +703,8 @@ namespace EldenBingo.UI
                 var scale = new PointF(e.Graphics.DpiX / 96f, e.Graphics.DpiY / 96f);
                 var x = 3f * scale.X;
                 var y = 3f * scale.Y;
-                var width = Properties.Resources.tinystar.Width * scale.X * 0.75f;
-                var height = Properties.Resources.tinystar.Height * scale.Y * 0.75f;
+                var width = Properties.Resources.tinystar.Width * scale.X * 0.7f;
+                var height = Properties.Resources.tinystar.Height * scale.Y * 0.7f;
                 e.Graphics.DrawImage(Properties.Resources.tinystar, x, y, width, height);
             }
 
