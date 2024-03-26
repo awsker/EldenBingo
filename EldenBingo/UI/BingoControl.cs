@@ -701,7 +701,12 @@ namespace EldenBingo.UI
 
             private void drawMarkedStar(PaintEventArgs e)
             {
-                e.Graphics.DrawImage(Properties.Resources.tinystar, new Point(3, 3));
+                var scale = new PointF(e.Graphics.DpiX / 96f, e.Graphics.DpiY / 96f);
+                var x = 3f * scale.X;
+                var y = 3f * scale.Y;
+                var width = Properties.Resources.tinystar.Width * scale.X * 0.75f;
+                var height = Properties.Resources.tinystar.Height * scale.Y * 0.75f;
+                e.Graphics.DrawImage(Properties.Resources.tinystar, x, y, width, height);
             }
 
             private void drawRectangle(PaintEventArgs e)
