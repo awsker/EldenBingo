@@ -3,6 +3,7 @@
     public enum SoundType
     {
         SquareClaimed,
+        Bingo,
     }
 
     public class SoundLibrary : IDisposable
@@ -10,7 +11,8 @@
         private static string SfxPath = "./Sfx/";
         private static readonly string[] AudioFiles = new string[]
         {
-            "square_claimed.wav"
+            "square_claimed.wav",
+            "bingo.wav"
         };
 
         private readonly SFML.Audio.Sound?[] _sounds;

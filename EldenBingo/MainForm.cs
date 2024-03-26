@@ -298,6 +298,7 @@ namespace EldenBingo
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             client.AddListener<ServerUserChecked>(userCheckedSquare);
+            client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
         }
 
         private void client_Connected(object? sender, EventArgs e)
@@ -355,6 +356,14 @@ namespace EldenBingo
             if (Properties.Settings.Default.PlaySounds && userCheckedSquareArgs.TeamChecked.HasValue)
             {
                 _sounds.PlaySound(SoundType.SquareClaimed);
+            }
+        }
+
+        private void bingoAchieved(ClientModel? model, ServerBingoAchievedUpdate update)
+        {
+            if (Properties.Settings.Default.PlaySounds)
+            {
+                _sounds.PlaySound(SoundType.Bingo);
             }
         }
 
