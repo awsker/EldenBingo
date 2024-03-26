@@ -700,11 +700,11 @@ namespace EldenBingo.UI
 
             private void drawMarkedStar(PaintEventArgs e)
             {
-                var scale = new PointF(e.Graphics.DpiX / 96f, e.Graphics.DpiY / 96f);
-                var x = 3f * scale.X;
-                var y = 3f * scale.Y;
-                var width = Properties.Resources.tinystar.Width * scale.X * 0.7f;
-                var height = Properties.Resources.tinystar.Height * scale.Y * 0.7f;
+                var scale = Width / 96f;
+                var x = 3f * scale;
+                var y = 3f * scale;
+                var width = Properties.Resources.tinystar.Width * scale * 0.7f;
+                var height = Properties.Resources.tinystar.Height * scale * 0.7f;
                 e.Graphics.DrawImage(Properties.Resources.tinystar, x, y, width, height);
             }
 
