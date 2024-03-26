@@ -69,7 +69,7 @@
       <Value Profile="(Default)">-1</Value>
     </Setting>
     <Setting Name="BingoFont" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">Lucida Sans Unicode</Value>
     </Setting>
     <Setting Name="BingoFontStyle" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>

@@ -320,19 +320,17 @@ namespace EldenBingo.UI
 
         private void recalculateFontSizeForSquares()
         {
-            const float minHeight = 1f;
-            const float maxHeight = 200f;
-            const float minFont = 1f;
-            const float maxFont = 20f; 
-            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, 18f);
+            var scale = this.DefaultScaleFactors();
+
+            var labelFontSize = Height / 30f;
+            _boardStatusLabel.Font = MainForm.GetFontFromSettings(Font, labelFontSize / scale.Height);
 
             if (Squares == null || Squares.Length == 0)
                 return;
             var squareHeight = Squares[0].Height;
-            var frac = Math.Clamp((squareHeight - minHeight) / (maxHeight - minHeight), 0f, 1f);
-            
-            var fontSize = minFont + (maxFont - minFont) * frac;
-            var font = MainForm.GetFontFromSettings(Font, fontSize);
+
+            var bingoFontSize = squareHeight / 10f;
+            var font = MainForm.GetFontFromSettings(Font, bingoFontSize / scale.Height);
             
             foreach(var square in Squares)
             {

@@ -289,7 +289,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Lucida Sans Unicode")]
         public string BingoFont {
             get {
                 return ((string)(this["BingoFont"]));
