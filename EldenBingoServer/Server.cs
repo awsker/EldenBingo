@@ -152,6 +152,7 @@ namespace EldenBingoServer
             AddListener<ClientRequestCurrentGameSettings>(clientRequestGameSettings);
             AddListener<ClientSetGameSettings>(clientSetGameSettings);
             AddListener<ClientTogglePause>(clientTogglePause);
+            AddListener<ClientSetTeamName>(clientSetTeamName);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -561,8 +562,7 @@ namespace EldenBingoServer
             }
             if (oldScorePerBingo != settings.PointsPerBingoLine)
             {
-                var packet = createScoreboardUpdatePacket(sender.Room);
-                _ = sendPacketToRoom(new Packet(packet), sender.Room);
+                _ = sendScoreboard(sender.Room);
             }
             var matchInProgress = sender.Room?.Match?.MatchStatus > MatchStatus.NotRunning && sender.Room?.Match?.MatchStatus < MatchStatus.Finished;
             //If size was changed when match was not running and the generated board size is different than the new one -> Generate new board
@@ -597,6 +597,33 @@ namespace EldenBingoServer
                 sender.Room.PauseMatch();
             }
             await sendMatchStatus(sender.Room);
+        }
+
+        private async void clientSetTeamName(BingoClientModel? sender, ClientSetTeamName setNameRequest)
+        {
+            if (sender == null)
+                return;
+            if (!await confirm(sender, inRoom: true))
+                return;
+
+            var userInfo = sender.Room.GetUser(sender.ClientGuid);
+            if(userInfo != null)
+            {
+                if(userInfo.IsAdmin || userInfo.Team == setNameRequest.Team)
+                {
+                    var oldName = sender.Room.GetTeamNameIgnoreUsers(setNameRequest.Team);
+                    sender.Room.SetTeamName(setNameRequest.Team, cleanUpString(setNameRequest.Name));
+                    var newName = sender.Room.GetTeamNameIgnoreUsers(setNameRequest.Team);
+                    if (oldName == newName)
+                        return;
+                    var teamColorName = BingoConstants.GetTeamName(setNameRequest.Team);
+                    var packet = new Packet();
+                    packet.AddObject(createScoreboardUpdatePacket(sender.Room));
+                    var teamNameChangedPacket = new ServerTeamNameChanged(userInfo.Guid, userInfo.Team, teamColorName, newName);
+                    packet.AddObject(teamNameChangedPacket);
+                    _ = sendPacketToRoom(packet, sender.Room);
+                }
+            }
         }
 
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
@@ -750,6 +777,11 @@ namespace EldenBingoServer
             }
         }
 
+        private async Task sendScoreboard(ServerRoom room)
+        {
+            await sendPacketToRoom(new Packet(createScoreboardUpdatePacket(room)), room);
+        }
+
         private async Task sendPacketToRoom(Packet p, ServerRoom room)
         {
             await SendPacketToClients(p, room.ClientModels);
@@ -766,7 +798,7 @@ namespace EldenBingoServer
             room.BoardAlreadyUsed = false;
             await setRoomMatchStatus(room, MatchStatus.NotRunning);
             await sendBoardAndClasses(room);
-            await sendPacketToRoom(new Packet(createScoreboardUpdatePacket(room)), room);
+            await sendScoreboard(room);
         }
 
         private record struct SetRoomStatusResult(bool Success, string? ErrorMessage);
@@ -887,6 +919,11 @@ namespace EldenBingoServer
             {
                 room.TimerElapsed -= onRoomTimerElapsed;
             }
+        }
+
+        private string cleanUpString(string input)
+        {
+            return input.Trim().Replace("&", "&&");
         }
     }
 }

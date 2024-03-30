@@ -1,7 +1,6 @@
 ﻿using EldenBingoCommon;
 using Neto.Shared;
 using System.Timers;
-using System.Xml.Linq;
 
 namespace EldenBingoServer
 {
@@ -11,6 +10,7 @@ namespace EldenBingoServer
         private string? _creatorIp;
         private string? _creatorName;
         private System.Timers.Timer? _timer;
+        private Dictionary<int, string> _customTeamNames;
 
         public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
         {
@@ -21,6 +21,7 @@ namespace EldenBingoServer
             Match.MatchStatusChanged += match_MatchStatusChanged;
             GameSettings = gameSettings;
             LastActivity = DateTime.Now;
+            _customTeamNames = new Dictionary<int, string>();
         }
 
         public event EventHandler<RoomEventArgs>? TimerElapsed;
@@ -93,9 +94,11 @@ namespace EldenBingoServer
                 if (team.Key == -1)
                     continue;
                 var teamPlayers = team.ToList();
-                if (teamPlayers.Count == 1)
+                if (_customTeamNames.TryGetValue(team.Key, out var teamName) && !string.IsNullOrWhiteSpace(teamName))
+                    dict.Add(team.Key, teamName);
+                else if (teamPlayers.Count == 1)
                     dict.Add(team.Key, teamPlayers[0].Nick);
-                else if (teamPlayers.Count > 1)
+                else
                     dict.Add(team.Key, GetUnifiedName(team.Key, teamPlayers));
             }
             if (Match.Board is ServerBingoBoard serverboard)
@@ -109,6 +112,15 @@ namespace EldenBingoServer
                 }
             }
             return dict.Select(kv => new Team(kv.Key, kv.Value)).OrderBy(pt => pt.Index).ToList();
+        }
+
+        public string GetTeamNameIgnoreUsers(int team)
+        {
+            var usersOnTeam = Users.Where(t => t.Team == team).ToList();
+            if (_customTeamNames.TryGetValue(team, out var teamName) && !string.IsNullOrWhiteSpace(teamName))
+                return teamName;
+            else
+                return BingoConstants.GetTeamName(team);
         }
 
         /*
@@ -177,6 +189,11 @@ namespace EldenBingoServer
             if(Match.Board is not ServerBingoBoard board)
                 return new Dictionary<int, IList<BingoLine>>();
             return board.GetBingosPerTeam(GetActiveTeams());
+        }
+
+        public void SetTeamName(int team, string name)
+        {
+            _customTeamNames[team] = name;
         }
 
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)

@@ -6,11 +6,17 @@ namespace EldenBingo.UI
     internal class ScoreboardControl : ClientUserControl
     {
         private const int RowPaddingBottom = 3;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem changeTeamNameToolStripMenuItem;
         private IList<ScoreboardRowControl> _rows;
 
         public ScoreboardControl()
         {
             _rows = new List<ScoreboardRowControl>();
+            contextMenuStrip1 = new ContextMenuStrip();
+            changeTeamNameToolStripMenuItem = new ToolStripMenuItem("Change Team Name");
+            changeTeamNameToolStripMenuItem.Click += changeTeamNameToolStripMenuItem_Click;
+            contextMenuStrip1.Items.Add(changeTeamNameToolStripMenuItem);
             SizeChanged += scoreboardControl_SizeChanged;
         }
 
@@ -96,6 +102,7 @@ namespace EldenBingo.UI
                 if (room == null)
                     return;
 
+                var userInfo = Client.LocalUser;
                 var currentY = 0;
 
                 int? squareHeight = null;
@@ -106,6 +113,7 @@ namespace EldenBingo.UI
                     control.Color = BingoConstants.GetTeamColor(teamScore.Team);
                     control.CounterText = teamScore.Score.ToString();
                     control.TextColor = BingoConstants.GetTeamColorBright(teamScore.Team);
+                    control.Team = teamScore.Team;
                     control.NameText = teamScore.Name;
                     control.Width = Width;
                     control.Font = Font;
@@ -115,6 +123,11 @@ namespace EldenBingo.UI
                     Controls.Add(control);
                     control.Location = new Point(0, currentY);
                     currentY += squareHeight.Value + RowPaddingBottom;
+                    control.DoubleClick += onDoubleClick;
+                    if (userInfo != null && (userInfo.IsAdmin || userInfo.Team == teamScore.Team))
+                    {
+                        control.ContextMenuStrip = contextMenuStrip1;
+                    }
                     _rows.Add(control);
                 }
                 updateHeight();
@@ -126,6 +139,52 @@ namespace EldenBingo.UI
             }
             update();
         }
+
+        private void changeTeamNameToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            if (contextMenuStrip1.SourceControl is ScoreboardRowControl scoreboardRow)
+            {
+                initTeamNameChange(scoreboardRow.Team, scoreboardRow.NameText);
+            }
+        }
+
+        private void onDoubleClick(object? sender, EventArgs e)
+        {
+            if (sender is ScoreboardRowControl scoreboardRow)
+            {
+                initTeamNameChange(scoreboardRow.Team, scoreboardRow.NameText);
+            }
+        }
+
+        private void InitializeComponent()
+        {
+            SuspendLayout();
+            // 
+            // ScoreboardControl
+            // 
+            Name = "ScoreboardControl";
+            ResumeLayout(false);
+        }
+
+        private void initTeamNameChange(int team, string text)
+        {
+            if (Client == null || Client.Room == null)
+                return;
+
+            var userInfo = Client.LocalUser;
+
+            if (userInfo != null && (userInfo.IsAdmin || userInfo.Team == team))
+            {
+                var nameDialog = new SetTeamNameDialog();
+                nameDialog.TeamName = text;
+                var result = nameDialog.ShowDialog(this.Parent);
+                if (result == DialogResult.OK && Client != null)
+                {
+                    _ = Client.SendPacketToServer(new Packet(new ClientSetTeamName(team, nameDialog.TeamName)));
+                }
+            }
+        }
+
 
         internal class ScoreboardRowControl : Control
         {
@@ -182,5 +241,6 @@ namespace EldenBingo.UI
                 TextRenderer.DrawText(e, NameText, Font, nameRect, TextColor, flags: TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             }
         }
+
     }
 }

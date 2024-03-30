@@ -63,6 +63,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
             Client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
+            Client.AddListener<ServerTeamNameChanged>(teamNameChanged);
         }
 
         protected override void ClientChanged()
@@ -185,6 +186,23 @@ namespace EldenBingo.UI
             }
             updateMatchLog(new string[] {update.Bingo.Name, $"BINGO on {linename}!" }, new Color?[]{ BingoConstants.GetTeamColorBright(update.Bingo.Team), null }, true);
         }
+
+        private void teamNameChanged(ClientModel? model, ServerTeamNameChanged teamNameChanged)
+        {
+            if (Client?.Room != null)
+            {
+                var user = Client.Room.GetUser(teamNameChanged.UserGuid);
+                if (user != null)
+                {
+                    var teamColor = BingoConstants.GetTeamColorBright(teamNameChanged.Team);
+                    updateMatchLog(
+                        new string[] { user.Nick, $"changed name of", teamNameChanged.TeamColorName, "to", teamNameChanged.Name }, 
+                        new Color?[] { BingoConstants.GetTeamColorBright(user.Team), null, teamColor, null, teamColor }, 
+                        true);
+                }
+            }
+        }
+
 
         private void _scoreboardControl_SizeChanged(object sender, EventArgs e)
         {

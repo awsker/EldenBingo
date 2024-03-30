@@ -18,6 +18,7 @@
     public record ServerSquareUpdate(BingoBoardSquare Square, int Index);
     public record ServerUserChecked(Guid UserGuid, int Index, int? TeamChecked);
     public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
+    public record ServerTeamNameChanged(Guid UserGuid, int Team, string TeamColorName, string Name);
 
     #endregion Server to client
 
@@ -38,6 +39,7 @@
     public record ClientTrySetCounter(int Index, int Change, Guid ForUser);
     public record ClientSetGameSettings(BingoGameSettings GameSettings);
     public record ClientRequestCurrentGameSettings();
+    public record ClientSetTeamName(int Team, string Name);
 
     #endregion Client to server
 }
