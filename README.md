@@ -38,7 +38,7 @@ When joining (or creating) a lobby, you will be asked to input a nickname and se
 ## Creating a lobby
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
-You can also configure the rules of the lobby.
+You can also configure the rules of the lobby:  
 ![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/e257606b-3db2-46b9-8b2e-211a2cedaecd)
 
 * *Board size* specifies how large the bingo board will be. This takes effect the next time a board is generated.  
