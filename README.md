@@ -19,10 +19,12 @@ This application makes running, administrating, spectating and streaming Elden R
 * Customize bingo board color/size/font
 
 # Hosting your own server
-Download and install the latest [server binaries](https://github.com/awsker/EldenBingo/releases/) or download the regular application and open Settings, and then enable "Host bingo server on launch".  
+Download the regular application and open Settings, and then enable "Host bingo server on launch".  
 ![host](https://user-images.githubusercontent.com/604653/235767838-ae5752a7-e9e7-4abb-a1d1-c8e6a59292aa.png)
 
 Remember to set-up the appropriate port forwarding.
+
+You can also host a dedicated lobby server. I don't release server binaries with the regular releases anymore but if you need them you can easily download the code and compile it yourself.
 
 # Connecting to a server and joining a lobby
 Connect to a server by pressing the 'Connect' button in the top left corner. You can choose to auto-connect to the same server every time you launch the application.
@@ -36,15 +38,18 @@ When joining (or creating) a lobby, you will be asked to input a nickname and se
 ## Creating a lobby
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
-You can also configure the rules of the lobby. You can enable a random pick of classes, configure which ones should be in the pool, and set how many should be selected at random.  
-![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/9daf32c4-6d38-4fb0-ad77-bf2dbafeffb1)
+You can also configure the rules of the lobby.
+![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/e257606b-3db2-46b9-8b2e-211a2cedaecd)
 
-Setting *Max square in same category* will ensure that at most that many squares in the same category will be included in one board. **0 means this feature is disabled**. For more info on the json format, see [Json Format](#json-format).  
-Setting a *Random Seed* will ensure that the same sequence of boards and random classes are generated/picked. This sequence will reset when a new json is uploaded. **0 means a random seed will be used**.  
-*Preparation Time* creates an extra preparation phase at the beginning of the match, after the initial countdown, in which players can see the board and the available classes and plan ahead before the match starts.  **0 means no preparation phase**
+* *Board size* specifies how large the bingo board will be. This takes effect the next time a board is generated.  
+* *Random seed* will ensure that the same sequence of boards and random classes are generated/picked. This sequence will reset when a new json is uploaded. **0 means a random seed will be used**.  
+* *Preparation Time* creates an extra preparation phase at the beginning of the match, after the initial countdown, in which players can see the board and the available classes and plan ahead before the match starts.  **0 means no preparation phase**
+* *Bonus points for bingo* can be used if you want bingo lines to be worth a set number of points instead of immediately ending the match.  
+* *Limit starting classes* can be used if you want to limit the choice of starting classes in order to introduce some variation. Set the pool of possible classes below.
+* Setting *Max square in same category* will ensure that at most that many squares in the same category will be included in one board. **0 means this feature is disabled**. For more info on categories and the json format, see [Json Format](#json-format). 
 
 # Administrating a lobby
-You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only AdminSpectators (ie. a player that is both administrator and spectator) have special privileges (see [AdminSpectators](#adminspectators)).
+You get no unfair gameplay advantage as an administrator, so you can join the game just fine. Only Admin-Spectators (ie. a player that is both administrator and spectator) have special privileges (see [AdminSpectators](#adminspectators)).
 
 When you've joined a lobby as an administrator, the administrator tools will show under the bingo board. Use these tools to upload a Bingo .json file, following the same format as Bingo Brawlers and BingoSync but with some extensions. [Here is an example file](https://bingobrawlers.com/files/bingo-brawlers.json). For more info on the json format, see [Json Format](#json-format).
 
