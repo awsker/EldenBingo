@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using Neto.Shared;
+using System.ComponentModel;
 
 namespace EldenBingo.UI
 {
@@ -8,16 +9,22 @@ namespace EldenBingo.UI
         private const int RowPaddingBottom = 3;
         private ContextMenuStrip contextMenuStrip1;
         private ToolStripMenuItem changeTeamNameToolStripMenuItem;
+        private ToolStripMenuItem showMyTeamToolStripMenuItem;
         private IList<ScoreboardRowControl> _rows;
 
         public ScoreboardControl()
         {
             _rows = new List<ScoreboardRowControl>();
             contextMenuStrip1 = new ContextMenuStrip();
-            changeTeamNameToolStripMenuItem = new ToolStripMenuItem("Change Team Name");
+            changeTeamNameToolStripMenuItem = new ToolStripMenuItem("Change team name");
             changeTeamNameToolStripMenuItem.Click += changeTeamNameToolStripMenuItem_Click;
             contextMenuStrip1.Items.Add(changeTeamNameToolStripMenuItem);
+            showMyTeamToolStripMenuItem = new ToolStripMenuItem("Show icon indicating my team");
+            showMyTeamToolStripMenuItem.Click += showMyTeamToolStripMenuItem_Click;
+            showMyTeamToolStripMenuItem.Checked = Properties.Settings.Default.GS_ShowPlayerTeam;
+            contextMenuStrip1.Items.Add(showMyTeamToolStripMenuItem);
             SizeChanged += scoreboardControl_SizeChanged;
+            Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
         }
 
         public override Font Font
@@ -31,6 +38,25 @@ namespace EldenBingo.UI
                 updateHeight();
             }
         }
+
+        public void SetShowPlayerTeam(bool showPlayerTeam)
+        {
+            void update()
+            {
+                showMyTeamToolStripMenuItem.Checked = showPlayerTeam;
+                foreach (var row in Controls.OfType<ScoreboardRowControl>())
+                {
+                    row.Invalidate();
+                }
+            }
+            if(InvokeRequired)
+            {
+                Invoke(update);
+                return;
+            }
+            Invoke(update);
+        }
+
 
         protected override void AddClientListeners()
         {
@@ -116,6 +142,7 @@ namespace EldenBingo.UI
                     control.Team = teamScore.Team;
                     control.NameText = teamScore.Name;
                     control.Width = Width;
+                    control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                     control.Font = Font;
                     if (!squareHeight.HasValue)
                         squareHeight = control.SquareSize().Height;
@@ -124,6 +151,10 @@ namespace EldenBingo.UI
                     control.Location = new Point(0, currentY);
                     currentY += squareHeight.Value + RowPaddingBottom;
                     control.DoubleClick += onDoubleClick;
+                    if(userInfo != null && userInfo.Team == teamScore.Team)
+                    {
+                        control.OwnTeam = true;
+                    }
                     if (userInfo != null && (userInfo.IsAdmin || userInfo.Team == teamScore.Team))
                     {
                         control.ContextMenuStrip = contextMenuStrip1;
@@ -145,6 +176,20 @@ namespace EldenBingo.UI
             if (contextMenuStrip1.SourceControl is ScoreboardRowControl scoreboardRow)
             {
                 initTeamNameChange(scoreboardRow.Team, scoreboardRow.NameText);
+            }
+        }
+
+        private void showMyTeamToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            Properties.Settings.Default.GS_ShowPlayerTeam = !Properties.Settings.Default.GS_ShowPlayerTeam;
+            Properties.Settings.Default.Save();
+        }
+
+        private void default_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Properties.Settings.Default.GS_ShowPlayerTeam))
+            {
+                SetShowPlayerTeam(Properties.Settings.Default.GS_ShowPlayerTeam);
             }
         }
 
@@ -190,6 +235,7 @@ namespace EldenBingo.UI
         {
             private const int PaddingInsideSquare = 4;
             private const int NameTextMarginLeft = 7;
+            private const float SquareXOffset = 1f;
 
             public ScoreboardRowControl()
             {
@@ -203,6 +249,7 @@ namespace EldenBingo.UI
             public Color TextColor { get; set; }
             public string NameText { get; set; }
             public int Team { get; set; }
+            public bool OwnTeam { get; set; }
 
             public void Update(int team, string name, string counter)
             {
@@ -230,15 +277,21 @@ namespace EldenBingo.UI
 
                 var squareSize = SquareSize();
                 Height = squareSize.Height;
+                var offsetX = Convert.ToInt32(Height * SquareXOffset);
 
-                var rect = new Rectangle(0, 0, squareSize.Width, squareSize.Height);
-                var nameRect = new Rectangle(rect.Width + NameTextMarginLeft, 0, Math.Max(0, Width - rect.Width - NameTextMarginLeft), rect.Height);
+                var rect = new Rectangle(offsetX, 0, squareSize.Width, squareSize.Height);
+                var nameRect = new Rectangle(offsetX + rect.Width + NameTextMarginLeft, 0, Math.Max(0, Width - rect.Width - NameTextMarginLeft), rect.Height);
 
                 var g = e.Graphics;
                 g.FillRectangle(new SolidBrush(Color), rect);
-                g.DrawRectangle(new Pen(Color.FromArgb(96, 0, 0, 0)), new Rectangle(0, 0, rect.Width - 1, rect.Height - 1));
+                g.DrawRectangle(new Pen(Color.FromArgb(96, 0, 0, 0)), new Rectangle(offsetX, 0, rect.Width - 1, rect.Height - 1));
                 TextRenderer.DrawText(e, CounterText, Font, rect, Color.White, flags: TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 TextRenderer.DrawText(e, NameText, Font, nameRect, TextColor, flags: TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+
+                if(Properties.Settings.Default.GS_ShowPlayerTeam && OwnTeam)
+                {
+                    g.DrawImage(Properties.Resources.player_icon, 0, 0, Height, Height);
+                }
             }
         }
 

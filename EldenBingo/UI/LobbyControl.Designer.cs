@@ -87,10 +87,11 @@
             // _scoreboardControl
             // 
             this._scoreboardControl.Client = null;
-            this._scoreboardControl.Location = new System.Drawing.Point(41, 98);
+            this._scoreboardControl.Location = new System.Drawing.Point(17, 98);
             this._scoreboardControl.Name = "_scoreboardControl";
             this._scoreboardControl.Size = new System.Drawing.Size(218, 0);
             this._scoreboardControl.TabIndex = 10;
+            this._scoreboardControl.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             this._scoreboardControl.SizeChanged += new System.EventHandler(this._scoreboardControl_SizeChanged);
             // 
             // _logBoxBorderPanel

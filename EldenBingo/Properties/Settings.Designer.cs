@@ -526,5 +526,17 @@ namespace EldenBingo.Properties {
                 this["GS_BoardSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GS_ShowPlayerTeam {
+            get {
+                return ((bool)(this["GS_ShowPlayerTeam"]));
+            }
+            set {
+                this["GS_ShowPlayerTeam"] = value;
+            }
+        }
     }
 }

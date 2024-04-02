@@ -17,10 +17,10 @@ namespace EldenBingo.UI
             InitializeComponent();
             _instance = this;
             _adminHeight = adminControl1.Height;
-            
+
             listenToSettingsChanged();
             Load += lobbyControl_Load;
-            
+
             splitContainer1.SplitterDistance = Width - Convert.ToInt32(200f * this.DefaultScaleFactors().Width);
             _adminInfoLabel.Height = Convert.ToInt32(_adminInfoLabel.Height * this.DefaultScaleFactors().Height);
 
@@ -166,7 +166,7 @@ namespace EldenBingo.UI
         private void bingoAchieved(ClientModel? _, ServerBingoAchievedUpdate update)
         {
             string linename;
-            switch(update.Bingo.Type)
+            switch (update.Bingo.Type)
             {
                 case 0:
                     linename = $"column {update.Bingo.BingoIndex + 1}";
@@ -178,13 +178,13 @@ namespace EldenBingo.UI
                     linename = $"diagonal TL->BR";
                     break;
                 case 3:
-                     linename = $"diagonal BL->TR";
+                    linename = $"diagonal BL->TR";
                     break;
                 default:
                     linename = "unknown";
                     break;
             }
-            updateMatchLog(new string[] {update.Bingo.Name, $"BINGO on {linename}!" }, new Color?[]{ BingoConstants.GetTeamColorBright(update.Bingo.Team), null }, true);
+            updateMatchLog(new string[] { update.Bingo.Name, $"BINGO on {linename}!" }, new Color?[] { BingoConstants.GetTeamColorBright(update.Bingo.Team), null }, true);
         }
 
         private void teamNameChanged(ClientModel? model, ServerTeamNameChanged teamNameChanged)
@@ -196,8 +196,8 @@ namespace EldenBingo.UI
                 {
                     var teamColor = BingoConstants.GetTeamColorBright(teamNameChanged.Team);
                     updateMatchLog(
-                        new string[] { user.Nick, $"changed name of", teamNameChanged.TeamColorName, "to", teamNameChanged.Name }, 
-                        new Color?[] { BingoConstants.GetTeamColorBright(user.Team), null, teamColor, null, teamColor }, 
+                        new string[] { user.Nick, $"changed name of", teamNameChanged.TeamColorName, "to", teamNameChanged.Name },
+                        new Color?[] { BingoConstants.GetTeamColorBright(user.Team), null, teamColor, null, teamColor },
                         true);
                 }
             }
@@ -288,7 +288,7 @@ namespace EldenBingo.UI
                     _scoreboardControl.Font = font;
                 }
             }
-            if(InvokeRequired)
+            if (InvokeRequired)
             {
                 BeginInvoke(update);
                 return;
@@ -414,12 +414,12 @@ namespace EldenBingo.UI
         {
             var maxWidth = splitContainer1.Panel1.Width - splitContainer1.SplitterWidth - Convert.ToInt32(270f * this.DefaultScaleFactors().Width);
             var maxHeight = splitContainer1.Panel1.Height - (adminControl1.Visible ? _adminHeight : 0);
-            if(Properties.Settings.Default.BingoBoardMaximumSize)
+            if (Properties.Settings.Default.BingoBoardMaximumSize)
             {
                 maxWidth = Math.Min(maxWidth, Properties.Settings.Default.BingoMaxSizeX + _bingoControl.Location.X + 3);
                 maxHeight = Math.Min(maxHeight, Properties.Settings.Default.BingoMaxSizeY + _bingoControl.Location.Y + 3);
             }
-            if(maxWidth > maxHeight * 1.1f)
+            if (maxWidth > maxHeight * 1.1f)
             {
                 maxWidth = (int)(maxHeight * 1.1f);
             }
