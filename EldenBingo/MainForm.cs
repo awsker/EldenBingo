@@ -84,6 +84,16 @@ namespace EldenBingo
             return defaultFont;
         }
 
+        public static MainForm? GetMainForm(Control control)
+        {
+            Control parent = control;
+            while (parent.Parent != null)
+            {
+                parent = parent.Parent;
+            }
+            return parent as MainForm;
+        }
+
         /// <summary>
         /// Checks if the user has called this application as administrator.
         /// </summary>

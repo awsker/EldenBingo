@@ -1,6 +1,7 @@
 ﻿using EldenBingoCommon;
 using Neto.Shared;
 using System.ComponentModel;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace EldenBingo.UI
 {
@@ -220,12 +221,27 @@ namespace EldenBingo.UI
 
             if (userInfo != null && (userInfo.IsAdmin || userInfo.Team == team))
             {
-                var nameDialog = new SetTeamNameDialog();
-                nameDialog.TeamName = text;
-                var result = nameDialog.ShowDialog(this.Parent);
-                if (result == DialogResult.OK && Client != null)
+                MainForm? mainForm = MainForm.GetMainForm(this);
+                try
                 {
-                    _ = Client.SendPacketToServer(new Packet(new ClientSetTeamName(team, nameDialog.TeamName)));
+                    if (mainForm != null)
+                    {
+                        mainForm.TopMost = false;
+                    }
+                    var nameDialog = new SetTeamNameDialog();
+                    nameDialog.TeamName = text;
+                    var result = nameDialog.ShowDialog(this.Parent);
+                    if (result == DialogResult.OK && Client != null)
+                    {
+                        _ = Client.SendPacketToServer(new Packet(new ClientSetTeamName(team, nameDialog.TeamName)));
+                    }
+                }
+                finally
+                {
+                    if (mainForm != null)
+                    {
+                        mainForm.TopMost = Properties.Settings.Default.AlwaysOnTop;
+                    }
                 }
             }
         }
