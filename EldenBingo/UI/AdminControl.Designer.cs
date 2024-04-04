@@ -135,13 +135,12 @@
             // 
             // _adminStatusLabel
             // 
-            this._adminStatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this._adminStatusLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left;
             this._adminStatusLabel.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this._adminStatusLabel.Location = new System.Drawing.Point(379, 110);
             this._adminStatusLabel.Name = "_adminStatusLabel";
             this._adminStatusLabel.Size = new System.Drawing.Size(257, 29);
+            this._adminStatusLabel.AutoSize = true;
             this._adminStatusLabel.TabIndex = 6;
             // 
             // label3
