@@ -33,6 +33,7 @@ namespace EldenBingo.UI
             _gridControl.SetAspectRatio(AspectRatio);
             _gridControl.MaintainAspectRatio = true;
             _size = 0;
+            Squares = new BingoSquareControl[0];
             initSquareControls(_size);
             Load += bingoControl_Load;
             SizeChanged += bingoControl_SizeChanged;
@@ -77,7 +78,6 @@ namespace EldenBingo.UI
                 Squares = squareList.ToArray();
                 _size = size;
             }
-            
         }
 
         public void FlashBingo(BingoLine bingo)
@@ -254,6 +254,8 @@ namespace EldenBingo.UI
 
         private async void hotkeyPressed(object? sender, EventArgs e)
         {
+            if (Squares == null)
+                return;
             foreach (var square in Squares)
             {
                 if (square.MouseOver)
