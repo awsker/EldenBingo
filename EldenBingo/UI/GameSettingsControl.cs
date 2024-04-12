@@ -20,7 +20,7 @@ namespace EldenBingo.UI
             set { _boardSizeComboBox.SelectedIndex = value - 3; }
         }
 
-        public Action SeedChanged;
+        public Action? SeedChanged;
 
         public BingoGameSettings Settings
         {

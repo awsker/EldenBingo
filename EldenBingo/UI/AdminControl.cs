@@ -7,7 +7,7 @@ namespace EldenBingo.UI
 {
     internal partial class AdminControl : ClientUserControl
     {
-        private System.Windows.Forms.Timer _hideAdminMessageTimer;
+        private System.Windows.Forms.Timer? _hideAdminMessageTimer;
 
         public AdminControl()
         {

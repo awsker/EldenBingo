@@ -9,7 +9,7 @@ namespace EldenBingo.Rendering.Game
         private static Texture[]? _classTextures;
         private static Texture? _backgroundTexture;
 
-        private CenteredBackgroundDrawable _background;
+        private CenteredBackgroundDrawable? _background;
         private ClassDrawable[] _classes;
 
         public EldenRingAvailableClassesDrawable(SimpleGameWindow window) : base(window)
@@ -79,7 +79,7 @@ namespace EldenBingo.Rendering.Game
                     foreach (var tex in _classTextures)
                         tex.Dispose();
 
-                _background.Dispose();
+                _background?.Dispose();
                 _backgroundTexture?.Dispose();
             }
             Window.Resized -= window_Resized;
@@ -89,7 +89,7 @@ namespace EldenBingo.Rendering.Game
         {
             CustomView = new SFML.Graphics.View(new FloatRect(0, 0, e.Width, e.Height));
             var size = new SFML.System.Vector2u(e.Width, e.Height);
-            _background.SetTargetSize(size);
+            _background?.SetTargetSize(size);
             foreach (var cl in _classes)
                 cl.SetTargetSize(size);
         }
