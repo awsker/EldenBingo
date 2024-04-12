@@ -202,16 +202,6 @@ namespace EldenBingo.UI
             }
         }
 
-        private void InitializeComponent()
-        {
-            SuspendLayout();
-            // 
-            // ScoreboardControl
-            // 
-            Name = "ScoreboardControl";
-            ResumeLayout(false);
-        }
-
         private void initTeamNameChange(int team, string text)
         {
             if (Client == null || Client.Room == null)
