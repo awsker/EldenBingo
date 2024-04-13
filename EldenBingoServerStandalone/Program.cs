@@ -57,7 +57,7 @@ namespace EldenBingoServerStandalone
                         Console.WriteLine("---- Current Rooms ----");
                         foreach (var room in _server.Rooms)
                         {
-                            Console.WriteLine($"{room.Name}: {room.Users.Count} users");
+                            Console.WriteLine($"{room.Name}: {room.Users.Count} users | Last Activity: {room.LastActivity.ToShortDateString()} {room.LastActivity.ToShortTimeString()}");
                             foreach(var client in room.Users)
                             {
                                 Console.WriteLine($"\t{client.Nick}");
