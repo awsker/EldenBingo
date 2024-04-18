@@ -21,7 +21,6 @@ namespace EldenBingo.UI
         private BingoSquareControl[] Squares;
         private System.Timers.Timer? _timer;
 
-        private KeyHandler? _keyHandler;
         private int _size;
 
         public BingoControl() : base()
@@ -294,24 +293,14 @@ namespace EldenBingo.UI
             {
                 recalculateFontSizeForSquares();
             }
-            if (e.PropertyName == nameof(Properties.Settings.Default.ClickHotkey))
-            {
-                setupClickHotkey();
-            }
         }
 
         private void setupClickHotkey()
         {
-            var key = (Keys)Properties.Settings.Default.ClickHotkey;
-            if (key != Keys.None && key != Keys.Escape)
+            var mainForm = MainForm.GetMainForm(this);
+            if(mainForm != null)
             {
-                if (_keyHandler != null)
-                {
-                    _keyHandler.KeyPressed -= hotkeyPressed;
-                    _keyHandler.Stop();
-                }
-                _keyHandler = new KeyHandler(key);
-                _keyHandler.KeyPressed += hotkeyPressed;
+                mainForm.KeyHandler.KeyPressed += hotkeyPressed;
             }
         }
 

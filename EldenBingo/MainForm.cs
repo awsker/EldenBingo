@@ -5,6 +5,7 @@ using EldenBingo.Rendering;
 using EldenBingo.Settings;
 using EldenBingo.Sfx;
 using EldenBingo.UI;
+using EldenBingo.Util;
 using EldenBingoCommon;
 using EldenBingoServer;
 using Neto.Shared;
@@ -28,6 +29,8 @@ namespace EldenBingo
         private static object _connectLock = new object();
         private bool _connecting = false;
 
+        private KeyHandler _keyHandler;
+
         public MainForm()
         {
             InitializeComponent();
@@ -36,6 +39,7 @@ namespace EldenBingo
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
             _sounds = new SoundLibrary();
+            _keyHandler = new KeyHandler();
 
             if (Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
             {
@@ -54,13 +58,18 @@ namespace EldenBingo
                 _mapWindow?.DisposeDrawablesOnExit();
                 _mapWindow?.Stop();
                 _client?.Disconnect();
+                _keyHandler.Stop();
+                Properties.Settings.Default.Save();
+                Application.Exit();
             };
             _client = new Client();
             addClientListeners(_client);
-
+            setupClickHotkey();
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
         }
+
+        public KeyHandler KeyHandler => _keyHandler;
 
         public static Font GetFontFromSettings(Font defaultFont, float size, float defaultSize = 12f)
         {
@@ -474,6 +483,10 @@ namespace EldenBingo
             {
                 TopMost = Properties.Settings.Default.AlwaysOnTop;
             }
+            if (e.PropertyName == nameof(Properties.Settings.Default.ClickHotkey))
+            {
+                setupClickHotkey();
+            }
         }
 
         private void hostServer()
@@ -512,9 +525,14 @@ namespace EldenBingo
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void setupClickHotkey()
         {
-            Properties.Settings.Default.Save();
+            _keyHandler.ClearKeys();
+            var key = (Keys)Properties.Settings.Default.ClickHotkey;
+            if (key != Keys.None && key != Keys.Escape)
+            {
+                _keyHandler.AddKey(key);
+            }
         }
 
         private async void MainForm_Load(object sender, EventArgs e)
