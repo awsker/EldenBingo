@@ -29,7 +29,10 @@ namespace EldenBingo.Util
 
         public void AddKey(Keys key)
         {
-            _keys[key] = false;
+            if (key != Keys.None)
+            {
+                _keys[key] = false;
+            }
         }
 
         public void RemoveKey(Keys key)
