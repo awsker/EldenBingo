@@ -1,7 +1,10 @@
+using EldenBingo.Util;
+
 namespace EldenBingo
 {
     internal static class Program
     {
+        private static MainForm? _mainForm;
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
@@ -18,7 +21,34 @@ namespace EldenBingo
                 Properties.Settings.Default.IsFirstRun = false;
                 Properties.Settings.Default.Save();
             }
-            Application.Run(new MainForm());
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(EldenBingo_UnhandledException);
+            _mainForm = new MainForm();
+            Application.Run(_mainForm);
+        }
+
+        private static void EldenBingo_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            void showError()
+            {
+                var message = string.Empty;
+                var path = string.Empty;
+                if (e.ExceptionObject is Exception ex) 
+                {
+                    message = ex.Message;
+                    path = CrashLogger.LogException(ex);
+                    message += $"{Environment.NewLine}{Environment.NewLine}{"Log written to:"}{Environment.NewLine}{path}";
+                }
+                MessageBox.Show(_mainForm,
+                    $"Unexpected application exception.{Environment.NewLine}{message}",
+                    Application.ProductName,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                Application.Exit();
+            }
+            if (_mainForm != null)
+            {
+                _mainForm.Invoke(showError);
+            }
         }
     }
 }

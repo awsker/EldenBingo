@@ -40,7 +40,7 @@ namespace EldenBingo
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
             _sounds = new SoundLibrary();
             _keyHandler = new KeyHandler();
-
+            
             if (Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
             {
                 var prev = AutoScaleMode;
