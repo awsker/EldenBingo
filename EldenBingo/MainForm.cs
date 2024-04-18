@@ -286,7 +286,7 @@ namespace EldenBingo
         {
             var settingsDialog = new SettingsDialog();
             settingsDialog.TopMost = true;
-            var res = settingsDialog.ShowDialog(this);
+            settingsDialog.ShowDialog(this);
         }
 
         private async void _startGameButton_Click(object sender, EventArgs e)
