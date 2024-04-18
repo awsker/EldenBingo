@@ -4,20 +4,13 @@
     {
         private const float fontSize = 12f;
 
-        private Keys _outOfFocusKey, _outOfFocusKeyWhenDialogOpened;
+        private Keys _outOfFocusKey;
         private bool _rebindingKey = false;
 
         public SettingsDialog()
         {
             InitializeComponent();
             initControls();
-        }
-
-        private void _cancelButton_Click(object sender, EventArgs e)
-        {
-            DialogResult = DialogResult.Cancel;
-            Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKeyWhenDialogOpened;
-            Close();
         }
 
         private void _colorPanel_Click(object sender, EventArgs e)
@@ -57,6 +50,12 @@
             }
         }
 
+        private void _cancelButton_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+
         private void initControls()
         {
             _mapSizeRememberLastRadioButton.Checked = !Properties.Settings.Default.MapWindowCustomSize;
@@ -79,7 +78,8 @@
 
             _fontLinkLabel.Font = MainForm.GetFontFromSettings(_fontLinkLabel.Font, fontSize);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
-            _outOfFocusKeyWhenDialogOpened = _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
+
+            _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
@@ -97,9 +97,6 @@
 
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
             _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
-
-            //This will unregister the previous hotkey if set, so it can be detected in this dialog
-            Properties.Settings.Default.ClickHotkey = (int)Keys.None;
 
             updateSizeEnable();
             updatePositionEnable();
