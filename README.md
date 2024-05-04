@@ -14,8 +14,8 @@ This application makes running, administrating, spectating and streaming Elden R
 * Configure your lobby with custom rules, like randomized starting classes
 * Matches can be started, paused and stopped by the referees
 * Squares can be checked/unchecked by players or by referees on behalf of players
-* Right click to mark squares with stars, visible to everyone on the team
-* Scroll Wheel up/down over a square allows players or referees to keep track of their progress of a square. This progress can only be seen by teammates or spectators, but not by opposing players/teams
+* Right click to mark squares with stars, visible only to the player marking the square
+* Scroll Wheel up/down over a square allows players or referees to keep track of their progress of a square. This progress can only be seen by the owning player and spectators, but not by opposing players/teams
 * Customize bingo board color/size/font
 
 # Hosting your own server
