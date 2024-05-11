@@ -21,6 +21,7 @@ namespace Neto.Shared
             RegisterType(typeof(ServerRegisterAccepted));
             RegisterType(typeof(ServerRegisterDenied));
             RegisterType(typeof(ClientRegister));
+            RegisterType(typeof(ServerKicked));
 
             _packetResolver = new PacketResolver((s) => getOrRegisterDispatcher(s)?.Type);
             _cachedOptions = new MessagePackSerializerOptions(_packetResolver).WithCompression(MessagePackCompression.Lz4BlockArray);
