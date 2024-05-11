@@ -12,7 +12,7 @@ namespace Neto.Shared
         }
 
         public TcpClient TcpClient { get; init; }
-        public Guid ClientGuid { get; init; }
+        public Guid ClientGuid { get; internal set; }
         public CancellationTokenSource CancellationToken { get; init; }
         public bool IsRegistered { get; set; }
         internal int MalformedPackets { get; set; }

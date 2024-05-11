@@ -10,7 +10,7 @@ namespace EldenBingo
     {
         private Room? _room;
 
-        public Client()
+        public Client() : base(Environment.UserName)
         {
             //Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));

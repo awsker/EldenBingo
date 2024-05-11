@@ -12,6 +12,7 @@ namespace Neto.Server
         private readonly ConcurrentBag<CM> _clients;
         private readonly ConcurrentBag<TcpListener> _tcpListeners;
         private readonly ConstructorInfo _clientModelConstructor;
+        private readonly ConcurrentDictionary<string, ClientIdentity> _cachedIdentities;
         private CancellationTokenSource _cancelToken;
 
         public NetoServer(int port) : base()
@@ -22,12 +23,13 @@ namespace Neto.Server
             _tcpListeners = new ConcurrentBag<TcpListener>();
             _clients = new ConcurrentBag<CM>();
             _cancelToken = new CancellationTokenSource();
-
             var clientModelConstructor = typeof(CM).GetConstructor(new[] { typeof(TcpClient) });
             if (clientModelConstructor == null)
                 throw new ApplicationException("No constructor with TcpClient as argument was found");
             else
                 _clientModelConstructor = clientModelConstructor;
+
+            _cachedIdentities = new ConcurrentDictionary<string, ClientIdentity>();
         }
 
         ~NetoServer()
@@ -139,7 +141,7 @@ namespace Neto.Server
                 return;
             }
             var tasks = new List<Task>();
-            
+
             foreach (var client in clients)
             {
                 var t = sendBytesToClient(data, client);
@@ -264,6 +266,27 @@ namespace Neto.Server
                     if (!client.IsRegistered)
                     {
                         client.IsRegistered = true;
+                        if (!string.IsNullOrEmpty(objData.IdentityToken))
+                        {
+                            var ipToken = clientToken(client.TcpClient, objData.IdentityToken);
+
+                            if (!string.IsNullOrEmpty(ipToken))
+                            {
+                                if (_cachedIdentities.TryGetValue(ipToken, out var identity))
+                                {
+                                    //Unless there's a client already connected with this guid
+                                    if (!clientAlreadyExists(identity.ClientGuid))
+                                    {
+                                        client.ClientGuid = identity.ClientGuid;
+                                    }
+                                }
+                                else
+                                {
+                                    //Client not registered, register client with its currently assigned guid
+                                    _cachedIdentities[ipToken] = new ClientIdentity(ipToken, client.ClientGuid);
+                                }
+                            }
+                        }
                         var acceptPacket = new Packet(PacketTypes.ServerRegisterAccepted, new ServerRegisterAccepted(NetConstants.ServerRegisterString, client.ClientGuid));
                         await SendPacketToClient(acceptPacket, client);
                         fireOnClientConnected(client);
@@ -278,6 +301,20 @@ namespace Neto.Server
                     DispatchObjectsInPacket(client, packet);
                     break;
             }
+        }
+
+        private bool clientAlreadyExists(Guid guid)
+        {
+            return _clients.Any(g => g.ClientGuid == guid);
+        }
+
+        private string clientToken(TcpClient client, string token)
+        {
+            if (client.Client?.RemoteEndPoint is IPEndPoint ip)
+            {
+                return ip.Address.ToString() + ":" + token;
+            }
+            return string.Empty;
         }
 
         private async void runTcpListener(IPAddress ip)

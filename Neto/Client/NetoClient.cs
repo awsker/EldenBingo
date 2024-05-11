@@ -8,10 +8,16 @@ namespace Neto.Client
     public class NetoClient : NetObjectHandler<ClientModel>
     {
         private TcpClient? _tcp;
+        private string _clientUniqueToken;
 
-        public NetoClient()
+        /// <summary>
+        /// Create a client
+        /// </summary>
+        /// <param name="clientUniqueToken">This token will be used to identify this client and recover the client identity in case of a disconnect and subsequent reconnect</param>
+        public NetoClient(string? clientUniqueToken = null)
         {
             CancellationToken = new CancellationTokenSource();
+            _clientUniqueToken = clientUniqueToken ?? string.Empty;
         }
 
         ~NetoClient()
@@ -23,7 +29,7 @@ namespace Neto.Client
 
         public event EventHandler<StringEventArgs>? Disconnected;
 
-        public event EventHandler? Kicked;
+        public event EventHandler<StringEventArgs>? Kicked;
 
         public virtual string Version => "1";
 
@@ -113,7 +119,7 @@ namespace Neto.Client
                 FireOnError($"Connect Error: {e.Message}");
                 return ConnectionResult.Exception;
             }
-            return _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
+            return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
         }
 
         public async Task<bool> Connect(IPEndPoint ipEndpoint)
@@ -197,9 +203,9 @@ namespace Neto.Client
             Disconnected?.Invoke(this, new StringEventArgs(message));
         }
 
-        private void FireOnKicked()
+        private void FireOnKicked(string message)
         {
-            Kicked?.Invoke(this, EventArgs.Empty);
+            Kicked?.Invoke(this, new StringEventArgs(message));
         }
 
         private async Task handleIncomingPacket(Packet packet)
@@ -221,17 +227,13 @@ namespace Neto.Client
                     break;
                 case PacketTypes.ServerRegisterDenied:
                     ServerRegisterDenied? deniedData = packet.GetObjectData<ServerRegisterDenied>();
-                    FireOnDisconnect($"Registration denied: {deniedData?.Message ?? "Unknown reason"}");
+                    FireOnKicked($"Registration denied: {deniedData?.Message ?? "Unknown reason"}");
                     await Disconnect();
                     break;
                 case PacketTypes.ServerClientDropped:
                     CancellationToken.Cancel();
                     ServerKicked? kickedData = packet.GetObjectData<ServerKicked>();
-                    FireOnKicked();
-                    if (kickedData != null)
-                        FireOnDisconnect($"Kicked from server: {kickedData.Reason}");
-                    else
-                        FireOnDisconnect($"Kicked from server");
+                    FireOnKicked($"Kicked from server: {kickedData?.Reason ?? "Unknown reason"}");
                     break;
 
                 case PacketTypes.ServerShutdown:
@@ -249,7 +251,7 @@ namespace Neto.Client
         {
             try
             {
-                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version));
+                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, _clientUniqueToken));
                 await SendPacketToServer(registerPacket);
                 while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
                 {
