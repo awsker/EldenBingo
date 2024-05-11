@@ -342,9 +342,11 @@ namespace EldenBingo
             _autoReconnect = false;
         }
 
-        private void client_Kicked(object? sender, EventArgs e)
+        private void client_Kicked(object? sender, StringEventArgs e)
         {
+            _consoleControl.PrintToConsole(e.Message, Color.Red);
             _autoReconnect = false; //So we don't reconnect automatically after kick
+            _connecting = false;
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
