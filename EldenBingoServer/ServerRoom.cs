@@ -7,8 +7,6 @@ namespace EldenBingoServer
     public class ServerRoom : Room<BingoClientInRoom>
     {
         private Guid _creatorGuid;
-        private string? _creatorIp;
-        private string? _creatorName;
         private System.Timers.Timer? _timer;
         private Dictionary<int, string> _customTeamNames;
 
@@ -16,11 +14,10 @@ namespace EldenBingoServer
         {
             AdminPassword = adminPassword;
             CreateTime = DateTime.Now;
-            _creatorGuid = creator.ClientGuid;
-            _creatorIp = Server.GetClientIp(creator);
             Match.MatchStatusChanged += match_MatchStatusChanged;
             GameSettings = gameSettings;
             LastActivity = DateTime.Now;
+            _creatorGuid = creator.ClientGuid;
             _customTeamNames = new Dictionary<int, string>();
         }
 
@@ -38,9 +35,7 @@ namespace EldenBingoServer
         {
             client.Room = this;
 
-            if (_creatorGuid == client.ClientGuid)
-                _creatorName = nick;
-            bool admin = IsAdminByDefault(client, nick) || IsCorrectAdminPassword(adminPass);
+            bool admin = IsAdminByDefault(client) || IsCorrectAdminPassword(adminPass);
             var cl = new BingoClientInRoom(client, nick, client.ClientGuid, admin, team);
 
             AddUser(cl);
@@ -48,10 +43,9 @@ namespace EldenBingoServer
             return cl;
         }
 
-        public bool IsAdminByDefault(BingoClientModel client, string name)
+        public bool IsAdminByDefault(BingoClientModel client)
         {
-            return client.ClientGuid == _creatorGuid ||
-                name == _creatorName && _creatorIp != null && _creatorIp == Server.GetClientIp(client);
+            return client.ClientGuid == _creatorGuid;
         }
 
         public bool IsCorrectAdminPassword(string pass)
@@ -186,7 +180,7 @@ namespace EldenBingoServer
 
         public IDictionary<int, IList<BingoLine>> GetBingos()
         {
-            if(Match.Board is not ServerBingoBoard board)
+            if (Match.Board is not ServerBingoBoard board)
                 return new Dictionary<int, IList<BingoLine>>();
             return board.GetBingosPerTeam(GetActiveTeams());
         }
