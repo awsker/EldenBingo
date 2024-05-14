@@ -27,5 +27,7 @@
         ClientDisconnect,
 
         ObjectData,
+
+        KeepAlive,
     }
 }

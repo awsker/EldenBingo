@@ -9,11 +9,14 @@ namespace Neto.Server
 {
     public class NetoServer<CM> : NetObjectHandler<CM> where CM : ClientModel
     {
+        private const float KeepAliveTime = 25f;
         private readonly ConcurrentBag<CM> _clients;
         private readonly ConcurrentBag<TcpListener> _tcpListeners;
         private readonly ConstructorInfo _clientModelConstructor;
         private readonly ConcurrentDictionary<string, ClientIdentity> _cachedIdentities;
         private CancellationTokenSource _cancelToken;
+
+        private System.Timers.Timer _keepAliveTimer;
 
         public NetoServer(int port) : base()
         {
@@ -30,6 +33,10 @@ namespace Neto.Server
                 _clientModelConstructor = clientModelConstructor;
 
             _cachedIdentities = new ConcurrentDictionary<string, ClientIdentity>();
+
+            _keepAliveTimer = new System.Timers.Timer(5000f);
+            _keepAliveTimer.Elapsed += keepAlive;
+            _keepAliveTimer.Start();
         }
 
         ~NetoServer()
@@ -156,6 +163,17 @@ namespace Neto.Server
             await SendPacketToClients(p, clientsToInclude);
         }
 
+        private static IPAddress[] getIpAddresses()
+        {
+            var addresses = Dns.GetHostAddresses(Dns.GetHostName());
+            var local = IPAddress.Parse("127.0.0.1");
+            if (!addresses.Any(a => a.Equals(local)))
+            {
+                return addresses.Concat(new IPAddress[] { local }).ToArray();
+            }
+            return addresses;
+        }
+
         private async Task sendBytesToClient(byte[] bytes, CM client)
         {
             try
@@ -180,17 +198,6 @@ namespace Neto.Server
             {
                 await DropClient(client);
             }
-        }
-
-        private static IPAddress[] getIpAddresses()
-        {
-            var addresses = Dns.GetHostAddresses(Dns.GetHostName());
-            var local = IPAddress.Parse("127.0.0.1");
-            if (!addresses.Any(a => a.Equals(local)))
-            {
-                return addresses.Concat(new IPAddress[] { local }).ToArray();
-            }
-            return addresses;
         }
 
         private void fireOnClientConnected(CM client)
@@ -269,13 +276,12 @@ namespace Neto.Server
                         if (!string.IsNullOrEmpty(objData.IdentityToken))
                         {
                             var ipToken = clientToken(client.TcpClient, objData.IdentityToken);
-
                             if (!string.IsNullOrEmpty(ipToken))
                             {
                                 if (_cachedIdentities.TryGetValue(ipToken, out var identity))
                                 {
                                     //Unless there's a client already connected with this guid
-                                    if (!clientAlreadyExists(identity.ClientGuid))
+                                    if (!clientAlreadyExists(client))
                                     {
                                         client.ClientGuid = identity.ClientGuid;
                                     }
@@ -303,9 +309,9 @@ namespace Neto.Server
             }
         }
 
-        private bool clientAlreadyExists(Guid guid)
+        private bool clientAlreadyExists(CM client)
         {
-            return _clients.Any(g => g.ClientGuid == guid);
+            return _clients.Any(c => c != client && c.ClientGuid == client.ClientGuid);
         }
 
         private string clientToken(TcpClient client, string token)
@@ -376,6 +382,7 @@ namespace Neto.Server
                     else
                     {
                         client.MalformedPackets = Math.Max(0, client.MalformedPackets - 1);
+                        client.LastActivity = DateTime.Now;
                         await handleIncomingPacket(client, packet);
                     }
                 }
@@ -385,6 +392,19 @@ namespace Neto.Server
                 //Stream was closed, most likely due to the client shutting down
                 //but could also be because client sent malformed packet
                 await DropClient(client);
+            }
+        }
+
+        private void keepAlive(object? sender, EventArgs e)
+        {
+            var now = DateTime.Now;
+            foreach (var client in _clients)
+            {
+                if ((now - client.LastActivity).TotalSeconds > KeepAliveTime)
+                {
+                    _ = SendPacketToClient(new Packet(PacketTypes.KeepAlive, new KeepAlive()), client);
+                    client.LastActivity = DateTime.Now;
+                }
             }
         }
     }

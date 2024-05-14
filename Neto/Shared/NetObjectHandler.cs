@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 
@@ -16,12 +17,14 @@ namespace Neto.Shared
 
         public NetObjectHandler()
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             _assemblies = new HashSet<Assembly>();
             _eventDispatchers = new Dictionary<string, TypeContainer<CM>>();
             RegisterType(typeof(ServerRegisterAccepted));
             RegisterType(typeof(ServerRegisterDenied));
             RegisterType(typeof(ClientRegister));
             RegisterType(typeof(ServerKicked));
+            RegisterType(typeof(KeepAlive));
 
             _packetResolver = new PacketResolver((s) => getOrRegisterDispatcher(s)?.Type);
             _cachedOptions = new MessagePackSerializerOptions(_packetResolver).WithCompression(MessagePackCompression.Lz4BlockArray);

@@ -4,4 +4,5 @@
     public record ServerRegisterDenied(string Message);
     public record ClientRegister(string Message, string Version, string IdentityToken);
     public record ServerKicked(string Reason);
+    public record KeepAlive();
 }

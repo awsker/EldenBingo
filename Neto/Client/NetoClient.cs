@@ -244,6 +244,10 @@ namespace Neto.Client
                 case PacketTypes.ObjectData:
                     DispatchObjectsInPacket(null, packet);
                     break;
+
+                case PacketTypes.KeepAlive:
+                    await SendPacketToServer(new Packet(PacketTypes.KeepAlive, new KeepAlive()));
+                    break;
             }
         }
 

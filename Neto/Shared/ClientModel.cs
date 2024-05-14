@@ -9,6 +9,7 @@ namespace Neto.Shared
             TcpClient = client;
             ClientGuid = Guid.NewGuid();
             CancellationToken = new CancellationTokenSource();
+            LastActivity = DateTime.Now;
         }
 
         public TcpClient TcpClient { get; init; }
@@ -16,6 +17,7 @@ namespace Neto.Shared
         public CancellationTokenSource CancellationToken { get; init; }
         public bool IsRegistered { get; set; }
         internal int MalformedPackets { get; set; }
+        public DateTime LastActivity { get; set; }
 
         public virtual void Stop()
         {
