@@ -57,7 +57,8 @@ namespace EldenBingo.UI
             {
                 while(_gridControl.Controls.Count > targetSquares)
                 {
-                    _gridControl.Controls.RemoveAt(_gridControl.Controls.Count - 1);
+                    var lastIndex = _gridControl.Controls.Count - 1;
+                    _gridControl.Controls.RemoveAt(lastIndex);
                 }
             }
             else if(_size < size)
@@ -67,7 +68,6 @@ namespace EldenBingo.UI
                 {
                     var squareControl = new BingoSquareControl(i++, string.Empty, string.Empty);
                     squareControl.MouseDown += square_MouseDown;
-                    squareControl.MouseWheel += square_MouseWheel;
                     _gridControl.Controls.Add(squareControl);
                 }
             }
@@ -251,15 +251,35 @@ namespace EldenBingo.UI
             setupClickHotkey();
         }
 
-        private async void hotkeyPressed(object? sender, EventArgs e)
+        private async void keyPressed(object? sender, KeyEventArgs e)
         {
             if (Squares == null)
                 return;
+
+            var key = Properties.Settings.Default.ClickHotkey;
+            if (key != 0 && e.KeyValue == key)
+            {
+                foreach (var square in Squares)
+                {
+                    if (square.MouseOver)
+                    {
+                        await clickSquare(square);
+                        return;
+                    }
+                }
+            }
+        }
+
+        private async void mouseWheel(object? sender, MouseEventArgs e)
+        {
+            if (Squares == null || e.Delta == 0)
+                return;
+
             foreach (var square in Squares)
             {
                 if (square.MouseOver)
                 {
-                    await clickSquare(square);
+                    await changeSquareCounter(square, Math.Clamp(e.Delta, -1, 1));
                     return;
                 }
             }
@@ -298,9 +318,10 @@ namespace EldenBingo.UI
         private void setupClickHotkey()
         {
             var mainForm = MainForm.GetMainForm(this);
-            if(mainForm != null)
-            {
-                mainForm.KeyHandler.KeyPressed += hotkeyPressed;
+            if (mainForm != null)
+            {                
+                mainForm.RawInput.KeyPressed += keyPressed;
+                mainForm.RawInput.MouseWheel += mouseWheel;
             }
         }
 
