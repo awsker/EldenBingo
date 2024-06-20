@@ -9,10 +9,7 @@
 
         internal static readonly string[] PROCESS_EXE_VERSION_SUPPORTED = new string[]
         {
-            "1.8.1.0",
-            "1.9.0.0",
-            "1.9.1.0",
-            "1.10.0.0",
+            "1.12.0.0",
         };
     }
 }

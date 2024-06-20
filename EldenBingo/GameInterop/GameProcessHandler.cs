@@ -675,7 +675,7 @@ namespace EldenBingo.GameInterop
                 }
                 if (IsValidAddress(_csMenuManAddress))
                 {
-                    var ptrAddr = followPointers(_csMenuManAddress, new long[] { 0x80L, 0x248L });
+                    var ptrAddr = followPointers(_csMenuManAddress, new long[] { 0x80L, 0x250L });
 
                     if (IsValidAddress(ptrAddr))
                     {
