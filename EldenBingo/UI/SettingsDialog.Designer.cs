@@ -78,6 +78,11 @@
             tabPage2 = new TabPage();
             tabPage3 = new TabPage();
             panel1 = new Panel();
+            groupBox9 = new GroupBox();
+            panel2 = new Panel();
+            label12 = new Label();
+            _delayMatchEventsTextBox = new TextBox();
+            label13 = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -92,6 +97,8 @@
             tabPage2.SuspendLayout();
             tabPage3.SuspendLayout();
             panel1.SuspendLayout();
+            groupBox9.SuspendLayout();
+            panel2.SuspendLayout();
             SuspendLayout();
             // 
             // _okButton
@@ -127,7 +134,7 @@
             groupBox1.Location = new Point(8, 110);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(240, 107);
-            groupBox1.TabIndex = 21;
+            groupBox1.TabIndex = 23;
             groupBox1.TabStop = false;
             groupBox1.Text = "Map Initial Size";
             // 
@@ -136,7 +143,7 @@
             _mapSizeCustomYTextBox.Location = new Point(117, 74);
             _mapSizeCustomYTextBox.Name = "_mapSizeCustomYTextBox";
             _mapSizeCustomYTextBox.Size = new Size(54, 23);
-            _mapSizeCustomYTextBox.TabIndex = 24;
+            _mapSizeCustomYTextBox.TabIndex = 27;
             // 
             // label2
             // 
@@ -153,7 +160,7 @@
             _mapSizeCustomRadioButton.Location = new Point(9, 46);
             _mapSizeCustomRadioButton.Name = "_mapSizeCustomRadioButton";
             _mapSizeCustomRadioButton.Size = new Size(90, 19);
-            _mapSizeCustomRadioButton.TabIndex = 23;
+            _mapSizeCustomRadioButton.TabIndex = 25;
             _mapSizeCustomRadioButton.TabStop = true;
             _mapSizeCustomRadioButton.Text = "Custom Size";
             _mapSizeCustomRadioButton.UseVisualStyleBackColor = true;
@@ -164,7 +171,7 @@
             _mapSizeRememberLastRadioButton.Location = new Point(9, 22);
             _mapSizeRememberLastRadioButton.Name = "_mapSizeRememberLastRadioButton";
             _mapSizeRememberLastRadioButton.Size = new Size(130, 19);
-            _mapSizeRememberLastRadioButton.TabIndex = 22;
+            _mapSizeRememberLastRadioButton.TabIndex = 24;
             _mapSizeRememberLastRadioButton.TabStop = true;
             _mapSizeRememberLastRadioButton.Text = "Remember Last Size";
             _mapSizeRememberLastRadioButton.UseVisualStyleBackColor = true;
@@ -174,7 +181,7 @@
             _mapSizeCustomXTextBox.Location = new Point(30, 74);
             _mapSizeCustomXTextBox.Name = "_mapSizeCustomXTextBox";
             _mapSizeCustomXTextBox.Size = new Size(54, 23);
-            _mapSizeCustomXTextBox.TabIndex = 24;
+            _mapSizeCustomXTextBox.TabIndex = 26;
             // 
             // label1
             // 
@@ -326,7 +333,7 @@
             groupBox4.Location = new Point(8, 3);
             groupBox4.Name = "groupBox4";
             groupBox4.Size = new Size(240, 107);
-            groupBox4.TabIndex = 16;
+            groupBox4.TabIndex = 18;
             groupBox4.TabStop = false;
             groupBox4.Text = "Map Initial Position";
             // 
@@ -335,7 +342,7 @@
             _mapPositionYTextBox.Location = new Point(117, 72);
             _mapPositionYTextBox.Name = "_mapPositionYTextBox";
             _mapPositionYTextBox.Size = new Size(54, 23);
-            _mapPositionYTextBox.TabIndex = 20;
+            _mapPositionYTextBox.TabIndex = 22;
             // 
             // label6
             // 
@@ -352,7 +359,7 @@
             _mapPositionCustomRadioButton.Location = new Point(9, 46);
             _mapPositionCustomRadioButton.Name = "_mapPositionCustomRadioButton";
             _mapPositionCustomRadioButton.Size = new Size(113, 19);
-            _mapPositionCustomRadioButton.TabIndex = 18;
+            _mapPositionCustomRadioButton.TabIndex = 20;
             _mapPositionCustomRadioButton.TabStop = true;
             _mapPositionCustomRadioButton.Text = "Custom Position";
             _mapPositionCustomRadioButton.UseVisualStyleBackColor = true;
@@ -363,7 +370,7 @@
             _mapPositionRelativeRadioButton.Location = new Point(9, 22);
             _mapPositionRelativeRadioButton.Name = "_mapPositionRelativeRadioButton";
             _mapPositionRelativeRadioButton.Size = new Size(127, 19);
-            _mapPositionRelativeRadioButton.TabIndex = 17;
+            _mapPositionRelativeRadioButton.TabIndex = 19;
             _mapPositionRelativeRadioButton.TabStop = true;
             _mapPositionRelativeRadioButton.Text = "Relative to Window";
             _mapPositionRelativeRadioButton.UseVisualStyleBackColor = true;
@@ -373,7 +380,7 @@
             _mapPositionXTextBox.Location = new Point(30, 72);
             _mapPositionXTextBox.Name = "_mapPositionXTextBox";
             _mapPositionXTextBox.Size = new Size(54, 23);
-            _mapPositionXTextBox.TabIndex = 19;
+            _mapPositionXTextBox.TabIndex = 21;
             // 
             // label7
             // 
@@ -429,7 +436,7 @@
             groupBox6.Location = new Point(8, 223);
             groupBox6.Name = "groupBox6";
             groupBox6.Size = new Size(240, 114);
-            groupBox6.TabIndex = 25;
+            groupBox6.TabIndex = 28;
             groupBox6.TabStop = false;
             groupBox6.Text = "Misc.";
             // 
@@ -438,7 +445,7 @@
             _showClassesCheckBox.Location = new Point(9, 65);
             _showClassesCheckBox.Name = "_showClassesCheckBox";
             _showClassesCheckBox.Size = new Size(218, 41);
-            _showClassesCheckBox.TabIndex = 27;
+            _showClassesCheckBox.TabIndex = 30;
             _showClassesCheckBox.Text = "Show available classes in an overlay on the map (for streaming)";
             _showClassesCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -447,7 +454,7 @@
             _swapMouseButtons.Location = new Point(9, 19);
             _swapMouseButtons.Name = "_swapMouseButtons";
             _swapMouseButtons.Size = new Size(218, 40);
-            _swapMouseButtons.TabIndex = 26;
+            _swapMouseButtons.TabIndex = 29;
             _swapMouseButtons.Text = "Swap mouse buttons***(Left = Draw, Right = Pan)";
             _swapMouseButtons.UseVisualStyleBackColor = true;
             // 
@@ -561,6 +568,7 @@
             // tabPage2
             // 
             tabPage2.BackColor = SystemColors.Control;
+            tabPage2.Controls.Add(groupBox9);
             tabPage2.Controls.Add(groupBox2);
             tabPage2.Controls.Add(groupBox7);
             tabPage2.Location = new Point(4, 24);
@@ -591,6 +599,54 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(521, 29);
             panel1.TabIndex = 34;
+            // 
+            // groupBox9
+            // 
+            groupBox9.Controls.Add(panel2);
+            groupBox9.Controls.Add(label13);
+            groupBox9.Location = new Point(254, 6);
+            groupBox9.Name = "groupBox9";
+            groupBox9.Size = new Size(240, 107);
+            groupBox9.TabIndex = 16;
+            groupBox9.TabStop = false;
+            groupBox9.Text = "Spectator Settings";
+            // 
+            // panel2
+            // 
+            panel2.Controls.Add(label12);
+            panel2.Controls.Add(_delayMatchEventsTextBox);
+            panel2.Dock = DockStyle.Fill;
+            panel2.Location = new Point(3, 74);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(234, 30);
+            panel2.TabIndex = 2;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(90, 6);
+            label12.Name = "label12";
+            label12.Size = new Size(73, 15);
+            label12.TabIndex = 21;
+            label12.Text = "milliseconds";
+            // 
+            // _delayMatchEventsTextBox
+            // 
+            _delayMatchEventsTextBox.Location = new Point(3, 3);
+            _delayMatchEventsTextBox.MaximumSize = new Size(100, 0);
+            _delayMatchEventsTextBox.Name = "_delayMatchEventsTextBox";
+            _delayMatchEventsTextBox.Size = new Size(81, 23);
+            _delayMatchEventsTextBox.TabIndex = 17;
+            // 
+            // label13
+            // 
+            label13.Dock = DockStyle.Top;
+            label13.Location = new Point(3, 19);
+            label13.Name = "label13";
+            label13.Padding = new Padding(0, 3, 0, 0);
+            label13.Size = new Size(234, 55);
+            label13.TabIndex = 19;
+            label13.Text = "When spectating, delay all match events (this includes square checks, counters, match status changes, timer etc.):";
             // 
             // SettingsDialog
             // 
@@ -628,6 +684,9 @@
             tabPage2.ResumeLayout(false);
             tabPage3.ResumeLayout(false);
             panel1.ResumeLayout(false);
+            groupBox9.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -683,5 +742,10 @@
         private TabPage tabPage2;
         private TabPage tabPage3;
         private Panel panel1;
+        private GroupBox groupBox9;
+        private Panel panel2;
+        private Label label12;
+        private TextBox _delayMatchEventsTextBox;
+        private Label label13;
     }
 }

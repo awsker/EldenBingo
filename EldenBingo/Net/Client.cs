@@ -10,11 +10,29 @@ namespace EldenBingo
     {
         private Room? _room;
 
+        private ISet<string> _delayTypes;
+
+        /// <summary>
+        /// Artificial delay for all match related packets, in milliseconds
+        /// </summary>
+        public int PacketDelayMs { get; set; } = 0;
+
         public Client() : base(Properties.Settings.Default.IdentityToken)
         {
             //Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
             registerHandlers();
+            _delayTypes = new HashSet<string>()
+            {
+                nameof(ServerUserCoordinates),
+                nameof(ServerMatchStatusUpdate),
+                nameof(ServerEntireBingoBoardUpdate),
+                nameof(ServerScoreboardUpdate),
+                nameof(ServerScoreboardUpdate),
+                nameof(ServerBingoAchievedUpdate),
+                nameof(ServerSquareUpdate),
+                nameof(ServerUserChecked)
+            };
             Disconnected += client_Disconnected;
         }
 
@@ -81,6 +99,37 @@ namespace EldenBingo
             Room = null;
             FireOnStatus("Left lobby");
             await SendPacketToServer(new Packet(new ClientRequestLeaveRoom()));
+        }
+
+        protected override async void DispatchObjects(ClientModel? sender, IEnumerable<object> objects)
+        {
+            if (PacketDelayMs > 0 && LocalUser != null && LocalUser.IsSpectator)
+            {
+                var ordinaryPackets = new Queue<object>();
+                var delayPackets = new Queue<object>();
+                foreach (var o in objects)
+                {
+                    var t = o.GetType();
+                    if (t?.FullName != null && _delayTypes.Contains(t.Name))
+                    {
+                        delayPackets.Enqueue(o);
+                    }
+                    else
+                    {
+                        ordinaryPackets.Enqueue(o);
+                    }
+                }
+                base.DispatchObjects(sender, ordinaryPackets);
+                if (delayPackets.Count > 0)
+                {
+                    await Task.Delay(PacketDelayMs);
+                    base.DispatchObjects(sender, delayPackets);
+                }
+            }
+            else
+            {
+                base.DispatchObjects(sender, objects);
+            }
         }
 
         private void client_Disconnected(object? sender, StringEventArgs e)

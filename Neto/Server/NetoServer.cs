@@ -304,7 +304,7 @@ namespace Neto.Server
                     break;
 
                 case PacketTypes.ObjectData:
-                    DispatchObjectsInPacket(client, packet);
+                    DispatchObjects(client, packet.Objects);
                     break;
             }
         }

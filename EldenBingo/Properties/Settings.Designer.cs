@@ -550,5 +550,17 @@ namespace EldenBingo.Properties {
                 this["IdentityToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int DelayMatchEvents {
+            get {
+                return ((int)(this["DelayMatchEvents"]));
+            }
+            set {
+                this["DelayMatchEvents"] = value;
+            }
+        }
     }
 }

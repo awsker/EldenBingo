@@ -62,6 +62,7 @@ namespace EldenBingo
                 Application.Exit();
             };
             _client = new Client();
+            _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
             addClientListeners(_client);            
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
@@ -499,6 +500,10 @@ namespace EldenBingo
             if (e.PropertyName == nameof(Properties.Settings.Default.AlwaysOnTop))
             {
                 TopMost = Properties.Settings.Default.AlwaysOnTop;
+            }
+            if (e.PropertyName == nameof(Properties.Settings.Default.DelayMatchEvents) && _client != null)
+            {
+                _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
             }
         }
 

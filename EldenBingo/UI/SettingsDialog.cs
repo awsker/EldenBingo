@@ -98,6 +98,8 @@
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
             _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
 
+            _delayMatchEventsTextBox.Text = Properties.Settings.Default.DelayMatchEvents.ToString();
+
             updateSizeEnable();
             updatePositionEnable();
             updateMaxSizeEnable();
@@ -211,6 +213,15 @@
             Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
 
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
+
+            if (int.TryParse(_delayMatchEventsTextBox.Text, out int delayMatchEvents))
+            {
+                Properties.Settings.Default.DelayMatchEvents = delayMatchEvents;
+            }
+            else
+            {
+                return false;
+            }
 
             Properties.Settings.Default.Save();
             return true;

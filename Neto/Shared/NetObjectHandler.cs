@@ -26,7 +26,7 @@ namespace Neto.Shared
             RegisterType(typeof(ServerKicked));
             RegisterType(typeof(KeepAlive));
 
-            _packetResolver = new PacketResolver((s) => getOrRegisterDispatcher(s)?.Type);
+            _packetResolver = new PacketResolver((s) => GetOrRegisterDispatcher(s)?.Type);
             _cachedOptions = new MessagePackSerializerOptions(_packetResolver).WithCompression(MessagePackCompression.Lz4BlockArray);
         }
 
@@ -46,7 +46,7 @@ namespace Neto.Shared
 
         public void RegisterType(Type type)
         {
-            getOrRegisterDispatcher(type);
+            GetOrRegisterDispatcher(type);
         }
 
         public void AddListener<T>(Action<CM?, T> func)
@@ -120,11 +120,11 @@ namespace Neto.Shared
             return packets.ToArray();
         }
 
-        protected void DispatchObjectsInPacket(CM? sender, Packet packet)
+        protected virtual async void DispatchObjects(CM? sender, IEnumerable<object> objects)
         {
-            foreach (var o in packet.Objects)
+            foreach (var o in objects)
             {
-                getOrRegisterDispatcher(NameFromType(o.GetType()))?.Dispatch(sender, o);
+                GetOrRegisterDispatcher(o.GetType())?.Dispatch(sender, o);
             }
         }
 
@@ -159,7 +159,7 @@ namespace Neto.Shared
             OnError?.Invoke(this, new StringEventArgs(message));
         }
 
-        private TypeContainer<CM>? getOrRegisterDispatcher(Type type)
+        protected TypeContainer<CM>? GetOrRegisterDispatcher(Type type)
         {
             var typeName = NameFromType(type);
             if (!_eventDispatchers.TryGetValue(typeName, out var dispatcher))
@@ -185,7 +185,7 @@ namespace Neto.Shared
             return dispatcher;
         }
 
-        private TypeContainer<CM>? getOrRegisterDispatcher(string typeName)
+        protected TypeContainer<CM>? GetOrRegisterDispatcher(string typeName)
         {
             if (_eventDispatchers.TryGetValue(typeName, out var dispatcher))
             {
@@ -194,7 +194,7 @@ namespace Neto.Shared
             var type = resolveType(typeName);
             if (type != null)
             {
-                return getOrRegisterDispatcher(type);
+                return GetOrRegisterDispatcher(type);
             }
             throw new ApplicationException($"Could not resolve type {typeName}");
         }
