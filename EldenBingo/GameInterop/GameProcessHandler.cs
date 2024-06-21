@@ -679,13 +679,19 @@ namespace EldenBingo.GameInterop
 
                     if (IsValidAddress(ptrAddr))
                     {
-                        byte[] buf = new byte[16];
-                        if (WinAPI.ReadProcessMemory(_gameAccessHwnd, ptrAddr + 0x28L, buf, 16UL, out _)) //Read values from offset 0x28L
+                        byte[] buf = new byte[20];
+                        if (WinAPI.ReadProcessMemory(_gameAccessHwnd, ptrAddr + 0x24L, buf, (ulong)buf.Length, out _)) //Read values from offset 0x24L
                         {
-                            var x = BitConverter.ToSingle(buf, 0);
-                            var y = BitConverter.ToSingle(buf, 4);
-                            var underground = BitConverter.ToBoolean(buf, 8);
-                            var rad = BitConverter.ToSingle(buf, 12);
+                            var map = BitConverter.ToInt32(buf, 0);
+                            if(map != 0)
+                            {
+                                //Player not in overworld (so probably in loading screen or DLC area)
+                                return null;
+                            }
+                            var x = BitConverter.ToSingle(buf, 4);
+                            var y = BitConverter.ToSingle(buf, 8);
+                            var underground = BitConverter.ToBoolean(buf, 12);
+                            var rad = BitConverter.ToSingle(buf, 16);
                             if (x > 0 && y > 0)
                             {
                                 return new MapCoordinates(x, y, underground, rad);
@@ -729,30 +735,33 @@ namespace EldenBingo.GameInterop
             _lastCoordinates = null;
         }
 
-        private long resolveAddressFromAssembly(string pattern, int offset = 0)
+        private long resolveAddressFromAssembly(string pattern, uint addressLength = 4, int offset = 0)
         {
             var processOffset = processBaseAddress(_gameProc.MainModule);
 
             var patternData = stringToByteArray(pattern);
 
-            byte[] assm = new byte[4];
+            byte[] assm = new byte[addressLength];
 
             long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2) + offset;
-            WinAPI.ReadProcessMemory(_gameAccessHwnd, address + 3, assm, 4, out _); //Only fetch the 4 address bytes
+            WinAPI.ReadProcessMemory(_gameAccessHwnd, address + patternData.Item3, assm, addressLength, out _); //Only fetch the 4 address bytes
             var offsetFromAsm = BitConverter.ToUInt32(assm);
-            return readPointer(address + offsetFromAsm + 7);
+            return readPointer(address + offsetFromAsm + patternData.Item3 + addressLength);
         }
 
-        private (byte[], string) stringToByteArray(string szPattern)
+        private (byte[], string, int) stringToByteArray(string szPattern)
         {
             string[] saPattern = szPattern.Split(' ');
             string szMask = "";
+            int firstMaskIndex = -1;
             for (int i = 0; i < saPattern.Length; i++)
             {
                 if (saPattern[i] == "??")
                 {
                     szMask += "?";
                     saPattern[i] = "0";
+                    if (firstMaskIndex == -1)
+                        firstMaskIndex = i;
                 }
                 else szMask += "x";
             }
@@ -764,7 +773,7 @@ namespace EldenBingo.GameInterop
                 throw new Exception("Pattern's length is zero!");
             if (cbPattern.Length != szMask.Length)
                 throw new Exception("Pattern's bytes and szMask must be of the same size!");
-            return (cbPattern, szMask);
+            return (cbPattern, szMask, firstMaskIndex);
         }
 
         #endregion Game process scanning
