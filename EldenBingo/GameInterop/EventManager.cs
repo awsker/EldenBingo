@@ -7,7 +7,7 @@ public class EventManager {
         0x48, 0xb9, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x0f,   // movabs rcx,0xfffffff00000000       ;EventFlagMan
         0x48, 0xb8, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x0f,   // movabs rax,0xfffffff00000000       ;SetEventFlagFunction
         0x41, 0xb0, 0x01,                                             // mov    r8b,0x1                     ;State - True
-        0x48, 0x83, 0xec, 0x08,                                       // sub    rsp,0x8                     ;Flag needs to be written to memeory
+        0x48, 0x83, 0xec, 0x08,                                       // sub    rsp,0x8                     ;Flag needs to be written to memory
         0xc7, 0x04, 0x24, 0xba, 0xaa, 0x12, 0x01,                     // mov    DWORD PTR [rsp],0x112aaba   ;Flag - 18000570
         0x48, 0x8d, 0x14, 0x24,                                       // lea    rdx,[rsp]                   ;Flag Pointer
         0x48, 0x83, 0xec, 0x28,                                       // sub    rsp,0x28
@@ -25,15 +25,30 @@ public class EventManager {
     // Incase we wanna change it in the future. For now, it's hardcoded. 
     public const int StateOffset = 0x16;
     public const int EventFlagIdOffset = 0x1E;
-    
-    // Partially setup for later, in case we want to use this, later, for something else.
+
     public void SetEventFlag(uint eventId, bool state) {
         byte[] asm = Asm.ToArray();
-        IntPtr eventManPtr = _gameHandler.GetEventManPtr();
-        Array.Copy(BitConverter.GetBytes(eventManPtr.ToInt64()), 0, asm, EventFlagManOffset, sizeof(long));
-        IntPtr setEventPtr = _gameHandler.GetSetEventFlagPtr();
-        Array.Copy(BitConverter.GetBytes(setEventPtr.ToInt64()), 0, asm, SetEventFlagFunctionOffset, sizeof(long));
+        // Set EventFlagMan pointer
+        long eventManPtr = _gameHandler.GetEventManPtr();
+        // if (eventManPtr <= 0) {
+        //     return;
+        // }
+        Array.Copy(BitConverter.GetBytes(eventManPtr), 0, asm, EventFlagManOffset, sizeof(long));
+        // Set Function Call Address
+        long setEventPtr = _gameHandler.GetSetEventFlagPtr();
+        // if (setEventPtr <= 0) {
+        //     return;
+        // }
+        Array.Copy(BitConverter.GetBytes(setEventPtr), 0, asm, SetEventFlagFunctionOffset, sizeof(long));
+        // Set State
+        Array.Copy(BitConverter.GetBytes(state), 0, asm, StateOffset, sizeof(bool));
+        // Set Event Id
+        Array.Copy(BitConverter.GetBytes(eventId), 0, asm, EventFlagIdOffset, sizeof(uint));
         _gameHandler.ExecuteAsm(asm);
+    }
+    // Easy to call, has hard coded flag value. 
+    public void DestroyFogWall() {
+        SetEventFlag(18000570, true);
     }
     
 }

@@ -496,9 +496,9 @@ namespace EldenBingo.GameInterop
         
         private void establishEventManagerAddresses()
         {
-            try
+            try 
             {
-                _eventManAddress = resolveAddressFromAssembly(GameData.PATTERN_CSFD4VIRTUALMEMORYFLAG);
+                _eventManAddress = staticAddressFromAssembly(GameData.PATTERN_CSFD4VIRTUALMEMORYFLAG);
             }
             catch (Exception)
             {
@@ -507,7 +507,8 @@ namespace EldenBingo.GameInterop
             
             try
             {
-                _setEventFlagAddress = resolveAddressFromAssembly(GameData.PATTERN_SETEVENTFLAGFUNC);
+                var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
+                _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
             }
             catch (Exception)
             {
@@ -674,6 +675,9 @@ namespace EldenBingo.GameInterop
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
             }
+            // Dunno wehere to put this. I just need to put this somewhere when we know the game has started, so that we
+            // aren't scanning for pointers when we need to be executing the code to change the event.
+            InitEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);
             return true;
         }
@@ -757,6 +761,20 @@ namespace EldenBingo.GameInterop
             }
             _lastCoordinates = null;
         }
+        
+        private long staticAddressFromAssembly(string pattern, uint addressLength = 4, int offset = 0)
+        {
+            var processOffset = processBaseAddress(_gameProc.MainModule);
+
+            var patternData = stringToByteArray(pattern);
+
+            byte[] assm = new byte[addressLength];
+
+            long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2) + offset;
+            WinAPI.ReadProcessMemory(_gameAccessHwnd, address + patternData.Item3, assm, addressLength, out _); //Only fetch the 4 address bytes
+            var offsetFromAsm = BitConverter.ToUInt32(assm);
+            return address + offsetFromAsm + patternData.Item3 + addressLength;
+        }
 
         private long resolveAddressFromAssembly(string pattern, uint addressLength = 4, int offset = 0)
         {
@@ -801,31 +819,27 @@ namespace EldenBingo.GameInterop
 
         #endregion Game process scanning
 
-        public void getEventManPointers() {
+        public void InitEventManPtrs() {
             if (_eventManAddress <= 0 || _setEventFlagAddress <= 0) {
                 establishEventManagerAddresses();
             }
         }
         
-        public IntPtr GetEventManPtr() {
-            getEventManPointers();
+        public long GetEventManPtr() {
+            InitEventManPtrs();
             if (IsValidAddress(_eventManAddress)) {
-                byte[] pointer = new byte[sizeof(Int64)];
-                WinAPI.ReadProcessMemory(_gameAccessHwnd, _eventManAddress, pointer, (ulong)pointer.Length, out _);
-                return new IntPtr(BitConverter.ToInt64(pointer));
+                return _eventManAddress;
             }
             
-            return IntPtr.Zero;
+            return 0;
         }
         
-        public IntPtr GetSetEventFlagPtr() {
-            getEventManPointers();
+        public long GetSetEventFlagPtr() {
+            InitEventManPtrs();
             if (IsValidAddress(_setEventFlagAddress)) {
-                byte[] pointer = new byte[sizeof(Int64)];
-                WinAPI.ReadProcessMemory(_gameAccessHwnd, _setEventFlagAddress, pointer, (ulong)pointer.Length, out _);
-                return new IntPtr(BitConverter.ToInt64(pointer));
+                return _setEventFlagAddress;
             }
-            return IntPtr.Zero;
+            return -1;
         }
 
         public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
