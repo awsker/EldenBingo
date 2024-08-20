@@ -577,6 +577,8 @@ namespace EldenBingo
                 await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
             TopMost = Properties.Settings.Default.AlwaysOnTop;
+            
+            _eventManager = new EventManager(_processHandler);
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
@@ -605,10 +607,6 @@ namespace EldenBingo
                 _mapCoordinateProviderHandler = null;
             }
 
-            if (_eventManager != null) {
-                _eventManager = null;
-            }
-
             _mapWindowThread = new Thread(() =>
             {
                 Vector2u windowSize;
@@ -634,7 +632,6 @@ namespace EldenBingo
                     _mapWindow.Position = new Vector2i(Left + Width, Top);
                 }
                 _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
-                _eventManager = new EventManager(_processHandler);
                 _mapWindow.Start();
             });
             _mapWindowThread.Start();

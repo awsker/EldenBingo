@@ -15,6 +15,6 @@
             "1.12.0.0",
         };
         
-        internal const uint FogWallEventId = 18000570;
+        internal const uint GAME_STARTED_EVENT_ID = 18000570;
     }
 }

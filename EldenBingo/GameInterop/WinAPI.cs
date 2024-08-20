@@ -81,6 +81,9 @@ namespace EldenBingo.GameInterop
         public static SYSTEM_INFO SystemInfo;
         
         [DllImport("kernel32.dll")]
+        public static extern uint GetLastError();
+        
+        [DllImport("kernel32.dll")]
         public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, IntPtr dwSize, uint flAllocationType, uint flProtect);
         
         [DllImport("kernel32.dll")]

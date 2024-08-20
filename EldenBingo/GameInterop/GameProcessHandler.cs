@@ -473,7 +473,7 @@ namespace EldenBingo.GameInterop
         public long GetEventManPtr() {
             initEventManPtrs();
             if (IsValidAddress(_eventManAddress)) {
-                return _eventManAddress;
+                return readPointer(_eventManAddress);
             }
             
             return 0;
@@ -531,7 +531,11 @@ namespace EldenBingo.GameInterop
             try
             {
                 var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
-                _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                var position =
+                    findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                if (position != -1) {
+                    _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
+                }
             }
             catch (Exception)
             {
@@ -671,7 +675,7 @@ namespace EldenBingo.GameInterop
             {
                 _gameProc = process;
                 // open game
-                _gameAccessHwnd = WinAPI.OpenProcess(WinAPI.PROCESS_WM_READ, false, (uint)_gameProc.Id);
+                _gameAccessHwnd = WinAPI.OpenProcess(WinAPI.PROCESS_ALL_ACCESS, false, (uint)_gameProc.Id);
             }
             try
             {
@@ -853,7 +857,7 @@ namespace EldenBingo.GameInterop
             while (ptr == IntPtr.Zero)
             {
                 var distance = baseAddress - (WinAPI.SystemInfo.dwAllocationGranularity * i);
-                ptr = WinAPI.VirtualAllocEx(_gameAccessHwnd, (IntPtr)distance, (IntPtr)size, WinAPI.MEM_RESERVE | WinAPI.MEM_COMMIT, flProtect);
+                ptr = WinAPI.VirtualAllocEx(_gameAccessHwnd, (IntPtr)0, (IntPtr)size, WinAPI.MEM_RESERVE | WinAPI.MEM_COMMIT, flProtect);
                 i++;
             }
 
