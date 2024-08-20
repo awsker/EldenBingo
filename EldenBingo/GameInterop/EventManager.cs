@@ -20,11 +20,11 @@ public class EventManager {
         _gameHandler = processHandler;
     }
 
-    public const int EventFlagManOffset = 2;
-    public const int SetEventFlagFunctionOffset = 12;
+    public const int EventFlagManOffset = 0x2;
+    public const int SetEventFlagFunctionOffset = 0xC;
     // Incase we wanna change it in the future. For now, it's hardcoded. 
-    public const int StateOffset = 22;
-    public const int EventFlagIdOffset = 30;
+    public const int StateOffset = 0x16;
+    public const int EventFlagIdOffset = 0x1E;
     
     // Partially setup for later, in case we want to use this, later, for something else.
     public void SetEventFlag(uint eventId, bool state) {
