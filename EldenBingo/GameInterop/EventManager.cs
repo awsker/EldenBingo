@@ -27,18 +27,18 @@ public class EventManager {
     public const int EventFlagIdOffset = 0x1E;
 
     public void SetEventFlag(uint eventId, bool state) {
-        byte[] asm = Asm.ToArray();
+        var asm = Asm.ToArray();
         // Set EventFlagMan pointer
-        long eventManPtr = _gameHandler.GetEventManPtr();
-        // if (eventManPtr <= 0) {
-        //     return;
-        // }
+        var eventManPtr = _gameHandler.GetEventManPtr();
+        if (eventManPtr <= 0) {
+            return;
+        }
         Array.Copy(BitConverter.GetBytes(eventManPtr), 0, asm, EventFlagManOffset, sizeof(long));
         // Set Function Call Address
-        long setEventPtr = _gameHandler.GetSetEventFlagPtr();
-        // if (setEventPtr <= 0) {
-        //     return;
-        // }
+        var setEventPtr = _gameHandler.GetSetEventFlagPtr();
+        if (setEventPtr <= 0) {
+            return;
+        }
         Array.Copy(BitConverter.GetBytes(setEventPtr), 0, asm, SetEventFlagFunctionOffset, sizeof(long));
         // Set State
         Array.Copy(BitConverter.GetBytes(state), 0, asm, StateOffset, sizeof(bool));

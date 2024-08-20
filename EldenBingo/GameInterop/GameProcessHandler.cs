@@ -844,7 +844,7 @@ namespace EldenBingo.GameInterop
 
         public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
         {
-            long baseAddress = _gameProc!.MainModule.BaseAddress.ToInt64();
+            var baseAddress = _gameProc!.MainModule.BaseAddress.ToInt64();
             if (basePtr != null)
                 baseAddress = basePtr.Value.ToInt64();
 
@@ -861,7 +861,7 @@ namespace EldenBingo.GameInterop
         }
         
         public void ExecuteAsm(byte[] asm) {
-            IntPtr insertPtr = GetPrefferedIntPtr(asm.Length,
+            var insertPtr = GetPrefferedIntPtr(asm.Length,
                 flProtect:WinAPI.PAGE_EXECUTE_READWRITE);
 
             WinAPI.WriteProcessMemory(_gameAccessHwnd, insertPtr.ToInt64(), asm, (ulong)asm.Length, out _);
@@ -874,8 +874,8 @@ namespace EldenBingo.GameInterop
         /// </summary>
         public uint Execute(IntPtr address, uint timeout = 0xFFFFFFFF)
         {
-            IntPtr thread = WinAPI.CreateRemoteThread(_gameAccessHwnd, IntPtr.Zero, 0, address, IntPtr.Zero, 0, IntPtr.Zero);
-            uint result = WinAPI.WaitForSingleObject(thread, timeout);
+            var thread = WinAPI.CreateRemoteThread(_gameAccessHwnd, IntPtr.Zero, 0, address, IntPtr.Zero, 0, IntPtr.Zero);
+            var result = WinAPI.WaitForSingleObject(thread, timeout);
             WinAPI.CloseHandle(thread);
             return result;
         }
