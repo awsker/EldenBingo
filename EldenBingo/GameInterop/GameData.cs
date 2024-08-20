@@ -14,5 +14,7 @@
         {
             "1.12.0.0",
         };
+        
+        internal const uint FogWallEventId = 18000570;
     }
 }

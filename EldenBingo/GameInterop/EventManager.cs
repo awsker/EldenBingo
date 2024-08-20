@@ -47,7 +47,7 @@ public class EventManager {
     }
     // Easy to call, has hard coded flag value. 
     public void DestroyFogWall() {
-        SetEventFlag(18000570, true);
+        SetEventFlag(GameData.FogWallEventId, true);
     }
     
 }
