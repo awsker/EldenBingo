@@ -675,7 +675,7 @@ namespace EldenBingo.GameInterop
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
             }
-            // Dunno wehere to put this. I just need to put this somewhere when we know the game has started, so that we
+            // Dunno where to put this. I just need to put this somewhere when we know the game has started, so that we
             // aren't scanning for pointers when we need to be executing the code to change the event.
             InitEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);

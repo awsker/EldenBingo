@@ -1,7 +1,7 @@
 namespace EldenBingo.GameInterop;
 
 public class EventManager {
-    private GameProcessHandler _gameHandler;
+    private readonly GameProcessHandler _gameHandler;
     // https://defuse.ca/online-x86-assembler.htm
     public static readonly byte[] Asm = {
         0x48, 0xb9, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x0f,   // movabs rcx,0xfffffff00000000       ;EventFlagMan

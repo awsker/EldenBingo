@@ -39,7 +39,6 @@ namespace EldenBingo
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
-            new EventManager(_processHandler).DestroyFogWall();
             _sounds = new SoundLibrary();
             _rawInput = new RawInputHandler(Handle);
 
@@ -124,7 +123,7 @@ namespace EldenBingo
         }
 
         public void BringDownFogWall() {
-            _eventManager.DestroyFogWall();
+            _eventManager?.DestroyFogWall();
         }
 
         private async void _connectButton_Click(object sender, EventArgs e)
@@ -636,7 +635,6 @@ namespace EldenBingo
                 }
                 _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
                 _eventManager = new EventManager(_processHandler);
-                _eventManager.DestroyFogWall();
                 _mapWindow.Start();
             });
             _mapWindowThread.Start();
