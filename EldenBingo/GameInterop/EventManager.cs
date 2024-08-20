@@ -30,9 +30,9 @@ public class EventManager {
     public void SetEventFlag(uint eventId, bool state) {
         byte[] asm = Asm.ToArray();
         IntPtr eventManPtr = _gameHandler.GetEventManPtr();
-        Array.Copy(BitConverter.GetBytes(eventManPtr.ToInt64()), 0, asm, EventFlagManOffset, sizeof(Int64));
+        Array.Copy(BitConverter.GetBytes(eventManPtr.ToInt64()), 0, asm, EventFlagManOffset, sizeof(long));
         IntPtr setEventPtr = _gameHandler.GetSetEventFlagPtr();
-        Array.Copy(BitConverter.GetBytes(setEventPtr.ToInt64()), 0, asm, SetEventFlagFunctionOffset, sizeof(Int64));
+        Array.Copy(BitConverter.GetBytes(setEventPtr.ToInt64()), 0, asm, SetEventFlagFunctionOffset, sizeof(long));
         _gameHandler.ExecuteAsm(asm);
     }
     
