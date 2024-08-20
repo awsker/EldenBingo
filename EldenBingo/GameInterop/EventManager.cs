@@ -26,7 +26,6 @@ public class EventManager {
     public const int StateOffset = 22;
     public const int EventFlagIdOffset = 30;
     
-    public const string CSFD4VirtualMemoryFlagAoB = "48 8B 3D ? ? ? ? 48 85 FF 74 ? 48 8B 49";
     // Partially setup for later, in case we want to use this, later, for something else.
     public void SetEventFlag(uint eventId, bool state) {
         byte[] asm = Asm.ToArray();
