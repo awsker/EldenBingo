@@ -469,6 +469,23 @@ namespace EldenBingo.GameInterop
                     return false;
             }
         }
+        
+        public long GetEventManPtr() {
+            initEventManPtrs();
+            if (IsValidAddress(_eventManAddress)) {
+                return _eventManAddress;
+            }
+            
+            return 0;
+        }
+        
+        public long GetSetEventFlagPtr() {
+            initEventManPtrs();
+            if (IsValidAddress(_setEventFlagAddress)) {
+                return _setEventFlagAddress;
+            }
+            return -1;
+        }
 
         #region Game process scanning
 
@@ -491,6 +508,12 @@ namespace EldenBingo.GameInterop
             catch (Exception)
             {
                 _csMenuManAddress = -1;
+            }
+        }
+        
+        public void initEventManPtrs() {
+            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0) {
+                establishEventManagerAddresses();
             }
         }
         
@@ -677,7 +700,7 @@ namespace EldenBingo.GameInterop
             }
             // Dunno where to put this. I just need to put this somewhere when we know the game has started, so that we
             // aren't scanning for pointers when we need to be executing the code to change the event.
-            InitEventManPtrs();
+            initEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);
             return true;
         }
@@ -818,30 +841,7 @@ namespace EldenBingo.GameInterop
         }
 
         #endregion Game process scanning
-
-        public void InitEventManPtrs() {
-            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0) {
-                establishEventManagerAddresses();
-            }
-        }
-        
-        public long GetEventManPtr() {
-            InitEventManPtrs();
-            if (IsValidAddress(_eventManAddress)) {
-                return _eventManAddress;
-            }
-            
-            return 0;
-        }
-        
-        public long GetSetEventFlagPtr() {
-            InitEventManPtrs();
-            if (IsValidAddress(_setEventFlagAddress)) {
-                return _setEventFlagAddress;
-            }
-            return -1;
-        }
-
+        #region Execute Asm
         public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
         {
             var baseAddress = _gameProc!.MainModule.BaseAddress.ToInt64();
@@ -887,5 +887,7 @@ namespace EldenBingo.GameInterop
         {
             return WinAPI.VirtualFreeEx(_gameAccessHwnd, address, IntPtr.Zero, WinAPI.MEM_RELEASE);
         }
+        
+        #endregion Execute Asm
     }
 }
