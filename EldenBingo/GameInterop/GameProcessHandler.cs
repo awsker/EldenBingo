@@ -493,6 +493,27 @@ namespace EldenBingo.GameInterop
                 _csMenuManAddress = -1;
             }
         }
+        
+        private void establishEventManagerAddresses()
+        {
+            try
+            {
+                _eventManAddress = resolveAddressFromAssembly(GameData.PATTERN_CSFD4VIRTUALMEMORYFLAG);
+            }
+            catch (Exception)
+            {
+                _eventManAddress = -1;
+            }
+            
+            try
+            {
+                _setEventFlagAddress = resolveAddressFromAssembly(GameData.PATTERN_SETEVENTFLAGFUNC);
+            }
+            catch (Exception)
+            {
+                _setEventFlagAddress = -1;
+            }
+        }
 
         /// <summary>
         /// Initialize PatternScanner and read all memory from process.
@@ -779,17 +800,32 @@ namespace EldenBingo.GameInterop
         }
 
         #endregion Game process scanning
+
+        public void getEventManPointers() {
+            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0) {
+                establishEventManagerAddresses();
+            }
+        }
         
         public IntPtr GetEventManPtr() {
-            byte[] pointer = new byte[sizeof(Int64)];
-            WinAPI.ReadProcessMemory(_gameAccessHwnd, _eventManAddress, pointer, (ulong)pointer.Length, out _);
-            return new IntPtr(BitConverter.ToInt64(pointer));
+            getEventManPointers();
+            if (IsValidAddress(_eventManAddress)) {
+                byte[] pointer = new byte[sizeof(Int64)];
+                WinAPI.ReadProcessMemory(_gameAccessHwnd, _eventManAddress, pointer, (ulong)pointer.Length, out _);
+                return new IntPtr(BitConverter.ToInt64(pointer));
+            }
+            
+            return IntPtr.Zero;
         }
         
         public IntPtr GetSetEventFlagPtr() {
-            byte[] pointer = new byte[sizeof(Int64)];
-            WinAPI.ReadProcessMemory(_gameAccessHwnd, _setEventFlagAddress, pointer, (ulong)pointer.Length, out _);
-            return new IntPtr(BitConverter.ToInt64(pointer));
+            getEventManPointers();
+            if (IsValidAddress(_setEventFlagAddress)) {
+                byte[] pointer = new byte[sizeof(Int64)];
+                WinAPI.ReadProcessMemory(_gameAccessHwnd, _setEventFlagAddress, pointer, (ulong)pointer.Length, out _);
+                return new IntPtr(BitConverter.ToInt64(pointer));
+            }
+            return IntPtr.Zero;
         }
 
         public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
