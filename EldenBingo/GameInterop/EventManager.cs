@@ -22,7 +22,6 @@ public class EventManager {
 
     public const int EventFlagManOffset = 0x2;
     public const int SetEventFlagFunctionOffset = 0xC;
-    // Incase we wanna change it in the future. For now, it's hardcoded. 
     public const int StateOffset = 0x16;
     public const int EventFlagIdOffset = 0x1E;
 
