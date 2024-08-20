@@ -19,6 +19,7 @@ namespace EldenBingo
         private readonly Client _client;
         private readonly GameProcessHandler _processHandler;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
+        private EventManager? _eventManager;
         private MapWindow? _mapWindow;
         private Thread? _mapWindowThread;
         private Server? _server = null;
@@ -599,6 +600,10 @@ namespace EldenBingo
                 _mapCoordinateProviderHandler = null;
             }
 
+            if (_eventManager != null) {
+                _eventManager = null;
+            }
+
             _mapWindowThread = new Thread(() =>
             {
                 Vector2u windowSize;
@@ -624,6 +629,7 @@ namespace EldenBingo
                     _mapWindow.Position = new Vector2i(Left + Width, Top);
                 }
                 _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
+                _eventManager = new EventManager(_processHandler);
                 _mapWindow.Start();
             });
             _mapWindowThread.Start();

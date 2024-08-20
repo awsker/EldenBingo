@@ -29,6 +29,8 @@ namespace EldenBingo.GameInterop
 
         private readonly object _processLock = new object();
         private long _csMenuManAddress = -1L;
+        private long _eventManAddress = -1L;
+        private long _setEventFlagAddress = -1L;
         private bool _disposed;
         private IntPtr _gameAccessHwnd = IntPtr.Zero;
         private Process? _gameProc = null;
@@ -777,5 +779,63 @@ namespace EldenBingo.GameInterop
         }
 
         #endregion Game process scanning
+        
+        public IntPtr GetEventManPtr() {
+            byte[] pointer = new byte[sizeof(Int64)];
+            WinAPI.ReadProcessMemory(_gameAccessHwnd, _eventManAddress, pointer, (ulong)pointer.Length, out _);
+            return new IntPtr(BitConverter.ToInt64(pointer));
+        }
+        
+        public IntPtr GetSetEventFlagPtr() {
+            byte[] pointer = new byte[sizeof(Int64)];
+            WinAPI.ReadProcessMemory(_gameAccessHwnd, _setEventFlagAddress, pointer, (ulong)pointer.Length, out _);
+            return new IntPtr(BitConverter.ToInt64(pointer));
+        }
+
+        public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
+        {
+            long baseAddress = _gameProc!.MainModule.BaseAddress.ToInt64();
+            if (basePtr != null)
+                baseAddress = basePtr.Value.ToInt64();
+
+            var ptr = IntPtr.Zero;
+            var i = 1;
+            while (ptr == IntPtr.Zero)
+            {
+                var distance = baseAddress - (WinAPI.SystemInfo.dwAllocationGranularity * i);
+                ptr = WinAPI.VirtualAllocEx(_gameAccessHwnd, (IntPtr)distance, (IntPtr)size, WinAPI.MEM_RESERVE | WinAPI.MEM_COMMIT, flProtect);
+                i++;
+            }
+
+            return ptr;
+        }
+        
+        public void ExecuteAsm(byte[] asm) {
+            IntPtr insertPtr = GetPrefferedIntPtr(asm.Length,
+                flProtect:WinAPI.PAGE_EXECUTE_READWRITE);
+
+            WinAPI.WriteProcessMemory(_gameAccessHwnd, insertPtr.ToInt64(), asm, (ulong)asm.Length, out _);
+            Execute(insertPtr);
+            Free(insertPtr);
+        }
+        
+        /// <summary>
+        /// Starts a thread at the given address and waits for it to complete. Returns execution result.
+        /// </summary>
+        public uint Execute(IntPtr address, uint timeout = 0xFFFFFFFF)
+        {
+            IntPtr thread = WinAPI.CreateRemoteThread(_gameAccessHwnd, IntPtr.Zero, 0, address, IntPtr.Zero, 0, IntPtr.Zero);
+            uint result = WinAPI.WaitForSingleObject(thread, timeout);
+            WinAPI.CloseHandle(thread);
+            return result;
+        }
+        
+        /// <summary>
+        /// Frees a memory region at the given address. Returns true if successful.
+        /// </summary>
+        public bool Free(IntPtr address)
+        {
+            return WinAPI.VirtualFreeEx(_gameAccessHwnd, address, IntPtr.Zero, WinAPI.MEM_RELEASE);
+        }
     }
 }
