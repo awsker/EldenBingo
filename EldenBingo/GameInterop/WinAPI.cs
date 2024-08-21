@@ -78,6 +78,9 @@ namespace EldenBingo.GameInterop
         public const uint PAGE_EXECUTE_READWRITE = 0x40;
         public const uint MEM_RELEASE = 0x00008000;
         
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern void GetSystemInfo(ref SYSTEM_INFO Info);
+        
         public static SYSTEM_INFO SystemInfo;
         
         [DllImport("kernel32.dll")]

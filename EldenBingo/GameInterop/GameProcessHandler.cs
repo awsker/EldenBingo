@@ -60,6 +60,10 @@ namespace EldenBingo.GameInterop
 
         public MapCoordinates? LastCoordinates => _lastCoordinates;
 
+        public GameProcessHandler() {
+            WinAPI.GetSystemInfo(ref WinAPI.SystemInfo);
+        }
+
         /// <summary>
         /// Gets the install path of an application.
         /// </summary>
@@ -702,8 +706,7 @@ namespace EldenBingo.GameInterop
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
             }
-            // Dunno where to put this. I just need to put this somewhere when we know the game has started, so that we
-            // aren't scanning for pointers when we need to be executing the code to change the event.
+
             initEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);
             return true;
@@ -857,7 +860,7 @@ namespace EldenBingo.GameInterop
             while (ptr == IntPtr.Zero)
             {
                 var distance = baseAddress - (WinAPI.SystemInfo.dwAllocationGranularity * i);
-                ptr = WinAPI.VirtualAllocEx(_gameAccessHwnd, (IntPtr)0, (IntPtr)size, WinAPI.MEM_RESERVE | WinAPI.MEM_COMMIT, flProtect);
+                ptr = WinAPI.VirtualAllocEx(_gameAccessHwnd, (IntPtr)distance, (IntPtr)size, WinAPI.MEM_RESERVE | WinAPI.MEM_COMMIT, flProtect);
                 i++;
             }
 
