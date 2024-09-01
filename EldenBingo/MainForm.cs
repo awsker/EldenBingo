@@ -38,6 +38,7 @@ namespace EldenBingo
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
+
             _sounds = new SoundLibrary();
             _rawInput = new RawInputHandler(Handle);
 
@@ -273,9 +274,9 @@ namespace EldenBingo
             {
                 ClientCoordinates coords;
                 if (e.Coordinates.HasValue)
-                    coords = new ClientCoordinates(e.Coordinates.Value.X, e.Coordinates.Value.Y, e.Coordinates.Value.Angle, e.Coordinates.Value.IsUnderground);
+                    coords = new ClientCoordinates(e.Coordinates.Value.X, e.Coordinates.Value.Y, e.Coordinates.Value.Angle, e.Coordinates.Value.IsUnderground, e.Coordinates.Value.MapInstance);
                 else
-                    coords = new ClientCoordinates(0, 0, 0, false);
+                    coords = new ClientCoordinates(0, 0, 0, false, MapInstance.MainMap);
 
                 _ = _client.SendPacketToServer(new Packet(coords));
             }

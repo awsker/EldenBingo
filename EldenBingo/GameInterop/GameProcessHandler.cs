@@ -683,9 +683,10 @@ namespace EldenBingo.GameInterop
                         if (WinAPI.ReadProcessMemory(_gameAccessHwnd, ptrAddr + 0x24L, buf, (ulong)buf.Length, out _)) //Read values from offset 0x24L
                         {
                             var map = BitConverter.ToInt32(buf, 0);
-                            if(map != 0)
+                            var mapInst = mapIdToMapInstance(map);
+                            if (!mapInst.HasValue)
                             {
-                                //Player not in overworld (so probably in loading screen or DLC area)
+                                //Player not in a recognized map, return
                                 return null;
                             }
                             var x = BitConverter.ToSingle(buf, 4);
@@ -694,7 +695,7 @@ namespace EldenBingo.GameInterop
                             var rad = BitConverter.ToSingle(buf, 16);
                             if (x > 0 && y > 0)
                             {
-                                return new MapCoordinates(x, y, underground, rad);
+                                return new MapCoordinates(x, y, underground, rad, mapInst.Value);
                             }
                             if (x == 0 || y == 0)
                             {
@@ -713,6 +714,16 @@ namespace EldenBingo.GameInterop
                 }
             }
             return null;
+        }
+
+        private MapInstance? mapIdToMapInstance(int mapId)
+        {
+            switch(mapId)
+            {
+                case 0: return MapInstance.MainMap;
+                case 10: return MapInstance.DLC;
+                default: return null;
+            }
         }
 
         private long readPointer(long address)

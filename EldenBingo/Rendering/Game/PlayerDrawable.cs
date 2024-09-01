@@ -1,4 +1,5 @@
 ﻿using EldenBingo.GameInterop;
+using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
 
@@ -51,7 +52,7 @@ namespace EldenBingo.Rendering.Game
             if (provider.MapCoordinates.HasValue)
             {
                 var c = provider.MapCoordinates.Value;
-                setNewTarget(c.X, c.Y, c.Angle, c.IsUnderground, 0f);
+                setNewTarget(c.X, c.Y, c.Angle, c.IsUnderground, c.MapInstance, 0f);
             }
             else
             {
@@ -71,6 +72,7 @@ namespace EldenBingo.Rendering.Game
         public Text? NameTag { get; private set; } = null;
         public bool Underground { get; private set; }
         public bool ValidPosition { get; private set; }
+        public MapInstance MapInstance { get; private set; }
         public float X { get; private set; }
         public float Y { get; private set; }
 
@@ -90,7 +92,7 @@ namespace EldenBingo.Rendering.Game
                 var newCoords = _coordinateProvider.MapCoordinates;
                 if (newCoords.HasValue && newCoords.Value.X > 0 && newCoords.Value.Y > 0)
                 {
-                    setNewTarget(newCoords.Value.X, newCoords.Value.Y, newCoords.Value.Angle, newCoords.Value.IsUnderground, 0.1f);
+                    setNewTarget(newCoords.Value.X, newCoords.Value.Y, newCoords.Value.Angle, newCoords.Value.IsUnderground, newCoords.Value.MapInstance, 0.1f);
                 }
                 else
                 {
@@ -160,7 +162,7 @@ namespace EldenBingo.Rendering.Game
         public Vector2f GetConvertedPosition()
         {
             var pos = new Vector2f(X, Y);
-            if (MapWindow.RoundTableRectangle.Contains(new PointF(X, Y)))
+            if (MapInstance == MapInstance.MainMap && MapWindow.RoundTableRectangle.Contains(new PointF(X, Y)))
             {
                 return _roundTable.Position;
             }
@@ -172,9 +174,8 @@ namespace EldenBingo.Rendering.Game
             NameTag?.Dispose();
         }
 
-        private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
+        private void setNewTarget(float x, float y, float angle, bool underground, MapInstance map, float interpolationTime)
         {
-            
             _previousX = X;
             _previousY = Y;
             _previousAngle = Angle;
@@ -187,6 +188,7 @@ namespace EldenBingo.Rendering.Game
                 X = _targetX;
                 Y = _targetY;
                 Angle = _targetAngle;
+                MapInstance = map;
                 ValidPosition = true;
                 return;
             }
@@ -204,6 +206,7 @@ namespace EldenBingo.Rendering.Game
                 _timeLeftToInterpolate = interpolationTime;
             }
             Underground = underground;
+            MapInstance = map;
         }
 
         private float convertAngle(float degreeAngle)
