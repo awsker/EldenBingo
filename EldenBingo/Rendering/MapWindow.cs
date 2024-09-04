@@ -144,6 +144,7 @@ namespace EldenBingo.Rendering
         {
             base.ListenToEvents();
             InitializingDrawables += onInitializingDrawables;
+            BeforeUpdate += onBeforeUpdate;
             BeforeDraw += onBeforeDraw;
             AfterDraw += onAfterDraw;
             Resized += onWindowResized;
@@ -157,6 +158,7 @@ namespace EldenBingo.Rendering
         {
             base.ListenToEvents();
             InitializingDrawables -= onInitializingDrawables;
+            BeforeUpdate -= onBeforeUpdate;
             BeforeDraw -= onBeforeDraw;
             AfterDraw -= onAfterDraw;
             Resized -= onWindowResized;
@@ -226,10 +228,17 @@ namespace EldenBingo.Rendering
             Display();
         }
 
-        private void onBeforeDraw(object? sender, EventArgs e)
+        private void onBeforeUpdate(object? sender, EventArgs e)
         {
+            //Update both map and player visibility before update because the cameraController uses player
+            //visibility in its "update" method to fit visible players in its view
             updateMapInstanceToShow();
             updateDrawableVisibility();
+        }
+
+        private void onBeforeDraw(object? sender, EventArgs e)
+        {
+            
             SetView(Camera.GetView());
         }
 
