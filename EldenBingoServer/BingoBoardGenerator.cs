@@ -80,9 +80,10 @@ namespace EldenBingoServer
             var categoryCount = new Dictionary<string, int>();
 
             var numSquares = room.GameSettings.BoardSize * room.GameSettings.BoardSize;
-            bool exceededCategoryLimit = false;
+            bool anySquareFailedCategoryLimit = false;
             while (squareQueue.Count > 0 && squares.Count < numSquares)
             {
+                bool thisSquareFailedCategoryCheck = false;
                 var potentialSquare = squareQueue.Dequeue();
                 if (CategoryLimit > 0)
                 {
@@ -90,10 +91,16 @@ namespace EldenBingoServer
                     {
                         if (categoryCount.TryGetValue(category, out int count) && count + 1 > CategoryLimit)
                         {
-                            exceededCategoryLimit = true;
-                            continue; //Category limit would be exceeded with this square, so we skip it
+                            anySquareFailedCategoryLimit = true;
+                            thisSquareFailedCategoryCheck = true;
+                            break;
                         }
                     }
+                }
+                if(thisSquareFailedCategoryCheck)
+                {
+                    //Try next square instead
+                    continue;
                 }
                 //YES, include the square on the board
                 squares.Add(potentialSquare);
@@ -110,7 +117,7 @@ namespace EldenBingoServer
             }
             //If category limit was exceeded by any square:
             //Shuffle the final squares, so we don't get a bias of category-less squares late in the board
-            if (exceededCategoryLimit)
+            if (anySquareFailedCategoryLimit)
                 squares = shuffleList(squares, _random).ToList();
             balanceBoard(squares);
 
