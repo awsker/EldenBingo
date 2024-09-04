@@ -21,6 +21,31 @@ namespace EldenBingo.GameInterop
         /// Length of an SSE2 vector in bytes.
         /// </summary>
         private const int SIMDLENGTH128 = 16;
+        private static long dwStart = 0;
+        internal static long FindPattern(in byte[] cbMemory, in byte[] cbPattern, string szMask)
+        {
+            long ix;
+            int iy;
+            bool bFound = false;
+            int dataLength = cbMemory.Length - cbPattern.Length;
+
+            for (ix = 0; ix < dataLength; ix++)
+            {
+                bFound = true;
+                for (iy = cbPattern.Length - 1; iy > -1; iy--)
+                {
+                    if (szMask[iy] != 'x' || cbPattern[iy] == cbMemory[ix + iy])
+                        continue;
+                    bFound = false;
+                    break;
+                }
+
+                if (bFound)
+                    return dwStart + ix;
+            }
+
+            return -1;
+        }
 
         /// <summary>
         /// Returns address of pattern using 'LazySIMD' implementation by uberhalit. Can match 0.
@@ -29,7 +54,7 @@ namespace EldenBingo.GameInterop
         /// <param name="cbPattern">The byte pattern to look for, wildcard positions are replaced by 0.</param>
         /// <param name="szMask">A string that determines how pattern should be matched, 'x' is match, '?' acts as wildcard.</param>
         /// <returns>-1 if pattern is not found.</returns>
-        internal static long FindPattern(in byte[] cbMemory, in byte[] cbPattern, string szMask)
+        internal static long FindPattern_SIMD(in byte[] cbMemory, in byte[] cbPattern, string szMask)
         {
             ref byte pCxMemory = ref MemoryMarshal.GetArrayDataReference(cbMemory);
             ref byte pCxPattern = ref MemoryMarshal.GetArrayDataReference(cbPattern);
@@ -129,7 +154,7 @@ namespace EldenBingo.GameInterop
             int patternLen = cbPattern.Length;
             int vectorCount = (int)Math.Ceiling((patternLen - 1) / (float)SIMDLENGTH128);
             Vector128<byte>[] patternVectors = new Vector128<byte>[vectorCount];
-            ref byte pPattern = ref cbPattern[1];
+            ref byte pPattern = ref cbPattern[0];
             patternLen--;
             for (int i = 0; i < vectorCount; i++)
             {

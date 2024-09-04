@@ -194,6 +194,10 @@ namespace EldenBingo
 
             //Set the new current room (which fires the RoomChanged event)
             Room = room;
+
+            if (joinAccepted.MatchStatus >= MatchStatus.Running) {
+                MainForm.Ins?.BringDownFogWall();
+            }
         }
 
         private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
@@ -211,6 +215,9 @@ namespace EldenBingo
             if (Room != null)
             {
                 Room.Match.UpdateMatchStatus(matchStatus.MatchStatus, matchStatus.Paused, matchStatus.Timer);
+                if (matchStatus.MatchStatus >= MatchStatus.Running) {
+                    MainForm.Ins?.BringDownFogWall();
+                }
             }
         }
 
