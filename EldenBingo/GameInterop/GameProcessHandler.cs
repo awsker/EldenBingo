@@ -39,7 +39,20 @@ namespace EldenBingo.GameInterop
         private string? _steam_appid_path;
         private bool _readingProcess;
 
+        public GameProcessHandler()
+        {
+            WinAPI.GetSystemInfo(ref WinAPI.SystemInfo);
+        }
+
+        /// <summary>
+        /// Fires when the coordinates differed from last read
+        /// </summary>
         public event EventHandler<MapCoordinateEventArgs>? CoordinatesChanged;
+
+        /// <summary>
+        /// Fires any time coordinates are read from process (ca. 10 times per second)
+        /// </summary>
+        public event EventHandler<MapCoordinateEventArgs>? CoordinatesRead;
 
         public event EventHandler<StatusEventArgs>? StatusChanged;
 
@@ -59,10 +72,6 @@ namespace EldenBingo.GameInterop
         }
 
         public MapCoordinates? LastCoordinates => _lastCoordinates;
-
-        public GameProcessHandler() {
-            WinAPI.GetSystemInfo(ref WinAPI.SystemInfo);
-        }
 
         /// <summary>
         /// Gets the install path of an application.
@@ -276,6 +285,27 @@ namespace EldenBingo.GameInterop
             }
         }*/
 
+        public long GetEventManPtr()
+        {
+            initEventManPtrs();
+            if (IsValidAddress(_eventManAddress))
+            {
+                return readPointer(_eventManAddress);
+            }
+
+            return 0;
+        }
+
+        public long GetSetEventFlagPtr()
+        {
+            initEventManPtrs();
+            if (IsValidAddress(_setEventFlagAddress))
+            {
+                return _setEventFlagAddress;
+            }
+            return -1;
+        }
+
         /// <summary>
         /// Logs messages to log file.
         /// </summary>
@@ -431,7 +461,7 @@ namespace EldenBingo.GameInterop
                     }
                 }
             }
-            catch(Win32Exception)
+            catch (Win32Exception)
             {
                 //Exception reading services, let the app continue
                 return false;
@@ -473,25 +503,16 @@ namespace EldenBingo.GameInterop
                     return false;
             }
         }
-        
-        public long GetEventManPtr() {
-            initEventManPtrs();
-            if (IsValidAddress(_eventManAddress)) {
-                return readPointer(_eventManAddress);
-            }
-            
-            return 0;
-        }
-        
-        public long GetSetEventFlagPtr() {
-            initEventManPtrs();
-            if (IsValidAddress(_setEventFlagAddress)) {
-                return _setEventFlagAddress;
-            }
-            return -1;
-        }
 
         #region Game process scanning
+
+        public void initEventManPtrs()
+        {
+            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0)
+            {
+                establishEventManagerAddresses();
+            }
+        }
 
         /// <summary>
         /// Checks if an address is valid.
@@ -514,16 +535,10 @@ namespace EldenBingo.GameInterop
                 _csMenuManAddress = -1;
             }
         }
-        
-        public void initEventManPtrs() {
-            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0) {
-                establishEventManagerAddresses();
-            }
-        }
-        
+
         private void establishEventManagerAddresses()
         {
-            try 
+            try
             {
                 _eventManAddress = staticAddressFromAssembly(GameData.PATTERN_CSFD4VIRTUALMEMORYFLAG);
             }
@@ -531,13 +546,14 @@ namespace EldenBingo.GameInterop
             {
                 _eventManAddress = -1;
             }
-            
+
             try
             {
                 var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
                 var position =
                     findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
-                if (position != -1) {
+                if (position != -1)
+                {
                     _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
                 }
             }
@@ -596,7 +612,7 @@ namespace EldenBingo.GameInterop
                     try
                     {
                         process = GetGameProcess();
-                    } 
+                    }
                     catch (Win32Exception)
                     {
                         //This seems to happen sometimes when the game is just starting. Ignore it and wait for next loop
@@ -632,20 +648,21 @@ namespace EldenBingo.GameInterop
                         if (_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
                         {
                             ReadingProcess = true;
-                            var coordinates = readPlayerCoordinates();
+                            var previousCoordinates = _lastCoordinates;
+                            _lastCoordinates = readPlayerCoordinates();
+                            CoordinatesRead?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
                             //Coordinates changed or 10 polls since last send
-                            if (_lastCoordinates.HasValue != coordinates.HasValue ||
-                                _lastCoordinates.HasValue && coordinates.HasValue && !_lastCoordinates.Equals(coordinates.Value) ||
-                                pollsSinceSend >= 10)
+                            if (pollsSinceSend >= 10 ||
+                                previousCoordinates.HasValue != _lastCoordinates.HasValue ||
+                                previousCoordinates.HasValue && _lastCoordinates.HasValue && !previousCoordinates.Equals(_lastCoordinates.Value))
                             {
-                                CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(coordinates));
+                                CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
                                 pollsSinceSend = 0;
                             }
                             else
                             {
                                 ++pollsSinceSend;
                             }
-                            _lastCoordinates = coordinates;
                             //Do this 10 times per second
                             Thread.Sleep(100);
                             //Jump to next loop
@@ -740,9 +757,10 @@ namespace EldenBingo.GameInterop
                         if (WinAPI.ReadProcessMemory(_gameAccessHwnd, ptrAddr + 0x24L, buf, (ulong)buf.Length, out _)) //Read values from offset 0x24L
                         {
                             var map = BitConverter.ToInt32(buf, 0);
-                            if(map != 0)
+                            var mapInst = mapIdToMapInstance(map);
+                            if (!mapInst.HasValue)
                             {
-                                //Player not in overworld (so probably in loading screen or DLC area)
+                                //Player not in a recognized map, return
                                 return null;
                             }
                             var x = BitConverter.ToSingle(buf, 4);
@@ -751,7 +769,7 @@ namespace EldenBingo.GameInterop
                             var rad = BitConverter.ToSingle(buf, 16);
                             if (x > 0 && y > 0)
                             {
-                                return new MapCoordinates(x, y, underground, rad);
+                                return new MapCoordinates(x, y, underground, rad, mapInst.Value);
                             }
                             if (x == 0 || y == 0)
                             {
@@ -772,6 +790,16 @@ namespace EldenBingo.GameInterop
             return null;
         }
 
+        private MapInstance? mapIdToMapInstance(int mapId)
+        {
+            switch (mapId)
+            {
+                case 0: return MapInstance.MainMap;
+                case 10: return MapInstance.DLC;
+                default: return null;
+            }
+        }
+
         private long readPointer(long address)
         {
             byte[] buf = new byte[IntPtr.Size];
@@ -787,11 +815,11 @@ namespace EldenBingo.GameInterop
         {
             if (_lastCoordinates != null)
             {
+                _lastCoordinates = null;
                 CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(null));
             }
-            _lastCoordinates = null;
         }
-        
+
         private long staticAddressFromAssembly(string pattern, uint addressLength = 4, int offset = 0)
         {
             var processOffset = processBaseAddress(_gameProc.MainModule);
@@ -848,7 +876,9 @@ namespace EldenBingo.GameInterop
         }
 
         #endregion Game process scanning
+
         #region Execute Asm
+
         public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
         {
             var baseAddress = _gameProc!.MainModule.BaseAddress.ToInt64();
@@ -866,16 +896,17 @@ namespace EldenBingo.GameInterop
 
             return ptr;
         }
-        
-        public void ExecuteAsm(byte[] asm) {
+
+        public void ExecuteAsm(byte[] asm)
+        {
             var insertPtr = GetPrefferedIntPtr(asm.Length,
-                flProtect:WinAPI.PAGE_EXECUTE_READWRITE);
+                flProtect: WinAPI.PAGE_EXECUTE_READWRITE);
 
             WinAPI.WriteProcessMemory(_gameAccessHwnd, insertPtr.ToInt64(), asm, (ulong)asm.Length, out _);
             Execute(insertPtr);
             Free(insertPtr);
         }
-        
+
         /// <summary>
         /// Starts a thread at the given address and waits for it to complete. Returns execution result.
         /// </summary>
@@ -886,7 +917,7 @@ namespace EldenBingo.GameInterop
             WinAPI.CloseHandle(thread);
             return result;
         }
-        
+
         /// <summary>
         /// Frees a memory region at the given address. Returns true if successful.
         /// </summary>
@@ -894,7 +925,7 @@ namespace EldenBingo.GameInterop
         {
             return WinAPI.VirtualFreeEx(_gameAccessHwnd, address, IntPtr.Zero, WinAPI.MEM_RELEASE);
         }
-        
+
         #endregion Execute Asm
     }
 }

@@ -1,7 +1,15 @@
+using EldenBingoCommon;
+using Neto.Shared;
+
 namespace EldenBingo.GameInterop;
 
-public class EventManager {
-    private readonly GameProcessHandler _gameHandler;
+public class EventManager
+{
+    public const int EventFlagManOffset = 0x2;
+    public const int SetEventFlagFunctionOffset = 0xC;
+    public const int StateOffset = 0x16;
+    public const int EventFlagIdOffset = 0x1E;
+
     // https://defuse.ca/online-x86-assembler.htm
     public static readonly byte[] Asm = {
         0x48, 0xb9, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x0f,   // movabs rcx,0xfffffff00000000       ;EventFlagMan
@@ -13,29 +21,35 @@ public class EventManager {
         0x48, 0x83, 0xec, 0x28,                                       // sub    rsp,0x28
         0xff, 0xd0,                                                   // call   rax
         0x48, 0x83, 0xc4, 0x30,                                       // add    rsp,0x30
-        0xc3,                                                         // ret 
+        0xc3,                                                         // ret
     };
 
-    public EventManager(GameProcessHandler processHandler) {
+    private readonly GameProcessHandler _gameHandler;
+    private readonly Client _client;
+    private bool _hasLoweredWall = false;
+
+    public EventManager(GameProcessHandler processHandler, Client client)
+    {
         _gameHandler = processHandler;
+        _client = client;
+        resetHasLoweredStatus();
+        listenToClientEvents();
     }
 
-    public const int EventFlagManOffset = 0x2;
-    public const int SetEventFlagFunctionOffset = 0xC;
-    public const int StateOffset = 0x16;
-    public const int EventFlagIdOffset = 0x1E;
-
-    public void SetEventFlag(uint eventId, bool state) {
+    public void SetEventFlag(uint eventId, bool state)
+    {
         var asm = Asm.ToArray();
         // Set EventFlagMan pointer
         var eventManPtr = _gameHandler.GetEventManPtr();
-        if (eventManPtr <= 0) {
+        if (eventManPtr <= 0)
+        {
             return;
         }
         Array.Copy(BitConverter.GetBytes(eventManPtr), 0, asm, EventFlagManOffset, sizeof(long));
         // Set Function Call Address
         var setEventPtr = _gameHandler.GetSetEventFlagPtr();
-        if (setEventPtr <= 0) {
+        if (setEventPtr <= 0)
+        {
             return;
         }
         Array.Copy(BitConverter.GetBytes(setEventPtr), 0, asm, SetEventFlagFunctionOffset, sizeof(long));
@@ -43,12 +57,51 @@ public class EventManager {
         Array.Copy(BitConverter.GetBytes(state), 0, asm, StateOffset, sizeof(bool));
         // Set Event Id
         Array.Copy(BitConverter.GetBytes(eventId), 0, asm, EventFlagIdOffset, sizeof(uint));
-        
+
         _gameHandler.ExecuteAsm(asm);
     }
-    // Easy to call, has hard coded flag value. 
-    public void DestroyFogWall() {
+
+    // Easy to call, has hard coded flag value.
+    public void DestroyFogWall()
+    {
+        _hasLoweredWall = true;
         SetEventFlag(GameData.GAME_STARTED_EVENT_ID, true);
     }
-    
+
+    private void listenToClientEvents()
+    {
+        _client.AddListener<ServerJoinRoomAccepted>(acceptedIntoRoom);
+        _gameHandler.CoordinatesRead += gameHandler_CoordinatesRead;
+    }
+
+    private void resetHasLoweredStatus()
+    {
+        _hasLoweredWall = false;
+    }
+
+    private void acceptedIntoRoom(ClientModel? model, ServerJoinRoomAccepted accepted)
+    {
+        resetHasLoweredStatus();
+        handleMatchStatus(accepted.MatchStatus);
+    }
+
+    private void gameHandler_CoordinatesRead(object? sender, MapCoordinateEventArgs e)
+    {
+        //Whenever coordinates are read, check if we need to lower the fog wall
+        handleMatchStatus(_client.Room?.Match?.MatchStatus);
+    }
+
+    private void handleMatchStatus(MatchStatus? status)
+    {
+        //Whenever the match is starting or in preparation, reset the fog wall flag
+        if (!status.HasValue || status.Value < MatchStatus.Running)
+        {
+            resetHasLoweredStatus();
+            return;
+        }
+        if (!_hasLoweredWall && status.Value == MatchStatus.Running && _gameHandler.LastCoordinates.HasValue)
+        {
+            DestroyFogWall();
+        }
+    }
 }
