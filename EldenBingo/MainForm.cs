@@ -107,6 +107,11 @@ namespace EldenBingo
             return parent as MainForm;
         }
 
+        public void PrintToConsole(string text, Color color, bool timestamp = true)
+        {
+            _consoleControl.PrintToConsole(text, color, timestamp);
+        }
+
         protected override void WndProc(ref Message m)
         {
             if (_rawInput != null)
@@ -278,9 +283,9 @@ namespace EldenBingo
             {
                 ClientCoordinates coords;
                 if (e.Coordinates.HasValue)
-                    coords = new ClientCoordinates(e.Coordinates.Value.X, e.Coordinates.Value.Y, e.Coordinates.Value.Angle, e.Coordinates.Value.IsUnderground, e.Coordinates.Value.MapInstance);
+                    coords = new ClientCoordinates(e.Coordinates.Value.X, e.Coordinates.Value.Y, e.Coordinates.Value.Angle, e.Coordinates.Value.IsUnderground);
                 else
-                    coords = new ClientCoordinates(0, 0, 0, false, MapInstance.MainMap);
+                    coords = new ClientCoordinates(0, 0, 0, false);
 
                 _ = _client.SendPacketToServer(new Packet(coords));
             }

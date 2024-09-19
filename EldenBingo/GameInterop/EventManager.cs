@@ -36,21 +36,24 @@ public class EventManager
         listenToClientEvents();
     }
 
-    public void SetEventFlag(uint eventId, bool state)
+    public bool SetEventFlag(uint eventId, bool state)
     {
         var asm = Asm.ToArray();
         // Set EventFlagMan pointer
+        MainForm.Ins?.PrintToConsole("Lowering Fog Wall", Color.LightGray);
         var eventManPtr = _gameHandler.GetEventManPtr();
         if (eventManPtr <= 0)
         {
-            return;
+            MainForm.Ins?.PrintToConsole("Error: Couldn't find EventManPtr", Color.LightGray);
+            return false;
         }
         Array.Copy(BitConverter.GetBytes(eventManPtr), 0, asm, EventFlagManOffset, sizeof(long));
         // Set Function Call Address
         var setEventPtr = _gameHandler.GetSetEventFlagPtr();
         if (setEventPtr <= 0)
         {
-            return;
+            MainForm.Ins?.PrintToConsole("Error: Couldn't find SetEventFlagPtr", Color.LightGray);
+            return false;
         }
         Array.Copy(BitConverter.GetBytes(setEventPtr), 0, asm, SetEventFlagFunctionOffset, sizeof(long));
         // Set State
@@ -59,13 +62,13 @@ public class EventManager
         Array.Copy(BitConverter.GetBytes(eventId), 0, asm, EventFlagIdOffset, sizeof(uint));
 
         _gameHandler.ExecuteAsm(asm);
+        return true;
     }
 
     // Easy to call, has hard coded flag value.
     public void DestroyFogWall()
     {
-        _hasLoweredWall = true;
-        SetEventFlag(GameData.GAME_STARTED_EVENT_ID, true);
+        _hasLoweredWall |= SetEventFlag(GameData.GAME_STARTED_EVENT_ID, true);
     }
 
     private void listenToClientEvents()

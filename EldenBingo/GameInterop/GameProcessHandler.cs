@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using Microsoft.Win32;
+using PatternScanBench.Implementations;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Principal;
@@ -551,7 +552,7 @@ namespace EldenBingo.GameInterop
             {
                 var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
                 var position =
-                    findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                    findPatternInProcessNaive(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
                 if (position != -1)
                 {
                     _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
@@ -584,6 +585,29 @@ namespace EldenBingo.GameInterop
                 throw new Exception("ReadProcessMemory error in PatternScan()!");
             }
             return PatternScanLazySIMD.FindPattern(bData, pattern, mask);
+        }
+
+        /// <summary>
+        /// Initialize PatternScanner and read all memory from process.
+        /// </summary>
+        /// <param name="hProcess">Handle to the process in whose memory pattern will be searched for.</param>
+        /// <param name="pModule">Module which will be searched for the pattern.</param>
+        private long findPatternInProcessNaive(IntPtr hProcess, ProcessModule pModule, byte[] pattern, string mask)
+        {
+            long dwStart = processBaseAddress(pModule);
+            int nSize = pModule.ModuleMemorySize;
+
+            var bData = new byte[nSize];
+
+            if (!WinAPI.ReadProcessMemory(hProcess, dwStart, bData, (ulong)nSize, out IntPtr lpNumberOfBytesRead))
+            {
+                throw new Exception("Could not read memory in PatternScan()!");
+            }
+            if (lpNumberOfBytesRead.ToInt64() != nSize || bData == null || bData.Length == 0)
+            {
+                throw new Exception("ReadProcessMemory error in PatternScan()!");
+            }
+            return PatternScanNaiveFor.FindPattern(bData, pattern, mask);
         }
 
         private long followPointers(long startAddress, long[] offsets)
@@ -650,6 +674,12 @@ namespace EldenBingo.GameInterop
                             ReadingProcess = true;
                             var previousCoordinates = _lastCoordinates;
                             _lastCoordinates = readPlayerCoordinates();
+                            //Address could not be used to read coordinates, so we wait 0.5 seconds before trying again
+                            if (_csMenuManAddress <= 0)
+                            {
+                                Thread.Sleep(500);
+                                continue;
+                            }
                             CoordinatesRead?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
                             //Coordinates changed or 10 polls since last send
                             if (pollsSinceSend >= 10 ||
@@ -769,7 +799,7 @@ namespace EldenBingo.GameInterop
                             var rad = BitConverter.ToSingle(buf, 16);
                             if (x > 0 && y > 0)
                             {
-                                return new MapCoordinates(x, y, underground, rad, mapInst.Value);
+                                return new MapCoordinates(x, y, underground, rad);
                             }
                             if (x == 0 || y == 0)
                             {
