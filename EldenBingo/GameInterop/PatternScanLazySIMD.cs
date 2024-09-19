@@ -1,11 +1,10 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
-namespace PatternScanBench.Implementations
+namespace EldenBingo.GameInterop
 {
     /// <summary>
     /// Pattern scan implementation 'LazySIMD' - by uberhalit

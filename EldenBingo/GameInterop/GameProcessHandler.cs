@@ -1,6 +1,5 @@
 ﻿using EldenBingoCommon;
 using Microsoft.Win32;
-using PatternScanBench.Implementations;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Principal;
