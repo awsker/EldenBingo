@@ -31,6 +31,7 @@ namespace EldenBingo.GameInterop
         private long _csMenuManAddress = -1L;
         private long _eventManAddress = -1L;
         private long _setEventFlagAddress = -1L;
+        private long _isEventFlagAddress = -1L;
         private bool _disposed;
         private IntPtr _gameAccessHwnd = IntPtr.Zero;
         private Process? _gameProc = null;
@@ -305,6 +306,16 @@ namespace EldenBingo.GameInterop
             }
             return -1;
         }
+        
+        public long GetIsEventFlagPtr()
+        {
+            initEventManPtrs();
+            if (IsValidAddress(_isEventFlagAddress))
+            {
+                return _isEventFlagAddress;
+            }
+            return -1;
+        }
 
         /// <summary>
         /// Logs messages to log file.
@@ -538,6 +549,7 @@ namespace EldenBingo.GameInterop
 
         private void establishEventManagerAddresses()
         {
+            // EventMan Static Addr
             try
             {
                 _eventManAddress = staticAddressFromAssembly(GameData.PATTERN_CSFD4VIRTUALMEMORYFLAG);
@@ -547,6 +559,7 @@ namespace EldenBingo.GameInterop
                 _eventManAddress = -1;
             }
 
+            // SetEventFlag Function Addr
             try
             {
                 var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
@@ -560,6 +573,22 @@ namespace EldenBingo.GameInterop
             catch (Exception)
             {
                 _setEventFlagAddress = -1;
+            }
+            
+            // IsEventFlag Function Addr
+            try
+            {
+                var pattern = stringToByteArray(GameData.PATTERN_ISEVENTFLAGFUNC);
+                var position =
+                    findPatternInProcessNaive(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                if (position != -1)
+                {
+                    _isEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
+                }
+            }
+            catch (Exception)
+            {
+                _isEventFlagAddress = -1;
             }
         }
 
@@ -926,16 +955,22 @@ namespace EldenBingo.GameInterop
             return ptr;
         }
 
-        public void ExecuteAsm(byte[] asm)
+        public bool ExecuteAsm(byte[] asm)
         {
             var insertPtr = GetPrefferedIntPtr(asm.Length,
                 flProtect: WinAPI.PAGE_EXECUTE_READWRITE);
 
             WinAPI.WriteProcessMemory(_gameAccessHwnd, insertPtr.ToInt64(), asm, (ulong)asm.Length, out _);
             Execute(insertPtr);
-            Free(insertPtr);
+            return Free(insertPtr);
         }
 
+        public bool WriteToPtr(IntPtr pointer, byte[] bytes) {
+            return WinAPI.WriteProcessMemory(_gameAccessHwnd, pointer.ToInt64(), bytes, (ulong)bytes.Length, out _);
+        }
+        public bool ReadFromPtr(IntPtr pointer, byte[] bytes) {
+            return WinAPI.ReadProcessMemory(_gameAccessHwnd, pointer.ToInt64(), bytes, (ulong)bytes.Length, out _);
+        }
         /// <summary>
         /// Starts a thread at the given address and waits for it to complete. Returns execution result.
         /// </summary>
