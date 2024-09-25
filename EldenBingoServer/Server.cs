@@ -283,7 +283,7 @@ namespace EldenBingoServer
             //Don't allow spectators to send coordinates
             if (userInfo != null && !userInfo.IsSpectator)
             {
-                var packet = new ServerUserCoordinates(sender.ClientGuid, coordinates.X, coordinates.Y, coordinates.Angle, coordinates.IsUnderground);
+                var packet = new ServerUserCoordinates(sender.ClientGuid, coordinates.X, coordinates.Y, coordinates.Angle, coordinates.IsUnderground, coordinates.MapInstance);
                 await SendPacketToClients(new Packet(packet), getApplicableClientsForCoordinates(sender.Room, userInfo));
             }
         }

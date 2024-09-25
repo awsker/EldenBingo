@@ -79,7 +79,7 @@ namespace EldenBingo.GameInterop
         {
             if (_netProviders.TryGetValue(coords.UserGuid, out var np))
             {
-                np.MapCoordinates = new MapCoordinates(coords.X, coords.Y, coords.IsUnderground, coords.Angle);
+                np.MapCoordinates = new MapCoordinates(coords.X, coords.Y, coords.IsUnderground, coords.Angle, coords.MapInstance);
             }
         }
 
