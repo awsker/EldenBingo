@@ -105,7 +105,7 @@ public class EventManager
         // Return Pointer
         var returnPtr = _gameHandler.GetPrefferedIntPtr(asm.Length, flProtect: WinAPI.PAGE_EXECUTE_READWRITE);
         _gameHandler.WriteToPtr(returnPtr, BitConverter.GetBytes(0ul));
-        Array.Copy(BitConverter.GetBytes(returnPtr.ToInt64()), 0, asm, ReturnPointerOffset, sizeof(bool));
+        Array.Copy(BitConverter.GetBytes(returnPtr.ToInt64()), 0, asm, ReturnPointerOffset, sizeof(ulong));
         _gameHandler.ExecuteAsm(asm);
 
         byte[] bytes = new byte[sizeof(ulong)];
