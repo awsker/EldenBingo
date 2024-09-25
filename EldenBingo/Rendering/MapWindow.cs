@@ -25,7 +25,7 @@ namespace EldenBingo.Rendering
         private static readonly SFML.Graphics.Font Font;
         private readonly ISet<Guid> _guids;
         private EldenRingMapDrawable _map;
-        private EldenRingMapDrawable _dlcMap;
+        //private EldenRingMapDrawable _dlcMap;
         private RoundTableDrawable _roundTable;
         private CameraController _cameraController;
         private LineLayer _lineLayer;
@@ -63,8 +63,8 @@ namespace EldenBingo.Rendering
             _map = new EldenRingMapDrawable(MapInstance.MainMap, @"./Textures/Map", MapSize, new Vector2f(0, 0));
             AddGameObject(_map);
 
-            _dlcMap = new EldenRingMapDrawable(MapInstance.DLC, @"./Textures/Map/DLC", DlcMapSize, DlcMapOffsetTop);
-            AddGameObject(_dlcMap);
+            //_dlcMap = new EldenRingMapDrawable(MapInstance.DLC, @"./Textures/Map/DLC", DlcMapSize, DlcMapOffsetTop);
+            //AddGameObject(_dlcMap);
 
             _roundTable = new RoundTableDrawable(this);
             AddGameObject(_roundTable);
@@ -206,7 +206,7 @@ namespace EldenBingo.Rendering
             }
             _roundTable.Visible = _mapToShow == MapInstance.MainMap;
             _map.Visible = _mapToShow == MapInstance.MainMap;
-            _dlcMap.Visible = _mapToShow == MapInstance.DLC;
+            //_dlcMap.Visible = _mapToShow == MapInstance.DLC;
         }
 
         private void default_PropertyChanged(object? sender, PropertyChangedEventArgs e)
