@@ -29,6 +29,8 @@ namespace EldenBingo.GameInterop
 
         private readonly object _processLock = new object();
         private long _csMenuManAddress = -1L;
+        private long _eventManAddress = -1L;
+        private long _setEventFlagAddress = -1L;
         private bool _disposed;
         private IntPtr _gameAccessHwnd = IntPtr.Zero;
         private Process? _gameProc = null;
@@ -57,6 +59,10 @@ namespace EldenBingo.GameInterop
         }
 
         public MapCoordinates? LastCoordinates => _lastCoordinates;
+
+        public GameProcessHandler() {
+            WinAPI.GetSystemInfo(ref WinAPI.SystemInfo);
+        }
 
         /// <summary>
         /// Gets the install path of an application.
@@ -467,6 +473,23 @@ namespace EldenBingo.GameInterop
                     return false;
             }
         }
+        
+        public long GetEventManPtr() {
+            initEventManPtrs();
+            if (IsValidAddress(_eventManAddress)) {
+                return readPointer(_eventManAddress);
+            }
+            
+            return 0;
+        }
+        
+        public long GetSetEventFlagPtr() {
+            initEventManPtrs();
+            if (IsValidAddress(_setEventFlagAddress)) {
+                return _setEventFlagAddress;
+            }
+            return -1;
+        }
 
         #region Game process scanning
 
@@ -489,6 +512,38 @@ namespace EldenBingo.GameInterop
             catch (Exception)
             {
                 _csMenuManAddress = -1;
+            }
+        }
+        
+        public void initEventManPtrs() {
+            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0) {
+                establishEventManagerAddresses();
+            }
+        }
+        
+        private void establishEventManagerAddresses()
+        {
+            try 
+            {
+                _eventManAddress = staticAddressFromAssembly(GameData.PATTERN_CSFD4VIRTUALMEMORYFLAG);
+            }
+            catch (Exception)
+            {
+                _eventManAddress = -1;
+            }
+            
+            try
+            {
+                var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
+                var position =
+                    findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                if (position != -1) {
+                    _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
+                }
+            }
+            catch (Exception)
+            {
+                _setEventFlagAddress = -1;
             }
         }
 
@@ -624,7 +679,7 @@ namespace EldenBingo.GameInterop
             {
                 _gameProc = process;
                 // open game
-                _gameAccessHwnd = WinAPI.OpenProcess(WinAPI.PROCESS_WM_READ, false, (uint)_gameProc.Id);
+                _gameAccessHwnd = WinAPI.OpenProcess(WinAPI.PROCESS_ALL_ACCESS, false, (uint)_gameProc.Id);
             }
             try
             {
@@ -651,6 +706,8 @@ namespace EldenBingo.GameInterop
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
             }
+
+            initEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);
             return true;
         }
@@ -745,6 +802,20 @@ namespace EldenBingo.GameInterop
             }
             _lastCoordinates = null;
         }
+        
+        private long staticAddressFromAssembly(string pattern, uint addressLength = 4, int offset = 0)
+        {
+            var processOffset = processBaseAddress(_gameProc.MainModule);
+
+            var patternData = stringToByteArray(pattern);
+
+            byte[] assm = new byte[addressLength];
+
+            long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2) + offset;
+            WinAPI.ReadProcessMemory(_gameAccessHwnd, address + patternData.Item3, assm, addressLength, out _); //Only fetch the 4 address bytes
+            var offsetFromAsm = BitConverter.ToUInt32(assm);
+            return address + offsetFromAsm + patternData.Item3 + addressLength;
+        }
 
         private long resolveAddressFromAssembly(string pattern, uint addressLength = 4, int offset = 0)
         {
@@ -788,5 +859,53 @@ namespace EldenBingo.GameInterop
         }
 
         #endregion Game process scanning
+        #region Execute Asm
+        public IntPtr GetPrefferedIntPtr(int size, IntPtr? basePtr = null, uint flProtect = WinAPI.PAGE_READWRITE)
+        {
+            var baseAddress = _gameProc!.MainModule.BaseAddress.ToInt64();
+            if (basePtr != null)
+                baseAddress = basePtr.Value.ToInt64();
+
+            var ptr = IntPtr.Zero;
+            var i = 1;
+            while (ptr == IntPtr.Zero)
+            {
+                var distance = baseAddress - (WinAPI.SystemInfo.dwAllocationGranularity * i);
+                ptr = WinAPI.VirtualAllocEx(_gameAccessHwnd, (IntPtr)distance, (IntPtr)size, WinAPI.MEM_RESERVE | WinAPI.MEM_COMMIT, flProtect);
+                i++;
+            }
+
+            return ptr;
+        }
+        
+        public void ExecuteAsm(byte[] asm) {
+            var insertPtr = GetPrefferedIntPtr(asm.Length,
+                flProtect:WinAPI.PAGE_EXECUTE_READWRITE);
+
+            WinAPI.WriteProcessMemory(_gameAccessHwnd, insertPtr.ToInt64(), asm, (ulong)asm.Length, out _);
+            Execute(insertPtr);
+            Free(insertPtr);
+        }
+        
+        /// <summary>
+        /// Starts a thread at the given address and waits for it to complete. Returns execution result.
+        /// </summary>
+        public uint Execute(IntPtr address, uint timeout = 0xFFFFFFFF)
+        {
+            var thread = WinAPI.CreateRemoteThread(_gameAccessHwnd, IntPtr.Zero, 0, address, IntPtr.Zero, 0, IntPtr.Zero);
+            var result = WinAPI.WaitForSingleObject(thread, timeout);
+            WinAPI.CloseHandle(thread);
+            return result;
+        }
+        
+        /// <summary>
+        /// Frees a memory region at the given address. Returns true if successful.
+        /// </summary>
+        public bool Free(IntPtr address)
+        {
+            return WinAPI.VirtualFreeEx(_gameAccessHwnd, address, IntPtr.Zero, WinAPI.MEM_RELEASE);
+        }
+        
+        #endregion Execute Asm
     }
 }

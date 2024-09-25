@@ -14,11 +14,12 @@ using System.Security.Principal;
 
 namespace EldenBingo
 {
-    public partial class MainForm : Form
-    {
+    public partial class MainForm : Form {
+        public static MainForm? Ins { get; private set;  }
         private readonly Client _client;
         private readonly GameProcessHandler _processHandler;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
+        private EventManager? _eventManager;
         private MapWindow? _mapWindow;
         private Thread? _mapWindowThread;
         private Server? _server = null;
@@ -67,6 +68,7 @@ namespace EldenBingo
             addClientListeners(_client);            
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
+            Ins = this;
         }
 
         public RawInputHandler RawInput => _rawInput;
@@ -119,6 +121,10 @@ namespace EldenBingo
         private static bool IsAdministrator()
         {
             return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        public void BringDownFogWall() {
+            _eventManager?.DestroyFogWall();
         }
 
         private async void _connectButton_Click(object sender, EventArgs e)
@@ -572,6 +578,8 @@ namespace EldenBingo
                 await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
             TopMost = Properties.Settings.Default.AlwaysOnTop;
+            
+            _eventManager = new EventManager(_processHandler);
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
