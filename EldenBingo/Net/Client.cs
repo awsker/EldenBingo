@@ -12,11 +12,6 @@ namespace EldenBingo
 
         private ISet<string> _delayTypes;
 
-        /// <summary>
-        /// Artificial delay for all match related packets, in milliseconds
-        /// </summary>
-        public int PacketDelayMs { get; set; } = 0;
-
         public Client() : base(Properties.Settings.Default.IdentityToken)
         {
             //Always register the EldenBingoCommon assembly
@@ -39,6 +34,11 @@ namespace EldenBingo
         internal event EventHandler? OnUsersChanged;
 
         internal event EventHandler<RoomChangedEventArgs>? OnRoomChanged;
+
+        /// <summary>
+        /// Artificial delay for all match related packets, in milliseconds
+        /// </summary>
+        public int PacketDelayMs { get; set; } = 0;
 
         public UserInRoom? LocalUser { get; private set; }
         public BingoBoard? BingoBoard => Room?.Match.Board;
@@ -201,7 +201,7 @@ namespace EldenBingo
             if (Room != null)
             {
                 Room.Match.Board = boardUpdate.Size > 0 && boardUpdate.Squares.Length == boardUpdate.Size * boardUpdate.Size ?
-                    new BingoBoard(boardUpdate.Size, boardUpdate.Squares, boardUpdate.AvailableClasses) : 
+                    new BingoBoard(boardUpdate.Size, boardUpdate.Squares, boardUpdate.AvailableClasses) :
                     null;
             }
         }

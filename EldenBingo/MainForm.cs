@@ -16,9 +16,11 @@ namespace EldenBingo
 {
     public partial class MainForm : Form
     {
+        private static object _connectLock = new object();
         private readonly Client _client;
         private readonly GameProcessHandler _processHandler;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
+        private EventManager? _eventManager;
         private MapWindow? _mapWindow;
         private Thread? _mapWindowThread;
         private Server? _server = null;
@@ -26,9 +28,7 @@ namespace EldenBingo
         private string _lastAdminPass = string.Empty;
         private SoundLibrary _sounds;
         private bool _autoReconnect;
-        private static object _connectLock = new object();
         private bool _connecting = false;
-
         private RawInputHandler _rawInput;
 
         public MainForm()
@@ -38,6 +38,7 @@ namespace EldenBingo
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
+
             _sounds = new SoundLibrary();
             _rawInput = new RawInputHandler(Handle);
 
@@ -63,12 +64,16 @@ namespace EldenBingo
             };
             _client = new Client();
             _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
-            addClientListeners(_client);            
+            addClientListeners(_client);
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
+            Ins = this;
         }
 
+        public static MainForm? Ins { get; private set; }
         public RawInputHandler RawInput => _rawInput;
+
+        private bool FormReady => !Disposing && !IsDisposed && IsHandleCreated;
 
         public static Font GetFontFromSettings(Font defaultFont, float size, float defaultSize = 12f)
         {
@@ -84,7 +89,7 @@ namespace EldenBingo
                     if (font.Name == ffName)
                         return font;
                 }
-                catch(ArgumentException)
+                catch (ArgumentException)
                 {
                     //Font was not found
                 }
@@ -100,6 +105,11 @@ namespace EldenBingo
                 parent = parent.Parent;
             }
             return parent as MainForm;
+        }
+
+        public void PrintToConsole(string text, Color color, bool timestamp = true)
+        {
+            _consoleControl.PrintToConsole(text, color, timestamp);
         }
 
         protected override void WndProc(ref Message m)
@@ -216,7 +226,7 @@ namespace EldenBingo
             {
                 _connecting = false;
                 _autoReconnect = false;
-                if(_client?.IsConnected == true)
+                if (_client?.IsConnected == true)
                     await _client.Disconnect();
                 updateButtonAvailability();
             }
@@ -333,8 +343,6 @@ namespace EldenBingo
             updateButtonAvailability();
         }
 
-        private bool FormReady => !Disposing && !IsDisposed && IsHandleCreated;
-
         private async void client_Disconnected(object? sender, StringEventArgs e)
         {
             if (!FormReady)
@@ -371,7 +379,7 @@ namespace EldenBingo
         {
             if (Properties.Settings.Default.ShowClassesOnMap && _mapWindow != null && _client.Room != null &&
                 //If we got available classes in preparation phase, or within 20 seconds of the match starting -> Show the available classes
-                (_client.Room.Match.MatchStatus == MatchStatus.Preparation || 
+                (_client.Room.Match.MatchStatus == MatchStatus.Preparation ||
                 _client.Room.Match.MatchStatus == MatchStatus.Running && _client.Room.Match.MatchMilliseconds < 20000)
                 )
                 _mapWindow.ShowAvailableClasses(bingoBoardArgs.AvailableClasses);
@@ -439,7 +447,6 @@ namespace EldenBingo
             }
             update();
         }
-
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
@@ -571,6 +578,8 @@ namespace EldenBingo
                 await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
             TopMost = Properties.Settings.Default.AlwaysOnTop;
+
+            _eventManager = new EventManager(_processHandler, _client);
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)
@@ -683,8 +692,8 @@ namespace EldenBingo
                             "Restart this application as administrator if you want it to be able to restart Elden Ring without EAC", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
-            } 
-            catch(Exception e)
+            }
+            catch (Exception e)
             {
                 MessageBox.Show($"Error starting the game: {e.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -701,7 +710,7 @@ namespace EldenBingo
                 var connectingOrConnected = _connecting || connected;
                 _connectButton.Visible = !connectingOrConnected;
                 _disconnectButton.Visible = connectingOrConnected;
-                
+
                 toolStripSeparator1.Visible = !connected;
 
                 bool inRoom = _client?.Room != null;

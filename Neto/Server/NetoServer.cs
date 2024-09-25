@@ -10,7 +10,7 @@ namespace Neto.Server
     public class NetoServer<CM> : NetObjectHandler<CM> where CM : ClientModel
     {
         private const float KeepAliveTime = 25f;
-        private readonly ConcurrentBag<CM> _clients;
+        private readonly ConcurrentDictionary<Guid, CM> _clients;
         private readonly ConcurrentBag<TcpListener> _tcpListeners;
         private readonly ConstructorInfo _clientModelConstructor;
         private readonly ConcurrentDictionary<string, ClientIdentity> _cachedIdentities;
@@ -24,7 +24,7 @@ namespace Neto.Server
             IPAddresses = getIpAddresses();
 
             _tcpListeners = new ConcurrentBag<TcpListener>();
-            _clients = new ConcurrentBag<CM>();
+            _clients = new ConcurrentDictionary<Guid, CM>();
             _cancelToken = new CancellationTokenSource();
             var clientModelConstructor = typeof(CM).GetConstructor(new[] { typeof(TcpClient) });
             if (clientModelConstructor == null)
@@ -119,6 +119,7 @@ namespace Neto.Server
                 client.IsRegistered = false;
             }
             client.Stop();
+            _clients.Remove(client.ClientGuid, out _);
         }
 
         protected async Task KickClient(CM client, string reason)
@@ -130,7 +131,7 @@ namespace Neto.Server
 
         protected async Task SendPacketToAllClients(Packet p, bool onlyRegistered = false)
         {
-            var clientsToInclude = onlyRegistered ? _clients.Where(c => c.IsRegistered) : _clients;
+            var clientsToInclude = onlyRegistered ? _clients.Values.Where(c => c.IsRegistered) : _clients.Values;
             await SendPacketToClients(p, clientsToInclude);
         }
 
@@ -159,7 +160,7 @@ namespace Neto.Server
 
         protected async Task SendPacketToAllClientsExcept(Packet p, Guid except, bool onlyRegistered = false)
         {
-            var clientsToInclude = onlyRegistered ? _clients.Where(c => c.IsRegistered && c.ClientGuid != except) : _clients.Where(c => c.ClientGuid != except);
+            var clientsToInclude = onlyRegistered ? _clients.Values.Where(c => c.IsRegistered && c.ClientGuid != except) : _clients.Values.Where(c => c.ClientGuid != except);
             await SendPacketToClients(p, clientsToInclude);
         }
 
@@ -217,7 +218,7 @@ namespace Neto.Server
                 var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
                 tcpClient.GetStream().WriteTimeout = 10000;
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
-                _clients.Add(client);
+                _clients[client.ClientGuid] = client;
                 FireOnStatus($"Client connected ({GetClientIp(client)})");
                 _ = Task.Run(() => clientTcpListenerTask(client));
             }
@@ -311,7 +312,7 @@ namespace Neto.Server
 
         private bool clientAlreadyExists(CM client)
         {
-            return _clients.Any(c => c != client && c.ClientGuid == client.ClientGuid);
+            return _clients.TryGetValue(client.ClientGuid, out var prevClient) && prevClient != client;
         }
 
         private string clientToken(TcpClient client, string token)
@@ -355,7 +356,8 @@ namespace Neto.Server
         {
             var packet = new Packet(PacketTypes.ServerShutdown);
             await SendPacketToAllClients(packet);
-            foreach (var c in _clients)
+            var clients = new List<CM>(_clients.Values);
+            foreach (var c in clients)
             {
                 c.Stop();
             }
@@ -398,9 +400,14 @@ namespace Neto.Server
         private void keepAlive(object? sender, EventArgs e)
         {
             var now = DateTime.Now;
-            foreach (var client in _clients)
+            var clients = new List<CM>(_clients.Values);
+            foreach (var client in clients)
             {
-                if ((now - client.LastActivity).TotalSeconds > KeepAliveTime)
+                if(!client.TcpClient.Connected)
+                {
+                    _clients.Remove(client.ClientGuid, out _);
+                }
+                else if ((now - client.LastActivity).TotalSeconds > KeepAliveTime)
                 {
                     _ = SendPacketToClient(new Packet(PacketTypes.KeepAlive, new KeepAlive()), client);
                     client.LastActivity = DateTime.Now;

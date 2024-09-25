@@ -1,4 +1,5 @@
 ﻿using EldenBingo.GameInterop;
+using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
 
@@ -71,6 +72,7 @@ namespace EldenBingo.Rendering.Game
         public Text? NameTag { get; private set; } = null;
         public bool Underground { get; private set; }
         public bool ValidPosition { get; private set; }
+        public MapInstance MapInstance { get; private set; }
         public float X { get; private set; }
         public float Y { get; private set; }
 
@@ -160,7 +162,7 @@ namespace EldenBingo.Rendering.Game
         public Vector2f GetConvertedPosition()
         {
             var pos = new Vector2f(X, Y);
-            if (MapWindow.RoundTableRectangle.Contains(new PointF(X, Y)))
+            if (MapInstance == MapInstance.MainMap && MapWindow.RoundTableRectangle.Contains(new PointF(X, Y)))
             {
                 return _roundTable.Position;
             }
@@ -174,7 +176,6 @@ namespace EldenBingo.Rendering.Game
 
         private void setNewTarget(float x, float y, float angle, bool underground, float interpolationTime)
         {
-            
             _previousX = X;
             _previousY = Y;
             _previousAngle = Angle;

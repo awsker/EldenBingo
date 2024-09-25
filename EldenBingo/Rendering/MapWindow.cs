@@ -16,16 +16,20 @@ namespace EldenBingo.Rendering
 
     public class MapWindow : SimpleGameWindow
     {
-        public const float FullMapWidth = 9645f, FullMapHeight = 9119f;
+        public static readonly Vector2f MapSize = new Vector2f(9645f, 9119f);
+        public static readonly Vector2f DlcMapSize = new Vector2f(4879f, 5940f);
+        private readonly Vector2f DlcMapOffsetTop = new Vector2f(3035f, 1864f);
         public static readonly RectangleF RoundTableRectangle = new RectangleF(2740f, 7510f, 200f, 200f);
         private const uint MapWindowDefaultWidth = 640, MapWindowDefaultHeight = 640;
 
         private static readonly SFML.Graphics.Font Font;
         private readonly ISet<Guid> _guids;
         private EldenRingMapDrawable _map;
+        //private EldenRingMapDrawable _dlcMap;
         private RoundTableDrawable _roundTable;
         private CameraController _cameraController;
         private LineLayer _lineLayer;
+        private MapInstance _mapToShow = MapInstance.MainMap;
 
         //private RenderLayer _hudLayer;
         private EldenRingAvailableClassesDrawable? _availableClasses;
@@ -49,15 +53,18 @@ namespace EldenBingo.Rendering
             InputHandler = new InputHandler(this);
             AddGameObject(InputHandler);
 
-            Camera = new LerpCamera(new Vector2f(FullMapWidth * 0.5f, FullMapHeight * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
+            Camera = new LerpCamera(new Vector2f(MapSize.X * 0.5f, MapSize.Y * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
             Camera.MaxZoom = 13f;
             Camera.MinZoom = 0.4f;
             _cameraController = new CameraController(this, Camera);
 
             AddGameObject(_cameraController);
 
-            _map = new EldenRingMapDrawable();
+            _map = new EldenRingMapDrawable(MapInstance.MainMap, @"./Textures/Map", MapSize, new Vector2f(0, 0));
             AddGameObject(_map);
+
+            //_dlcMap = new EldenRingMapDrawable(MapInstance.DLC, @"./Textures/Map/DLC", DlcMapSize, DlcMapOffsetTop);
+            //AddGameObject(_dlcMap);
 
             _roundTable = new RoundTableDrawable(this);
             AddGameObject(_roundTable);
@@ -137,6 +144,7 @@ namespace EldenBingo.Rendering
         {
             base.ListenToEvents();
             InitializingDrawables += onInitializingDrawables;
+            BeforeUpdate += onBeforeUpdate;
             BeforeDraw += onBeforeDraw;
             AfterDraw += onAfterDraw;
             Resized += onWindowResized;
@@ -150,6 +158,7 @@ namespace EldenBingo.Rendering
         {
             base.ListenToEvents();
             InitializingDrawables -= onInitializingDrawables;
+            BeforeUpdate -= onBeforeUpdate;
             BeforeDraw -= onBeforeDraw;
             AfterDraw -= onAfterDraw;
             Resized -= onWindowResized;
@@ -166,6 +175,38 @@ namespace EldenBingo.Rendering
             if (Running) //Init the textures if this window is already running
                 _availableClasses.Init();
             showAvailableClasses(false);
+        }
+
+        private void updateMapInstanceToShow()
+        {
+            if (_cameraController.CameraMode == CameraMode.FitAll)
+            {
+                int validPlayersInWorld = Players.Count(p => p.ValidPosition && p.MapInstance == MapInstance.MainMap);
+                int validPlayersInDlc = Players.Count(p => p.ValidPosition && p.MapInstance == MapInstance.DLC);
+                if (validPlayersInWorld > validPlayersInDlc)
+                {
+                    _mapToShow = MapInstance.MainMap;
+                }
+                else if (validPlayersInDlc > validPlayersInWorld)
+                {
+                    _mapToShow = MapInstance.DLC;
+                }
+            }
+            if (_cameraController.CameraMode == CameraMode.FollowTarget && _cameraController.CameraFollowTarget != null && _cameraController.CameraFollowTarget.ValidPosition)
+            {
+                _mapToShow = _cameraController.CameraFollowTarget.MapInstance;
+            }
+        }
+
+        private void updateDrawableVisibility()
+        {
+            foreach(var p in Players)
+            {
+                p.Visible = p.MapInstance == _mapToShow;
+            }
+            _roundTable.Visible = _mapToShow == MapInstance.MainMap;
+            _map.Visible = _mapToShow == MapInstance.MainMap;
+            //_dlcMap.Visible = _mapToShow == MapInstance.DLC;
         }
 
         private void default_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -187,8 +228,17 @@ namespace EldenBingo.Rendering
             Display();
         }
 
+        private void onBeforeUpdate(object? sender, EventArgs e)
+        {
+            //Update both map and player visibility before update because the cameraController uses player
+            //visibility in its "update" method to fit visible players in its view
+            updateMapInstanceToShow();
+            updateDrawableVisibility();
+        }
+
         private void onBeforeDraw(object? sender, EventArgs e)
         {
+            
             SetView(Camera.GetView());
         }
 
@@ -225,6 +275,15 @@ namespace EldenBingo.Rendering
             if (e.Code == Keyboard.Key.Space || e.Code == Keyboard.Key.Escape)
             {
                 showAvailableClasses(false);
+            }
+            if (e.Code == Keyboard.Key.X)
+            {
+                _mapToShow = 1 - _mapToShow;
+                //If following a target that's not on the map we switched to, cancel the following
+                if(_cameraController.CameraMode == CameraMode.FollowTarget && 
+                    _cameraController.CameraFollowTarget != null && 
+                    _cameraController.CameraFollowTarget.MapInstance != _mapToShow)
+                    _cameraController.CameraMode = CameraMode.FreeCam;
             }
         }
 

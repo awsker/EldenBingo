@@ -1,5 +1,11 @@
 ﻿namespace EldenBingoCommon
 {
+    public enum MapInstance
+    {
+        MainMap,
+        DLC,
+    }
+
     public struct MapCoordinates : IEquatable<MapCoordinates>
     {
         public bool IsUnderground;

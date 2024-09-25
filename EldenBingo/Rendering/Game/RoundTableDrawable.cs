@@ -8,7 +8,7 @@ namespace EldenBingo.Rendering.Game
         private static Texture _roundTableTexture;
         private static Sprite _sprite;
 
-        private readonly Vector2f RoundTablePosition = new Vector2f(1750f, MapWindow.FullMapHeight - 1750f);
+        private readonly Vector2f RoundTablePosition = new Vector2f(1750f, MapWindow.MapSize.Y - 1750f);
         private readonly Vector2f RoundTableZoomOffset = new Vector2f(35f, 35f);
         private MapWindow _window;
 

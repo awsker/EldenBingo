@@ -9,7 +9,7 @@ namespace EldenBingo.GameInterop
     /// <summary>
     /// Pattern scan implementation 'LazySIMD' - by uberhalit
     /// https://github.com/uberhalit
-    ///
+    /// 
     /// Uses SIMD instructions on SSE2-supporting processors, the longer the pattern the more efficient this should get.
     /// Requires RyuJIT compiler for hardware acceleration which **should** be enabled by default on newer VS versions.
     /// Ideally a pattern would be a multiple of (xmm0 register size) / 8 so all available space gets used in calculations.
@@ -21,6 +21,17 @@ namespace EldenBingo.GameInterop
         /// Length of an SSE2 vector in bytes.
         /// </summary>
         private const int SIMDLENGTH128 = 16;
+
+        /// <summary>
+        /// Initializes a new 'PatternScanLazySIMD'.
+        /// </summary>
+        /// <param name="cbMemory">The byte array to scan.</param>
+        internal static void Init(in byte[] cbMemory)
+        {
+            Vector128<byte> tmp = Vector128.Create((byte)0); // used to pre-load dependency if GC has over-optimized us out of existence already...
+            if (!Sse2.IsSupported)
+                throw new NotSupportedException("SIMD not HW accelerated...");
+        }
 
         /// <summary>
         /// Returns address of pattern using 'LazySIMD' implementation by uberhalit. Can match 0.
@@ -63,7 +74,7 @@ namespace EldenBingo.GameInterop
                 bool found = true;
                 for (int i = 0; i < vectorLength; i++)
                 {
-                    int compareResult = Sse2.MoveMask(Sse2.CompareEqual(Unsafe.Add(ref pVec, i), Unsafe.As<byte, Vector128<byte>>(ref Unsafe.Add(ref pCxMemory, 1 + i * SIMDLENGTH128))));
+                    int compareResult = Sse2.MoveMask(Sse2.CompareEqual(Unsafe.Add(ref pVec, i), Unsafe.As<byte, Vector128<byte>>(ref Unsafe.Add(ref pCxMemory, 1 + (i * SIMDLENGTH128)))));
 
                     for (; iMatchTableIndex < matchTableLength; iMatchTableIndex++)
                     {
@@ -71,7 +82,7 @@ namespace EldenBingo.GameInterop
                         if (i > 0) matchIndex -= i * SIMDLENGTH128;
                         if (matchIndex >= SIMDLENGTH128)
                             break;
-                        if ((compareResult >> matchIndex & 1) == 1)
+                        if (((compareResult >> matchIndex) & 1) == 1)
                             continue;
                         found = false;
                         break;
@@ -80,21 +91,12 @@ namespace EldenBingo.GameInterop
                     if (!found)
                         break;
                 }
+
                 if (found)
                     return position;
             }
-            return -1;
-        }
 
-        /// <summary>
-        /// Initializes a new 'PatternScanLazySIMD'.
-        /// </summary>
-        /// <param name="cbMemory">The byte array to scan.</param>
-        internal static void Init(in byte[] cbMemory)
-        {
-            Vector128<byte> tmp = Vector128.Create((byte)0); // used to pre-load dependency if GC has over-optimized us out of existence already...
-            if (!Sse2.IsSupported)
-                throw new NotSupportedException("SIMD not HW accelerated...");
+            return -1;
         }
 
         /// <summary>
