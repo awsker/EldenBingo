@@ -1,25 +1,45 @@
-﻿using SFML.Graphics;
+﻿using EldenBingoCommon;
+using SFML.Graphics;
 using SFML.System;
 
 namespace EldenBingo.Rendering.Game
 {
     public class EldenRingMapDrawable : IDrawable
     {
-        private static TextureData[,]? _textureData;
-        private static bool _texturesLoaded;
-        public static uint ImageWidth { get; private set; }
-        public static uint ImageHeight { get; private set; }
+        private string _path;
+        private static Dictionary<MapInstance, TextureData[,]> _mapTextures;
+
+        private TextureData[,] _textures;
+        private MapInstance _mapInstance;
+        private Vector2f _mapSize;
+        private Vector2f _mapOffset;
         public bool Visible { get; set; } = true;
 
         public static void DisposeStatic()
         {
-            if (_textureData != null)
+            if (_mapTextures != null)
             {
-                foreach (var texData in _textureData)
+                foreach (var textures in _mapTextures.Values)
                 {
-                    texData.Dispose();
+                    foreach (var texData in textures)
+                    {
+                        texData.Dispose();
+                    }
                 }
             }
+        }
+
+        static EldenRingMapDrawable()
+        {
+            _mapTextures = new Dictionary<MapInstance, TextureData[,]>();
+        }
+
+        public EldenRingMapDrawable(MapInstance map, string path, Vector2f mapSize, Vector2f offset)
+        {
+            _mapInstance = map;
+            _path = path;
+            _mapSize = mapSize;
+            _mapOffset = offset;
         }
 
         public void Init()
@@ -29,10 +49,11 @@ namespace EldenBingo.Rendering.Game
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            if (!_texturesLoaded || _textureData == null || MapWindow.Instance == null)
+            if (_textures == null ||  MapWindow.Instance == null)
                 return;
+
             var viewBounds = MapWindow.Instance.GetViewBounds();
-            foreach (var texData in _textureData)
+            foreach (var texData in _textures)
             {
                 if (texData.Sprite.GetGlobalBounds().Intersects(viewBounds))
                     target.Draw(texData.Sprite);
@@ -41,52 +62,76 @@ namespace EldenBingo.Rendering.Game
 
         public FloatRect? GetBoundingBox()
         {
-            return new FloatRect(new Vector2f(0f, 0f), new Vector2f(ImageWidth, ImageHeight));
+            return new FloatRect(_mapOffset, _mapSize);
         }
 
         private void initMapTextures()
         {
-            if (_texturesLoaded)
+            if (_textures != null)
                 return;
-            _textureData = new TextureData[10, 9];
-            const string mapPath = "./Textures/Map/";
-            var images = Directory.GetFiles(mapPath);
+
+            //Textures for this map instance already cached, so we use that
+            if (_mapTextures.TryGetValue(_mapInstance, out var t))
+            {
+                _textures = t;
+            }
+            else
+            {
+                _textures = loadMapTexturesFromDir(_path, _mapSize, _mapOffset);
+                _mapTextures[_mapInstance] = _textures;
+            }
+        }
+
+        private TextureData[,] loadMapTexturesFromDir(string path, Vector2f fullMapSize, Vector2f mapOffset)
+        {
+            var width = -1;
+            var height = -1;
+            var images = Directory.GetFiles(path);
+
             for (int i = 0; i < images.Length; ++i)
             {
                 var image = images[i];
-                var x = int.Parse(image.Substring(mapPath.Length + 0, 2));
-                var y = int.Parse(image.Substring(mapPath.Length + 3, 2));
+                var x = int.Parse(image.Substring(image.Length - 9, 2));
+                var y = int.Parse(image.Substring(image.Length - 6, 2));
+                width = Math.Max(width, x + 1);
+                height = Math.Max(height, y + 1);
+            }
+            var texData = new TextureData[width, height];
+            for (int i = 0; i < images.Length; ++i)
+            {
+                var image = images[i];
+                var x = int.Parse(image.Substring(image.Length - 9, 2));
+                var y = int.Parse(image.Substring(image.Length - 6, 2));
                 JPEGPicture pic = new JPEGPicture();
                 pic.Data = pic.ImageToByteArray(image);
                 pic.GetJPEGSize();
                 var tex = new Texture(image) { Smooth = true };
                 tex.GenerateMipmap();
-                _textureData[x, y] = new TextureData(x, y, pic.Width, pic.Height, image, tex);
+                texData[x, y] = new TextureData(x, y, pic.Width, pic.Height, image, tex);
             }
-            ImageWidth = 0;
-            ImageHeight = 0;
-            for (int x = 0; x < _textureData.GetLength(0); ++x)
+            var mapSize = new Vector2u();
+            for (int x = 0; x < texData.GetLength(0); ++x)
             {
-                ImageWidth += _textureData[x, 0].Width;
+                mapSize.X += texData[x, 0].Width;
             }
-            for (int y = 0; y < _textureData.GetLength(1); ++y)
+            for (int y = 0; y < texData.GetLength(1); ++y)
             {
-                ImageHeight += _textureData[0, y].Height;
+                mapSize.Y += texData[0, y].Height;
             }
 
-            var factors = new Vector2f(ImageWidth / MapWindow.FullMapWidth, ImageHeight / MapWindow.FullMapHeight);
+            var factors = new Vector2f(mapSize.X / fullMapSize.X, mapSize.Y / fullMapSize.Y);
             uint currX = 0, currY;
-            for (int x = 0; x < _textureData.GetLength(0); ++x)
+            for (int x = 0; x < texData.GetLength(0); ++x)
             {
                 currY = 0;
-                for (int y = 0; y < _textureData.GetLength(1); ++y)
+                for (int y = 0; y < texData.GetLength(1); ++y)
                 {
-                    _textureData[x, y].InitSpritePositionAndScale(new Vector2f(currX * factors.X, currY * factors.Y), factors);
-                    currY += _textureData[x, y].Height;
+                    texData[x, y].InitSpritePositionAndScale(new Vector2f(currX * factors.X, currY * factors.Y) + mapOffset, factors);
+                    currY += texData[x, y].Height;
                 }
-                currX += _textureData[x, 0].Width;
+                currX += texData[x, 0].Width;
             }
-            _texturesLoaded = true;
+            return texData;
         }
 
         private class TextureData : IDisposable
