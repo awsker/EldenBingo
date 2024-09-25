@@ -17,6 +17,7 @@
             "1.12.0.0",
         };
         
-        internal const uint GAME_STARTED_EVENT_ID = 18000570;
+        // Bingo flag range 1059350000 - 1059359999
+        internal const uint GAME_STARTED_EVENT_ID = 1059350000;
     }
 }

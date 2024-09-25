@@ -109,8 +109,9 @@ public class EventManager
         _gameHandler.CoordinatesRead += gameHandler_CoordinatesRead;
     }
 
-    private void resetHasLoweredStatus()
-    {
+    private void resetHasLoweredStatus() {
+        var started = IsEventFlag(GameData.GAME_STARTED_EVENT_ID);
+        if (started == null || !started.Value) return;
         SetEventFlag(GameData.GAME_STARTED_EVENT_ID, false);
         _hasLoweredWall = false;
     }
