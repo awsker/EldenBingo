@@ -130,7 +130,7 @@ namespace EldenBingo.Rendering.Game
                 mapSize.Y += texData[0, y].Height;
             }
 
-            var factors = new Vector2f(mapSize.X / fullMapSize.X, mapSize.Y / fullMapSize.Y);
+            var factors = new Vector2f(fullMapSize.X / mapSize.X, fullMapSize.Y / mapSize.Y);
             uint currX = 0, currY;
             for (int x = 0; x < texData.GetLength(0); ++x)
             {
