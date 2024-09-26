@@ -827,7 +827,7 @@ namespace EldenBingo.GameInterop
                             var rad = BitConverter.ToSingle(buf, 16);
                             if (x > 0 && y > 0)
                             {
-                                return new MapCoordinates(x, y, underground, rad);
+                                return new MapCoordinates(x, y, underground, rad, mapInst.Value);
                             }
                             if (x == 0 || y == 0)
                             {
