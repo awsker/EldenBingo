@@ -9,7 +9,7 @@ namespace EldenBingo.GameInterop
     /// <summary>
     /// Pattern scan implementation 'LazySIMD' - by uberhalit
     /// https://github.com/uberhalit
-    ///
+    /// 
     /// Uses SIMD instructions on SSE2-supporting processors, the longer the pattern the more efficient this should get.
     /// Requires RyuJIT compiler for hardware acceleration which **should** be enabled by default on newer VS versions.
     /// Ideally a pattern would be a multiple of (xmm0 register size) / 8 so all available space gets used in calculations.
@@ -21,30 +21,16 @@ namespace EldenBingo.GameInterop
         /// Length of an SSE2 vector in bytes.
         /// </summary>
         private const int SIMDLENGTH128 = 16;
-        private static long dwStart = 0;
-        internal static long FindPattern(in byte[] cbMemory, in byte[] cbPattern, string szMask)
+
+        /// <summary>
+        /// Initializes a new 'PatternScanLazySIMD'.
+        /// </summary>
+        /// <param name="cbMemory">The byte array to scan.</param>
+        internal static void Init(in byte[] cbMemory)
         {
-            long ix;
-            int iy;
-            bool bFound = false;
-            int dataLength = cbMemory.Length - cbPattern.Length;
-
-            for (ix = 0; ix < dataLength; ix++)
-            {
-                bFound = true;
-                for (iy = cbPattern.Length - 1; iy > -1; iy--)
-                {
-                    if (szMask[iy] != 'x' || cbPattern[iy] == cbMemory[ix + iy])
-                        continue;
-                    bFound = false;
-                    break;
-                }
-
-                if (bFound)
-                    return dwStart + ix;
-            }
-
-            return -1;
+            Vector128<byte> tmp = Vector128.Create((byte)0); // used to pre-load dependency if GC has over-optimized us out of existence already...
+            if (!Sse2.IsSupported)
+                throw new NotSupportedException("SIMD not HW accelerated...");
         }
 
         /// <summary>
@@ -54,7 +40,7 @@ namespace EldenBingo.GameInterop
         /// <param name="cbPattern">The byte pattern to look for, wildcard positions are replaced by 0.</param>
         /// <param name="szMask">A string that determines how pattern should be matched, 'x' is match, '?' acts as wildcard.</param>
         /// <returns>-1 if pattern is not found.</returns>
-        internal static long FindPattern_SIMD(in byte[] cbMemory, in byte[] cbPattern, string szMask)
+        internal static long FindPattern(in byte[] cbMemory, in byte[] cbPattern, string szMask)
         {
             ref byte pCxMemory = ref MemoryMarshal.GetArrayDataReference(cbMemory);
             ref byte pCxPattern = ref MemoryMarshal.GetArrayDataReference(cbPattern);
@@ -88,7 +74,7 @@ namespace EldenBingo.GameInterop
                 bool found = true;
                 for (int i = 0; i < vectorLength; i++)
                 {
-                    int compareResult = Sse2.MoveMask(Sse2.CompareEqual(Unsafe.Add(ref pVec, i), Unsafe.As<byte, Vector128<byte>>(ref Unsafe.Add(ref pCxMemory, 1 + i * SIMDLENGTH128))));
+                    int compareResult = Sse2.MoveMask(Sse2.CompareEqual(Unsafe.Add(ref pVec, i), Unsafe.As<byte, Vector128<byte>>(ref Unsafe.Add(ref pCxMemory, 1 + (i * SIMDLENGTH128)))));
 
                     for (; iMatchTableIndex < matchTableLength; iMatchTableIndex++)
                     {
@@ -96,7 +82,7 @@ namespace EldenBingo.GameInterop
                         if (i > 0) matchIndex -= i * SIMDLENGTH128;
                         if (matchIndex >= SIMDLENGTH128)
                             break;
-                        if ((compareResult >> matchIndex & 1) == 1)
+                        if (((compareResult >> matchIndex) & 1) == 1)
                             continue;
                         found = false;
                         break;
@@ -105,21 +91,12 @@ namespace EldenBingo.GameInterop
                     if (!found)
                         break;
                 }
+
                 if (found)
                     return position;
             }
-            return -1;
-        }
 
-        /// <summary>
-        /// Initializes a new 'PatternScanLazySIMD'.
-        /// </summary>
-        /// <param name="cbMemory">The byte array to scan.</param>
-        internal static void Init(in byte[] cbMemory)
-        {
-            Vector128<byte> tmp = Vector128.Create((byte)0); // used to pre-load dependency if GC has over-optimized us out of existence already...
-            if (!Sse2.IsSupported)
-                throw new NotSupportedException("SIMD not HW accelerated...");
+            return -1;
         }
 
         /// <summary>
@@ -154,7 +131,7 @@ namespace EldenBingo.GameInterop
             int patternLen = cbPattern.Length;
             int vectorCount = (int)Math.Ceiling((patternLen - 1) / (float)SIMDLENGTH128);
             Vector128<byte>[] patternVectors = new Vector128<byte>[vectorCount];
-            ref byte pPattern = ref cbPattern[0];
+            ref byte pPattern = ref cbPattern[1];
             patternLen--;
             for (int i = 0; i < vectorCount; i++)
             {
