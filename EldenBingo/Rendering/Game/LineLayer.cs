@@ -84,14 +84,25 @@ namespace EldenBingo.Rendering.Game
 
         private void inputHandler_ActionJustPressed(object? sender, UIActionEvent e)
         {
-            if (Enabled && e.Action == UIActions.Draw && _mapWindow.ToolMode == ToolMode.Draw)
+            if (Enabled)
             {
-                if (_currentLine == null && e.MousePosition.HasValue)
+                switch(e.Action)
                 {
-                    _lastMouseWorldPosition = screenToWorldCoordinates(e.MousePosition.Value);
-                    _currentLine = new Line(DrawColor, _lastMouseWorldPosition);
-                    _lines.Add(_currentLine);
-                    AddGameObject(_currentLine);
+                    case UIActions.Draw:
+                        if (_mapWindow.ToolMode == ToolMode.Draw && _currentLine == null && e.MousePosition.HasValue)
+                        {
+                            _lastMouseWorldPosition = screenToWorldCoordinates(e.MousePosition.Value);
+                            _currentLine = new Line(DrawColor, _lastMouseWorldPosition);
+                            _lines.Add(_currentLine);
+                            AddGameObject(_currentLine);
+                        }
+                        break;
+                    case UIActions.UndoDrawing:
+                        UndoLastLine();
+                        break;
+                    case UIActions.ClearDrawing:
+                        ClearLines();
+                        break;
                 }
             }
         }

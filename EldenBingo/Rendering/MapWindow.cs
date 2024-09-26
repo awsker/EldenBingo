@@ -25,7 +25,7 @@ namespace EldenBingo.Rendering
         private static readonly SFML.Graphics.Font Font;
         private readonly ISet<Guid> _guids;
         private EldenRingMapDrawable _map;
-        //private EldenRingMapDrawable _dlcMap;
+        private EldenRingMapDrawable _dlcMap;
         private RoundTableDrawable _roundTable;
         private CameraController _cameraController;
         private LineLayer _lineLayer;
@@ -51,6 +51,7 @@ namespace EldenBingo.Rendering
 
             Players = new List<PlayerDrawable>();
             InputHandler = new InputHandler(this);
+            InputHandler.ActionJustPressed += inputHandler_ActionPressed;
             AddGameObject(InputHandler);
 
             Camera = new LerpCamera(new Vector2f(MapSize.X * 0.5f, MapSize.Y * 0.5f), new Vector2f(Size.X, Size.Y), 1f);
@@ -63,8 +64,8 @@ namespace EldenBingo.Rendering
             _map = new EldenRingMapDrawable(MapInstance.MainMap, @"./Textures/Map", MapSize, new Vector2f(0, 0));
             AddGameObject(_map);
 
-            //_dlcMap = new EldenRingMapDrawable(MapInstance.DLC, @"./Textures/Map/DLC", DlcMapSize, DlcMapOffsetTop);
-            //AddGameObject(_dlcMap);
+            _dlcMap = new EldenRingMapDrawable(MapInstance.DLC, @"./Textures/Map/DLC", DlcMapSize, DlcMapOffsetTop);
+            AddGameObject(_dlcMap);
 
             _roundTable = new RoundTableDrawable(this);
             AddGameObject(_roundTable);
@@ -206,7 +207,7 @@ namespace EldenBingo.Rendering
             }
             _roundTable.Visible = _mapToShow == MapInstance.MainMap;
             _map.Visible = _mapToShow == MapInstance.MainMap;
-            //_dlcMap.Visible = _mapToShow == MapInstance.DLC;
+            _dlcMap.Visible = _mapToShow == MapInstance.DLC;
         }
 
         private void default_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -258,32 +259,33 @@ namespace EldenBingo.Rendering
             Properties.Settings.Default.Save();
         }
 
+        private void inputHandler_ActionPressed(object? sender, UIActionEvent e)
+        {
+            switch (e.Action)
+            {
+                case UIActions.ToggleNames:
+                    ShowPlayerNames = !ShowPlayerNames;
+                    break;
+                case UIActions.SwitchLayer:
+                    _mapToShow = 1 - _mapToShow;
+                    //If following a target that's not on the map we switched to, cancel the following
+                    if (_cameraController.CameraMode == CameraMode.FollowTarget &&
+                        _cameraController.CameraFollowTarget != null &&
+                        _cameraController.CameraFollowTarget.MapInstance != _mapToShow)
+                        _cameraController.CameraMode = CameraMode.FreeCam;
+                    //If no players visible on the new map, change to free cam
+                    if(_cameraController.CameraMode == CameraMode.FitAll &&
+                        !Players.Any(p => p.Visible && p.MapInstance == _mapToShow))
+                        _cameraController.CameraMode = CameraMode.FreeCam;
+                    break;
+            }
+        }
+
         private void onKeyPressed(object? sender, SFML.Window.KeyEventArgs e)
         {
-            if (e.Code == Keyboard.Key.N)
-            {
-                ShowPlayerNames = !ShowPlayerNames;
-            }
-            if (e.Code == Keyboard.Key.Z)
-            {
-                _lineLayer.UndoLastLine();
-            }
-            if (e.Code == Keyboard.Key.C)
-            {
-                _lineLayer.ClearLines();
-            }
             if (e.Code == Keyboard.Key.Space || e.Code == Keyboard.Key.Escape)
             {
                 showAvailableClasses(false);
-            }
-            if (e.Code == Keyboard.Key.X)
-            {
-                _mapToShow = 1 - _mapToShow;
-                //If following a target that's not on the map we switched to, cancel the following
-                if(_cameraController.CameraMode == CameraMode.FollowTarget && 
-                    _cameraController.CameraFollowTarget != null && 
-                    _cameraController.CameraFollowTarget.MapInstance != _mapToShow)
-                    _cameraController.CameraMode = CameraMode.FreeCam;
             }
         }
 

@@ -12,7 +12,9 @@ namespace EldenBingo.Rendering.Game
         FitAllPlayers,
         FollowPlayer,
         UndoDrawing,
-        ClearDrawing
+        ClearDrawing,
+        ToggleNames,
+        SwitchLayer
     }
 
     public class InputHandler : IUpdateable
@@ -101,6 +103,12 @@ namespace EldenBingo.Rendering.Game
 
                 case Keyboard.Key.C:
                     return UIActions.ClearDrawing;
+
+                case Keyboard.Key.N:
+                    return UIActions.ToggleNames;
+                
+                case Keyboard.Key.X:
+                    return UIActions.SwitchLayer;
             }
             if (key >= Keyboard.Key.Num1 && key <= Keyboard.Key.Num9)
             {
@@ -177,7 +185,7 @@ namespace EldenBingo.Rendering.Game
             if (_actionsHeld.TryGetValue(action, out var frames))
             {
                 _actionsHeld.Remove(action);
-                ActionJustPressed?.Invoke(this, new UIActionEvent(action, Math.Max(1, frames), mousePosition: mousePos));
+                ActionJustReleased?.Invoke(this, new UIActionEvent(action, Math.Max(1, frames), mousePosition: mousePos));
             }
         }
 

@@ -9,7 +9,7 @@ namespace EldenBingo.Rendering.Game
         private string _path;
         private static Dictionary<MapInstance, TextureData[,]> _mapTextures;
 
-        private TextureData[,] _textures;
+        private TextureData[,]? _textures;
         private MapInstance _mapInstance;
         private Vector2f _mapSize;
         private Vector2f _mapOffset;
@@ -82,12 +82,23 @@ namespace EldenBingo.Rendering.Game
             }
         }
 
-        private TextureData[,] loadMapTexturesFromDir(string path, Vector2f fullMapSize, Vector2f mapOffset)
+        private TextureData[,]? loadMapTexturesFromDir(string path, Vector2f fullMapSize, Vector2f mapOffset)
         {
             var width = -1;
             var height = -1;
-            var images = Directory.GetFiles(path);
-
+            string[] images;
+            try
+            {
+                images = Directory.GetFiles(path);
+            }
+            catch
+            {
+                return null;
+            }
+            if (images.Length == 0)
+            {
+                return null;
+            }
             for (int i = 0; i < images.Length; ++i)
             {
                 var image = images[i];
