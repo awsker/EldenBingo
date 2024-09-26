@@ -33,7 +33,6 @@ public static class MachineCode {
         0x48, 0x89, 0x01,                							// mov    QWORD PTR [rcx],rax 
         0x48, 0x83, 0xc4, 0x30,             						// add    rsp,0x30 
         0xc3,                                                       // ret  
-        
     };
     
     public static byte[] SetEventFlag(uint eventId, bool state, long eventManPtr, long setEventPtr) {
