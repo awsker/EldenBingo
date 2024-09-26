@@ -5,7 +5,6 @@ namespace EldenBingo.GameInterop;
 
 public class EventManager
 {
-
     private readonly GameProcessHandler _gameHandler;
     private readonly Client _client;
     private bool _hasLoweredWall = false;
@@ -29,7 +28,7 @@ public class EventManager
         var eventManPtr = _gameHandler.GetEventManPtr();
         if (eventManPtr <= 0)
         {
-            MainForm.Ins?.PrintToConsole("Error: Couldn't find EventManPtr", Color.LightGray);
+            MainForm.Instance?.PrintToConsole("Error: Couldn't find EventManPtr", Color.LightGray);
             return false;
         }
 
@@ -37,13 +36,13 @@ public class EventManager
         var setEventPtr = _gameHandler.GetSetEventFlagPtr();
         if (setEventPtr <= 0)
         {
-            MainForm.Ins?.PrintToConsole("Error: Couldn't find SetEventFlagPtr", Color.LightGray);
+            MainForm.Instance?.PrintToConsole("Error: Couldn't find SetEventFlagPtr", Color.LightGray);
             return false;
         }
         
         // Prepare machine code
         var machineCode = MachineCode.SetEventFlag(eventId, state, eventManPtr, setEventPtr);
-        MainForm.Ins?.PrintToConsole($"Setting Event ID {eventId} to {state}", Color.LightGray);
+        MainForm.Instance?.PrintToConsole($"Setting Event ID {eventId} to {state}", Color.LightGray);
         
         // Execute machine code
         _gameHandler.ExecuteAsm(machineCode);
@@ -61,7 +60,7 @@ public class EventManager
         var eventManPtr = _gameHandler.GetEventManPtr();
         if (eventManPtr <= 0)
         {
-            MainForm.Ins?.PrintToConsole("Error: Couldn't find EventManPtr", Color.LightGray);
+            MainForm.Instance?.PrintToConsole("Error: Couldn't find EventManPtr", Color.LightGray);
             return null;
         }
         
@@ -69,7 +68,7 @@ public class EventManager
         var isEventPtr = _gameHandler.GetIsEventFlagPtr();
         if (isEventPtr <= 0)
         {
-            MainForm.Ins?.PrintToConsole("Error: Couldn't find SetEventFlagPtr", Color.LightGray);
+            MainForm.Instance?.PrintToConsole("Error: Couldn't find SetEventFlagPtr", Color.LightGray);
             return null;
         }
         
@@ -92,7 +91,7 @@ public class EventManager
         
         // Convert to bool
         var state = BitConverter.ToBoolean(bytes);
-        MainForm.Ins?.PrintToConsole($"Event Id {eventId} is {state}", Color.LightGray);
+        MainForm.Instance?.PrintToConsole($"Event Id {eventId} is {state}", Color.LightGray);
         
         return state;
     }

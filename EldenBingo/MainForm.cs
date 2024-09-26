@@ -67,10 +67,10 @@ namespace EldenBingo
             addClientListeners(_client);
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
-            Ins = this;
+            Instance = this;
         }
 
-        public static MainForm? Ins { get; private set; }
+        public static MainForm? Instance { get; private set; }
         public RawInputHandler RawInput => _rawInput;
 
         private bool FormReady => !Disposing && !IsDisposed && IsHandleCreated;
