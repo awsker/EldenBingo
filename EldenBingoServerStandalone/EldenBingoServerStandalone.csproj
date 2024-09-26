@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EldenBingoServer\EldenBingoServer.csproj" />
+    <ProjectReference Include="..\InteractiveReadLine\InteractiveReadLine.csproj" />
   </ItemGroup>
 
 </Project>

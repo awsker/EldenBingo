@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EldenBingoServerStandalone"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neto", "Neto\Neto.csproj", "{3EE2FFF2-52F6-4A37-8E44-FAC1C863ADD0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveReadLine", "InteractiveReadLine\InteractiveReadLine.csproj", "{6498516F-CDC0-4D7D-A922-C84AAC78F7AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{3EE2FFF2-52F6-4A37-8E44-FAC1C863ADD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EE2FFF2-52F6-4A37-8E44-FAC1C863ADD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EE2FFF2-52F6-4A37-8E44-FAC1C863ADD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6498516F-CDC0-4D7D-A922-C84AAC78F7AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6498516F-CDC0-4D7D-A922-C84AAC78F7AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6498516F-CDC0-4D7D-A922-C84AAC78F7AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6498516F-CDC0-4D7D-A922-C84AAC78F7AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

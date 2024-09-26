@@ -336,6 +336,12 @@ namespace EldenBingo
             client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             client.AddListener<ServerUserChecked>(userCheckedSquare);
             client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
+            client.AddListener<ServerBroadcastMessage>(onServerMessage);
+        }
+
+        private void onServerMessage(ClientModel? model, ServerBroadcastMessage message)
+        {
+            _consoleControl.PrintToConsole("Server: " + message.Message, Color.Orange);
         }
 
         private void client_Connected(object? sender, EventArgs e)

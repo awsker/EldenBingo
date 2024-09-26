@@ -16,6 +16,8 @@ namespace EldenBingoServer
         private readonly ConcurrentDictionary<string, ServerRoom> _rooms;
         private System.Timers.Timer _roomClearTimer;
 
+        private bool _maintenanceMode = false;
+
         public override string Version => EldenBingoCommon.Version.CurrentVersion;
 
         public Server(int port) : base(port)
@@ -38,6 +40,15 @@ namespace EldenBingoServer
             if (client.Room != null)
                 await leaveUserRoom(client);
             await base.DropClient(client);
+        }
+
+        public async void EnableMaintenanceMode(string message)
+        {
+            if (!string.IsNullOrWhiteSpace(message))
+                _ = SendPacketToAllClients(new Packet(new ServerBroadcastMessage(message)));
+
+            _maintenanceMode = true;
+            FireOnStatus($"Maintenance Mode Enabled");
         }
 
         private async Task<bool> confirm(BingoClientModel client, bool? admin = null, bool? spectator = null, bool? inRoom = null, bool? hasBingoBoard = null, bool? gameStarted = null)
@@ -169,7 +180,9 @@ namespace EldenBingoServer
             if (sender == null)
                 return;
             string? deniedReason = null;
-            if (string.IsNullOrWhiteSpace(request.RoomName))
+            if (_maintenanceMode)
+                deniedReason = "Server restart pending. No new lobbies can be created";
+            else if (string.IsNullOrWhiteSpace(request.RoomName))
                 deniedReason = "Invalid lobby name";
             else if (_rooms.TryGetValue(request.RoomName, out _))
                 deniedReason = "Lobby with that name already exists";

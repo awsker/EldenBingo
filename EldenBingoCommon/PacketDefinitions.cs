@@ -19,6 +19,7 @@ public record ServerSquareUpdate(BingoBoardSquare Square, int Index);
 public record ServerUserChecked(Guid UserGuid, int Index, int? TeamChecked);
 public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
 public record ServerTeamNameChanged(Guid UserGuid, int Team, string TeamColorName, string Name);
+public record ServerBroadcastMessage(string Message);
 
 #endregion Server to client
 
