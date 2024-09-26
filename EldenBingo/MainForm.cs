@@ -524,7 +524,15 @@ namespace EldenBingo
         {
             if (_server == null)
             {
-                _server = new Server(Properties.Settings.Default.Port);
+                string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string appSpecificFolder = Path.Combine(appDataFolder, Application.ProductName);
+
+                if (!Directory.Exists(appSpecificFolder))
+                {
+                    Directory.CreateDirectory(appSpecificFolder);
+                }
+                string jsonFile = Path.Combine(appSpecificFolder, "serverData.json");
+                _server = new Server(Properties.Settings.Default.Port, jsonFile);
                 _server.OnStatus += server_OnStatus;
                 _server.OnError += server_OnError;
                 _server.Host();

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace EldenBingoCommon
 {
@@ -10,11 +11,15 @@ namespace EldenBingoCommon
             UsersDict = new ConcurrentDictionary<Guid, T>();
             Match = new Match();
         }
-
+        [JsonIgnore]
         public ICollection<T> Users => UsersDict.Values;
+        [JsonProperty]
         public Match Match { get; init; }
+        [JsonProperty]
         public string Name { get; init; }
+        [JsonIgnore]
         public int NumUsers => UsersDict.Count;
+        [JsonIgnore]
         protected ConcurrentDictionary<Guid, T> UsersDict { get; init; }
 
         public virtual void AddUser(T user)

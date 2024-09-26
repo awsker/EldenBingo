@@ -1,13 +1,17 @@
 ﻿using EldenBingoCommon;
 using Neto.Shared;
+using Newtonsoft.Json;
+using System.Runtime.Serialization;
 using System.Timers;
 
 namespace EldenBingoServer
 {
     public class ServerRoom : Room<BingoClientInRoom>
     {
+        [JsonProperty]
         private Guid _creatorGuid;
         private System.Timers.Timer? _timer;
+        [JsonProperty]
         private Dictionary<int, string> _customTeamNames;
 
         public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
@@ -17,18 +21,25 @@ namespace EldenBingoServer
             Match.MatchStatusChanged += match_MatchStatusChanged;
             GameSettings = gameSettings;
             LastActivity = DateTime.Now;
-            _creatorGuid = creator.ClientGuid;
+            _creatorGuid = creator?.ClientGuid ?? Guid.Empty;
             _customTeamNames = new Dictionary<int, string>();
         }
 
         public event EventHandler<RoomEventArgs>? TimerElapsed;
-
+        [JsonProperty]
         public string AdminPassword { get; init; }
+        [JsonIgnore]
         public BingoBoardGenerator? BoardGenerator { get; set; }
+
+        [JsonIgnore]
         public IEnumerable<BingoClientModel> ClientModels => Users.Select(c => c.Client);
-        public DateTime CreateTime { get; init; }
+        [JsonProperty]
+        public DateTime CreateTime { get; set; }
+        [JsonProperty]
         public DateTime LastActivity { get; set; }
+        [JsonProperty]
         public BingoGameSettings GameSettings { get; set; }
+        [JsonProperty]
         public bool BoardAlreadyUsed { get; set; }
 
         public BingoClientInRoom AddUser(BingoClientModel client, string nick, string adminPass, int team)
@@ -79,6 +90,20 @@ namespace EldenBingoServer
             }
         }
 
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            if (!Match.Paused)
+            {
+                UnpauseMatch();
+            }
+            Match.MatchStatusChanged += match_MatchStatusChanged;
+            if(Match.Board is ServerBingoBoard sb)
+            {
+                sb.Room = this;
+            }
+        }
+
         public IList<Team> GetActiveTeams()
         {
             var teams = Users.ToLookup(p => p.Team);
@@ -116,43 +141,6 @@ namespace EldenBingoServer
             else
                 return BingoConstants.GetTeamName(team);
         }
-
-        /*
-        /// <summary>
-        /// Get number of checked squares per team
-        /// </summary>
-        /// <returns>Team, TeamName, Count</returns>
-        public IList<TeamScore> GetSquaresPerTeam()
-        {
-            var list = new List<TeamScore>();
-            var activeTeams = GetActiveTeams();
-            foreach (var team in GetActiveTeams())
-            {
-                list.Add(new TeamScore(team.Index, team.Name, 0));
-            }
-            if (Match?.Board == null)
-            {
-                return list;
-            }
-            var squaresCountPerTeam = getSquaresPerTeam();
-            //var bingosPerTeam = getBingosPerTeam(activeTeams);
-            for (int i = 0; i < list.Count; ++i)
-            {
-                if (squaresCountPerTeam.TryGetValue(list[i].Team, out int squares))
-                {
-                    var score = list[i];
-                    score.Score += squares;
-                    list[i] = score;
-                }
-                if (bingosPerTeam.TryGetValue(list[i].Team, out var bingoLines))
-                {
-                    var score = list[i];
-                    score.Score += bingoLines.Count * GameSettings.PointsPerBingoLine;
-                    list[i] = score;
-                }
-            }
-            return list;
-        }*/
 
         public Dictionary<int, int> GetSquaresPerTeam()
         {

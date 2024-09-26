@@ -2,28 +2,78 @@
 using EldenBingoServer;
 using InteractiveReadLine;
 using Neto.Shared;
+using System.Diagnostics;
 
 namespace EldenBingoServerStandalone
 {
     internal static class Program
     {
-        private static bool _stopCalled = false;
-        private static Server _server;
-        private static Thread _keyboardListenThread;
-
-        private static bool _readInput;
-
         private const ConsoleColor DefaultColor = ConsoleColor.Gray;
         private const ConsoleColor StatusColor = ConsoleColor.DarkYellow;
         private const ConsoleColor InfoColor = ConsoleColor.Green;
         private const ConsoleColor ErrorColor = ConsoleColor.Red;
+        private static bool _stopCalled = false;
+        private static Server _server;
+        private static Thread _keyboardListenThread;
+
+        private static string _jsonFile;
+
+        private static bool _readInput;
 
         private static IDictionary<char, (string, Action)> _keyboardShortcuts = new Dictionary<char, (string, Action)>()
         {
-            {'h', new("List keyboard shortcuts", showShortcuts)},
+            {'k', new("List keyboard commands", showShortcuts)},
             {'r', new("List all rooms", printRooms)},
-            {'m', new("Maintenance mode", maintenanceMode)}
+            {'j', new("Print path to server data json", showJsonPath)},
+            {'m', new("Enable Maintenance mode", maintenanceMode)},
         };
+
+        public static void Main(string[] args)
+        {
+            int port = BingoConstants.DefaultPort;
+            if (args.Length > 0)
+            {
+                if (!int.TryParse(args[0], out port))
+                {
+                    output("Invalid port", ErrorColor);
+                }
+            }
+            if (args.Length > 1)
+            {
+                _jsonFile = args[1];
+            }
+            else
+            {
+                string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string appSpecificFolder = Path.Combine(appDataFolder, "EldenBingo");
+
+                if (!Directory.Exists(appSpecificFolder))
+                {
+                    Directory.CreateDirectory(appSpecificFolder);
+                }
+                _jsonFile = Path.Combine(appSpecificFolder, "serverData.json");
+            }
+            _server = new Server(port, _jsonFile);
+            _server.OnError += server_OnError;
+            _server.OnStatus += server_OnStatus;
+            _server.Host();
+            output("Press 'k' to list all keyboard commands", InfoColor);
+
+            _keyboardListenThread = new Thread(new ThreadStart(listenKeyBoardEvent));
+            _keyboardListenThread.Start();
+            _readInput = true;
+            var waitHandle = new ManualResetEvent(false);
+
+            Console.CancelKeyPress += (o, e) =>
+            {
+                e.Cancel = true;
+                output("Stopping server...", StatusColor);
+                _stopCalled = true;
+                waitHandle.Set();
+            };
+            waitHandle.WaitOne();
+            _server.Stop();
+        }
 
         private static void log(string text)
         {
@@ -31,7 +81,7 @@ namespace EldenBingoServerStandalone
             File.AppendAllText("log.txt", $"[{timestamp}] {text}{Environment.NewLine}");
         }
 
-        private static void Output(string text, ConsoleColor foreColor = ConsoleColor.White, ConsoleColor backColor = ConsoleColor.Black)
+        private static void output(string text, ConsoleColor foreColor = ConsoleColor.White, ConsoleColor backColor = ConsoleColor.Black)
         {
             Console.ForegroundColor = foreColor;
             Console.BackgroundColor = backColor;
@@ -40,47 +90,14 @@ namespace EldenBingoServerStandalone
             Console.BackgroundColor = ConsoleColor.Black;
         }
 
-        private static void Main(string[] args)
-        {
-            
-            int port = BingoConstants.DefaultPort;
-            if (args.Length > 0)
-            {
-                if (!int.TryParse(args[0], out port))
-                {
-                    Output("Invalid port", ErrorColor);
-                }
-            }
-            _server = new Server(port);
-            _server.OnError += server_OnError;
-            _server.OnStatus += server_OnStatus;
-            _server.Host();
-            Output("Press 'h' to view all shortcuts", InfoColor);
-
-            _keyboardListenThread = new Thread(new ThreadStart(listenKeyBoardEvent));
-            _keyboardListenThread.Start();
-            _readInput = true;
-            var waitHandle = new ManualResetEvent(false);
-            
-            Console.CancelKeyPress += (o, e) =>
-            {
-                e.Cancel = true;
-                Output("Stopping server...", StatusColor);
-                _stopCalled = true;
-                waitHandle.Set();
-            };
-            waitHandle.WaitOne();
-            _server.Stop();
-        }
-
         private static void listenKeyBoardEvent()
         {
-            while(!_stopCalled)
+            while (!_stopCalled)
             {
-                if(_readInput && Console.KeyAvailable)
+                if (_readInput && Console.KeyAvailable)
                 {
                     var key = Console.ReadKey(true);
-                    if(_keyboardShortcuts.TryGetValue(key.KeyChar, out var item))
+                    if (_keyboardShortcuts.TryGetValue(key.KeyChar, out var item))
                     {
                         item.Item2();
                     }
@@ -91,25 +108,27 @@ namespace EldenBingoServerStandalone
 
         private static void showShortcuts()
         {
-            Output("---- Keyboard shortcuts ----", InfoColor);
-            foreach(var kv in _keyboardShortcuts)
+            output("---- Keyboard Commands ----", InfoColor);
+            foreach (var kv in _keyboardShortcuts)
             {
-                Output($"{kv.Key}: {kv.Value.Item1}");
+                if (kv.Key == 'k')
+                    continue;
+                output($"{kv.Key}: {kv.Value.Item1}");
             }
         }
 
         private static void printRooms()
         {
-            Output("---- Current Rooms ----", InfoColor);
+            output("---- Current Rooms ----", InfoColor);
             foreach (var room in _server.Rooms)
             {
-                Output($"{room.Name}: {room.Users.Count} users | Last Activity: {room.LastActivity.ToShortDateString()} {room.LastActivity.ToShortTimeString()}", InfoColor);
+                output($"{room.Name}: {room.Users.Count} users | Last Activity: {room.LastActivity.ToShortDateString()} {room.LastActivity.ToShortTimeString()}", InfoColor);
                 foreach (var client in room.Users)
                 {
-                    Output($"\t{client.Nick}", DefaultColor);
+                    output($"\t{client.Nick}", DefaultColor);
                 }
             }
-            Output("-----------------------", InfoColor);
+            output("-----------------------", InfoColor);
         }
 
         private static void maintenanceMode()
@@ -117,7 +136,7 @@ namespace EldenBingoServerStandalone
             try
             {
                 _readInput = false;
-                Output("Enter a message to send to all connected clients (Escape to cancel):", DefaultColor);
+                output("Enter a message to send to all connected clients (Escape to cancel):", DefaultColor);
                 ConsoleKeyInfo key;
                 var config = ReadLineConfig.Basic;
                 bool _cancelled = false;
@@ -127,11 +146,11 @@ namespace EldenBingoServerStandalone
                     kbt.Finish();
                 });
                 string message = ConsoleReadLine.ReadLine(config);
-                if(_cancelled)
+                if (_cancelled)
                 {
                     Console.WriteLine();
-                    Output("Cancelled maintenance", InfoColor);
-                } 
+                    output("Cancelled maintenance", InfoColor);
+                }
                 else
                 {
                     if (string.IsNullOrWhiteSpace(message))
@@ -147,15 +166,38 @@ namespace EldenBingoServerStandalone
             }
         }
 
+        private static void showJsonPath()
+        {
+            var text = _jsonFile;
+            try
+            {
+                if (File.Exists(_jsonFile))
+                {
+                    var info = new FileInfo(_jsonFile);
+                    string[] sizes = { "Bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
+                    long len = info.Length;
+                    int order = 0;
+
+                    while (len >= 1024 && order < sizes.Length - 1)
+                    {
+                        order++;
+                        len /= 1024;
+                    }
+                    text += $" ({len:0.##} {sizes[order]})";
+                }
+            } catch(Exception) {}
+            output(text, DefaultColor);
+        }
+
         private static void server_OnStatus(object? sender, StringEventArgs e)
         {
-            Output(e.Message, StatusColor);
+            output(e.Message, StatusColor);
         }
 
         private static void server_OnError(object? sender, StringEventArgs e)
         {
             var message = $"Error: {e.Message}";
-            Output(message, ErrorColor);
+            output(message, ErrorColor);
             try
             {
                 log(message);

@@ -79,7 +79,7 @@ namespace Neto.Server
             FireOnStatus($"Hosting server on port {Port}");
         }
 
-        public async void Stop()
+        public virtual async void Stop()
         {
             if (!Hosting)
                 throw new Exception("Not hosting");

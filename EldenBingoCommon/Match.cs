@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using Newtonsoft.Json;
+using System.Drawing;
+using System.Runtime.Serialization;
 
 namespace EldenBingoCommon
 {
@@ -22,9 +24,23 @@ namespace EldenBingoCommon
 
         public event EventHandler? MatchStatusChanged;
 
+        [JsonProperty(TypeNameHandling = TypeNameHandling.Auto)]
         public BingoBoard? Board { get; set; }
 
+        [JsonProperty]
         public bool Paused { get; private set; }
+
+        [OnSerializing]
+        internal void OnSerializingMethod(StreamingContext context)
+        {
+            ForceTimer(MatchMilliseconds);
+        }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            StatusChangedLocalDateTime = DateTime.Now;
+        }
 
         public void Pause()
         {
@@ -50,6 +66,7 @@ namespace EldenBingoCommon
             StatusChangedLocalDateTime = DateTime.Now;
         }
 
+        [JsonIgnore]
         public int MatchMilliseconds
         {
             get
@@ -58,6 +75,7 @@ namespace EldenBingoCommon
             }
         }
 
+        [JsonIgnore]
         public int MatchSeconds
         {
             get
@@ -66,11 +84,16 @@ namespace EldenBingoCommon
             }
         }
 
-        public MatchStatus MatchStatus { get; private set; }
+        [JsonProperty]
+        public MatchStatus MatchStatus { get; set; }
+        [JsonIgnore]
         public bool Running => MatchStatus == MatchStatus.Starting || MatchStatus == MatchStatus.Preparation || MatchStatus == MatchStatus.Running;
+        [JsonProperty]
         public int ServerTimer { get; private set; }
+        [JsonProperty]
         public DateTime StatusChangedLocalDateTime { get; private set; }
-        
+
+        [JsonIgnore]
         public string TimerString
         {
             get
