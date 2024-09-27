@@ -107,6 +107,10 @@ namespace EldenBingoServer
                         Formatting = Formatting.Indented,
                         TypeNameHandling = TypeNameHandling.Auto
                     };
+                    if(File.Exists(_jsonPath))
+                    {
+                        File.Move(_jsonPath, _jsonPath + ".old", true);
+                    }
                     File.WriteAllText(_jsonPath, JsonConvert.SerializeObject(_rooms, settings));
                 });
             }
