@@ -76,6 +76,7 @@ You can use the right mouse button to draw on the map. This is meant for live st
 * Z - Undo last line drawn
 * C - Clear all lines
 * F - Fit all players in view
+* X - Toggle between layers (Main game and DLC)
 * 1-9 - Follow a specific player
 
 ## Class choice display
