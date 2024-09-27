@@ -108,6 +108,7 @@ Use the **category** key to define a single category, or the **categories** key 
 Use the **count** key to define that the square requires a set number clicks to complete. When users click this square, it will increment the counter by 1 (as if scrolling the mouse wheel up) until this value is reached. This behaviour is optional and can be disabled in the Settings dialog by the user, in which case they must use their mouse wheel to manually track the count and click the square only when it's completed.
 
 # Credits
+* Nordgaren for process assembly injection
 * Tremwil on The Grand Archives discord
 * Process reading code from [EldenRingFPSUnlockerAndMore](https://github.com/uberhalit/EldenRingFpsUnlockAndMore) by [uberhalit](https://github.com/uberhalit)
 * Button images shamelessly borrowed from [EldenRingMap](https://eldenringmap.com), drawn by [Caio Razera](https://dcaier.artstation.com/)
