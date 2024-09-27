@@ -1,4 +1,5 @@
 using EldenBingo.Util;
+using EldenBingoCommon;
 
 namespace EldenBingo
 {
@@ -15,16 +16,22 @@ namespace EldenBingo
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
+            bool save = false;
             if (Properties.Settings.Default.IsFirstRun)
             {
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.IsFirstRun = false;
-                Properties.Settings.Default.Save();
+                save = true;
             }
             const int idTokenLength = 10;
+            
             if (Properties.Settings.Default.IdentityToken.Length != idTokenLength)
             {
-                Properties.Settings.Default.IdentityToken = generateIdentityToken(idTokenLength);
+                Properties.Settings.Default.IdentityToken = IdentityToken.GenerateIdentityToken(idTokenLength);
+                save = true;
+            }
+            if(save)
+            {
                 Properties.Settings.Default.Save();
             }
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(EldenBingo_UnhandledException);
@@ -55,23 +62,6 @@ namespace EldenBingo
             {
                 _mainForm.Invoke(showError);
             }
-        }
-
-        private static string generateIdentityToken(int length)
-        {
-            var r = new Random();
-            string token = string.Empty;
-            for (int i = 0; i < length; ++i)
-            {
-                var t = r.Next(0, 3);
-                token += t switch
-                {
-                    0 => (char)r.Next(48, 58),
-                    1 => (char)r.Next(65, 91),
-                    _ => (char)r.Next(97, 123),
-                };
-            }
-            return token;
         }
     }
 }

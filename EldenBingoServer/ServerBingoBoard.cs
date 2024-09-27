@@ -12,9 +12,11 @@ namespace EldenBingoServer
             MarkedBy = new HashSet<Guid>();
             PlayerCounters = new ConcurrentDictionary<Guid, int>();
         }
-
+        [JsonProperty]
         public int? Team { get; set; }
+        [JsonProperty]
         private IDictionary<Guid, int> PlayerCounters { get; init; }
+        [JsonProperty]
         private ISet<Guid> MarkedBy { get; init; }
 
         public bool Check(int team)

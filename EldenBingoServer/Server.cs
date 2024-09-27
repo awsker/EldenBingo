@@ -16,6 +16,7 @@ namespace EldenBingoServer
 
         //Check for inactive rooms once every hour (3600 seconds)
         private const int RoomInactivityRemovalSeconds = 3600;
+
         //Serialize server rooms once every minute
         private const int ServerSerializationSeconds = 60;
 
@@ -46,26 +47,26 @@ namespace EldenBingoServer
 
             _jsonPath = jsonPath;
 
+            //Deserialize the json file inline
             if (string.IsNullOrWhiteSpace(_jsonPath))
                 return;
-            try
+
+            //Load stored data from previous instance
+            var serverData = deserializeServer();
+            if (serverData != null)
             {
-                if (!File.Exists(_jsonPath))
-                    return;
-                var json = File.ReadAllText(_jsonPath);
-                var rooms = JsonConvert.DeserializeObject<ConcurrentDictionary<string, ServerRoom>>(json);
-                if (rooms != null)
+                if (serverData.Rooms != null)
                 {
-                    foreach(var room in rooms.Values)
+                    foreach (var room in serverData.Rooms.Values)
                     {
                         room.TimerElapsed += onRoomTimerElapsed;
                     }
-                    _rooms = rooms;
+                    _rooms = serverData.Rooms;
                 }
-            }
-            catch (Exception e)
-            {
-                FireOnError(e.Message);
+                if (serverData.Identities != null)
+                {
+                    CachedIdentities = serverData.Identities;
+                }
             }
         }
 
@@ -87,6 +88,29 @@ namespace EldenBingoServer
             base.Stop();
         }
 
+        protected override async Task DropClient(BingoClientModel client)
+        {
+            if (client.Room != null)
+                await leaveUserRoom(client);
+            await base.DropClient(client);
+        }
+
+        private SerializableServerData? deserializeServer()
+        {
+            try
+            {
+                if (!File.Exists(_jsonPath))
+                    return null;
+                var json = File.ReadAllText(_jsonPath);
+                return JsonConvert.DeserializeObject<SerializableServerData>(json);
+            }
+            catch (Exception e)
+            {
+                FireOnError(e.Message);
+            }
+            return null;
+        }
+
         private async void serializeServer()
         {
             if (string.IsNullOrWhiteSpace(_jsonPath))
@@ -102,29 +126,22 @@ namespace EldenBingoServer
                             NamingStrategy = new CamelCaseNamingStrategy(),
                             // Optional: You can make everything private or internal serializable
                             SerializeCompilerGeneratedMembers = true
-
                         },
                         Formatting = Formatting.Indented,
                         TypeNameHandling = TypeNameHandling.Auto
                     };
-                    if(File.Exists(_jsonPath))
+                    if (File.Exists(_jsonPath))
                     {
                         File.Move(_jsonPath, _jsonPath + ".old", true);
                     }
-                    File.WriteAllText(_jsonPath, JsonConvert.SerializeObject(_rooms, settings));
+                    var data = new SerializableServerData(_rooms, CachedIdentities);
+                    File.WriteAllText(_jsonPath, JsonConvert.SerializeObject(data, settings));
                 });
             }
             catch (Exception e)
             {
                 FireOnError(e.Message);
             }
-        }
-
-        protected override async Task DropClient(BingoClientModel client)
-        {
-            if (client.Room != null)
-                await leaveUserRoom(client);
-            await base.DropClient(client);
         }
 
         private async Task<bool> confirm(BingoClientModel client, bool? admin = null, bool? spectator = null, bool? inRoom = null, bool? hasBingoBoard = null, bool? gameStarted = null)
