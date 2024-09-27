@@ -7,13 +7,13 @@ public class EventManager
 {
     private readonly GameProcessHandler _gameHandler;
     private readonly Client _client;
-    private bool _hasLoweredWall = false;
+    private bool _gameStarted = false;
 
     public EventManager(GameProcessHandler processHandler, Client client)
     {
         _gameHandler = processHandler;
         _client = client;
-        resetHasLoweredStatus();
+        resetGameStartedStatus();
         listenToClientEvents();
     }
 
@@ -97,9 +97,9 @@ public class EventManager
     }
     
     // Easy to call, has hard coded flag value.
-    public void DestroyFogWall()
+    public void FireStartGameEvent()
     {
-        _hasLoweredWall |= SetEventFlag(GameData.GAME_STARTED_EVENT_ID, true);
+        _gameStarted |= SetEventFlag(GameData.GAME_STARTED_EVENT_ID, true);
     }
 
     private void listenToClientEvents()
@@ -108,37 +108,37 @@ public class EventManager
         _gameHandler.CoordinatesRead += gameHandler_CoordinatesRead;
     }
 
-    private void resetHasLoweredStatus() {
-        _hasLoweredWall = false;
+    private void resetGameStartedStatus() {
+        _gameStarted = false;
     }
 
     private void acceptedIntoRoom(ClientModel? model, ServerJoinRoomAccepted accepted)
     {
-        //Joined a new lobby, so we reset the wall status...
-        resetHasLoweredStatus();
-        //... and check if the current match requires us to lower the fog wall (using the last coordinates read)
+        //Joined a new lobby, so we reset the game status...
+        resetGameStartedStatus();
+        //... and check if the current match requires us to start the game (using the last coordinates read)
         handleMatchStatus(accepted.MatchStatus, _gameHandler.LastCoordinates);
     }
 
     private void gameHandler_CoordinatesRead(object? sender, MapCoordinateEventArgs e)
     {
-        //Whenever coordinates are read, check if we need to lower the fog wall
+        //Whenever coordinates are read, check if we need to start the game
         handleMatchStatus(_client.Room?.Match?.MatchStatus, e.Coordinates);
     }
 
     private void handleMatchStatus(MatchStatus? status, MapCoordinates? coordinates)
     {
-        //Whenever the match is not running, reset the fog wall flag
+        //Whenever the match is not running, reset the game status
         if (!status.HasValue || status.Value != MatchStatus.Running)
         {
-            resetHasLoweredStatus();
+            resetGameStartedStatus();
             return;
         }
         //Else, the match is running, so lower the wall as soon as we read valid coordinates, and don't
-        //try to lower it again until joining a new lobby or the match ended/restarted
-        if (!_hasLoweredWall && coordinates.HasValue)
+        //try to start it again until joining a new lobby or the match ended/restarted
+        if (!_gameStarted && coordinates.HasValue)
         {
-            DestroyFogWall();
+            FireStartGameEvent();
         }
     }
 }
