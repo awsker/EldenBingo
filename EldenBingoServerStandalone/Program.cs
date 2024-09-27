@@ -115,6 +115,7 @@ namespace EldenBingoServerStandalone
                     continue;
                 output($"{kv.Key}: {kv.Value.Item1}");
             }
+            output("---------------------------", InfoColor);
         }
 
         private static void printRooms()
@@ -135,6 +136,7 @@ namespace EldenBingoServerStandalone
         {
             try
             {
+                output("Maintenance Mode", InfoColor);
                 _readInput = false;
                 output("Enter a message to send to all connected clients (Escape to cancel):", DefaultColor);
                 ConsoleKeyInfo key;
@@ -168,6 +170,7 @@ namespace EldenBingoServerStandalone
 
         private static void showJsonPath()
         {
+            output("Json Path", InfoColor);
             var text = _jsonFile;
             try
             {
