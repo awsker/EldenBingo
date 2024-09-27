@@ -1,5 +1,5 @@
 ﻿using EldenBingoCommon;
-using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace EldenBingoServer
 {
@@ -11,48 +11,40 @@ namespace EldenBingoServer
 
         public BingoBoardGenerator(string json, int randomSeed)
         {
-            var doc = JsonDocument.Parse(json);
-            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            var  token = JToken.Parse(json);
+            if (token is not JArray squareArray)
             {
                 throw new ArgumentException("Json is not in the correct format", nameof(json));
             }
             RandomSeed = randomSeed;
             _list = new List<BingoJsonObj>();
-            foreach (var row in doc.RootElement.EnumerateArray())
+            foreach (var square in squareArray)
             {
-                var text = row.GetProperty("name").GetString();
-                if (text == null)
+                string? name = square.Value<string>("name");
+                if (string.IsNullOrWhiteSpace(name))
                     continue;
+                string? tooltip = square.Value<string>("tooltip");
+                int? count = square.Value<int?>("count");
+                int? weight = square.Value<int?>("weight");
+                string? category = square.Value<string>("category");
 
-                string? tooltip = null;
-                int count = 0;
-                int weight = 1;
                 var categories = new HashSet<string>();
-                if (row.TryGetProperty("tooltip", out var elem))
-                    tooltip = elem.GetString();
-                if (row.TryGetProperty("count", out elem))
-                    elem.TryGetInt32(out count);
-                if (row.TryGetProperty("weight", out elem))
-                    elem.TryGetInt32(out weight);
-                if (row.TryGetProperty("category", out elem))
+                
+                if(category != null)
+                    categories.Add(category.Trim());
+
+                var categoryArray = square.Value<JArray>("categories");
+                if(categoryArray != null)
                 {
-                    var categoryName = elem.GetString();
-                    if (categoryName != null)
-                        categories.Add(categoryName);
-                }
-                if (row.TryGetProperty("categories", out elem))
-                {
-                    if (elem.GetArrayLength() > 0)
+                    foreach(var v in categoryArray.OfType<JValue>())
                     {
-                        foreach (var e in elem.EnumerateArray())
+                        if(v.Value is string c)
                         {
-                            string? categoryNameInner = e.GetString();
-                            if (categoryNameInner != null)
-                                categories.Add(categoryNameInner);
+                            categories.Add(c.Trim());
                         }
                     }
                 }
-                _list.Add(new BingoJsonObj(text, tooltip, count, weight, categories.ToArray()));
+                _list.Add(new BingoJsonObj(name, tooltip, count.GetValueOrDefault(0), weight.GetValueOrDefault(1), categories.ToArray()));
             }
         }
 
