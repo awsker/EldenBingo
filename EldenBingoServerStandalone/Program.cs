@@ -64,15 +64,15 @@ namespace EldenBingoServerStandalone
             _readInput = true;
             var waitHandle = new ManualResetEvent(false);
 
-            Console.CancelKeyPress += (o, e) =>
+            Console.CancelKeyPress += async (o, e) =>
             {
                 e.Cancel = true;
-                output("Stopping server...", StatusColor);
                 _stopCalled = true;
+                output("Stopping server...", StatusColor);
+                await _server.Stop();
                 waitHandle.Set();
             };
             waitHandle.WaitOne();
-            _server.Stop();
         }
 
         private static void log(string text)
