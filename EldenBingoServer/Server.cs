@@ -82,10 +82,10 @@ namespace EldenBingoServer
             FireOnStatus($"Maintenance Mode Enabled");
         }
 
-        public override void Stop()
+        public override async Task Stop()
         {
-            serializeServer();
-            base.Stop();
+            await serializeServer();
+            await base.Stop();
         }
 
         protected override async Task DropClient(BingoClientModel client)
@@ -111,7 +111,7 @@ namespace EldenBingoServer
             return null;
         }
 
-        private async void serializeServer()
+        private async Task serializeServer()
         {
             if (string.IsNullOrWhiteSpace(_jsonPath))
                 return;
@@ -927,6 +927,11 @@ namespace EldenBingoServer
                     }
                 case MatchStatus.Starting:
                     {
+                        if (_maintenanceMode)
+                        {
+                            error = "Cannot start a new match when server restart is pending";
+                            break;
+                        }
                         if (currentStatus == MatchStatus.Starting)
                         {
                             error = "Match already starting";

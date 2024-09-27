@@ -51,7 +51,7 @@ namespace EldenBingo
                 AutoScaleMode = prev;
             }
 
-            FormClosing += (o, e) =>
+            FormClosing += async (o, e) =>
             {
                 _autoReconnect = false;
                 _processHandler.Dispose();
@@ -59,6 +59,9 @@ namespace EldenBingo
                 _mapWindow?.DisposeDrawablesOnExit();
                 _mapWindow?.Stop();
                 _client?.Disconnect();
+                //Stop server and serialize rooms
+                if (_server != null)
+                    await _server.Stop();
                 Properties.Settings.Default.Save();
                 Application.Exit();
             };
@@ -159,7 +162,7 @@ namespace EldenBingo
             }
             try
             {
-                var connectRetries = 5;
+                var connectRetries = 500;
                 while (_connecting && connectRetries > 0)
                 {
                     try
@@ -361,7 +364,6 @@ namespace EldenBingo
             {
                 await connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Port);
             }
-            _autoReconnect = false;
         }
 
         private void client_Kicked(object? sender, StringEventArgs e)
