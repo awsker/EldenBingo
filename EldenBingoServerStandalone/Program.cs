@@ -2,7 +2,6 @@
 using EldenBingoServer;
 using InteractiveReadLine;
 using Neto.Shared;
-using System.Diagnostics;
 
 namespace EldenBingoServerStandalone
 {
