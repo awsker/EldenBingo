@@ -182,6 +182,7 @@ namespace Neto.Server
                 if (!client.TcpClient.Connected)
                 {
                     await DropClient(client);
+                    return;
                 }
                 var stream = client.TcpClient.GetStream();
                 using (var cts = new CancellationTokenSource(5000))
