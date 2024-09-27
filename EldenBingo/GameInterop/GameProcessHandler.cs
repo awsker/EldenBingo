@@ -700,19 +700,22 @@ namespace EldenBingo.GameInterop
                         if (_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
                         {
                             ReadingProcess = true;
-                            var previousCoordinates = _lastCoordinates;
-                            _lastCoordinates = readPlayerCoordinates();
+                            var newCoordinates = readPlayerCoordinates();
                             //Address could not be used to read coordinates, so we wait 0.5 seconds before trying again
                             if (_csMenuManAddress <= 0)
                             {
+                                if(_lastCoordinates != null && newCoordinates == null)
+                                {
+                                    resetCoordinates();
+                                }
                                 Thread.Sleep(500);
                                 continue;
                             }
-                            CoordinatesRead?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
+                            CoordinatesRead?.Invoke(this, new MapCoordinateEventArgs(newCoordinates));
                             //Coordinates changed or 10 polls since last send
                             if (pollsSinceSend >= 10 ||
-                                previousCoordinates.HasValue != _lastCoordinates.HasValue ||
-                                previousCoordinates.HasValue && _lastCoordinates.HasValue && !previousCoordinates.Equals(_lastCoordinates.Value))
+                                newCoordinates.HasValue != _lastCoordinates.HasValue ||
+                                newCoordinates.HasValue && _lastCoordinates.HasValue && !newCoordinates.Equals(_lastCoordinates.Value))
                             {
                                 CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
                                 pollsSinceSend = 0;
@@ -721,6 +724,7 @@ namespace EldenBingo.GameInterop
                             {
                                 ++pollsSinceSend;
                             }
+                            _lastCoordinates = newCoordinates;
                             //Do this 10 times per second
                             Thread.Sleep(100);
                             //Jump to next loop
