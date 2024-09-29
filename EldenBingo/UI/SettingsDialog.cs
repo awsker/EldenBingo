@@ -126,65 +126,55 @@
 
         private bool saveSettings()
         {
-            Properties.Settings.Default.MapWindowCustomSize = _mapSizeCustomRadioButton.Checked;
-            if (int.TryParse(_mapSizeCustomXTextBox.Text, out var x))
-            {
-                Properties.Settings.Default.MapWindowWidth = x;
-            }
-            else
+            if (!int.TryParse(_mapSizeCustomXTextBox.Text, out var mapWidth))
             {
                 //Invalid x size
-                return false;
+                return false; 
             }
-            if (int.TryParse(_mapSizeCustomYTextBox.Text, out var y))
-            {
-                Properties.Settings.Default.MapWindowHeight = y;
-            }
-            else
+            if (!int.TryParse(_mapSizeCustomYTextBox.Text, out var mapHeight))
             {
                 //Invalid y size
                 return false;
             }
-
-            Properties.Settings.Default.MapWindowCustomPosition = _mapPositionCustomRadioButton.Checked;
-            if (int.TryParse(_mapPositionXTextBox.Text, out x))
-            {
-                Properties.Settings.Default.MapWindowX = x;
-            }
-            else
+            if (!int.TryParse(_mapPositionXTextBox.Text, out var mapX))
             {
                 //Invalid x pos
                 return false;
             }
-            if (int.TryParse(_mapPositionYTextBox.Text, out y))
-            {
-                Properties.Settings.Default.MapWindowY = y;
-            }
-            else
+            if (!int.TryParse(_mapPositionYTextBox.Text, out var mapY))
             {
                 //Invalid y pos
                 return false;
             }
-
-            Properties.Settings.Default.BingoBoardMaximumSize = _bingoCustomMaxSizeRadioButton.Checked;
-            if (int.TryParse(_bingoMaxXTextBox.Text, out x))
-            {
-                Properties.Settings.Default.BingoMaxSizeX = x;
-            }
-            else
+            if (!int.TryParse(_bingoMaxXTextBox.Text, out var bingoMaxWidth))
             {
                 //Invalid x size
                 return false;
             }
-            if (int.TryParse(_bingoMaxYTextBox.Text, out y))
-            {
-                Properties.Settings.Default.BingoMaxSizeY = y;
-            }
-            else
+            if (!int.TryParse(_bingoMaxYTextBox.Text, out var bingoMaxHeight))
             {
                 //Invalid y size
                 return false;
             }
+            if (!int.TryParse(_portTextBox.Text, out int port))
+            {
+                //Invalid port
+                return false;
+            }
+            if (!int.TryParse(_delayMatchEventsTextBox.Text, out int delayMatchEvents))
+            {
+                //Invalid event delay
+                return false;
+            }
+            Properties.Settings.Default.MapWindowCustomSize = _mapSizeCustomRadioButton.Checked;
+            Properties.Settings.Default.MapWindowCustomPosition = _mapPositionCustomRadioButton.Checked;
+            Properties.Settings.Default.MapWindowWidth = mapWidth;
+            Properties.Settings.Default.MapWindowHeight = mapHeight;
+            Properties.Settings.Default.MapWindowX = mapX;
+            Properties.Settings.Default.MapWindowY = mapY;
+            Properties.Settings.Default.BingoBoardMaximumSize = _bingoCustomMaxSizeRadioButton.Checked;
+            Properties.Settings.Default.BingoMaxSizeX = bingoMaxWidth;
+            Properties.Settings.Default.BingoMaxSizeY = bingoMaxHeight;
 
             Properties.Settings.Default.ControlBackColor = _colorPanel.BackColor;
 
@@ -192,16 +182,8 @@
             Properties.Settings.Default.BingoFontStyle = (int)_fontLinkLabel.Font.Style;
             Properties.Settings.Default.BingoFontSize = _fontLinkLabel.Font.Size;
 
+            Properties.Settings.Default.Port = port;
             Properties.Settings.Default.HostServerOnLaunch = _hostServerCheckBox.Checked;
-            if (int.TryParse(_portTextBox.Text, out int port))
-            {
-                Properties.Settings.Default.Port = port;
-            }
-            else
-            {
-                //Invalid port
-                return false;
-            }
 
             Properties.Settings.Default.FlipMouseButtons = _swapMouseButtons.Checked;
             Properties.Settings.Default.ShowClassesOnMap = _showClassesCheckBox.Checked;
@@ -214,14 +196,7 @@
 
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
 
-            if (int.TryParse(_delayMatchEventsTextBox.Text, out int delayMatchEvents))
-            {
-                Properties.Settings.Default.DelayMatchEvents = delayMatchEvents;
-            }
-            else
-            {
-                return false;
-            }
+            Properties.Settings.Default.DelayMatchEvents = delayMatchEvents;
 
             Properties.Settings.Default.Save();
             return true;
