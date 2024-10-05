@@ -1,6 +1,8 @@
-﻿using EldenBingoCommon;
+﻿using EldenBingo.Util;
+using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
+using System.Linq;
 
 namespace EldenBingo.Rendering.Game
 {
@@ -55,7 +57,7 @@ namespace EldenBingo.Rendering.Game
             var viewBounds = MapWindow.Instance.GetViewBounds();
             foreach (var texData in _textures)
             {
-                if (texData.Sprite.GetGlobalBounds().Intersects(viewBounds))
+                if (texData != null && texData.Sprite.GetGlobalBounds().Intersects(viewBounds))
                     target.Draw(texData.Sprite);
             }
         }
@@ -78,21 +80,31 @@ namespace EldenBingo.Rendering.Game
             else
             {
                 _textures = loadMapTexturesFromDir(_path, _mapSize, _mapOffset);
-                _mapTextures[_mapInstance] = _textures;
+                if (_textures != null)
+                {
+                    _mapTextures[_mapInstance] = _textures;
+                }
             }
         }
 
         private TextureData[,]? loadMapTexturesFromDir(string path, Vector2f fullMapSize, Vector2f mapOffset)
         {
+
             var width = -1;
             var height = -1;
             string[] images;
             try
             {
-                images = Directory.GetFiles(path);
+                images = Directory.EnumerateFiles(path, "*.*", SearchOption.TopDirectoryOnly)
+                   .Where(s => (s.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                               s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                               s.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)) &&
+                               isFileAvailableLocally(s))
+                   .ToArray();
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.LogException(ex);
                 return null;
             }
             if (images.Length == 0)
@@ -102,47 +114,112 @@ namespace EldenBingo.Rendering.Game
             for (int i = 0; i < images.Length; ++i)
             {
                 var image = images[i];
-                var x = int.Parse(image.Substring(image.Length - 9, 2));
-                var y = int.Parse(image.Substring(image.Length - 6, 2));
-                width = Math.Max(width, x + 1);
-                height = Math.Max(height, y + 1);
+                if (int.TryParse(image.AsSpan(image.Length - 9, 2), out int col) && int.TryParse(image.AsSpan(image.Length - 6, 2), out int row))
+                {
+                    width = Math.Max(width, col + 1);
+                    height = Math.Max(height, row + 1);
+                }
+            }
+            if (width == -1 || height == -1)
+            {
+                return null;
             }
             var texData = new TextureData[width, height];
+            
             for (int i = 0; i < images.Length; ++i)
             {
                 var image = images[i];
-                var x = int.Parse(image.Substring(image.Length - 9, 2));
-                var y = int.Parse(image.Substring(image.Length - 6, 2));
-                JPEGPicture pic = new JPEGPicture();
-                pic.Data = pic.ImageToByteArray(image);
-                pic.GetJPEGSize();
-                var tex = new Texture(image) { Smooth = true };
-                tex.GenerateMipmap();
-                texData[x, y] = new TextureData(x, y, pic.Width, pic.Height, image, tex);
+                //Skip image if column or row couldn't be established
+                if (!int.TryParse(image.AsSpan(image.Length - 9, 2), out int col) || !int.TryParse(image.AsSpan(image.Length - 6, 2), out int row))
+                {
+                    printError($"Couldn't load map coordinates from image '{image}'");
+                    continue;
+                }
+                try
+                {
+                    JPEGPicture pic = new JPEGPicture();
+                    pic.Data = pic.ImageToByteArray(image);
+                    pic.GetJPEGSize();
+                    var tex = new Texture(image) { Smooth = true };
+                    tex.GenerateMipmap();
+                    var textureData = new TextureData(col, row, pic.Width, pic.Height, image, tex);
+                    texData[col, row] = textureData;
+                }
+                catch (Exception ex)
+                {
+                    //Skip this image
+                    Logger.LogException(ex);
+                }
             }
-            var mapSize = new Vector2u();
-            for (int x = 0; x < texData.GetLength(0); ++x)
+            var totalTexSize = getTotalTextureSize(texData);
+            var firstImage = texData[0, 0];
+            if (totalTexSize ==  null || firstImage == null)
             {
-                mapSize.X += texData[x, 0].Width;
+                printError("Couldn't establish map width or height");
+                return null;
             }
-            for (int y = 0; y < texData.GetLength(1); ++y)
-            {
-                mapSize.Y += texData[0, y].Height;
-            }
-
-            var factors = new Vector2f(fullMapSize.X / mapSize.X, fullMapSize.Y / mapSize.Y);
+            var factors = new Vector2f(fullMapSize.X / totalTexSize.Value.X, fullMapSize.Y / totalTexSize.Value.Y);
             uint currX = 0, currY;
             for (int x = 0; x < texData.GetLength(0); ++x)
             {
                 currY = 0;
                 for (int y = 0; y < texData.GetLength(1); ++y)
                 {
-                    texData[x, y].InitSpritePositionAndScale(new Vector2f(currX * factors.X, currY * factors.Y) + mapOffset, factors);
-                    currY += texData[x, y].Height;
+                    var img = texData[x, y];
+                    if (img != null)
+                    {
+                        img.InitSpritePositionAndScale(new Vector2f(currX * factors.X, currY * factors.Y) + mapOffset, factors);
+                        
+                    }
+                    currY += firstImage.Height;
+
                 }
-                currX += texData[x, 0].Width;
+                currX += firstImage.Width;
             }
             return texData;
+        }
+
+        private void printError(string error)
+        {
+            MainForm.Instance?.PrintToConsole(error, System.Drawing.Color.Red, true);
+        }
+
+        private Vector2i? getTotalTextureSize(TextureData[, ] texData)
+        {
+            var width = texData.GetLength(0);
+            var height = texData.GetLength(1);
+            var widths = new int[width];
+            var heights = new int[height];
+            for(int x = 0; x < width; ++x)
+            {
+                for(int y = 0; y < height; ++y)
+                {
+                    var tex = texData[x, y];
+                    if(tex != null)
+                    {
+                        widths[x] = Math.Max(widths[x], (int)tex.Width);
+                        heights[y] = Math.Max(heights[y], (int)tex.Height);
+                    }
+                }
+            }
+            if(widths.Any(w => w == 0) || heights.Any(h => h == 0)) 
+            {
+                return null;
+            }
+            return new Vector2i(widths.Sum(), heights.Sum());
+        }
+
+        private bool isFileAvailableLocally(string filePath)
+        {
+            FileInfo fileInfo = new FileInfo(filePath);
+
+            // OneDrive files may have this attribute if they're not fully downloaded locally
+            const int FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS = 0x00400000;
+            if((fileInfo.Attributes & (FileAttributes)FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) != 0) 
+            {
+                printError($"File '{filePath}' isn't available locally");
+            }
+            return (fileInfo.Attributes & (FileAttributes)FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) == 0;
         }
 
         private class TextureData : IDisposable

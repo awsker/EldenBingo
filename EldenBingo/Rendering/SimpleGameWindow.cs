@@ -1,4 +1,5 @@
-﻿using SFML.Graphics;
+﻿using EldenBingo.Util;
+using SFML.Graphics;
 using SFML.System;
 
 namespace EldenBingo.Rendering
@@ -51,10 +52,16 @@ namespace EldenBingo.Rendering
                 }
                 if (go is IDrawable draw)
                 {
-                    Drawables.Add(draw);
-                    if (Running) //If already running, initialization needs to be done manually
-                        draw.Init();
-                    added = true;
+                    try
+                    {
+                        if (Running) //If already running, initialization needs to be done manually
+                            draw.Init();
+                        Drawables.Add(draw);
+                        added = true;
+                    } 
+                    catch (Exception ex) {
+                        Logger.LogException(ex);
+                    }
                 }
                 if (added)
                     GameObjects.Add(go);
@@ -90,9 +97,16 @@ namespace EldenBingo.Rendering
                 InitializingDrawables?.Invoke(this, EventArgs.Empty);
                 lock (_lock)
                 {
-                    foreach (var draw in Drawables)
+                    try
                     {
-                        draw.Init();
+                        foreach (var draw in Drawables)
+                        {
+                            draw.Init();
+                        }
+                    } 
+                    catch (Exception ex)
+                    {
+                        Logger.LogException(ex);
                     }
                 }
                 renderLoop();

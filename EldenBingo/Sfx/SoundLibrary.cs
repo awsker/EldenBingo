@@ -1,4 +1,6 @@
-﻿namespace EldenBingo.Sfx
+﻿using EldenBingo.Util;
+
+namespace EldenBingo.Sfx
 {
     public enum SoundType
     {
@@ -31,8 +33,9 @@
                         _sounds[i] = new SFML.Audio.Sound(new SFML.Audio.SoundBuffer(bytes));
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.LogException(ex);
                     _sounds[i] = null;
                 }
             }
@@ -55,9 +58,9 @@
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                //Ignore errors when trying to play sound
+                Logger.LogException(ex);
             }
         }
 

@@ -173,8 +173,6 @@ namespace EldenBingo.Rendering
         {
             _availableClasses = new EldenRingAvailableClassesDrawable(this) { Visible = false };
             AddGameObject(_availableClasses);
-            if (Running) //Init the textures if this window is already running
-                _availableClasses.Init();
             showAvailableClasses(false);
         }
 
