@@ -1,4 +1,5 @@
-﻿using EldenBingoCommon;
+﻿using EldenBingo.Util;
+using EldenBingoCommon;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -288,7 +289,7 @@ namespace EldenBingo.GameInterop
 
         public long GetEventManPtr()
         {
-            initEventManPtrs();
+            InitEventManPtrs();
             if (IsValidAddress(_eventManAddress))
             {
                 return readPointer(_eventManAddress);
@@ -299,7 +300,7 @@ namespace EldenBingo.GameInterop
 
         public long GetSetEventFlagPtr()
         {
-            initEventManPtrs();
+            InitEventManPtrs();
             if (IsValidAddress(_setEventFlagAddress))
             {
                 return _setEventFlagAddress;
@@ -309,7 +310,7 @@ namespace EldenBingo.GameInterop
         
         public long GetIsEventFlagPtr()
         {
-            initEventManPtrs();
+            InitEventManPtrs();
             if (IsValidAddress(_isEventFlagAddress))
             {
                 return _isEventFlagAddress;
@@ -517,13 +518,27 @@ namespace EldenBingo.GameInterop
 
         #region Game process scanning
 
-        public void initEventManPtrs()
+        
+        public void InitEventManPtrs()
         {
-            if (_eventManAddress <= 0 || _setEventFlagAddress <= 0)
+            if (!AreEventManagerAddressesEstablished())
             {
                 establishEventManagerAddresses();
             }
         }
+
+        public void ResetEventManPtrs()
+        {
+            _eventManAddress = -1;
+            _setEventFlagAddress = -1;
+            _isEventFlagAddress = -1;
+        }
+
+        public bool AreEventManagerAddressesEstablished()
+        {
+            return _eventManAddress > 0 && _setEventFlagAddress > 0;
+        }
+
 
         /// <summary>
         /// Checks if an address is valid.
@@ -660,80 +675,85 @@ namespace EldenBingo.GameInterop
             {
                 if (!_startup)
                 {
-                    Process? process = null;
                     try
                     {
-                        process = GetGameProcess();
-                    }
-                    catch (Win32Exception)
-                    {
-                        //This seems to happen sometimes when the game is just starting. Ignore it and wait for next loop
-                    }
-                    if (process == null) //No process found
-                    {
-                        //If we already had a reference to the process, the game has exited
-                        if (_gameProc != null)
+                        Process? process = GetGameProcess();
+
+                        if (process == null) //No process found
                         {
-                            lock (_processLock)
+                            //If we already had a reference to the process, the game has exited
+                            if (_gameProc != null)
                             {
-                                _gameProc = null;
-                            }
-                            UpdateStatus("Waiting for game...", IdleColor);
-                        }
-                    }
-                    else //Process found
-                    {
-                        if (IsEACRunning())
-                        {
-                            UpdateStatus("EAC is running...", ErrorColor);
-                            continue;
-                        }
-                        //New process found (different from previous)
-                        if (_gameProc == null || _gameProc.Id != process.Id)
-                        {
-                            _gameAccessHwnd = IntPtr.Zero;
-                            _csMenuManAddress = -1;
-                            resetCoordinates();
-                            OpenGame();
-                        }
-                        //If process was found
-                        if (_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
-                        {
-                            ReadingProcess = true;
-                            var newCoordinates = readPlayerCoordinates();
-                            //Address could not be used to read coordinates, so we wait 0.5 seconds before trying again
-                            if (_csMenuManAddress <= 0)
-                            {
-                                if(_lastCoordinates != null && newCoordinates == null)
+                                lock (_processLock)
                                 {
-                                    resetCoordinates();
+                                    _gameProc = null;
                                 }
-                                Thread.Sleep(500);
+                                UpdateStatus("Waiting for game...", IdleColor);
+                            }
+                        }
+                        else //Process found
+                        {
+                            if (IsEACRunning())
+                            {
+                                UpdateStatus("EAC is running...", ErrorColor);
                                 continue;
                             }
-                            CoordinatesRead?.Invoke(this, new MapCoordinateEventArgs(newCoordinates));
-                            //Coordinates changed or 10 polls since last send
-                            if (pollsSinceSend >= 10 ||
-                                newCoordinates.HasValue != _lastCoordinates.HasValue ||
-                                newCoordinates.HasValue && _lastCoordinates.HasValue && !newCoordinates.Equals(_lastCoordinates.Value))
+                            //New process found (different from previous)
+                            if (_gameProc == null || _gameProc.Id != process.Id)
                             {
-                                CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
-                                pollsSinceSend = 0;
+                                _gameAccessHwnd = IntPtr.Zero;
+                                _csMenuManAddress = -1;
+                                resetCoordinates();
+                                OpenGame();
+                            }
+                            //If process was found
+                            if (_gameProc != null && !_gameProc.HasExited && _gameAccessHwnd != IntPtr.Zero && _gameProc.MainModule?.BaseAddress != IntPtr.Zero)
+                            {
+                                ReadingProcess = true;
+                                var newCoordinates = readPlayerCoordinates();
+                                //Address could not be used to read coordinates, so we wait 0.5 seconds before trying again
+                                if (_csMenuManAddress <= 0)
+                                {
+                                    if (_lastCoordinates != null && newCoordinates == null)
+                                    {
+                                        resetCoordinates();
+                                    }
+                                    Thread.Sleep(500);
+                                    continue;
+                                }
+                                CoordinatesRead?.Invoke(this, new MapCoordinateEventArgs(newCoordinates));
+                                //Coordinates changed or 10 polls since last send
+                                if (pollsSinceSend >= 10 ||
+                                    newCoordinates.HasValue != _lastCoordinates.HasValue ||
+                                    newCoordinates.HasValue && _lastCoordinates.HasValue && !newCoordinates.Equals(_lastCoordinates.Value))
+                                {
+                                    CoordinatesChanged?.Invoke(this, new MapCoordinateEventArgs(_lastCoordinates));
+                                    pollsSinceSend = 0;
+                                }
+                                else
+                                {
+                                    ++pollsSinceSend;
+                                }
+                                _lastCoordinates = newCoordinates;
+                                //Do this 10 times per second
+                                Thread.Sleep(100);
+                                //Jump to next loop
+                                continue;
                             }
                             else
                             {
-                                ++pollsSinceSend;
+                                ReadingProcess = false;
                             }
-                            _lastCoordinates = newCoordinates;
-                            //Do this 10 times per second
-                            Thread.Sleep(100);
-                            //Jump to next loop
-                            continue;
                         }
-                        else
-                        {
-                            ReadingProcess = false;
-                        }
+                    }
+                    catch (Win32Exception ex)
+                    {
+                        //This seems to happen sometimes when the game is just starting. Ignore it and wait for next loop
+                        Logger.LogException(ex);
+                    } 
+                    catch(Exception ex)
+                    {
+                        Logger.LogException(ex);
                     }
                 }
                 Thread.Sleep(1000);
@@ -780,13 +800,13 @@ namespace EldenBingo.GameInterop
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
             }
 
-            initEventManPtrs();
+            InitEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);
             return true;
         }
