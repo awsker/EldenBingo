@@ -562,5 +562,17 @@ namespace EldenBingo.Properties {
                 this["DelayMatchEvents"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string OutputDevice {
+            get {
+                return ((string)(this["OutputDevice"]));
+            }
+            set {
+                this["OutputDevice"] = value;
+            }
+        }
     }
 }

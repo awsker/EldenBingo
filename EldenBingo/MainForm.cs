@@ -40,6 +40,7 @@ namespace EldenBingo
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
 
             _sounds = new SoundLibrary();
+            _sounds.SetAudioDevice(Properties.Settings.Default.OutputDevice);
             _rawInput = new RawInputHandler(Handle);
 
             if (Properties.Settings.Default.MainWindowSizeX > 0 && Properties.Settings.Default.MainWindowSizeY > 0)
@@ -75,6 +76,8 @@ namespace EldenBingo
 
         public static MainForm? Instance { get; private set; }
         public RawInputHandler RawInput => _rawInput;
+
+        public SoundLibrary SoundPlayer => _sounds;
 
         private bool FormReady => !Disposing && !IsDisposed && IsHandleCreated;
 
@@ -322,6 +325,7 @@ namespace EldenBingo
             }
         }
 
+
         private void addClientListeners(Client? client)
         {
             if (client == null)
@@ -519,6 +523,10 @@ namespace EldenBingo
             if (e.PropertyName == nameof(Properties.Settings.Default.DelayMatchEvents) && _client != null)
             {
                 _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
+            }
+            if (e.PropertyName == nameof(Properties.Settings.Default.OutputDevice))
+            {
+                _sounds.SetAudioDevice(Properties.Settings.Default.OutputDevice);
             }
         }
 
@@ -739,5 +747,6 @@ namespace EldenBingo
                 _leaveRoomButton.Enabled = connected;
             }));
         }
+
     }
 }

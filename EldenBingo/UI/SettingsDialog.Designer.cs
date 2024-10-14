@@ -70,19 +70,22 @@
             label11 = new Label();
             _clickIncrementsCountCheckbox = new CheckBox();
             groupBox8 = new GroupBox();
+            _testSoundButton = new Button();
+            label14 = new Label();
+            _soundOutputDeviceComboBox = new ComboBox();
             label10 = new Label();
             _volumeTrackBar = new TrackBar();
             _soundCheckBox = new CheckBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
             tabPage2 = new TabPage();
-            tabPage3 = new TabPage();
-            panel1 = new Panel();
             groupBox9 = new GroupBox();
             panel2 = new Panel();
             label12 = new Label();
             _delayMatchEventsTextBox = new TextBox();
             label13 = new Label();
+            tabPage3 = new TabPage();
+            panel1 = new Panel();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -95,10 +98,10 @@
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
-            tabPage3.SuspendLayout();
-            panel1.SuspendLayout();
             groupBox9.SuspendLayout();
             panel2.SuspendLayout();
+            tabPage3.SuspendLayout();
+            panel1.SuspendLayout();
             SuspendLayout();
             // 
             // _okButton
@@ -107,7 +110,7 @@
             _okButton.Location = new Point(361, 3);
             _okButton.Name = "_okButton";
             _okButton.Size = new Size(75, 23);
-            _okButton.TabIndex = 12;
+            _okButton.TabIndex = 50;
             _okButton.Text = "OK";
             _okButton.UseVisualStyleBackColor = true;
             _okButton.Click += _okButton_Click;
@@ -118,7 +121,7 @@
             _cancelButton.Location = new Point(442, 3);
             _cancelButton.Name = "_cancelButton";
             _cancelButton.Size = new Size(75, 23);
-            _cancelButton.TabIndex = 13;
+            _cancelButton.TabIndex = 51;
             _cancelButton.Text = "Cancel";
             _cancelButton.UseVisualStyleBackColor = true;
             _cancelButton.Click += _cancelButton_Click;
@@ -134,7 +137,7 @@
             groupBox1.Location = new Point(8, 110);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(240, 107);
-            groupBox1.TabIndex = 23;
+            groupBox1.TabIndex = 40;
             groupBox1.TabStop = false;
             groupBox1.Text = "Map Initial Size";
             // 
@@ -143,7 +146,7 @@
             _mapSizeCustomYTextBox.Location = new Point(117, 74);
             _mapSizeCustomYTextBox.Name = "_mapSizeCustomYTextBox";
             _mapSizeCustomYTextBox.Size = new Size(54, 23);
-            _mapSizeCustomYTextBox.TabIndex = 27;
+            _mapSizeCustomYTextBox.TabIndex = 46;
             // 
             // label2
             // 
@@ -151,7 +154,7 @@
             label2.Location = new Point(94, 77);
             label2.Name = "label2";
             label2.Size = new Size(17, 15);
-            label2.TabIndex = 5;
+            label2.TabIndex = 45;
             label2.Text = "Y:";
             // 
             // _mapSizeCustomRadioButton
@@ -160,7 +163,7 @@
             _mapSizeCustomRadioButton.Location = new Point(9, 46);
             _mapSizeCustomRadioButton.Name = "_mapSizeCustomRadioButton";
             _mapSizeCustomRadioButton.Size = new Size(90, 19);
-            _mapSizeCustomRadioButton.TabIndex = 25;
+            _mapSizeCustomRadioButton.TabIndex = 42;
             _mapSizeCustomRadioButton.TabStop = true;
             _mapSizeCustomRadioButton.Text = "Custom Size";
             _mapSizeCustomRadioButton.UseVisualStyleBackColor = true;
@@ -171,7 +174,7 @@
             _mapSizeRememberLastRadioButton.Location = new Point(9, 22);
             _mapSizeRememberLastRadioButton.Name = "_mapSizeRememberLastRadioButton";
             _mapSizeRememberLastRadioButton.Size = new Size(130, 19);
-            _mapSizeRememberLastRadioButton.TabIndex = 24;
+            _mapSizeRememberLastRadioButton.TabIndex = 41;
             _mapSizeRememberLastRadioButton.TabStop = true;
             _mapSizeRememberLastRadioButton.Text = "Remember Last Size";
             _mapSizeRememberLastRadioButton.UseVisualStyleBackColor = true;
@@ -181,7 +184,7 @@
             _mapSizeCustomXTextBox.Location = new Point(30, 74);
             _mapSizeCustomXTextBox.Name = "_mapSizeCustomXTextBox";
             _mapSizeCustomXTextBox.Size = new Size(54, 23);
-            _mapSizeCustomXTextBox.TabIndex = 26;
+            _mapSizeCustomXTextBox.TabIndex = 44;
             // 
             // label1
             // 
@@ -189,7 +192,7 @@
             label1.Location = new Point(7, 77);
             label1.Name = "label1";
             label1.Size = new Size(17, 15);
-            label1.TabIndex = 1;
+            label1.TabIndex = 43;
             label1.Text = "X:";
             // 
             // groupBox2
@@ -203,7 +206,7 @@
             groupBox2.Location = new Point(8, 6);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(240, 107);
-            groupBox2.TabIndex = 7;
+            groupBox2.TabIndex = 16;
             groupBox2.TabStop = false;
             groupBox2.Text = "Bingo Board Max Size";
             // 
@@ -212,7 +215,7 @@
             _bingoMaxYTextBox.Location = new Point(117, 72);
             _bingoMaxYTextBox.Name = "_bingoMaxYTextBox";
             _bingoMaxYTextBox.Size = new Size(54, 23);
-            _bingoMaxYTextBox.TabIndex = 11;
+            _bingoMaxYTextBox.TabIndex = 22;
             // 
             // label3
             // 
@@ -220,7 +223,7 @@
             label3.Location = new Point(94, 75);
             label3.Name = "label3";
             label3.Size = new Size(17, 15);
-            label3.TabIndex = 11;
+            label3.TabIndex = 21;
             label3.Text = "Y:";
             // 
             // _bingoCustomMaxSizeRadioButton
@@ -229,7 +232,7 @@
             _bingoCustomMaxSizeRadioButton.Location = new Point(9, 46);
             _bingoCustomMaxSizeRadioButton.Name = "_bingoCustomMaxSizeRadioButton";
             _bingoCustomMaxSizeRadioButton.Size = new Size(116, 19);
-            _bingoCustomMaxSizeRadioButton.TabIndex = 9;
+            _bingoCustomMaxSizeRadioButton.TabIndex = 18;
             _bingoCustomMaxSizeRadioButton.TabStop = true;
             _bingoCustomMaxSizeRadioButton.Text = "Custom Max Size";
             _bingoCustomMaxSizeRadioButton.UseVisualStyleBackColor = false;
@@ -240,7 +243,7 @@
             _bingoNoMaxSizeRadioButton.Location = new Point(9, 22);
             _bingoNoMaxSizeRadioButton.Name = "_bingoNoMaxSizeRadioButton";
             _bingoNoMaxSizeRadioButton.Size = new Size(122, 19);
-            _bingoNoMaxSizeRadioButton.TabIndex = 8;
+            _bingoNoMaxSizeRadioButton.TabIndex = 17;
             _bingoNoMaxSizeRadioButton.TabStop = true;
             _bingoNoMaxSizeRadioButton.Text = "No Maximum Size";
             _bingoNoMaxSizeRadioButton.UseVisualStyleBackColor = true;
@@ -250,7 +253,7 @@
             _bingoMaxXTextBox.Location = new Point(30, 72);
             _bingoMaxXTextBox.Name = "_bingoMaxXTextBox";
             _bingoMaxXTextBox.Size = new Size(54, 23);
-            _bingoMaxXTextBox.TabIndex = 10;
+            _bingoMaxXTextBox.TabIndex = 20;
             // 
             // label4
             // 
@@ -258,7 +261,7 @@
             label4.Location = new Point(7, 75);
             label4.Name = "label4";
             label4.Size = new Size(17, 15);
-            label4.TabIndex = 7;
+            label4.TabIndex = 19;
             label4.Text = "X:";
             // 
             // groupBox3
@@ -279,7 +282,7 @@
             _alwaysOnTopCheckbox.Location = new Point(12, 58);
             _alwaysOnTopCheckbox.Name = "_alwaysOnTopCheckbox";
             _alwaysOnTopCheckbox.Size = new Size(102, 19);
-            _alwaysOnTopCheckbox.TabIndex = 3;
+            _alwaysOnTopCheckbox.TabIndex = 4;
             _alwaysOnTopCheckbox.Text = "Always on Top";
             _alwaysOnTopCheckbox.UseVisualStyleBackColor = true;
             // 
@@ -289,7 +292,7 @@
             _colorPanel.Location = new Point(168, 22);
             _colorPanel.Name = "_colorPanel";
             _colorPanel.Size = new Size(25, 25);
-            _colorPanel.TabIndex = 35;
+            _colorPanel.TabIndex = 3;
             _colorPanel.Click += _colorPanel_Click;
             // 
             // label5
@@ -308,7 +311,7 @@
             _fontLinkLabel.Location = new Point(8, 43);
             _fontLinkLabel.Name = "_fontLinkLabel";
             _fontLinkLabel.Size = new Size(90, 20);
-            _fontLinkLabel.TabIndex = 13;
+            _fontLinkLabel.TabIndex = 25;
             _fontLinkLabel.TabStop = true;
             _fontLinkLabel.Text = "FontName";
             _fontLinkLabel.LinkClicked += _fontLinkLabel_LinkClicked;
@@ -319,7 +322,7 @@
             label8.Location = new Point(8, 23);
             label8.Name = "label8";
             label8.Size = new Size(80, 15);
-            label8.TabIndex = 17;
+            label8.TabIndex = 24;
             label8.Text = "Font and Size:";
             // 
             // groupBox4
@@ -333,7 +336,7 @@
             groupBox4.Location = new Point(8, 3);
             groupBox4.Name = "groupBox4";
             groupBox4.Size = new Size(240, 107);
-            groupBox4.TabIndex = 18;
+            groupBox4.TabIndex = 33;
             groupBox4.TabStop = false;
             groupBox4.Text = "Map Initial Position";
             // 
@@ -342,7 +345,7 @@
             _mapPositionYTextBox.Location = new Point(117, 72);
             _mapPositionYTextBox.Name = "_mapPositionYTextBox";
             _mapPositionYTextBox.Size = new Size(54, 23);
-            _mapPositionYTextBox.TabIndex = 22;
+            _mapPositionYTextBox.TabIndex = 39;
             // 
             // label6
             // 
@@ -350,7 +353,7 @@
             label6.Location = new Point(94, 75);
             label6.Name = "label6";
             label6.Size = new Size(17, 15);
-            label6.TabIndex = 5;
+            label6.TabIndex = 38;
             label6.Text = "Y:";
             // 
             // _mapPositionCustomRadioButton
@@ -359,7 +362,7 @@
             _mapPositionCustomRadioButton.Location = new Point(9, 46);
             _mapPositionCustomRadioButton.Name = "_mapPositionCustomRadioButton";
             _mapPositionCustomRadioButton.Size = new Size(113, 19);
-            _mapPositionCustomRadioButton.TabIndex = 20;
+            _mapPositionCustomRadioButton.TabIndex = 35;
             _mapPositionCustomRadioButton.TabStop = true;
             _mapPositionCustomRadioButton.Text = "Custom Position";
             _mapPositionCustomRadioButton.UseVisualStyleBackColor = true;
@@ -370,7 +373,7 @@
             _mapPositionRelativeRadioButton.Location = new Point(9, 22);
             _mapPositionRelativeRadioButton.Name = "_mapPositionRelativeRadioButton";
             _mapPositionRelativeRadioButton.Size = new Size(127, 19);
-            _mapPositionRelativeRadioButton.TabIndex = 19;
+            _mapPositionRelativeRadioButton.TabIndex = 34;
             _mapPositionRelativeRadioButton.TabStop = true;
             _mapPositionRelativeRadioButton.Text = "Relative to Window";
             _mapPositionRelativeRadioButton.UseVisualStyleBackColor = true;
@@ -380,7 +383,7 @@
             _mapPositionXTextBox.Location = new Point(30, 72);
             _mapPositionXTextBox.Name = "_mapPositionXTextBox";
             _mapPositionXTextBox.Size = new Size(54, 23);
-            _mapPositionXTextBox.TabIndex = 21;
+            _mapPositionXTextBox.TabIndex = 37;
             // 
             // label7
             // 
@@ -388,7 +391,7 @@
             label7.Location = new Point(7, 75);
             label7.Name = "label7";
             label7.Size = new Size(17, 15);
-            label7.TabIndex = 1;
+            label7.TabIndex = 36;
             label7.Text = "X:";
             // 
             // groupBox5
@@ -396,10 +399,10 @@
             groupBox5.Controls.Add(_portTextBox);
             groupBox5.Controls.Add(label9);
             groupBox5.Controls.Add(_hostServerCheckBox);
-            groupBox5.Location = new Point(8, 229);
+            groupBox5.Location = new Point(254, 6);
             groupBox5.Name = "groupBox5";
             groupBox5.Size = new Size(240, 98);
-            groupBox5.TabIndex = 27;
+            groupBox5.TabIndex = 12;
             groupBox5.TabStop = false;
             groupBox5.Text = "Server Hosting";
             // 
@@ -408,7 +411,7 @@
             _portTextBox.Location = new Point(50, 59);
             _portTextBox.Name = "_portTextBox";
             _portTextBox.Size = new Size(61, 23);
-            _portTextBox.TabIndex = 29;
+            _portTextBox.TabIndex = 15;
             // 
             // label9
             // 
@@ -416,7 +419,7 @@
             label9.Location = new Point(12, 62);
             label9.Name = "label9";
             label9.Size = new Size(32, 15);
-            label9.TabIndex = 27;
+            label9.TabIndex = 14;
             label9.Text = "Port:";
             // 
             // _hostServerCheckBox
@@ -425,7 +428,7 @@
             _hostServerCheckBox.Location = new Point(12, 28);
             _hostServerCheckBox.Name = "_hostServerCheckBox";
             _hostServerCheckBox.Size = new Size(184, 19);
-            _hostServerCheckBox.TabIndex = 28;
+            _hostServerCheckBox.TabIndex = 13;
             _hostServerCheckBox.Text = "Host a bingo server on launch";
             _hostServerCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -436,7 +439,7 @@
             groupBox6.Location = new Point(8, 223);
             groupBox6.Name = "groupBox6";
             groupBox6.Size = new Size(240, 114);
-            groupBox6.TabIndex = 28;
+            groupBox6.TabIndex = 47;
             groupBox6.TabStop = false;
             groupBox6.Text = "Misc.";
             // 
@@ -445,7 +448,7 @@
             _showClassesCheckBox.Location = new Point(9, 65);
             _showClassesCheckBox.Name = "_showClassesCheckBox";
             _showClassesCheckBox.Size = new Size(218, 41);
-            _showClassesCheckBox.TabIndex = 30;
+            _showClassesCheckBox.TabIndex = 49;
             _showClassesCheckBox.Text = "Show available classes in an overlay on the map (for streaming)";
             _showClassesCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -454,7 +457,7 @@
             _swapMouseButtons.Location = new Point(9, 19);
             _swapMouseButtons.Name = "_swapMouseButtons";
             _swapMouseButtons.Size = new Size(218, 40);
-            _swapMouseButtons.TabIndex = 29;
+            _swapMouseButtons.TabIndex = 48;
             _swapMouseButtons.Text = "Swap mouse buttons***(Left = Draw, Right = Pan)";
             _swapMouseButtons.UseVisualStyleBackColor = true;
             // 
@@ -468,7 +471,7 @@
             groupBox7.Location = new Point(8, 119);
             groupBox7.Name = "groupBox7";
             groupBox7.Size = new Size(240, 195);
-            groupBox7.TabIndex = 12;
+            groupBox7.TabIndex = 23;
             groupBox7.TabStop = false;
             groupBox7.Text = "Appearance";
             // 
@@ -478,7 +481,7 @@
             _outOfFocusClickTextBox.Name = "_outOfFocusClickTextBox";
             _outOfFocusClickTextBox.ReadOnly = true;
             _outOfFocusClickTextBox.Size = new Size(105, 23);
-            _outOfFocusClickTextBox.TabIndex = 15;
+            _outOfFocusClickTextBox.TabIndex = 28;
             _outOfFocusClickTextBox.Enter += _outOfFocusClickTextBox_Enter;
             _outOfFocusClickTextBox.KeyDown += _outOfFocusClickTextBox_KeyDown;
             _outOfFocusClickTextBox.Leave += _outOfFocusClickTextBox_Leave;
@@ -489,7 +492,7 @@
             label11.Location = new Point(9, 134);
             label11.Name = "label11";
             label11.Size = new Size(186, 15);
-            label11.TabIndex = 20;
+            label11.TabIndex = 27;
             label11.Text = "Out-of-focus click key (Keyboard)";
             // 
             // _clickIncrementsCountCheckbox
@@ -497,21 +500,52 @@
             _clickIncrementsCountCheckbox.Location = new Point(9, 71);
             _clickIncrementsCountCheckbox.Name = "_clickIncrementsCountCheckbox";
             _clickIncrementsCountCheckbox.Size = new Size(219, 54);
-            _clickIncrementsCountCheckbox.TabIndex = 14;
+            _clickIncrementsCountCheckbox.TabIndex = 26;
             _clickIncrementsCountCheckbox.Text = "Clicking on \"Counted\" square increments the counter instead of marking the square";
             _clickIncrementsCountCheckbox.UseVisualStyleBackColor = true;
             // 
             // groupBox8
             // 
+            groupBox8.Controls.Add(_testSoundButton);
+            groupBox8.Controls.Add(label14);
+            groupBox8.Controls.Add(_soundOutputDeviceComboBox);
             groupBox8.Controls.Add(label10);
             groupBox8.Controls.Add(_volumeTrackBar);
             groupBox8.Controls.Add(_soundCheckBox);
             groupBox8.Location = new Point(8, 102);
             groupBox8.Name = "groupBox8";
-            groupBox8.Size = new Size(240, 121);
-            groupBox8.TabIndex = 4;
+            groupBox8.Size = new Size(240, 198);
+            groupBox8.TabIndex = 5;
             groupBox8.TabStop = false;
             groupBox8.Text = "Sounds";
+            // 
+            // _testSoundButton
+            // 
+            _testSoundButton.Location = new Point(7, 163);
+            _testSoundButton.Name = "_testSoundButton";
+            _testSoundButton.Size = new Size(107, 23);
+            _testSoundButton.TabIndex = 11;
+            _testSoundButton.Text = "Play Test Sfx";
+            _testSoundButton.UseVisualStyleBackColor = true;
+            _testSoundButton.Click += _testSoundButton_Click;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(9, 111);
+            label14.Name = "label14";
+            label14.Size = new Size(86, 15);
+            label14.TabIndex = 9;
+            label14.Text = "Output Device:";
+            // 
+            // _soundOutputDeviceComboBox
+            // 
+            _soundOutputDeviceComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            _soundOutputDeviceComboBox.FormattingEnabled = true;
+            _soundOutputDeviceComboBox.Location = new Point(8, 132);
+            _soundOutputDeviceComboBox.Name = "_soundOutputDeviceComboBox";
+            _soundOutputDeviceComboBox.Size = new Size(225, 23);
+            _soundOutputDeviceComboBox.TabIndex = 10;
             // 
             // label10
             // 
@@ -519,7 +553,7 @@
             label10.Location = new Point(12, 52);
             label10.Name = "label10";
             label10.Size = new Size(47, 15);
-            label10.TabIndex = 31;
+            label10.TabIndex = 7;
             label10.Text = "Volume";
             // 
             // _volumeTrackBar
@@ -528,7 +562,7 @@
             _volumeTrackBar.Location = new Point(6, 73);
             _volumeTrackBar.Name = "_volumeTrackBar";
             _volumeTrackBar.Size = new Size(228, 35);
-            _volumeTrackBar.TabIndex = 6;
+            _volumeTrackBar.TabIndex = 8;
             // 
             // _soundCheckBox
             // 
@@ -536,7 +570,7 @@
             _soundCheckBox.Location = new Point(12, 25);
             _soundCheckBox.Name = "_soundCheckBox";
             _soundCheckBox.Size = new Size(128, 19);
-            _soundCheckBox.TabIndex = 5;
+            _soundCheckBox.TabIndex = 6;
             _soundCheckBox.Text = "Enable alert sounds";
             _soundCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -561,7 +595,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(734, 348);
+            tabPage1.Size = new Size(513, 348);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "General";
             // 
@@ -574,9 +608,57 @@
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(734, 348);
+            tabPage2.Size = new Size(513, 348);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Bingo Board";
+            // 
+            // groupBox9
+            // 
+            groupBox9.Controls.Add(panel2);
+            groupBox9.Controls.Add(label13);
+            groupBox9.Location = new Point(254, 6);
+            groupBox9.Name = "groupBox9";
+            groupBox9.Size = new Size(240, 107);
+            groupBox9.TabIndex = 29;
+            groupBox9.TabStop = false;
+            groupBox9.Text = "Spectator Settings";
+            // 
+            // panel2
+            // 
+            panel2.Controls.Add(label12);
+            panel2.Controls.Add(_delayMatchEventsTextBox);
+            panel2.Dock = DockStyle.Fill;
+            panel2.Location = new Point(3, 74);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(234, 30);
+            panel2.TabIndex = 2;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(90, 6);
+            label12.Name = "label12";
+            label12.Size = new Size(73, 15);
+            label12.TabIndex = 32;
+            label12.Text = "milliseconds";
+            // 
+            // _delayMatchEventsTextBox
+            // 
+            _delayMatchEventsTextBox.Location = new Point(3, 3);
+            _delayMatchEventsTextBox.MaximumSize = new Size(100, 0);
+            _delayMatchEventsTextBox.Name = "_delayMatchEventsTextBox";
+            _delayMatchEventsTextBox.Size = new Size(81, 23);
+            _delayMatchEventsTextBox.TabIndex = 31;
+            // 
+            // label13
+            // 
+            label13.Dock = DockStyle.Top;
+            label13.Location = new Point(3, 19);
+            label13.Name = "label13";
+            label13.Padding = new Padding(0, 3, 0, 0);
+            label13.Size = new Size(234, 55);
+            label13.TabIndex = 30;
+            label13.Text = "When spectating, delay all match events (this includes square checks, counters, match status changes, timer etc.):";
             // 
             // tabPage3
             // 
@@ -599,54 +681,6 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(521, 29);
             panel1.TabIndex = 34;
-            // 
-            // groupBox9
-            // 
-            groupBox9.Controls.Add(panel2);
-            groupBox9.Controls.Add(label13);
-            groupBox9.Location = new Point(254, 6);
-            groupBox9.Name = "groupBox9";
-            groupBox9.Size = new Size(240, 107);
-            groupBox9.TabIndex = 16;
-            groupBox9.TabStop = false;
-            groupBox9.Text = "Spectator Settings";
-            // 
-            // panel2
-            // 
-            panel2.Controls.Add(label12);
-            panel2.Controls.Add(_delayMatchEventsTextBox);
-            panel2.Dock = DockStyle.Fill;
-            panel2.Location = new Point(3, 74);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(234, 30);
-            panel2.TabIndex = 2;
-            // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Location = new Point(90, 6);
-            label12.Name = "label12";
-            label12.Size = new Size(73, 15);
-            label12.TabIndex = 21;
-            label12.Text = "milliseconds";
-            // 
-            // _delayMatchEventsTextBox
-            // 
-            _delayMatchEventsTextBox.Location = new Point(3, 3);
-            _delayMatchEventsTextBox.MaximumSize = new Size(100, 0);
-            _delayMatchEventsTextBox.Name = "_delayMatchEventsTextBox";
-            _delayMatchEventsTextBox.Size = new Size(81, 23);
-            _delayMatchEventsTextBox.TabIndex = 17;
-            // 
-            // label13
-            // 
-            label13.Dock = DockStyle.Top;
-            label13.Location = new Point(3, 19);
-            label13.Name = "label13";
-            label13.Padding = new Padding(0, 3, 0, 0);
-            label13.Size = new Size(234, 55);
-            label13.TabIndex = 19;
-            label13.Text = "When spectating, delay all match events (this includes square checks, counters, match status changes, timer etc.):";
             // 
             // SettingsDialog
             // 
@@ -682,11 +716,11 @@
             tabControl1.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage2.ResumeLayout(false);
-            tabPage3.ResumeLayout(false);
-            panel1.ResumeLayout(false);
             groupBox9.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
+            tabPage3.ResumeLayout(false);
+            panel1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -747,5 +781,8 @@
         private Label label12;
         private TextBox _delayMatchEventsTextBox;
         private Label label13;
+        private Label label14;
+        private ComboBox _soundOutputDeviceComboBox;
+        private Button _testSoundButton;
     }
 }

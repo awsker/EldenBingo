@@ -1,4 +1,8 @@
-﻿namespace EldenBingo.UI
+﻿using EldenBingo.Sfx;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+
+namespace EldenBingo.UI
 {
     public partial class SettingsDialog : Form
     {
@@ -129,7 +133,7 @@
             if (!int.TryParse(_mapSizeCustomXTextBox.Text, out var mapWidth))
             {
                 //Invalid x size
-                return false; 
+                return false;
             }
             if (!int.TryParse(_mapSizeCustomYTextBox.Text, out var mapHeight))
             {
@@ -191,6 +195,7 @@
 
             Properties.Settings.Default.PlaySounds = _soundCheckBox.Checked;
             Properties.Settings.Default.SoundVolume = Math.Clamp(_volumeTrackBar.Value * 10, 0, 100);
+            Properties.Settings.Default.OutputDevice = (_soundOutputDeviceComboBox.SelectedItem as AudioDevice)?.Id ?? string.Empty;
 
             Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
 
@@ -205,6 +210,7 @@
         private void SettingsDialog_Load(object sender, EventArgs e)
         {
             _swapMouseButtons.Text = _swapMouseButtons.Text.Replace("***", "\r\n");
+            initOutputDeviceComboBox();
         }
 
         private void _outOfFocusClickTextBox_Enter(object sender, EventArgs e)
@@ -230,6 +236,25 @@
             }
         }
 
+        private void initOutputDeviceComboBox()
+        {
+            var devices = MainForm.Instance?.SoundPlayer?.GetAudioDevices() ?? null;
+            _soundOutputDeviceComboBox.DataSource = devices;
+            _soundOutputDeviceComboBox.SelectedIndex = indexOfDevice(devices, Properties.Settings.Default.OutputDevice);
+        }
+
+        private int indexOfDevice(IList<AudioDevice>? devices, string id)
+        {
+            if (devices == null)
+                return 0;
+            for (int i = 0; i < devices.Count; i++)
+            {
+                if (devices[i].Id == id)
+                    return i;
+            }
+            return 0;
+        }
+
         private void updateOutOfFocusText()
         {
             if (_rebindingKey)
@@ -242,6 +267,19 @@
             }
         }
 
-
+        private void _testSoundButton_Click(object sender, EventArgs e)
+        {
+            var player = MainForm.Instance?.SoundPlayer;
+            if (player != null)
+            {
+                var prev = Properties.Settings.Default.OutputDevice;
+                var selected = _soundOutputDeviceComboBox.SelectedItem as AudioDevice;
+                if (selected != null) {
+                    player.SetAudioDevice(selected.Id);
+                    player.PlaySound(SoundType.SquareClaimed, Math.Clamp(_volumeTrackBar.Value * 10, 0, 100));
+                }
+                player.SetAudioDevice(prev);
+            }
+        }
     }
 }
