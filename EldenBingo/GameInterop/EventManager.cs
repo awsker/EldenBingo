@@ -26,10 +26,8 @@ public class EventManager
         long setEventPtr = -1;
         await Task.Run(() =>
         {
-            // Return if EventManPtr is invalid
+            // Init pointers and make sure the addresses are correct
             eventManPtr = _gameHandler.GetEventManPtr();
-
-            // Return if IsEventFlag ptr is invalid
             setEventPtr = _gameHandler.GetSetEventFlagPtr();
         });
         _initializingPointers = false;
@@ -134,7 +132,6 @@ public class EventManager
     {
         _client.AddListener<ServerJoinRoomAccepted>(acceptedIntoRoom);
         _gameHandler.CoordinatesRead += gameHandler_CoordinatesRead;
-        _gameHandler.ProcessReadingChanged += gameHandler_ProcessReadingChanged;
     }
 
     private void resetGameStartedStatus()
@@ -158,13 +155,6 @@ public class EventManager
     {
         //Whenever coordinates are read, check if we need to start the game
         handleMatchStatus(_client.Room?.Match?.MatchStatus, e.Coordinates);
-    }
-
-    private void gameHandler_ProcessReadingChanged(object? sender, EventArgs e)
-    {
-        //If the process is no longer being read, reset all pointers
-        if (!_gameHandler.ReadingProcess)
-            _gameHandler.ResetEventManPtrs();
     }
 
     private void handleMatchStatus(MatchStatus? status, MapCoordinates? coordinates)

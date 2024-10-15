@@ -805,7 +805,7 @@ namespace EldenBingo.GameInterop
                 UpdateStatus("No access to game process...", ErrorColor);
                 return false;
             }
-
+            ResetEventManPtrs();
             InitEventManPtrs();
             UpdateStatus("Monitoring game...", SuccessColor);
             return true;
