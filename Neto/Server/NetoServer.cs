@@ -280,18 +280,35 @@ namespace Neto.Server
                             var ipToken = clientToken(client.TcpClient, objData.IdentityToken);
                             if (!string.IsNullOrEmpty(ipToken))
                             {
-                                if (CachedIdentities.TryGetValue(ipToken, out var identity))
+                                lock (CachedIdentities)
                                 {
-                                    //Unless there's a client already connected with this guid
-                                    if (!clientAlreadyExists(client))
+                                    if (CachedIdentities.TryGetValue(ipToken, out var identity))
                                     {
-                                        client.ClientGuid = identity.ClientGuid;
+                                        //We have a cached identity for this ip token,
+                                        //check if another client is already connected with this guid
+
+                                        //If a client with the same IP and identity token was already connected,
+                                        //they might have been disconnected (or already connected from the same machine)
+                                        //so immediately try sending them a KeepAlive. This will kick them from the
+                                        //server if it's not responded to within 5 seconds
+                                        if (_clients.TryGetValue(identity.ClientGuid, out var alreadyConnectedClient))
+                                        {
+                                            _ = SendPacketToClient(new Packet(new KeepAlive()), alreadyConnectedClient);
+                                        }
+                                        else
+                                        {
+                                            //No other client connected, so switch out the guid of the client,
+                                            //and replace the client guid in the dictionary
+                                            _clients.Remove(client.ClientGuid, out _);
+                                            client.ClientGuid = identity.ClientGuid;
+                                            _clients[client.ClientGuid] = client;
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    //Client not registered, register client with its currently assigned guid
-                                    CachedIdentities[ipToken] = new ClientIdentity(ipToken, client.ClientGuid);
+                                    else
+                                    {
+                                        //Client not registered, register client with its currently assigned guid
+                                        CachedIdentities[ipToken] = new ClientIdentity(ipToken, client.ClientGuid);
+                                    }
                                 }
                             }
                         }
@@ -311,9 +328,9 @@ namespace Neto.Server
             }
         }
 
-        private bool clientAlreadyExists(CM client)
+        private bool clientAlreadyExists(Guid potentialGuid)
         {
-            return _clients.TryGetValue(client.ClientGuid, out var prevClient) && prevClient != client;
+            return _clients.TryGetValue(potentialGuid, out var _);
         }
 
         private string clientToken(TcpClient client, string token)

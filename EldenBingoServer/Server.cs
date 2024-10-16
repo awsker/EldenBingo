@@ -354,8 +354,8 @@ namespace EldenBingoServer
                 deniedReason = "Already in this lobby";
             else if (string.IsNullOrWhiteSpace(request.Nick))
                 deniedReason = "Invalid nickname";
-            else if (room != null && room.Users.Any(c => c.Nick == request.Nick))
-                deniedReason = "Nickname already in use";
+            //else if (room != null && room.Users.Any(c => c.Nick == request.Nick))
+            //  deniedReason = "Nickname already in use";
             else if (room != null && !string.IsNullOrWhiteSpace(request.AdminPass) && !room.IsCorrectAdminPassword(request.AdminPass))
                 deniedReason = "Wrong admin password";
             if (deniedReason != null)
