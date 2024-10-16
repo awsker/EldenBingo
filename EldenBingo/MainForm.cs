@@ -401,7 +401,10 @@ namespace EldenBingo
         {
             if (Properties.Settings.Default.PlaySounds && userCheckedSquareArgs.TeamChecked.HasValue)
             {
-                _sounds.PlaySound(SoundType.SquareClaimed);
+                if(userCheckedSquareArgs.TeamChecked.HasValue && userCheckedSquareArgs.TeamChecked.Value == _client?.LocalUser?.Team)
+                    _sounds.PlaySound(SoundType.SquareClaimedOwn);
+                else
+                    _sounds.PlaySound(SoundType.SquareClaimedOther);
             }
         }
 

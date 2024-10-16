@@ -7,7 +7,8 @@ namespace EldenBingo.Sfx
 {
     public enum SoundType
     {
-        SquareClaimed,
+        SquareClaimedOther,
+        SquareClaimedOwn,
         Bingo,
     }
 
@@ -35,7 +36,8 @@ namespace EldenBingo.Sfx
         private static string SfxPath = "./Sfx/";
         private static readonly string[] AudioFiles = new string[]
         {
-            "square_claimed.wav",
+            "square_claimed_other.wav",
+            "square_claimed_own.wav",
             "bingo.wav"
         };
 
@@ -105,7 +107,6 @@ namespace EldenBingo.Sfx
                 if (i >= 0 && i < _sounds.Length)
                 {
                     var s = _sounds[i];
-
                     if (s != null)
                     {
                         WasapiOut? p = _players[i];

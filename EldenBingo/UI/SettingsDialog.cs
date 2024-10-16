@@ -276,7 +276,7 @@ namespace EldenBingo.UI
                 var selected = _soundOutputDeviceComboBox.SelectedItem as AudioDevice;
                 if (selected != null) {
                     player.SetAudioDevice(selected.Id);
-                    player.PlaySound(SoundType.SquareClaimed, Math.Clamp(_volumeTrackBar.Value * 10, 0, 100));
+                    player.PlaySound(SoundType.SquareClaimedOther, Math.Clamp(_volumeTrackBar.Value * 10, 0, 100));
                 }
                 player.SetAudioDevice(prev);
             }
