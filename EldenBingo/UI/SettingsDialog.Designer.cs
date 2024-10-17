@@ -86,6 +86,8 @@
             label13 = new Label();
             tabPage3 = new TabPage();
             panel1 = new Panel();
+            _checkUpdatesCheckBox = new CheckBox();
+            groupBox10 = new GroupBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -102,6 +104,7 @@
             panel2.SuspendLayout();
             tabPage3.SuspendLayout();
             panel1.SuspendLayout();
+            groupBox10.SuspendLayout();
             SuspendLayout();
             // 
             // _okButton
@@ -401,14 +404,14 @@
             groupBox5.Controls.Add(_hostServerCheckBox);
             groupBox5.Location = new Point(254, 6);
             groupBox5.Name = "groupBox5";
-            groupBox5.Size = new Size(240, 98);
+            groupBox5.Size = new Size(240, 90);
             groupBox5.TabIndex = 12;
             groupBox5.TabStop = false;
             groupBox5.Text = "Server Hosting";
             // 
             // _portTextBox
             // 
-            _portTextBox.Location = new Point(50, 59);
+            _portTextBox.Location = new Point(50, 55);
             _portTextBox.Name = "_portTextBox";
             _portTextBox.Size = new Size(61, 23);
             _portTextBox.TabIndex = 15;
@@ -416,7 +419,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(12, 62);
+            label9.Location = new Point(12, 58);
             label9.Name = "label9";
             label9.Size = new Size(32, 15);
             label9.TabIndex = 14;
@@ -589,6 +592,7 @@
             // tabPage1
             // 
             tabPage1.BackColor = SystemColors.Control;
+            tabPage1.Controls.Add(groupBox10);
             tabPage1.Controls.Add(groupBox3);
             tabPage1.Controls.Add(groupBox8);
             tabPage1.Controls.Add(groupBox5);
@@ -682,6 +686,26 @@
             panel1.Size = new Size(521, 29);
             panel1.TabIndex = 34;
             // 
+            // _checkUpdatesCheckBox
+            // 
+            _checkUpdatesCheckBox.AutoSize = true;
+            _checkUpdatesCheckBox.Location = new Point(12, 26);
+            _checkUpdatesCheckBox.Name = "_checkUpdatesCheckBox";
+            _checkUpdatesCheckBox.Size = new Size(179, 19);
+            _checkUpdatesCheckBox.TabIndex = 35;
+            _checkUpdatesCheckBox.Text = "Check for updates on startup";
+            _checkUpdatesCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // groupBox10
+            // 
+            groupBox10.Controls.Add(_checkUpdatesCheckBox);
+            groupBox10.Location = new Point(254, 102);
+            groupBox10.Name = "groupBox10";
+            groupBox10.Size = new Size(240, 59);
+            groupBox10.TabIndex = 36;
+            groupBox10.TabStop = false;
+            groupBox10.Text = "Application Updates";
+            // 
             // SettingsDialog
             // 
             AcceptButton = _okButton;
@@ -721,6 +745,8 @@
             panel2.PerformLayout();
             tabPage3.ResumeLayout(false);
             panel1.ResumeLayout(false);
+            groupBox10.ResumeLayout(false);
+            groupBox10.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -784,5 +810,7 @@
         private Label label14;
         private ComboBox _soundOutputDeviceComboBox;
         private Button _testSoundButton;
+        private GroupBox groupBox10;
+        private CheckBox _checkUpdatesCheckBox;
     }
 }

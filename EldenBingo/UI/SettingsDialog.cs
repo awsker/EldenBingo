@@ -102,6 +102,8 @@ namespace EldenBingo.UI
 
             _delayMatchEventsTextBox.Text = Properties.Settings.Default.DelayMatchEvents.ToString();
 
+            _checkUpdatesCheckBox.Checked = Properties.Settings.Default.CheckForUpdates;
+
             updateSizeEnable();
             updatePositionEnable();
             updateMaxSizeEnable();
@@ -200,6 +202,8 @@ namespace EldenBingo.UI
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
 
             Properties.Settings.Default.DelayMatchEvents = delayMatchEvents;
+
+            Properties.Settings.Default.CheckForUpdates = _checkUpdatesCheckBox.Checked;
 
             Properties.Settings.Default.Save();
             return true;

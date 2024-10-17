@@ -10,6 +10,8 @@ using EldenBingoCommon;
 using EldenBingoServer;
 using Neto.Shared;
 using SFML.System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Security.Principal;
 
 namespace EldenBingo
@@ -30,6 +32,7 @@ namespace EldenBingo
         private bool _autoReconnect;
         private bool _connecting = false;
         private RawInputHandler _rawInput;
+        private bool _hasCheckedUpdates;
 
         public MainForm()
         {
@@ -72,9 +75,15 @@ namespace EldenBingo
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
             Instance = this;
+
+            if (Properties.Settings.Default.CheckForUpdates)
+            {
+                checkForUpdates();
+            }
         }
 
         public static MainForm? Instance { get; private set; }
+
         public RawInputHandler RawInput => _rawInput;
 
         public SoundLibrary SoundPlayer => _sounds;
@@ -325,7 +334,6 @@ namespace EldenBingo
             }
         }
 
-
         private void addClientListeners(Client? client)
         {
             if (client == null)
@@ -401,7 +409,7 @@ namespace EldenBingo
         {
             if (Properties.Settings.Default.PlaySounds && userCheckedSquareArgs.TeamChecked.HasValue)
             {
-                if(userCheckedSquareArgs.TeamChecked.HasValue && userCheckedSquareArgs.TeamChecked.Value == _client?.LocalUser?.Team)
+                if (userCheckedSquareArgs.TeamChecked.HasValue && userCheckedSquareArgs.TeamChecked.Value == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
                     _sounds.PlaySound(SoundType.SquareClaimedOther);
@@ -531,6 +539,12 @@ namespace EldenBingo
             {
                 _sounds.SetAudioDevice(Properties.Settings.Default.OutputDevice);
             }
+            if (e.PropertyName == nameof(Properties.Settings.Default.CheckForUpdates))
+            {
+                //If user just enabled "check for updates", do a little check
+                if (!_hasCheckedUpdates && Properties.Settings.Default.CheckForUpdates)
+                    checkForUpdates();
+            }
         }
 
         private void hostServer()
@@ -626,7 +640,7 @@ namespace EldenBingo
 
         private void openMapWindow()
         {
-            if (_mapWindowThread?.ThreadState == ThreadState.Running)
+            if (_mapWindowThread?.ThreadState == System.Threading.ThreadState.Running)
                 return;
 
             if (_mapCoordinateProviderHandler != null)
@@ -727,6 +741,26 @@ namespace EldenBingo
             //Do nothing if game is already running without EAC
         }
 
+        private async void checkForUpdates()
+        {
+            _hasCheckedUpdates = true;
+            var v = Assembly.GetExecutingAssembly().GetName().Version;
+            var updater = new GitHubVersionChecker(v);
+            var newerVersion = await updater.CheckForNewerVersionAsync();
+            if (newerVersion.HasValue)
+            {
+                if (MessageBox.Show($"Version {newerVersion.Value.Tag_Name} of Elden Bingo is now available! Open download page?", $"{Application.ProductName} - Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    openBrowser(newerVersion.Value.Html_Url);
+                }
+            }
+        }
+
+        private void openBrowser(string url)
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+
         private void updateButtonAvailability()
         {
             if (!FormReady)
@@ -750,6 +784,5 @@ namespace EldenBingo
                 _leaveRoomButton.Enabled = connected;
             }));
         }
-
     }
 }
