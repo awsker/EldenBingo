@@ -1,6 +1,4 @@
 ﻿using EldenBingo.Sfx;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 
 namespace EldenBingo.UI
 {

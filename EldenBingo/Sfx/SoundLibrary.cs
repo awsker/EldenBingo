@@ -41,7 +41,7 @@ namespace EldenBingo.Sfx
             "bingo.wav"
         };
 
-        private readonly CachedSound?[] _sounds;
+        private readonly CachedSoundSampleProvider?[] _sounds;
         private readonly WasapiOut?[] _players;
 
         private MMDevice? _currentDevice = null;
@@ -51,7 +51,7 @@ namespace EldenBingo.Sfx
         {
             _deviceEnumerator = new MMDeviceEnumerator();
             _deviceEnumerator.RegisterEndpointNotificationCallback(this);
-            _sounds = new CachedSound[AudioFiles.Length];
+            _sounds = new CachedSoundSampleProvider[AudioFiles.Length];
             _players = new WasapiOut[AudioFiles.Length];
             for (int i = 0; i < AudioFiles.Length; i++)
             {
@@ -60,9 +60,9 @@ namespace EldenBingo.Sfx
                     var path = Path.Combine(SfxPath, AudioFiles[i]);
                     if (File.Exists(path))
                     {
-                        _sounds[i] = new CachedSound(path);
+                        _sounds[i] = new CachedSoundSampleProvider(new CachedSound(path));
                     }
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -75,9 +75,11 @@ namespace EldenBingo.Sfx
 
         public IList<AudioDevice> GetAudioDevices()
         {
-            var list = new List<AudioDevice>();
-            list.Add(new AudioDevice("System Default Output", string.Empty));
-            foreach(var device in _deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+            var list = new List<AudioDevice>
+            {
+                new AudioDevice("System Default Output", string.Empty)
+            };
+            foreach (var device in _deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
                 list.Add(new AudioDevice(device.FriendlyName, device.ID));
             }
@@ -109,12 +111,14 @@ namespace EldenBingo.Sfx
                     var s = _sounds[i];
                     if (s != null)
                     {
+                        s.ResetPosition();
+                        s.SetVolume((volume ?? Properties.Settings.Default.SoundVolume) * 0.01f);
+
                         WasapiOut? p = _players[i];
                         p?.Stop();
                         p?.Dispose();
                         p = new WasapiOut(_currentDevice, AudioClientShareMode.Shared, false, 50);
-                        p.Volume = Math.Clamp((volume ?? Properties.Settings.Default.SoundVolume) * 0.01f, 0f, 1f);
-                        p.Init(new CachedSoundSampleProvider(s));
+                        p.Init(s);
                         p.Play();
                         _players[i] = p;
                     }
@@ -128,7 +132,7 @@ namespace EldenBingo.Sfx
 
         public void Dispose()
         {
-            foreach(var p in _players)
+            foreach (var p in _players)
             {
                 p?.Dispose();
             }
@@ -160,7 +164,7 @@ namespace EldenBingo.Sfx
 
         private void initAudioDevice()
         {
-            if(_currentDevice ==  null && _forceDeviceId != string.Empty)
+            if (_currentDevice == null && _forceDeviceId != string.Empty)
             {
                 _currentDevice = _deviceEnumerator.GetDevice(_forceDeviceId);
             }
@@ -209,9 +213,20 @@ namespace EldenBingo.Sfx
             private readonly CachedSound cachedSound;
             private long position;
 
+            private float _volume;
             public CachedSoundSampleProvider(CachedSound cachedSound)
             {
                 this.cachedSound = cachedSound;
+            }
+
+            public void ResetPosition()
+            {
+                position = 0;
+            }
+
+            public void SetVolume(float volume)
+            {
+                _volume = Math.Clamp(volume, 0f, 1f);
             }
 
             public WaveFormat WaveFormat { get { return cachedSound.WaveFormat; } }
@@ -220,7 +235,20 @@ namespace EldenBingo.Sfx
             {
                 var availableSamples = cachedSound.AudioData.Length - position;
                 var samplesToCopy = Math.Min(availableSamples, count);
-                Array.Copy(cachedSound.AudioData, position, buffer, offset, samplesToCopy);
+
+                int destOffset = offset;
+                for (int sourceSample = 0; sourceSample < samplesToCopy; sourceSample += 4)
+                {
+                    var span = new ReadOnlySpan<byte>(cachedSound.AudioData, (int)position + sourceSample, 4);
+                    float sample = BitConverter.ToSingle(span) * _volume;
+                    var floatBytes = BitConverter.GetBytes(sample);
+                    buffer[destOffset + 0] = floatBytes[0];
+                    buffer[destOffset + 1] = floatBytes[1];
+                    buffer[destOffset + 2] = floatBytes[2];
+                    buffer[destOffset + 3] = floatBytes[3];
+                    destOffset += 4;
+                }
+                //Array.Copy(cachedSound.AudioData, position, buffer, offset, samplesToCopy);
                 position += samplesToCopy;
                 return (int)samplesToCopy;
             }
