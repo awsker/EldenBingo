@@ -58,12 +58,6 @@ namespace EldenBingo.Util
             }
         }
 
-        private string? GetZipDownloadUrl(GitHubRelease release)
-        {
-            var asset = release.Assets?.FirstOrDefault(asset => asset.Name.StartsWith("EldenBingo"));
-            return asset?.Browser_Download_Url;
-        }
-
         public record struct GitHubRelease(string Name, string Tag_Name, string Html_Url, bool Prerelease, GitHubAsset[]? Assets);
 
         public record struct GitHubAsset(string Name, string Browser_Download_Url);
