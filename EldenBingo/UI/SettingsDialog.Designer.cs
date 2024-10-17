@@ -78,6 +78,8 @@
             _soundCheckBox = new CheckBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
+            groupBox10 = new GroupBox();
+            _checkUpdatesCheckBox = new CheckBox();
             tabPage2 = new TabPage();
             groupBox9 = new GroupBox();
             panel2 = new Panel();
@@ -86,8 +88,6 @@
             label13 = new Label();
             tabPage3 = new TabPage();
             panel1 = new Panel();
-            _checkUpdatesCheckBox = new CheckBox();
-            groupBox10 = new GroupBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -99,12 +99,12 @@
             ((System.ComponentModel.ISupportInitialize)_volumeTrackBar).BeginInit();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
+            groupBox10.SuspendLayout();
             tabPage2.SuspendLayout();
             groupBox9.SuspendLayout();
             panel2.SuspendLayout();
             tabPage3.SuspendLayout();
             panel1.SuspendLayout();
-            groupBox10.SuspendLayout();
             SuspendLayout();
             // 
             // _okButton
@@ -603,6 +603,26 @@
             tabPage1.TabIndex = 0;
             tabPage1.Text = "General";
             // 
+            // groupBox10
+            // 
+            groupBox10.Controls.Add(_checkUpdatesCheckBox);
+            groupBox10.Location = new Point(254, 102);
+            groupBox10.Name = "groupBox10";
+            groupBox10.Size = new Size(240, 59);
+            groupBox10.TabIndex = 50;
+            groupBox10.TabStop = false;
+            groupBox10.Text = "Application Updates";
+            // 
+            // _checkUpdatesCheckBox
+            // 
+            _checkUpdatesCheckBox.AutoSize = true;
+            _checkUpdatesCheckBox.Location = new Point(12, 26);
+            _checkUpdatesCheckBox.Name = "_checkUpdatesCheckBox";
+            _checkUpdatesCheckBox.Size = new Size(179, 19);
+            _checkUpdatesCheckBox.TabIndex = 51;
+            _checkUpdatesCheckBox.Text = "Check for updates on startup";
+            _checkUpdatesCheckBox.UseVisualStyleBackColor = true;
+            // 
             // tabPage2
             // 
             tabPage2.BackColor = SystemColors.Control;
@@ -686,26 +706,6 @@
             panel1.Size = new Size(521, 29);
             panel1.TabIndex = 34;
             // 
-            // _checkUpdatesCheckBox
-            // 
-            _checkUpdatesCheckBox.AutoSize = true;
-            _checkUpdatesCheckBox.Location = new Point(12, 26);
-            _checkUpdatesCheckBox.Name = "_checkUpdatesCheckBox";
-            _checkUpdatesCheckBox.Size = new Size(179, 19);
-            _checkUpdatesCheckBox.TabIndex = 35;
-            _checkUpdatesCheckBox.Text = "Check for updates on startup";
-            _checkUpdatesCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // groupBox10
-            // 
-            groupBox10.Controls.Add(_checkUpdatesCheckBox);
-            groupBox10.Location = new Point(254, 102);
-            groupBox10.Name = "groupBox10";
-            groupBox10.Size = new Size(240, 59);
-            groupBox10.TabIndex = 36;
-            groupBox10.TabStop = false;
-            groupBox10.Text = "Application Updates";
-            // 
             // SettingsDialog
             // 
             AcceptButton = _okButton;
@@ -739,14 +739,14 @@
             ((System.ComponentModel.ISupportInitialize)_volumeTrackBar).EndInit();
             tabControl1.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
+            groupBox10.ResumeLayout(false);
+            groupBox10.PerformLayout();
             tabPage2.ResumeLayout(false);
             groupBox9.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             tabPage3.ResumeLayout(false);
             panel1.ResumeLayout(false);
-            groupBox10.ResumeLayout(false);
-            groupBox10.PerformLayout();
             ResumeLayout(false);
         }
 

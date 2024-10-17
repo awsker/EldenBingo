@@ -75,11 +75,6 @@ namespace EldenBingo
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
             Instance = this;
-
-            if (Properties.Settings.Default.CheckForUpdates)
-            {
-                checkForUpdates();
-            }
         }
 
         public static MainForm? Instance { get; private set; }
@@ -620,6 +615,10 @@ namespace EldenBingo
             }
             TopMost = Properties.Settings.Default.AlwaysOnTop;
 
+            if (Properties.Settings.Default.CheckForUpdates)
+            {
+                checkForUpdates();
+            }
             _eventManager = new EventManager(_processHandler, _client);
         }
 
