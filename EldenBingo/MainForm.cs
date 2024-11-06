@@ -63,17 +63,17 @@ namespace EldenBingo
                 _mapWindow?.DisposeDrawablesOnExit();
                 _mapWindow?.Stop();
                 _client?.Disconnect();
+                Properties.Settings.Default.Save();
                 //Stop server and serialize rooms
                 if (_server != null)
                     await _server.Stop();
-                Properties.Settings.Default.Save();
-                Application.Exit();
             };
             _client = new Client();
             _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
             addClientListeners(_client);
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
+            LocationChanged += mainForm_LocationChanged;
             Instance = this;
         }
 
@@ -588,6 +588,16 @@ namespace EldenBingo
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
+            if (Properties.Settings.Default.MainWindowPositionX > -99 && Properties.Settings.Default.MainWindowPositionY > -99)
+            {
+                Location = new Point(Properties.Settings.Default.MainWindowPositionX, Properties.Settings.Default.MainWindowPositionY);
+            }
+
+            if (Properties.Settings.Default.MainWindowMaximized)
+            {
+                WindowState = FormWindowState.Maximized;
+            }
+
             if (Properties.Settings.Default.HostServerOnLaunch)
             {
                 hostServer();
@@ -633,8 +643,22 @@ namespace EldenBingo
 
         private void mainForm_SizeChanged(object? sender, EventArgs e)
         {
-            Properties.Settings.Default.MainWindowSizeX = Width;
-            Properties.Settings.Default.MainWindowSizeY = Height;
+            Properties.Settings.Default.MainWindowMaximized = WindowState == FormWindowState.Maximized;
+            if (WindowState == FormWindowState.Normal)
+            {
+                Properties.Settings.Default.MainWindowSizeX = Width;
+                Properties.Settings.Default.MainWindowSizeY = Height;
+            }
+        }
+
+        private void mainForm_LocationChanged(object? sender, EventArgs e)
+        {
+            //We don't care to save the position when window is maximized. Only save window mode positions in normal mode
+            if (WindowState == FormWindowState.Normal)
+            {
+                Properties.Settings.Default.MainWindowPositionX = Location.X;
+                Properties.Settings.Default.MainWindowPositionY = Location.Y;
+            }
         }
 
         private void openMapWindow()
