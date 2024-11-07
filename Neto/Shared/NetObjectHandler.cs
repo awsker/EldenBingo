@@ -124,7 +124,14 @@ namespace Neto.Shared
         {
             foreach (var o in objects)
             {
-                GetOrRegisterDispatcher(o.GetType())?.Dispatch(sender, o);
+                try
+                {
+                    GetOrRegisterDispatcher(o.GetType())?.Dispatch(sender, o);
+                } 
+                catch(Exception ex)
+                {
+                    FireOnError($"Exception when dispatching event ${o.GetType().Name}: {ex.Message}");
+                }
             }
         }
 
