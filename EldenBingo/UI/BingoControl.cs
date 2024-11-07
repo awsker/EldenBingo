@@ -1,8 +1,9 @@
 ﻿using EldenBingo.Net;
-using EldenBingo.Util;
+using EldenBingo.Properties;
 using EldenBingoCommon;
 using Neto.Shared;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Timers;
 
 namespace EldenBingo.UI
@@ -10,8 +11,9 @@ namespace EldenBingo.UI
     internal partial class BingoControl : ClientUserControl
     {
         public const float AspectRatio = 1.1f;
+        private const float CheckAnimationTimerMax = 4.0f;
         private const float BingoAnimationTimerMax = 3.0f;
-        private const int AnimationIntervalMs = 20;
+        private const int AnimationFPS = 30;
 
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
@@ -111,13 +113,7 @@ namespace EldenBingo.UI
                     flashSquares(0, _size - 1, 1, -1);
                     break;
             }
-            if (_timer == null)
-            {
-                _timer = new System.Timers.Timer();
-                _timer.Interval = 20;
-                _timer.Elapsed += onTimerTick;
-                _timer.Start();
-            }
+            startTimer();
         }
 
         public void UpdateBoard()
@@ -161,13 +157,29 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerBingoAchievedUpdate>(bingoUpdate);
         }
 
+        private void startTimer()
+        {
+            if (_timer == null)
+            {
+                _timer = new System.Timers.Timer();
+                _timer.Interval = 1000d / AnimationFPS;
+                _timer.Elapsed += onTimerTick;
+                _timer.Start();
+            }
+        }
 
         private void onTimerTick(object? sender, ElapsedEventArgs e)
         {
-            var delta = AnimationIntervalMs / 1000f;
+            var delta = 1.0f / AnimationFPS;
             var maxTimer = 0f;
             foreach (var square in Squares)
             {
+                if (square.CheckAnimationTimer > 0)
+                {
+                    square.CheckAnimationTimer -= delta;
+                    square.Invalidate();
+                    maxTimer = Math.Max(maxTimer, square.CheckAnimationTimer);
+                }
                 if (square.BingoAnimationTimer > 0)
                 {
                     square.BingoAnimationTimer -= delta;
@@ -200,7 +212,7 @@ namespace EldenBingo.UI
             if (Client?.BingoBoard != null && update.Index >= 0 && update.Index < _size * _size)
             {
                 Client.BingoBoard.Squares[update.Index] = update.Square;
-                updateSquareStatus(Client.BingoBoard, update.Index);
+                updateSquareStatus(Client.BingoBoard, update.Index, true);
             }
         }
 
@@ -364,7 +376,7 @@ namespace EldenBingo.UI
                 recalculateFontSizeForSquares();
                 for (int i = 0; i < board.SquareCount; ++i)
                 {
-                    updateSquare(board, i);
+                    updateSquare(board, i, false);
                 }
                 Invalidate();
             }
@@ -381,20 +393,33 @@ namespace EldenBingo.UI
             return text.Replace("&", "&&");
         }
 
-        private void updateSquare(BingoBoard board, int index)
+        private void updateSquare(BingoBoard board, int index, bool highlightNewSquares)
         {
             var s = board.Squares[index];
             Squares[index].Text = escapeText(s.Text);
             Squares[index].ToolTip = s.Tooltip;
-            updateSquareStatus(board, index);
+            updateSquareStatus(board, index, highlightNewSquares);
         }
 
-        private void updateSquareStatus(BingoBoard board, int index)
+        private void updateSquareStatus(BingoBoard board, int index, bool highlightNewSquares)
         {
             var s = board.Squares[index];
+            var colorBefore = Squares[index].Color;
             Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
             Squares[index].Marked = s.Marked;
             Squares[index].Counters = s.Counters;
+            if (highlightNewSquares && colorBefore != Squares[index].Color) 
+            {
+                if (Squares[index].Color != Color.Empty)
+                {
+                    Squares[index].CheckAnimationTimer = CheckAnimationTimerMax;
+                    startTimer();
+                }
+                else
+                {
+                    Squares[index].CheckAnimationTimer = 0f;
+                }
+            }
             Squares[index].Invalidate();
         }
 
@@ -533,11 +558,13 @@ namespace EldenBingo.UI
         private class BingoSquareControl : Control
         {
             public bool MouseOver;
+            public float CheckAnimationTimer;
             public float BingoAnimationTimer;
             private readonly ToolTip _toolTip;
             private Color _color;
             private SquareCounter[] _counters;
             private bool _marked;
+            private SolidBrush _brush;
 
             public BingoSquareControl(int index, string text, string tooltip)
             {
@@ -548,6 +575,7 @@ namespace EldenBingo.UI
                 _toolTip = new ToolTip();
                 ToolTip = tooltip;
                 _counters = new SquareCounter[0];
+                _brush = new SolidBrush(Color.White);
                 var control = this;
                 MouseEnter += (o, e) =>
                 {
@@ -628,9 +656,8 @@ namespace EldenBingo.UI
 
             protected override void OnPaint(PaintEventArgs e)
             {
-                // Call the OnPaint method of the base class.
                 base.OnPaint(e);
-                // Call methods of the System.Drawing.Graphics object.
+
                 drawRectangle(e);
 
                 drawBingoText(e);
@@ -713,9 +740,9 @@ namespace EldenBingo.UI
                 var scale = Width / 96f;
                 var x = 3f * scale;
                 var y = 3f * scale;
-                var width = Properties.Resources.tinystar.Width * scale * 0.7f;
-                var height = Properties.Resources.tinystar.Height * scale * 0.7f;
-                e.Graphics.DrawImage(Properties.Resources.tinystar, x, y, width, height);
+                var width = Resources.tinystar.Width * scale * 0.7f;
+                var height = Resources.tinystar.Height * scale * 0.7f;
+                e.Graphics.DrawImage(Resources.tinystar, x, y, width, height);
             }
 
             private void drawRectangle(PaintEventArgs e)
@@ -728,20 +755,49 @@ namespace EldenBingo.UI
                 {
                     color = color.Brighten(0.14f);
                 }
-
-                var brush = new SolidBrush(color);
-                g.FillRectangle(brush, new Rectangle(0, 0, Width, Height));
+                _brush.Color = color;
+                g.FillRectangle(_brush, new Rectangle(0, 0, Width, Height));
 
                 var gradientColor = isChecked ? Color.FromArgb(35, 0, 0, 0) : Color.FromArgb(50, 0, 0, 0);
                 var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), gradientColor, Color.Transparent);
                 g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
 
-                if (BingoAnimationTimer > 0)
+                if (CheckAnimationTimer > 0)
                 {
-                    float frac = BingoAnimationTimer / BingoAnimationTimerMax;
-                    brush = new SolidBrush(Color.FromArgb(Convert.ToInt32(255 * frac), 255, 255, 230));
-                    g.FillRectangle(brush, new Rectangle(0, 0, Width, Height));
+                    var alpha = (1.0f - MathF.Sin(CheckAnimationTimer * 8f) * 0.2f) * invLerp(0.0f, 0.8f, CheckAnimationTimer);
+                    var attr = new ImageAttributes();
+                    var cm = new ColorMatrix();
+                    cm.Matrix33 = alpha;
+                    attr.SetColorMatrix(cm);
+                    var image = Resources.square_gradient;
+                    g.DrawImage(Resources.square_gradient, new Rectangle(0, 0, Width, Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attr);
                 }
+
+                //White out the entire tile
+                if (BingoAnimationTimer > 0 || CheckAnimationTimer > 0)
+                {
+                    //Slow fading flash when square is involved in a bingo
+                    var frac = BingoAnimationTimer / BingoAnimationTimerMax;
+                    //Quick flash if just checked
+                    var frac2 = invLerp(CheckAnimationTimerMax - 0.2f, CheckAnimationTimerMax, CheckAnimationTimer) * 0.3f;
+                    _brush.Color = Color.FromArgb(Convert.ToInt32(255 * Math.Max(frac, frac2)), 255, 255, 230);
+                    g.FillRectangle(_brush, new Rectangle(0, 0, Width, Height));
+                }
+            }
+
+            private int round(float f)
+            {
+                return (int)MathF.Round(f);
+            }
+
+            private float mod(float x, float m)
+            {
+                return x > 0 ? x % m : (x % m + m) % m;
+            }
+
+            private float invLerp(float a, float b, float v)
+            {
+                return Math.Clamp((v - a) / (b - a), 0f, 1f);
             }
         }
     }
