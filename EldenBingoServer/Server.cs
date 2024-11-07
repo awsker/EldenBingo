@@ -84,8 +84,9 @@ namespace EldenBingoServer
 
         public override async Task Stop()
         {
-            await serializeServer();
-            await base.Stop();
+            serializeServer();
+            if (Hosting) 
+                await base.Stop();
         }
 
         protected override async Task DropClient(BingoClientModel client)
@@ -111,32 +112,31 @@ namespace EldenBingoServer
             return null;
         }
 
-        private async Task serializeServer()
+        private void serializeServer()
         {
             if (string.IsNullOrWhiteSpace(_jsonPath))
                 return;
             try
             {
-                await Task.Run(() =>
+                var settings = new JsonSerializerSettings
                 {
-                    var settings = new JsonSerializerSettings
+                    ContractResolver = new DefaultContractResolver
                     {
-                        ContractResolver = new DefaultContractResolver
-                        {
-                            NamingStrategy = new CamelCaseNamingStrategy(),
-                            // Optional: You can make everything private or internal serializable
-                            SerializeCompilerGeneratedMembers = true
-                        },
-                        Formatting = Formatting.Indented,
-                        TypeNameHandling = TypeNameHandling.Auto
-                    };
-                    if (File.Exists(_jsonPath))
-                    {
-                        File.Move(_jsonPath, _jsonPath + ".old", true);
-                    }
-                    var data = new SerializableServerData(_rooms, CachedIdentities);
-                    File.WriteAllText(_jsonPath, JsonConvert.SerializeObject(data, settings));
-                });
+                        NamingStrategy = new CamelCaseNamingStrategy(),
+                        // Optional: You can make everything private or internal serializable
+                        SerializeCompilerGeneratedMembers = true
+                    },
+                    Formatting = Formatting.Indented,
+                    TypeNameHandling = TypeNameHandling.Auto
+                };
+                if (File.Exists(_jsonPath))
+                {
+                    File.Move(_jsonPath, _jsonPath + ".old", true);
+                }
+                var data = new SerializableServerData(_rooms, CachedIdentities);
+
+                var cx = JsonConvert.SerializeObject(data, settings);
+                File.WriteAllText(_jsonPath, cx);
             }
             catch (Exception e)
             {
