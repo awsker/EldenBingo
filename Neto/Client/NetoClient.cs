@@ -122,12 +122,12 @@ namespace Neto.Client
             return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
         }
 
-        public async Task<bool> Connect(IPEndPoint ipEndpoint)
+        public async Task<ConnectionResult> Connect(IPEndPoint ipEndpoint)
         {
             if (_tcp != null && _tcp.Connected)
             {
                 FireOnError("Already connected");
-                return false;
+                return ConnectionResult.Denied;
             }
             CancellationToken = new CancellationTokenSource();
             _tcp = new TcpClient(ipEndpoint.AddressFamily);
@@ -139,7 +139,7 @@ namespace Neto.Client
                 if (_tcp.Connected)
                 {
                     FireOnStatus("Connected to server");
-                    _ = Task.Run(run);
+                    _ = run();
                 }
                 else
                 {
@@ -150,8 +150,9 @@ namespace Neto.Client
             catch (Exception e)
             {
                 FireOnError($"Connect Error: {e.Message}");
+                return ConnectionResult.Exception;
             }
-            return _tcp.Connected;
+            return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
         }
 
         public async Task Disconnect()
