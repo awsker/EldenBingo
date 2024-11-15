@@ -11,7 +11,7 @@ namespace EldenBingoServer
 
         public BingoBoardGenerator(string json, int randomSeed)
         {
-            var  token = JToken.Parse(json);
+            var token = JToken.Parse(json);
             if (token is not JArray squareArray)
             {
                 throw new ArgumentException("Json is not in the correct format", nameof(json));
@@ -27,6 +27,7 @@ namespace EldenBingoServer
                 int? count = square.Value<int?>("count");
                 int? weight = square.Value<int?>("weight");
                 string? category = square.Value<string>("category");
+                int? center = square.Value<int?>("center");
 
                 var categories = new HashSet<string>();
                 
@@ -44,7 +45,7 @@ namespace EldenBingoServer
                         }
                     }
                 }
-                _list.Add(new BingoJsonObj(name, tooltip, count.GetValueOrDefault(0), weight.GetValueOrDefault(1), categories.ToArray()));
+                _list.Add(new BingoJsonObj(name, tooltip, count.GetValueOrDefault(0), weight.GetValueOrDefault(1), categories.ToArray(), (CenterType)center.GetValueOrDefault(0)));
             }
         }
 
@@ -67,16 +68,46 @@ namespace EldenBingoServer
 
         public ServerBingoBoard? CreateBingoBoard(ServerRoom room)
         {
-            var squareQueue = new Queue<BingoJsonObj>(shuffleList(_list, _random));
+            var squareList = new List<BingoJsonObj>(shuffleList(_list, _random));
             var squares = new List<BingoJsonObj>();
             var categoryCount = new Dictionary<string, int>();
 
             var numSquares = room.GameSettings.BoardSize * room.GameSettings.BoardSize;
             bool anySquareFailedCategoryLimit = false;
-            while (squareQueue.Count > 0 && squares.Count < numSquares)
+
+            //var anyCenterSpecifics = squareList.Any(s => s.CenterType > CenterType.None);
+            BingoJsonObj? centerSquare = null;
+
+            if(numSquares % 2 == 1)
+            {
+                for (int i = squareList.Count - 1; i >= 0; --i)
+                {
+                    //Remove all forced center squares (backwards) and pick the first one to be center square
+                    if (squareList[i].CenterType == CenterType.ForcedCenter)
+                    {
+                        centerSquare = squareList[i];
+                        squareList.RemoveAt(i);
+                    }
+                }
+            }
+            //If center square was found, increase all its categories used by 1
+            if(centerSquare.HasValue)
+            {
+                //Decrease how many squares we're looking for
+                --numSquares;
+                foreach (var category in centerSquare.Value.Categories)
+                {
+                    categoryCount.TryGetValue(category, out int count);
+                    categoryCount[category] = count + 1;
+                }
+            }
+
+            while (squareList.Count > 0 && squares.Count < numSquares)
             {
                 bool thisSquareFailedCategoryCheck = false;
-                var potentialSquare = squareQueue.Dequeue();
+                //Pick the first square in queue as the potential square (since we already removed all ForcedCenter squares)
+                BingoJsonObj potentialSquare = squareList[0];
+                squareList.RemoveAt(0);
                 if (CategoryLimit > 0)
                 {
                     foreach (var category in potentialSquare.Categories)
@@ -111,7 +142,14 @@ namespace EldenBingoServer
             //Shuffle the final squares, so we don't get a bias of category-less squares late in the board
             if (anySquareFailedCategoryLimit)
                 squares = shuffleList(squares, _random).ToList();
-            balanceBoard(squares);
+
+            if(centerSquare.HasValue)
+            {
+                //Add center square to the middle of the board, after reshuffle
+                squares.Insert(numSquares / 2, centerSquare.Value);
+            }
+            //Balance the board, lock center square if it's set
+            balanceBoard(squares, centerSquare.HasValue);
 
             EldenRingClasses[] classes;
             //Always randomize classes, even if they're not needed - to ensure consistency in random number generation
@@ -156,20 +194,21 @@ namespace EldenBingoServer
             return squares.OrderBy(s => random.Next()).ToList();
         }
 
-        private void balanceBoard(IList<BingoJsonObj> squares)
+        private void balanceBoard(IList<BingoJsonObj> squares, bool centerLocked)
         {
             //TODO
         }
 
         private struct BingoJsonObj
         {
-            public BingoJsonObj(string text, string? tooltip = null, int count = 1, int weight = 1, string[]? categories = null)
+            public BingoJsonObj(string text, string? tooltip = null, int count = 1, int weight = 1, string[]? categories = null, CenterType center = CenterType.None)
             {
                 Text = text;
                 Tooltip = tooltip == null ? string.Empty : tooltip;
                 Count = Math.Max(0, count);
                 Weight = weight;
                 Categories = new HashSet<string>(categories ?? Array.Empty<string>());
+                CenterType = center;
             }
 
             public string Text { get; init; }
@@ -177,11 +216,18 @@ namespace EldenBingoServer
             public int Count { get; init; }
             public int Weight { get; init; }
             public ISet<string> Categories { get; init; }
+            public CenterType CenterType { get; init; }
 
             public override string ToString()
             {
                 return Text;
             }
+        }
+
+        private enum CenterType
+        {
+            None,
+            ForcedCenter,
         }
     }
 }
