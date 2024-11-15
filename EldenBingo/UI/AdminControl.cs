@@ -277,7 +277,8 @@ namespace EldenBingo.UI
 
         private void receivedGameSettings(ClientModel? _, ServerCurrentGameSettings gameSettingsArgs)
         {
-            openSettingsWindow(gameSettingsArgs.GameSettings);
+            //Open the settings window without locking the receiver thread
+            Task.Run(() => openSettingsWindow(gameSettingsArgs.GameSettings));
         }
 
         private void openSettingsWindow(BingoGameSettings settings)
@@ -299,7 +300,7 @@ namespace EldenBingo.UI
                     var form = new GameSettingsForm();
                     form.Settings = settings;
 
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (form.ShowDialog(mainForm) == DialogResult.OK)
                     {
                         GameSettingsHelper.SaveToSettings(form.Settings, Properties.Settings.Default);
                         var request = new ClientSetGameSettings(form.Settings);
