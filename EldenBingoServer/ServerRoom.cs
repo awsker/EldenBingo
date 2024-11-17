@@ -124,9 +124,12 @@ namespace EldenBingoServer
             {
                 foreach (var sq in serverboard.CheckStatus)
                 {
-                    if (sq.Team.HasValue && !dict.ContainsKey(sq.Team.Value))
+                    foreach (var team in sq.Team)
                     {
-                        dict.Add(sq.Team.Value, GetUnifiedName(sq.Team.Value, new BingoClientInRoom[0]));
+                        if (!dict.ContainsKey(team))
+                        {
+                            dict.Add(team, GetUnifiedName(team, new BingoClientInRoom[0]));
+                        }
                     }
                 }
             }
@@ -144,26 +147,9 @@ namespace EldenBingoServer
 
         public Dictionary<int, int> GetSquaresPerTeam()
         {
-            var squaresCountPerTeam = new Dictionary<int, int>();
             if (Match.Board is not ServerBingoBoard board)
-            {
-                return squaresCountPerTeam;
-            }
-            foreach (var square in board.CheckStatus)
-            {
-                if (!square.Team.HasValue)
-                    continue;
-
-                if (squaresCountPerTeam.TryGetValue(square.Team.Value, out int c))
-                {
-                    squaresCountPerTeam[square.Team.Value] = c + 1;
-                }
-                else
-                {
-                    squaresCountPerTeam[square.Team.Value] = 1;
-                }
-            }
-            return squaresCountPerTeam;
+                return new Dictionary<int, int>();
+            return board.GetSquaresPerTeam();
         }
 
         public IDictionary<int, IList<BingoLine>> GetBingos()

@@ -402,9 +402,12 @@ namespace EldenBingo
 
         private void userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
         {
-            if (Properties.Settings.Default.PlaySounds && userCheckedSquareArgs.TeamChecked.HasValue)
+            if (!Properties.Settings.Default.PlaySounds)
+                return;
+            //Only play sound if the team checking is now present in the square
+            if (userCheckedSquareArgs.TeamsChecked.Contains(userCheckedSquareArgs.Team))
             {
-                if (userCheckedSquareArgs.TeamChecked.HasValue && userCheckedSquareArgs.TeamChecked.Value == _client?.LocalUser?.Team)
+                if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
                     _sounds.PlaySound(SoundType.SquareClaimedOther);

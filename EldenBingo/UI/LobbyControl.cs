@@ -105,10 +105,10 @@ namespace EldenBingo.UI
                 var user = Client.Room.GetUser(userCheckedArgs.UserGuid);
                 var playerName = user?.Nick ?? "Unknown";
                 Color? playerColor = user?.ColorBright;
-                Color? checkColor = userCheckedArgs.TeamChecked.HasValue ? BingoConstants.GetTeamColorBright(userCheckedArgs.TeamChecked.Value) : playerColor;
+                Color? checkColor = userCheckedArgs.Team > -1 ? BingoConstants.GetTeamColorBright(userCheckedArgs.Team) : playerColor;
 
                 var square = Client.BingoBoard.Squares[userCheckedArgs.Index];
-                updateMatchLog(new[] { playerName, square.Checked ? "marked" : "unmarked", square.Text },
+                updateMatchLog(new[] { playerName, square.IsChecked(userCheckedArgs.Team) ? "marked" : "unmarked", square.Text },
                                new Color?[] { playerColor, null, checkColor }, true);
             }
         }

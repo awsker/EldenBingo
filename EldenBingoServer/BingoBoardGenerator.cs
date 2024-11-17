@@ -24,7 +24,6 @@ namespace EldenBingoServer
                 if (string.IsNullOrWhiteSpace(name))
                     continue;
                 string? tooltip = square.Value<string>("tooltip");
-                int? count = square.Value<int?>("count");
                 int? weight = square.Value<int?>("weight");
                 string? category = square.Value<string>("category");
                 int? center = square.Value<int?>("center");
@@ -45,7 +44,7 @@ namespace EldenBingoServer
                         }
                     }
                 }
-                _list.Add(new BingoJsonObj(name, tooltip, count.GetValueOrDefault(0), weight.GetValueOrDefault(1), categories.ToArray(), (CenterType)center.GetValueOrDefault(0)));
+                _list.Add(new BingoJsonObj(name, tooltip, weight.GetValueOrDefault(1), categories.ToArray(), (CenterType)center.GetValueOrDefault(0)));
             }
         }
 
@@ -164,12 +163,12 @@ namespace EldenBingoServer
             }
             return new ServerBingoBoard(room,
                 room.GameSettings.BoardSize,
+                room.GameSettings.Lockout,
                 squares.Select(s => 
                     new BingoBoardSquare(
                         s.Text, 
                         s.Tooltip, 
-                        s.Count, 
-                        null, 
+                        Array.Empty<int>(), 
                         false, 
                         Array.Empty<SquareCounter>()
                     )
@@ -201,11 +200,10 @@ namespace EldenBingoServer
 
         private struct BingoJsonObj
         {
-            public BingoJsonObj(string text, string? tooltip = null, int count = 1, int weight = 1, string[]? categories = null, CenterType center = CenterType.None)
+            public BingoJsonObj(string text, string? tooltip = null, int weight = 1, string[]? categories = null, CenterType center = CenterType.None)
             {
                 Text = text;
                 Tooltip = tooltip == null ? string.Empty : tooltip;
-                Count = Math.Max(0, count);
                 Weight = weight;
                 Categories = new HashSet<string>(categories ?? Array.Empty<string>());
                 CenterType = center;
@@ -213,7 +211,6 @@ namespace EldenBingoServer
 
             public string Text { get; init; }
             public string Tooltip { get; init; }
-            public int Count { get; init; }
             public int Weight { get; init; }
             public ISet<string> Categories { get; init; }
             public CenterType CenterType { get; init; }

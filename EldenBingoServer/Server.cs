@@ -26,6 +26,8 @@ namespace EldenBingoServer
 
         private bool _maintenanceMode = false;
 
+        const int SerializationVersion = 2;
+
         private string? _jsonPath;
 
         public Server(int port, string? jsonPath = null) : base(port)
@@ -133,7 +135,7 @@ namespace EldenBingoServer
                 {
                     File.Move(_jsonPath, _jsonPath + ".old", true);
                 }
-                var data = new SerializableServerData(_rooms, CachedIdentities);
+                var data = new SerializableServerData(SerializationVersion, _rooms, CachedIdentities);
 
                 var cx = JsonConvert.SerializeObject(data, settings);
                 File.WriteAllText(_jsonPath, cx);
@@ -518,7 +520,7 @@ namespace EldenBingoServer
             {
                 if (matchStatus.MatchStatus == MatchStatus.Starting)
                 {
-                    var p = new Packet(new ServerEntireBingoBoardUpdate(0, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
+                    var p = new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
                     //Reset the board for all players (except AdminSpectators, who already have the new board)
                     await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
                 }
@@ -549,7 +551,7 @@ namespace EldenBingoServer
                         return;
 
                     var bingosBefore = board.BingoSet;
-                    if (board.UserClicked(tryCheck.Index, userInfo, userToSet))
+                    if (board.UserClicked(tryCheck.Index, userInfo, userToSet, out int teamChanged))
                     {
                         var tasks = new List<Task>();
                         var check = board.CheckStatus[tryCheck.Index];
@@ -559,7 +561,7 @@ namespace EldenBingoServer
                         ServerBingoAchievedUpdate[] bingos = board.BingoSet.Except(bingosBefore).Select(b => new ServerBingoAchievedUpdate(b)).ToArray();
                         lock (check)
                         {
-                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, check.Team);
+                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, teamChanged, check.Team);
                             foreach (var recipient in sender.Room.Users)
                             {
                                 squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(recipient, tryCheck.Index), tryCheck.Index);
@@ -734,9 +736,9 @@ namespace EldenBingoServer
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
-                return new ServerEntireBingoBoardUpdate(0, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
+                return new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
             var squareData = board.GetSquareDataForUser(user);
-            return new ServerEntireBingoBoardUpdate(board.Size, squareData, board.AvailableClasses);
+            return new ServerEntireBingoBoardUpdate(board.Size, board.Lockout, squareData, board.AvailableClasses);
         }
 
         private ServerScoreboardUpdate createScoreboardUpdatePacket(ServerRoom room)
@@ -862,7 +864,7 @@ namespace EldenBingoServer
             if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
             {
                 //No board set, so we send an empty board
-                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(0, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
+                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
                 return;
             }
 

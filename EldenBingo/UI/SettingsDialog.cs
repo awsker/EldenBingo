@@ -81,6 +81,10 @@ namespace EldenBingo.UI
             _fontLinkLabel.Font = MainForm.GetFontFromSettings(_fontLinkLabel.Font, fontSize);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
 
+            _shadowTrackBar.Value = Properties.Settings.Default.SquareShadows / 10;
+            _highlightMarkedCheckBox.Checked = Properties.Settings.Default.MarkHighlight;
+            _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
+
             _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
@@ -92,10 +96,9 @@ namespace EldenBingo.UI
 
             _swapMouseButtons.Checked = Properties.Settings.Default.FlipMouseButtons;
             _showClassesCheckBox.Checked = Properties.Settings.Default.ShowClassesOnMap;
-            _clickIncrementsCountCheckbox.Checked = Properties.Settings.Default.ClickIncrementsCountedSquares;
 
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
-            _volumeTrackBar.Value = Convert.ToInt32(Properties.Settings.Default.SoundVolume / 10f);
+            _volumeTrackBar.Value = Properties.Settings.Default.SoundVolume / 10;
 
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
             _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
@@ -191,12 +194,14 @@ namespace EldenBingo.UI
 
             Properties.Settings.Default.FlipMouseButtons = _swapMouseButtons.Checked;
             Properties.Settings.Default.ShowClassesOnMap = _showClassesCheckBox.Checked;
-            Properties.Settings.Default.ClickIncrementsCountedSquares = _clickIncrementsCountCheckbox.Checked;
 
             Properties.Settings.Default.PlaySounds = _soundCheckBox.Checked;
             Properties.Settings.Default.SoundVolume = Math.Clamp(_volumeTrackBar.Value * 10, 0, 100);
             Properties.Settings.Default.OutputDevice = (_soundOutputDeviceComboBox.SelectedItem as AudioDevice)?.Id ?? string.Empty;
 
+            Properties.Settings.Default.SquareShadows = Math.Clamp(_shadowTrackBar.Value * 10, 0, 100);
+            Properties.Settings.Default.MarkHighlight = _highlightMarkedCheckBox.Checked;
+            Properties.Settings.Default.BingoHighlight = _highlightBingoCheckBox.Checked;
             Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
 
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;

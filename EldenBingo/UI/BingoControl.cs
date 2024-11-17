@@ -11,7 +11,7 @@ namespace EldenBingo.UI
     internal partial class BingoControl : ClientUserControl
     {
         public const float AspectRatio = 1.1f;
-        private const float CheckAnimationTimerMax = 4.0f;
+        private const float CheckAnimationTimerMax = 5.0f;
         private const float BingoAnimationTimerMax = 3.0f;
         private const int AnimationFPS = 30;
 
@@ -24,6 +24,8 @@ namespace EldenBingo.UI
         private System.Timers.Timer? _timer;
 
         private int _size;
+
+        public int[] ActiveTeams { get; private set; }
 
         public BingoControl() : base()
         {
@@ -40,6 +42,7 @@ namespace EldenBingo.UI
             SizeChanged += bingoControl_SizeChanged;
             _gridControl.SizeChanged += _gridControl_SizeChanged;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
+            ActiveTeams = Array.Empty<int>();
         }
 
         private enum BoardStatusEnum
@@ -134,6 +137,24 @@ namespace EldenBingo.UI
             Client.AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.AddListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
             Client.AddListener<ServerBingoAchievedUpdate>(bingoUpdate);
+            Client.AddListener<ServerScoreboardUpdate>(scoreBoardUpdate);
+        }
+
+        private void scoreBoardUpdate(ClientModel? model, ServerScoreboardUpdate update)
+        {
+            var activeTeams = update.Scoreboard.Select(t => t.Team).ToArray();
+            var oldSet = new HashSet<int>(ActiveTeams);
+            var newSet = new HashSet<int>(activeTeams);
+            var changed = !oldSet.SetEquals(newSet);
+
+            if (changed)
+            {
+                //Redraw all squares if the scoreboard was changed
+                foreach (var square in Squares)
+                {
+                    square.ActiveTeams = activeTeams;
+                }
+            }
         }
 
         protected override void ClientChanged()
@@ -212,7 +233,7 @@ namespace EldenBingo.UI
             if (Client?.BingoBoard != null && update.Index >= 0 && update.Index < _size * _size)
             {
                 Client.BingoBoard.Squares[update.Index] = update.Square;
-                updateSquareStatus(Client.BingoBoard, update.Index, true);
+                updateSquareStatus(Client.BingoBoard, update.Index, Properties.Settings.Default.MarkHighlight);
             }
         }
 
@@ -235,7 +256,8 @@ namespace EldenBingo.UI
 
         private void bingoUpdate(ClientModel? _, ServerBingoAchievedUpdate update)
         {
-            FlashBingo(update.Bingo);
+            if(Properties.Settings.Default.BingoHighlight)
+                FlashBingo(update.Bingo);
         }
 
         private void _boardStatusLabel_Click(object sender, EventArgs e)
@@ -325,6 +347,17 @@ namespace EldenBingo.UI
             {
                 recalculateFontSizeForSquares();
             }
+            if(e.PropertyName == nameof(Properties.Settings.SquareShadows))
+            {
+                redrawAllSquares();
+            }
+        }
+
+        private void redrawAllSquares()
+        {
+            Invalidate();
+            foreach (var square in Squares)
+                square.Invalidate();
         }
 
         private void setupClickHotkey()
@@ -371,14 +404,13 @@ namespace EldenBingo.UI
                     clearBoard();
                     return;
                 }
-
                 initSquareControls(board.Size);
                 recalculateFontSizeForSquares();
                 for (int i = 0; i < board.SquareCount; ++i)
                 {
                     updateSquare(board, i, false);
                 }
-                Invalidate();
+                redrawAllSquares();
             }
             if (InvokeRequired)
             {
@@ -398,25 +430,30 @@ namespace EldenBingo.UI
             var s = board.Squares[index];
             Squares[index].Text = escapeText(s.Text);
             Squares[index].ToolTip = s.Tooltip;
+            Squares[index].Lockout = board.Lockout;
             updateSquareStatus(board, index, highlightNewSquares);
         }
 
         private void updateSquareStatus(BingoBoard board, int index, bool highlightNewSquares)
         {
             var s = board.Squares[index];
-            var colorBefore = Squares[index].Color;
-            Squares[index].Color = s.Team.HasValue ? BingoConstants.GetTeamColor(s.Team.Value) : Color.Empty;
+            var teamsBefore = Squares[index].Teams;
+            Squares[index].Teams = s.Team;
             Squares[index].Marked = s.Marked;
             Squares[index].Counters = s.Counters;
-            if (highlightNewSquares && colorBefore != Squares[index].Color) 
+            if (highlightNewSquares)
             {
-                if (Squares[index].Color != Color.Empty)
+                //If a new team checked the square (more teams present than before)
+                if (s.Team.Length > teamsBefore.Length)
                 {
+                    //Start check animation
                     Squares[index].CheckAnimationTimer = CheckAnimationTimerMax;
                     startTimer();
                 }
-                else
+                //If a team check was removed (less teams present than before)
+                else if (s.Team.Length < teamsBefore.Length)
                 {
+                    //Stop check animation
                     Squares[index].CheckAnimationTimer = 0f;
                 }
             }
@@ -456,33 +493,7 @@ namespace EldenBingo.UI
 
             var square = Client.Room.Match.Board.Squares[c.Index];
             var p = new Packet(new ClientTryCheck(c.Index, userToSetFor.Guid));
-            if (square.MaxCount <= 0 || !Properties.Settings.Default.ClickIncrementsCountedSquares)
-            {
-                await Client.SendPacketToServer(p);
-            }
-            else
-            {
-                var currentTeamCount = c.Counters.FirstOrDefault(t => t.Team == userToSetFor.Team).Counter;
-                //Will reach the max count with this click, so include a check packet
-                if (currentTeamCount + 1 == square.MaxCount)
-                {
-                    //Increment 1 and check the square
-                    p.AddObject(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                }
-                //Already at max count, so decrease counter and include an uncheck packet
-                else if (currentTeamCount == square.MaxCount)
-                {
-                    //Decrement 1 and uncheck the square - Only when the square is currently owned by this user's team
-                    if (square.Team == userToSetFor.Team)
-                        p.AddObject(new ClientTrySetCounter(c.Index, -1, userToSetFor.Guid));
-                }
-                else if (square.Team != userToSetFor.Team)
-                {
-                    //Increment 1 if the team doesn't already own the square
-                    p = new Packet(new ClientTrySetCounter(c.Index, 1, userToSetFor.Guid));
-                }
-                await Client.SendPacketToServer(p);
-            }
+            await Client.SendPacketToServer(p);
         }
 
         private async Task markSquare(BingoSquareControl c)
@@ -561,10 +572,12 @@ namespace EldenBingo.UI
             public float CheckAnimationTimer;
             public float BingoAnimationTimer;
             private readonly ToolTip _toolTip;
-            private Color _color;
+            private int[] _teams;
+            private int[] _activeTeams;
             private SquareCounter[] _counters;
             private bool _marked;
             private SolidBrush _brush;
+            private LinearGradientBrush _gradientBrush;
 
             public BingoSquareControl(int index, string text, string tooltip)
             {
@@ -574,8 +587,14 @@ namespace EldenBingo.UI
                 Text = text;
                 _toolTip = new ToolTip();
                 ToolTip = tooltip;
+                Teams = Array.Empty<int>();
+                _activeTeams = Array.Empty<int>();
                 _counters = new SquareCounter[0];
                 _brush = new SolidBrush(Color.White);
+                if (Height > 0)
+                {
+                    _gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, Color.Transparent);
+                }
                 var control = this;
                 MouseEnter += (o, e) =>
                 {
@@ -587,16 +606,40 @@ namespace EldenBingo.UI
                     MouseOver = false;
                     control.Invalidate();
                 };
+                SizeChanged += (o, e) =>
+                {
+                    if (Height > 0)
+                    {
+                        _gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, Color.Transparent);
+                    }
+                };
             }
 
-            public Color Color
+            public int[] Teams
             {
-                get { return _color; }
+                get { return _teams; }
                 set
                 {
-                    if (_color != value)
+                    if (_teams != value)
                     {
-                        _color = value;
+                        _teams = value;
+                        Invalidate();
+                    }
+                }
+            }
+
+            public bool Lockout { get; set; }
+
+            public int[] ActiveTeams
+            {
+                get { return _activeTeams; }
+                set
+                {
+                    var oldSet = new HashSet<int>(_activeTeams);
+                    var newSet = new HashSet<int>(value);
+                    _activeTeams = value;
+                    if (!oldSet.SetEquals(newSet))
+                    {
                         Invalidate();
                     }
                 }
@@ -665,12 +708,9 @@ namespace EldenBingo.UI
                 if (Marked)
                     drawMarkedStar(e);
 
-                bool isChecked = _color.A == 255;
-                //If square is checked by any player, don't render counters
-                if (isChecked)
-                    return;
-
-                drawCounters(e);
+                //Don't draw counters in lockout mode if a square is claimed
+                if (!Lockout || Teams.Length == 0)
+                    drawCounters(e);
             }
 
             private static string? findLongestWord(Graphics g, string text, Font font)
@@ -692,6 +732,7 @@ namespace EldenBingo.UI
             private void drawBingoText(PaintEventArgs e)
             {
                 const int textUp = 2;
+                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
                 var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
                 var f = Font;
                 Size size = TextRenderer.MeasureText(Text, f, new Size(ClientRectangle.Width, ClientRectangle.Height));
@@ -716,6 +757,8 @@ namespace EldenBingo.UI
                 {
                     var c = _counters[i];
                     if (c.Counter == 0)
+                        continue;
+                    if (Teams.Contains(c.Team)) //Don't draw counter for teams that have claimed the square
                         continue;
                     var size = TextRenderer.MeasureText(c.Counter.ToString(), counterFont);
                     int leftXPos;
@@ -748,38 +791,107 @@ namespace EldenBingo.UI
             private void drawRectangle(PaintEventArgs e)
             {
                 var g = e.Graphics;
-                bool isChecked = _color.A == 255;
-                var color = isChecked ? _color : BgColor;
-
-                if (MouseOver)
+                bool isChecked = _teams.Length > 0;
+                //Draw empty background
+                if(_teams.Length == 0)
                 {
-                    color = color.Brighten(0.14f);
+                    Color color = BgColor;
+                    if (MouseOver)
+                    {
+                        color = color.Brighten(0.14f);
+                    }
+                    _brush.Color = color;
+                    g.FillRectangle(_brush, new Rectangle(0, 0, Width, Height));
                 }
-                _brush.Color = color;
-                g.FillRectangle(_brush, new Rectangle(0, 0, Width, Height));
-
-                var gradientColor = isChecked ? Color.FromArgb(35, 0, 0, 0) : Color.FromArgb(50, 0, 0, 0);
-                var gBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), gradientColor, Color.Transparent);
-                g.FillRectangle(gBrush, new Rectangle(0, 0, Width, Height));
-
-                if (CheckAnimationTimer > 0)
+                else
                 {
+                    Dictionary<int, int> teamIndex = new Dictionary<int, int>();
+                    //In lockout, or if no active teams are set, draw the teams in the order they appear in the "selected" list
+                    if (Lockout || _activeTeams.Length == 0)
+                    {
+                        for (int i = 0; i < _teams.Length; ++i)
+                        {
+                            teamIndex[_teams[i]] = i;
+                        }
+                    }
+                    //In non-lockout, order the teams according to the active teams list, so we get gaps for teams that have not checked the square
+                    else
+                    {
+                        for (int i = 0; i < _activeTeams.Length; ++i)
+                        {
+                            teamIndex[_activeTeams[i]] = i;
+                        }
+                    }
+                    var numTeams = teamIndex.Count;
+                    if (numTeams > 0)
+                    {
+                        if(numTeams > 1)
+                            g.SmoothingMode = SmoothingMode.AntiAlias;
+                        foreach (var team in _teams)
+                        {
+                            //Find the index of the team, if not present (should never happen) continue to next team
+                            if (!teamIndex.TryGetValue(team, out var i))
+                                continue;
+
+                            Color color = BingoConstants.GetTeamColor(team);
+                            if (MouseOver)
+                            {
+                                color = color.Brighten(0.14f);
+                            }
+                            _brush.Color = color;
+
+                            if (numTeams == 1)
+                            {
+                                g.FillRectangle(_brush, new Rectangle(0, 0, Width, Height));
+                            }
+                            else
+                            {
+                                var angleAdd = 360f / numTeams;
+                                var angleStart = numTeams % 2 == 0 ? 270f - (numTeams == 2 ? 45f : angleAdd / 2f) : 270f;
+                                g.SmoothingMode = SmoothingMode.AntiAlias;
+                                g.FillPie(_brush, new Rectangle(-Width, -Height, Width * 3, Height * 3), angleStart + angleAdd * i, angleAdd);
+                            }
+                        }
+                        g.SmoothingMode = SmoothingMode.None;
+                    }
+                }
+                var shadows = Properties.Settings.Default.SquareShadows * 0.01f;
+                var gradientColor = isChecked ? Color.FromArgb(Convert.ToInt32(120 * shadows), 0, 0, 0) : Color.FromArgb(Convert.ToInt32(150 * shadows), 0, 0, 0);
+                _gradientBrush.LinearColors = new[] { gradientColor, Color.Transparent };
+                g.FillRectangle(_gradientBrush, new Rectangle(0, 0, Width, Height));
+
+                //Draw subtle dark shadow around the edges
+                if (Properties.Settings.Default.SquareShadows > 0)
+                {
+                    var image = Resources.square_gradient;
+                    var attr = new ImageAttributes();
+                    var cm = new ColorMatrix();
+                    cm.Matrix00 = -1f;
+                    cm.Matrix11 = -1f;
+                    cm.Matrix22 = -1f;
+                    cm.Matrix33 = 0.6f * shadows;
+                    attr.SetColorMatrix(cm);
+                    g.DrawImage(Resources.square_gradient, new Rectangle(0, 0, Width, Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attr);
+                }
+
+                if (Properties.Settings.Default.MarkHighlight && CheckAnimationTimer > 0)
+                {
+                    var image = Resources.square_gradient;
                     var alpha = (1.0f - MathF.Sin(CheckAnimationTimer * 8f) * 0.2f) * invLerp(0.0f, 0.8f, CheckAnimationTimer);
                     var attr = new ImageAttributes();
                     var cm = new ColorMatrix();
                     cm.Matrix33 = alpha;
                     attr.SetColorMatrix(cm);
-                    var image = Resources.square_gradient;
                     g.DrawImage(Resources.square_gradient, new Rectangle(0, 0, Width, Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attr);
                 }
 
                 //White out the entire tile
                 if (BingoAnimationTimer > 0 || CheckAnimationTimer > 0)
                 {
-                    //Slow fading flash when square is involved in a bingo
-                    var frac = BingoAnimationTimer / BingoAnimationTimerMax;
-                    //Quick flash if just checked
-                    var frac2 = invLerp(CheckAnimationTimerMax - 0.2f, CheckAnimationTimerMax, CheckAnimationTimer) * 0.3f;
+                    //Slow fading flash when square is involved in a bingo (but only if enabled in settings)
+                    var frac = Properties.Settings.Default.BingoHighlight ? BingoAnimationTimer / BingoAnimationTimerMax : 0f;
+                    //Quick flash if just checked (but only if enabled in settings)
+                    var frac2 = Properties.Settings.Default.MarkHighlight ? invLerp(CheckAnimationTimerMax - 0.3f, CheckAnimationTimerMax, CheckAnimationTimer) * 0.4f : 0f;
                     _brush.Color = Color.FromArgb(Convert.ToInt32(255 * Math.Max(frac, frac2)), 255, 255, 230);
                     g.FillRectangle(_brush, new Rectangle(0, 0, Width, Height));
                 }

@@ -421,18 +421,6 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ClickIncrementsCountedSquares {
-            get {
-                return ((bool)(this["ClickIncrementsCountedSquares"]));
-            }
-            set {
-                this["ClickIncrementsCountedSquares"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int GS_PreparationTime {
             get {
@@ -620,6 +608,54 @@ namespace EldenBingo.Properties {
             }
             set {
                 this["MainWindowMaximized"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool GS_Lockout {
+            get {
+                return ((bool)(this["GS_Lockout"]));
+            }
+            set {
+                this["GS_Lockout"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("40")]
+        public int SquareShadows {
+            get {
+                return ((int)(this["SquareShadows"]));
+            }
+            set {
+                this["SquareShadows"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool MarkHighlight {
+            get {
+                return ((bool)(this["MarkHighlight"]));
+            }
+            set {
+                this["MarkHighlight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool BingoHighlight {
+            get {
+                return ((bool)(this["BingoHighlight"]));
+            }
+            set {
+                this["BingoHighlight"] = value;
             }
         }
     }

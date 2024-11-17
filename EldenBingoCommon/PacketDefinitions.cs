@@ -12,11 +12,11 @@ public record ServerUserCoordinates(Guid UserGuid, float X, float Y, float Angle
 public record ServerAdminStatusMessage(string Message, int Color);
 public record ServerUserChat(Guid UserGuid, string Message);
 public record ServerMatchStatusUpdate(MatchStatus MatchStatus, bool Paused, int Timer);
-public record ServerEntireBingoBoardUpdate(int Size, BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses);
+public record ServerEntireBingoBoardUpdate(int Size, bool Lockout, BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses);
 public record ServerScoreboardUpdate(TeamScore[] Scoreboard);
 public record ServerBingoAchievedUpdate(BingoLine Bingo);
 public record ServerSquareUpdate(BingoBoardSquare Square, int Index);
-public record ServerUserChecked(Guid UserGuid, int Index, int? TeamChecked);
+public record ServerUserChecked(Guid UserGuid, int Index, int Team, int[] TeamsChecked);
 public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
 public record ServerTeamNameChanged(Guid UserGuid, int Team, string TeamColorName, string Name);
 public record ServerBroadcastMessage(string Message);
