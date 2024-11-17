@@ -68,7 +68,7 @@
             groupBox7 = new GroupBox();
             _highlightBingoCheckBox = new CheckBox();
             _highlightMarkedCheckBox = new CheckBox();
-            label15 = new Label();
+            _shadowLabel = new Label();
             _shadowTrackBar = new TrackBar();
             _outOfFocusClickTextBox = new TextBox();
             label11 = new Label();
@@ -76,7 +76,7 @@
             _testSoundButton = new Button();
             label14 = new Label();
             _soundOutputDeviceComboBox = new ComboBox();
-            label10 = new Label();
+            _volumeLabel = new Label();
             _volumeTrackBar = new TrackBar();
             _soundCheckBox = new CheckBox();
             tabControl1 = new TabControl();
@@ -474,7 +474,7 @@
             // 
             groupBox7.Controls.Add(_highlightBingoCheckBox);
             groupBox7.Controls.Add(_highlightMarkedCheckBox);
-            groupBox7.Controls.Add(label15);
+            groupBox7.Controls.Add(_shadowLabel);
             groupBox7.Controls.Add(_shadowTrackBar);
             groupBox7.Controls.Add(_fontLinkLabel);
             groupBox7.Controls.Add(label8);
@@ -505,14 +505,14 @@
             _highlightMarkedCheckBox.Text = "Highlight Marked Squares";
             _highlightMarkedCheckBox.UseVisualStyleBackColor = true;
             // 
-            // label15
+            // _shadowLabel
             // 
-            label15.AutoSize = true;
-            label15.Location = new Point(12, 74);
-            label15.Name = "label15";
-            label15.Size = new Size(132, 15);
-            label15.TabIndex = 28;
-            label15.Text = "Square Shadow Opacity";
+            _shadowLabel.AutoSize = true;
+            _shadowLabel.Location = new Point(12, 74);
+            _shadowLabel.Name = "_shadowLabel";
+            _shadowLabel.Size = new Size(132, 15);
+            _shadowLabel.TabIndex = 28;
+            _shadowLabel.Text = "Square Shadow Opacity";
             // 
             // _shadowTrackBar
             // 
@@ -547,7 +547,7 @@
             groupBox8.Controls.Add(_testSoundButton);
             groupBox8.Controls.Add(label14);
             groupBox8.Controls.Add(_soundOutputDeviceComboBox);
-            groupBox8.Controls.Add(label10);
+            groupBox8.Controls.Add(_volumeLabel);
             groupBox8.Controls.Add(_volumeTrackBar);
             groupBox8.Controls.Add(_soundCheckBox);
             groupBox8.Location = new Point(8, 102);
@@ -585,14 +585,14 @@
             _soundOutputDeviceComboBox.Size = new Size(225, 23);
             _soundOutputDeviceComboBox.TabIndex = 10;
             // 
-            // label10
+            // _volumeLabel
             // 
-            label10.AutoSize = true;
-            label10.Location = new Point(12, 52);
-            label10.Name = "label10";
-            label10.Size = new Size(47, 15);
-            label10.TabIndex = 7;
-            label10.Text = "Volume";
+            _volumeLabel.AutoSize = true;
+            _volumeLabel.Location = new Point(12, 52);
+            _volumeLabel.Name = "_volumeLabel";
+            _volumeLabel.Size = new Size(47, 15);
+            _volumeLabel.TabIndex = 7;
+            _volumeLabel.Text = "Volume";
             // 
             // _volumeTrackBar
             // 
@@ -842,7 +842,7 @@
         private GroupBox groupBox8;
         private CheckBox _soundCheckBox;
         private TrackBar _volumeTrackBar;
-        private Label label10;
+        private Label _volumeLabel;
         private TextBox _outOfFocusClickTextBox;
         private Label label11;
         private CheckBox _alwaysOnTopCheckbox;
@@ -864,7 +864,7 @@
         private GroupBox groupBox11;
         private CheckBox _highlightBingoCheckBox;
         private CheckBox _highlightMarkedCheckBox;
-        private Label label15;
+        private Label _shadowLabel;
         private TrackBar _shadowTrackBar;
     }
 }

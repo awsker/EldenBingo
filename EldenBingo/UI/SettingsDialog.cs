@@ -9,9 +9,16 @@ namespace EldenBingo.UI
         private Keys _outOfFocusKey;
         private bool _rebindingKey = false;
 
+        private string _volumeLabelInitial;
+        private string _shadowLabelInitial;
+
         public SettingsDialog()
         {
             InitializeComponent();
+
+            _volumeLabelInitial = _volumeLabel.Text;
+            _shadowLabelInitial = _shadowLabel.Text;
+
             initControls();
         }
 
@@ -82,6 +89,7 @@ namespace EldenBingo.UI
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
 
             _shadowTrackBar.Value = Properties.Settings.Default.SquareShadows / 10;
+            _shadowTrackBar.ValueChanged += (o, e) => updateShadowText();
             _highlightMarkedCheckBox.Checked = Properties.Settings.Default.MarkHighlight;
             _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
 
@@ -99,6 +107,7 @@ namespace EldenBingo.UI
 
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
             _volumeTrackBar.Value = Properties.Settings.Default.SoundVolume / 10;
+            _volumeTrackBar.ValueChanged += (o, e) => updateVolumeText();
 
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
             _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
@@ -111,6 +120,8 @@ namespace EldenBingo.UI
             updatePositionEnable();
             updateMaxSizeEnable();
             updateOutOfFocusText();
+            updateVolumeText();
+            updateShadowText();
         }
 
         private void updateSizeEnable()
@@ -217,6 +228,7 @@ namespace EldenBingo.UI
         private void SettingsDialog_Load(object sender, EventArgs e)
         {
             _swapMouseButtons.Text = _swapMouseButtons.Text.Replace("***", "\r\n");
+            
             initOutputDeviceComboBox();
         }
 
@@ -272,6 +284,21 @@ namespace EldenBingo.UI
             {
                 _outOfFocusClickTextBox.Text = _outOfFocusKey.ToString().ToUpper();
             }
+        }
+
+        private void updateVolumeText()
+        {
+            _volumeLabel.Text = $"{_volumeLabelInitial} {valToPercent(_volumeTrackBar.Value)}";
+        }
+
+        private void updateShadowText()
+        {
+            _shadowLabel.Text = $"{_shadowLabelInitial} {valToPercent(_shadowTrackBar.Value)}";
+        }
+
+        private string valToPercent(int val)
+        {
+            return $"({val * 10}%)";
         }
 
         private void _testSoundButton_Click(object sender, EventArgs e)
