@@ -12,6 +12,7 @@ This application makes running, administrating, spectating and streaming Elden R
 * Chat in lobbies
 * Watch your teammates' positions live on the built in map of The Lands Between, or see everyone as a spectator
 * Configure your lobby with custom rules, like randomized starting classes
+* Support for lockout and non-lockout matches
 * Matches can be started, paused and stopped by the referees
 * Squares can be checked/unchecked by players or by referees on behalf of players
 * Right click to mark squares with stars, visible only to the player marking the square
@@ -39,9 +40,10 @@ When joining (or creating) a lobby, you will be asked to input a nickname and se
 When creating a lobby you can enter any Room name you want, or use the one that was generated. If you enter an admin password, any player that connects to the lobby with that same admin password also becomes an administrator. If you leave it empty, only you will be able to administrate.
 
 You can also configure the rules of the lobby:  
-![Lobby settings](https://github.com/awsker/EldenBingo/assets/604653/e257606b-3db2-46b9-8b2e-211a2cedaecd)
+![image](https://github.com/user-attachments/assets/44d037ec-13d9-4220-bcf1-7a4d53c3fc60)
 
-* *Board size* specifies how large the bingo board will be. This takes effect the next time a board is generated.  
+* *Board size* specifies how large the bingo board will be. This takes effect the next time a board is generated.
+* *Lockout* specifies that only one player/team can mark the same square. If this is unchecked, multiple players/teams will be able to mark the same square.
 * *Random seed* will ensure that the same sequence of boards and random classes are generated/picked. This sequence will reset when a new json is uploaded. **0 means a random seed will be used**.  
 * *Preparation Time* creates an extra preparation phase at the beginning of the match, after the initial countdown, in which players can see the board and the available classes and plan ahead before the match starts.  **0 means no preparation phase**
 * *Bonus points for bingo* can be used if you want bingo lines to be worth a set number of points instead of immediately ending the match.  
@@ -86,7 +88,7 @@ If you enable the setting "Show random classes in map", the available starting c
 
 # Bingo board controls
 * Left click - Check or uncheck a square for you/your team. Visible for everyone.
-* Right click - Mark a square with a star. The star can be used for anything, like a reminder for yourself or for coordinating a plan with your teammates. The star is only visible to your own team.
+* Right click - Mark a square with a star. The star can be used for anything, like a reminder for yourself. The star is only visible to you.
 * Mouse wheel up/down - Increase/decrease the count of this square. The counter is useful for squares that have a set number of tasks that need to be completed, where it's easy to lose track of your progress. The counter is only visible to your own team and spectators.
 
 # AdminSpectators
@@ -97,15 +99,15 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
 
 # Json Format
-The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories and counters.  
-![image](https://github.com/awsker/EldenBingo/assets/604653/a560d869-6954-4db7-9218-f9c40b838909)
+The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories and center square.  
+![image](https://github.com/user-attachments/assets/fa1ac51d-358b-46e0-9654-34d79b39aa70)
 
 Use the **tooltip** key to define a tooltip when hovering that square:  
  ![image](https://github.com/awsker/EldenBingo/assets/604653/a5f97ed4-9454-462a-bd31-8b2de1e186f7)
 
 Use the **category** key to define a single category, or the **categories** key to define an array of categories. These categories can be used in conjunction with the lobby setting *Max square in same category* to ensure that at most that number of categories will be present in one bingo board, in order to generate more balanced bingo boards.
 
-Use the **count** key to define that the square requires a set number clicks to complete. When users click this square, it will increment the counter by 1 (as if scrolling the mouse wheel up) until this value is reached. This behaviour is optional and can be disabled in the Settings dialog by the user, in which case they must use their mouse wheel to manually track the count and click the square only when it's completed.
+If one or more squares have the tag **center** set to 1, one of them will be randomly selected to be the center square on board sizes where it's applicable.
 
 # Credits
 * Nordgaren for process assembly injection
