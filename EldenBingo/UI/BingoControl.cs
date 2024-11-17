@@ -578,6 +578,17 @@ namespace EldenBingo.UI
             private bool _marked;
             private SolidBrush _brush;
             private LinearGradientBrush _gradientBrush;
+            private ImageAttributes _imageAttributes;
+            private ColorMatrix _colorMatrix;
+
+            private static Bitmap _starImage;
+            private static Bitmap _squareGradient;
+
+            static BingoSquareControl()
+            {
+                _starImage = Resources.tinystar;
+                _squareGradient = Resources.square_gradient;
+            }
 
             public BingoSquareControl(int index, string text, string tooltip)
             {
@@ -591,6 +602,9 @@ namespace EldenBingo.UI
                 _activeTeams = Array.Empty<int>();
                 _counters = new SquareCounter[0];
                 _brush = new SolidBrush(Color.White);
+                _imageAttributes = new ImageAttributes();
+                _colorMatrix = new ColorMatrix();
+                _imageAttributes.SetColorMatrix(_colorMatrix);
                 if (Height > 0)
                 {
                     _gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, Color.Transparent);
@@ -783,9 +797,9 @@ namespace EldenBingo.UI
                 var scale = Width / 96f;
                 var x = 3f * scale;
                 var y = 3f * scale;
-                var width = Resources.tinystar.Width * scale * 0.7f;
-                var height = Resources.tinystar.Height * scale * 0.7f;
-                e.Graphics.DrawImage(Resources.tinystar, x, y, width, height);
+                var width = _starImage.Width * scale * 0.7f;
+                var height = _starImage.Height * scale * 0.7f;
+                e.Graphics.DrawImage(_starImage, x, y, width, height);
             }
 
             private void drawRectangle(PaintEventArgs e)
@@ -863,26 +877,23 @@ namespace EldenBingo.UI
                 //Draw subtle dark shadow around the edges
                 if (Properties.Settings.Default.SquareShadows > 0)
                 {
-                    var image = Resources.square_gradient;
-                    var attr = new ImageAttributes();
-                    var cm = new ColorMatrix();
-                    cm.Matrix00 = -1f;
-                    cm.Matrix11 = -1f;
-                    cm.Matrix22 = -1f;
-                    cm.Matrix33 = 0.6f * shadows;
-                    attr.SetColorMatrix(cm);
-                    g.DrawImage(Resources.square_gradient, new Rectangle(0, 0, Width, Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attr);
+                    _colorMatrix.Matrix00 = -1f;
+                    _colorMatrix.Matrix11 = -1f;
+                    _colorMatrix.Matrix22 = -1f;
+                    _colorMatrix.Matrix33 = 0.6f * shadows;
+                    _imageAttributes.SetColorMatrix(_colorMatrix);
+                    g.DrawImage(_squareGradient, new Rectangle(0, 0, Width, Height), 0, 0, _squareGradient.Width, _squareGradient.Height, GraphicsUnit.Pixel, _imageAttributes);
                 }
 
                 if (Properties.Settings.Default.MarkHighlight && CheckAnimationTimer > 0)
                 {
-                    var image = Resources.square_gradient;
                     var alpha = (1.0f - MathF.Sin(CheckAnimationTimer * 8f) * 0.2f) * invLerp(0.0f, 0.8f, CheckAnimationTimer);
-                    var attr = new ImageAttributes();
-                    var cm = new ColorMatrix();
-                    cm.Matrix33 = alpha;
-                    attr.SetColorMatrix(cm);
-                    g.DrawImage(Resources.square_gradient, new Rectangle(0, 0, Width, Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attr);
+                    _colorMatrix.Matrix00 = 1f;
+                    _colorMatrix.Matrix11 = 1f;
+                    _colorMatrix.Matrix22 = 1f;
+                    _colorMatrix.Matrix33 = alpha;
+                    _imageAttributes.SetColorMatrix(_colorMatrix);
+                    g.DrawImage(_squareGradient, new Rectangle(0, 0, Width, Height), 0, 0, _squareGradient.Width, _squareGradient.Height, GraphicsUnit.Pixel, _imageAttributes);
                 }
 
                 //White out the entire tile
