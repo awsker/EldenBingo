@@ -738,24 +738,65 @@ namespace EldenBingoServer
         {
             if (sender == null)
                 return;
-            if (!await confirm(sender, inRoom: true, gameStarted: false))
+            if (!await confirm(sender, inRoom: true))
                 return;
 
-            var userInfo = sender.Room.GetUser(sender.ClientGuid);
-            if (userInfo != null && change.Team != userInfo.Team)
+            var room = sender.Room;
+
+            var userInfo = room.GetUser(sender.ClientGuid);
+            if (userInfo == null)
+                return;
+
+            var oldTeam = userInfo.Team;
+            var newTeam = change.Team;
+            if (userInfo != null && newTeam != oldTeam)
             {
-                userInfo.Team = change.Team;
+                userInfo.Team = newTeam;
                 //Construct a list of all users as UserInRoom and send these (we don't want to send the users as BingoClientInRoom since this type is unrecognized by the client)
                 var currentUsers = new List<UserInRoom>();
-                foreach (var user in sender.Room.Users)
+                foreach (var user in room.Users)
                 {
                     currentUsers.Add(new UserInRoom(user));
                 }
-                var packet = new Packet();
-                var teamColorName = BingoConstants.GetTeamName(change.Team);
-                packet.AddObject(new ServerUserChangedTeam(sender.ClientGuid, change.Team, teamColorName, currentUsers.ToArray()));
-                packet.AddObject(createScoreboardUpdatePacket(sender.Room));
-                await sendPacketToRoom(packet, sender.Room);
+                
+                var teamColorName = BingoConstants.GetTeamName(newTeam);
+
+                var teamChangePacket = new ServerUserChangedTeam(sender.ClientGuid, newTeam, teamColorName, currentUsers.ToArray());
+                var scoreboardUpdatePacket = createScoreboardUpdatePacket(room);
+
+                var tasks = new List<Task>();
+                var activeTeams = room.GetActiveTeams();
+                foreach (var recipient in room.Users)
+                {
+                    var packet = new Packet();
+                    packet.AddObject(teamChangePacket);
+                    packet.AddObject(scoreboardUpdatePacket);
+                    if (room.Match?.Board is ServerBingoBoard board)
+                    {
+                        //For spectators or the user changing team, we need to update all counter squares
+                        if (recipient.IsSpectator || recipient == userInfo)
+                        {
+                            for (int i = 0; i < board.CheckStatus.Length; ++i)
+                            {
+                                var check = board.CheckStatus[i];
+                                
+                                if (recipient.IsSpectator && check.AnyCounters() || check.GetCounter(userInfo) > 0)
+                                {
+                                    packet.AddObject(new ServerSquareUpdate(board.GetSquareDataForUser(recipient, i, activeTeams), i));
+                                }
+                            }
+                        }
+                        //If this recipient is the client that switched team, and they switched to spectator, and they are admin, and the match isn't started
+                        //Send the board to that player
+                        if (recipient == userInfo && userInfo.IsAdmin && userInfo.IsSpectator && room.Match.MatchStatus <= MatchStatus.Starting)
+                        {
+                            packet.AddObject(createEntireBoardPacket(board, userInfo));
+                        }
+                    }
+                    var task = SendPacketToClient(packet, recipient.Client);
+                    tasks.Add(task);
+                }
+                await Task.WhenAll(tasks);
             }
         }
 

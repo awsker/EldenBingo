@@ -68,10 +68,15 @@ namespace EldenBingo.UI
                 updateUsersList(Client.Room);
         }
 
-        private void userChangedTeam(ClientModel? model, ServerUserChangedTeam team)
+        private void userChangedTeam(ClientModel? model, ServerUserChangedTeam teamChangedArgs)
         {
             if (Client?.Room != null)
+            {
+                var user = Client.Room.GetUser(teamChangedArgs.UserGuid);
+                if (user != null)
+                    user.Team = teamChangedArgs.Team;
                 updateUsersList(Client.Room);
+            }
         }
 
 

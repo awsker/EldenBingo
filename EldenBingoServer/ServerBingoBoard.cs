@@ -84,6 +84,11 @@ namespace EldenBingoServer
             return counter;
         }
 
+        public bool AnyCounters()
+        {
+            return PlayerCounters.Count > 0;
+        }
+
         public bool SetCounter(Guid player, int? counter)
         {
             if (counter.HasValue && counter.Value > 0)

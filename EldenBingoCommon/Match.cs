@@ -87,7 +87,7 @@ namespace EldenBingoCommon
         [JsonProperty]
         public MatchStatus MatchStatus { get; set; }
         [JsonIgnore]
-        public bool Running => MatchStatus == MatchStatus.Starting || MatchStatus == MatchStatus.Preparation || MatchStatus == MatchStatus.Running;
+        public bool Running => MatchStatus > MatchStatus.NotRunning && MatchStatus < MatchStatus.Finished;
         [JsonProperty]
         public int ServerTimer { get; private set; }
         [JsonProperty]
