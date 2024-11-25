@@ -759,7 +759,7 @@ namespace EldenBingoServer
                     currentUsers.Add(new UserInRoom(user));
                 }
                 
-                var teamColorName = BingoConstants.GetTeamName(newTeam);
+                var teamColorName = room.GetTeamNameIgnoreUsers(change.Team);
 
                 var teamChangePacket = new ServerUserChangedTeam(sender.ClientGuid, newTeam, teamColorName, currentUsers.ToArray());
                 var scoreboardUpdatePacket = createScoreboardUpdatePacket(room);

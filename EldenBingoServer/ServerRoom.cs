@@ -138,7 +138,6 @@ namespace EldenBingoServer
 
         public string GetTeamNameIgnoreUsers(int team)
         {
-            var usersOnTeam = Users.Where(t => t.Team == team).ToList();
             if (_customTeamNames.TryGetValue(team, out var teamName) && !string.IsNullOrWhiteSpace(teamName))
                 return teamName;
             else
