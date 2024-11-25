@@ -561,7 +561,7 @@ namespace EldenBingoServer
                         ServerBingoAchievedUpdate[] bingos = board.BingoSet.Except(bingosBefore).Select(b => new ServerBingoAchievedUpdate(b)).ToArray();
                         lock (check)
                         {
-                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, teamChanged, check.Team);
+                            userCheck = new ServerUserChecked(userInfo.Guid, tryCheck.Index, teamChanged, check.Teams.ToArray());
                             foreach (var recipient in sender.Room.Users)
                             {
                                 squareUpdate = new ServerSquareUpdate(board.GetSquareDataForUser(recipient, tryCheck.Index), tryCheck.Index);

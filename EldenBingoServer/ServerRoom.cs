@@ -124,7 +124,7 @@ namespace EldenBingoServer
             {
                 foreach (var sq in serverboard.CheckStatus)
                 {
-                    foreach (var team in sq.Team)
+                    foreach (var team in sq.Teams)
                     {
                         if (!dict.ContainsKey(team))
                         {

@@ -8,12 +8,12 @@ namespace EldenBingoServer
     {
         public CheckStatus()
         {
-            Team = Array.Empty<int>();
+            Teams = new List<int>();
             MarkedBy = new HashSet<Guid>();
             PlayerCounters = new ConcurrentDictionary<Guid, int>();
         }
         [JsonProperty]
-        public int[] Team { get; set; }
+        public List<int> Teams { get; init; }
         [JsonProperty]
         private IDictionary<Guid, int> PlayerCounters { get; init; }
         [JsonProperty]
@@ -21,24 +21,20 @@ namespace EldenBingoServer
 
         public bool IsChecked()
         {
-            return Team.Length > 0;
+            return Teams.Count > 0;
         }
 
         public bool IsChecked(int team)
         {
-            return Team.Contains(team);
+            return Teams.Contains(team);
         }
 
         public bool Check(int team)
         {
-            if (team >= 0)
+            if (team >= 0 && !Teams.Contains(team))
             {
-                var teams = new List<int>(Team);
-                if (teams.Contains(team))
-                    return false;
-                teams.Add(team);
-                teams.Sort();
-                Team = teams.ToArray();
+                Teams.Add(team);
+                Teams.Sort();
                 return true;
             }
             return false;
@@ -46,11 +42,7 @@ namespace EldenBingoServer
 
         public bool Uncheck(int team)
         {
-            var teams = new List<int>(Team);
-            var removed = teams.Remove(team);
-            if (removed)
-                Team = teams.ToArray();
-            return removed;
+            return Teams.Remove(team);
         }
 
         public bool Mark(UserInRoom player)
@@ -176,7 +168,7 @@ namespace EldenBingoServer
             return new BingoBoardSquare(
                 Squares[index].Text,
                 Squares[index].Tooltip,
-                status.Team,
+                status.Teams.ToArray(),
                 status.IsMarked(user),
                 status.GetCountersForPlayer(user, Room.Users, teams));
         }
@@ -213,62 +205,30 @@ namespace EldenBingoServer
             lock (check)
             {
                 bool checkChanged = false;
-                if (Lockout)
+                //Square owned by this player's team -> allow it to be toggled off
+                if (check.IsChecked(onBehalfOf.Team))
                 {
-                    var team = check.Team.FirstOrDefault(-1);
-                    //Square not owned by any player or team, allow check
-                    if (team == -1)
-                    {
-                        if (!onBehalfOf.IsSpectator)
-                        {
-                            checkChanged = check.Check(onBehalfOf.Team);
-                            teamChanged = onBehalfOf.Team;
-                        }
-                    }
-                    //Allow admin spectators to uncheck squares
-                    else if (clicker.IsSpectator && clicker.IsAdmin)
-                    {
-                        checkChanged = CheckStatus[i].Uncheck(team);
-                        teamChanged = team;
-                    }
-                    //Square owned by this player's team -> allow it to be toggled off
-                    else if (team == onBehalfOf.Team)
-                    {
-                        checkChanged = CheckStatus[i].Uncheck(team);
-                        teamChanged = team;
-                    }
-                    if (checkChanged)
-                    {
-                        _lastBingos = Room.GetBingos();
-                    }
+                    checkChanged = check.Uncheck(onBehalfOf.Team);
+                    teamChanged = onBehalfOf.Team;
                 }
-                else
+                //Allow admin spectators to uncheck squares with only 1 check without specifying the team
+                else if (clicker.IsSpectator && clicker.IsAdmin && check.Teams.Count == 1)
                 {
-                    //Square owned by this player's team -> allow it to be toggled off
-                    if (check.IsChecked(onBehalfOf.Team))
-                    {
-                        checkChanged = check.Uncheck(onBehalfOf.Team);
-                        teamChanged = onBehalfOf.Team;
-                    }
-                    //Allow admin spectators to uncheck squares with only 1 check without specifying the team
-                    else if (clicker.IsSpectator && clicker.IsAdmin && check.Team.Length == 1)
-                    {
-                        checkChanged = CheckStatus[i].Uncheck(check.Team[0]);
-                        teamChanged = check.Team[0];
-                    }
-                    //Otherwise check the square for the selected team if it's not spectator
-                    else if (!onBehalfOf.IsSpectator)
-                    {
-                        checkChanged = check.Check(onBehalfOf.Team);
-                        teamChanged = onBehalfOf.Team;
-                    }
-                    if (checkChanged)
-                    {
-                        _lastBingos = Room.GetBingos();
-                    }
+                    var team = check.Teams[0];
+                    checkChanged = CheckStatus[i].Uncheck(team);
+                    teamChanged = team;
+                }
+                //Otherwise check the square for the selected team if it's not spectator, and square is not already checked by another team
+                else if (!onBehalfOf.IsSpectator && !(Lockout && check.IsChecked()))
+                {
+                    checkChanged = check.Check(onBehalfOf.Team);
+                    teamChanged = onBehalfOf.Team;
+                }
+                if (checkChanged)
+                {
+                    _lastBingos = Room.GetBingos();
                 }
                 return checkChanged;
-
             }
         }
 
@@ -300,7 +260,7 @@ namespace EldenBingoServer
             
             foreach (var square in CheckStatus)
             {
-                foreach (var t in square.Team)
+                foreach (var t in square.Teams)
                 {
                     if (squaresCountPerTeam.TryGetValue(t, out int c))
                         squaresCountPerTeam[t] = c + 1;
@@ -326,7 +286,7 @@ namespace EldenBingoServer
                 for (int i = 0; i < Size; ++i)
                 {
                     var s = CheckStatus[index(x, y)];
-                    foreach (var t in s.Team)
+                    foreach (var t in s.Teams)
                     {
                         if (squaresCountPerTeam.TryGetValue(t, out int c))
                             squaresCountPerTeam[t] = c + 1;
