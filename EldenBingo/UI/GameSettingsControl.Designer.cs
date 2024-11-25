@@ -195,7 +195,6 @@
             // 
             _boardSizeComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             _boardSizeComboBox.FormattingEnabled = true;
-            _boardSizeComboBox.Items.AddRange(new object[] { "3x3", "4x4", "5x5", "6x6", "7x7", "8x8" });
             _boardSizeComboBox.Location = new Point(73, 1);
             _boardSizeComboBox.MaxDropDownItems = 6;
             _boardSizeComboBox.Name = "_boardSizeComboBox";

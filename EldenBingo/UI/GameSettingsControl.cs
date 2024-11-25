@@ -7,6 +7,7 @@ namespace EldenBingo.UI
         public GameSettingsControl()
         {
             InitializeComponent();
+            fillBoardSizeList();
             fillClassList();
             updateEnabling();
             _randomSeedUpDown.ValueChanged += (o, e) => SeedChanged?.Invoke();
@@ -63,6 +64,14 @@ namespace EldenBingo.UI
                 _bonusPointsUpDown.Value = value.PointsPerBingoLine;
                 updateEnabling();
             }
+        }
+
+        private void fillBoardSizeList()
+        {
+            for(int i = BingoConstants.BoardSizeMin; i <= BingoConstants.BoardSizeMax; ++i)
+            {
+                _boardSizeComboBox.Items.Add($"{i}x{i}");
+            };
         }
 
         private void fillClassList()

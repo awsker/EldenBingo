@@ -39,6 +39,9 @@ namespace EldenBingoCommon
     {
         public const int DefaultPort = 4501;
 
+        public const int BoardSizeMin = 3;
+        public const int BoardSizeMax = 11;
+
         public static readonly ColorName[] TeamColors = new[]
         {
             new ColorName(Color.FromArgb(190, 18, 16), "Red"),
