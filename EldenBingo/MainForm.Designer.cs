@@ -51,6 +51,7 @@
             _usersListBox = new UI.RichListBox();
             panel1 = new Panel();
             _clientStatusTextBox = new TextBox();
+            _changeTeamButton = new ToolStripButton();
             tabControl1.SuspendLayout();
             _consolePage.SuspendLayout();
             _lobbyPage.SuspendLayout();
@@ -129,7 +130,7 @@
             // toolStrip1
             // 
             toolStrip1.AutoSize = false;
-            toolStrip1.Items.AddRange(new ToolStripItem[] { _connectButton, _disconnectButton, toolStripSeparator1, _createLobbyButton, _joinLobbyButton, _leaveRoomButton, toolStripSeparator2, _openMapButton, toolStripSeparator3, _settingsButton, _startGameButton });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { _connectButton, _disconnectButton, toolStripSeparator1, _createLobbyButton, _joinLobbyButton, _leaveRoomButton, _changeTeamButton, toolStripSeparator2, _openMapButton, toolStripSeparator3, _settingsButton, _startGameButton });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(947, 70);
@@ -299,6 +300,18 @@
             _clientStatusTextBox.TabIndex = 4;
             _clientStatusTextBox.TextAlign = HorizontalAlignment.Center;
             // 
+            // _changeTeamButton
+            // 
+            _changeTeamButton.Image = (Image)resources.GetObject("_changeTeamButton.Image");
+            _changeTeamButton.ImageScaling = ToolStripItemImageScaling.None;
+            _changeTeamButton.ImageTransparentColor = Color.Magenta;
+            _changeTeamButton.Name = "_changeTeamButton";
+            _changeTeamButton.Size = new Size(83, 67);
+            _changeTeamButton.Text = "Change Team";
+            _changeTeamButton.TextAlign = ContentAlignment.BottomCenter;
+            _changeTeamButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            _changeTeamButton.Click += _changeTeamButton_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(96F, 96F);
@@ -350,5 +363,6 @@
         private UI.LobbyControl _lobbyControl;
         private ToolStripButton _openMapButton;
         private ToolStripSeparator toolStripSeparator3;
+        private ToolStripButton _changeTeamButton;
     }
 }

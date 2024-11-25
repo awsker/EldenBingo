@@ -20,6 +20,7 @@ public record ServerUserChecked(Guid UserGuid, int Index, int Team, int[] TeamsC
 public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
 public record ServerTeamNameChanged(Guid UserGuid, int Team, string TeamColorName, string Name);
 public record ServerBroadcastMessage(string Message);
+public record ServerUserChangedTeam(Guid UserGuid, int Team, string TeamColorName, UserInRoom[] Users);
 
 #endregion Server to client
 
@@ -41,5 +42,6 @@ public record ClientTrySetCounter(int Index, int Change, Guid ForUser);
 public record ClientSetGameSettings(BingoGameSettings GameSettings);
 public record ClientRequestCurrentGameSettings();
 public record ClientSetTeamName(int Team, string Name);
+public record ClientRequestTeamChange(int Team);
 
 #endregion Client to server

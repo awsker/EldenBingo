@@ -275,6 +275,23 @@ namespace EldenBingo
             }
         }
 
+        private async void _changeTeamButton_Click(object sender, EventArgs e)
+        {
+            if (_client.LocalUser == null)
+                return;
+
+            var form = new ChangeTeamForm();
+            form.TopMost = true;
+
+            var teamBefore = _client.LocalUser.Team;
+            form.Team = teamBefore;
+
+            if (form.ShowDialog(this) == DialogResult.OK && form.Team != teamBefore)
+            {
+                await _client.SendPacketToServer(new Packet(new ClientRequestTeamChange(form.Team)));
+            }
+        }
+
         private void _openMapButton_Click(object sender, EventArgs e)
         {
             try
@@ -804,10 +821,12 @@ namespace EldenBingo
                 _createLobbyButton.Visible = !inRoom;
                 _joinLobbyButton.Visible = !inRoom;
                 _leaveRoomButton.Visible = inRoom;
+                _changeTeamButton.Visible = inRoom;
 
                 _createLobbyButton.Enabled = connected;
                 _joinLobbyButton.Enabled = connected;
                 _leaveRoomButton.Enabled = connected;
+                _changeTeamButton.Enabled = connected;
             }));
         }
     }

@@ -259,6 +259,7 @@ namespace EldenBingoServer
             AddListener<ClientSetGameSettings>(clientSetGameSettings);
             AddListener<ClientTogglePause>(clientTogglePause);
             AddListener<ClientSetTeamName>(clientSetTeamName);
+            AddListener<ClientRequestTeamChange>(clientTeamChange);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -730,6 +731,31 @@ namespace EldenBingoServer
                     packet.AddObject(teamNameChangedPacket);
                     _ = sendPacketToRoom(packet, sender.Room);
                 }
+            }
+        }
+
+        private async void clientTeamChange(BingoClientModel? sender, ClientRequestTeamChange change)
+        {
+            if (sender == null)
+                return;
+            if (!await confirm(sender, inRoom: true, gameStarted: false))
+                return;
+
+            var userInfo = sender.Room.GetUser(sender.ClientGuid);
+            if (userInfo != null && change.Team != userInfo.Team)
+            {
+                userInfo.Team = change.Team;
+                //Construct a list of all users as UserInRoom and send these (we don't want to send the users as BingoClientInRoom since this type is unrecognized by the client)
+                var currentUsers = new List<UserInRoom>();
+                foreach (var user in sender.Room.Users)
+                {
+                    currentUsers.Add(new UserInRoom(user));
+                }
+                var packet = new Packet();
+                var teamColorName = BingoConstants.GetTeamName(change.Team);
+                packet.AddObject(new ServerUserChangedTeam(sender.ClientGuid, change.Team, teamColorName, currentUsers.ToArray()));
+                packet.AddObject(createScoreboardUpdatePacket(sender.Room));
+                await sendPacketToRoom(packet, sender.Room);
             }
         }
 

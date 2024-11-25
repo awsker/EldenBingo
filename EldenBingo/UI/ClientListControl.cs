@@ -29,6 +29,7 @@ namespace EldenBingo.UI
                 Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
                 Client.AddListener<ServerUserJoinedRoom>(userJoined);
                 Client.AddListener<ServerUserLeftRoom>(userLeft);
+                Client.AddListener<ServerUserChangedTeam>(userChangedTeam);
             }
         }
 
@@ -66,6 +67,13 @@ namespace EldenBingo.UI
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
         }
+
+        private void userChangedTeam(ClientModel? model, ServerUserChangedTeam team)
+        {
+            if (Client?.Room != null)
+                updateUsersList(Client.Room);
+        }
+
 
         private void clearUsersList()
         {
