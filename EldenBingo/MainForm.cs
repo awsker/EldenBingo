@@ -13,6 +13,7 @@ using SFML.System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Security.Principal;
+using Version = System.Version;
 
 namespace EldenBingo
 {
@@ -75,6 +76,8 @@ namespace EldenBingo
             SizeChanged += mainForm_SizeChanged;
             LocationChanged += mainForm_LocationChanged;
             Instance = this;
+
+            addVersionToTitle();
         }
 
         public static MainForm? Instance { get; private set; }
@@ -129,6 +132,28 @@ namespace EldenBingo
                 _rawInput.ProcessRawInput(m);
             }
             base.WndProc(ref m);
+        }
+
+        private void addVersionToTitle()
+        {
+            var v = getCleanVersionString();
+            if (v != null)
+            {
+                Text += " " + v;
+            }
+        }
+
+        private string getCleanVersionString()
+        {
+            Version? version = Assembly.GetExecutingAssembly().GetName().Version;
+            if (version == null)
+                return string.Empty;
+
+            string v = $"v{version.Major}.{version.Minor}";
+            if (version.Build > 0)
+                v += $".{version.Build}";
+
+            return v;
         }
 
         /// <summary>
