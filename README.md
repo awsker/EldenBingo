@@ -100,7 +100,7 @@ The settings are mostly for the convenience of a streamer, to set up the UI comp
 
 # Json Format
 The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories and center square.  
-![image](https://github.com/user-attachments/assets/fa1ac51d-358b-46e0-9654-34d79b39aa70)
+![json2](https://github.com/user-attachments/assets/847c42df-868c-4c3c-bc87-e73931643b82)
 
 Use the **tooltip** key to define a tooltip when hovering that square:  
  ![image](https://github.com/awsker/EldenBingo/assets/604653/a5f97ed4-9454-462a-bd31-8b2de1e186f7)
@@ -108,6 +108,8 @@ Use the **tooltip** key to define a tooltip when hovering that square:
 Use the **category** key to define a single category, or the **categories** key to define an array of categories. These categories can be used in conjunction with the lobby setting *Max square in same category* to ensure that at most that number of categories will be present in one bingo board, in order to generate more balanced bingo boards.
 
 If one or more squares have the tag **center** set to 1, one of them will be randomly selected to be the center square on board sizes where it's applicable.
+
+Tokens can be used to create more dynamic squares. Create a token by surrounding a word with percentage signs (for example %x%) and declare a list of possible substitutions in an array with the same name as the token. One of those will be picked at random when the square is generated. You can even have multiple tokens in the same square. See example in the image above.
 
 # Credits
 * Nordgaren for process assembly injection
