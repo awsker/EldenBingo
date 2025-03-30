@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace EldenBingoServer
 {
@@ -44,7 +45,22 @@ namespace EldenBingoServer
                         }
                     }
                 }
-                _list.Add(new BingoJsonObj(name, tooltip, weight.GetValueOrDefault(1), categories.ToArray(), (CenterType)center.GetValueOrDefault(0)));
+                var tokenDict = new Dictionary<string, string[]>();
+                foreach (var textToken in getTokens(name))
+                {
+                    var tokenArray = square.Value<JArray>(textToken);
+                    if(tokenArray == null || tokenArray.Count == 0)
+                        throw new Exception($"Non-existent token '{textToken}' in '{name}'");
+                    if (!tokenDict.ContainsKey(textToken))
+                    {
+                        if(tokenArray.Any(t => t.Type != JTokenType.String))
+                        {
+                            throw new Exception($"Invalid type inside '{textToken}' in '{name}'");
+                        }
+                        tokenDict.Add(textToken, tokenArray.Select(t => t.Value<string>()).ToArray());
+                    }
+                }
+                _list.Add(new BingoJsonObj(name, tooltip, weight.GetValueOrDefault(1), categories.ToArray(), tokenDict.Count == 0 ? null : tokenDict, (CenterType)center.GetValueOrDefault(0)));
             }
         }
 
@@ -166,7 +182,7 @@ namespace EldenBingoServer
                 room.GameSettings.Lockout,
                 squares.Select(s => 
                     new BingoBoardSquare(
-                        s.Text, 
+                        getTextWithResolvedTokens(s), 
                         s.Tooltip, 
                         Array.Empty<int>(), 
                         false, 
@@ -198,14 +214,38 @@ namespace EldenBingoServer
             //TODO
         }
 
+        private IEnumerable<string> getTokens(string text)
+        {
+            return Regex.Matches(text, @"%(\w+)%").Select(m => m.Groups[1].Value);
+        }
+
+        private string getTextWithResolvedTokens(BingoJsonObj obj)
+        {
+            string text = obj.Text;
+            if (obj.Tokens != null)
+            {
+                foreach (var kv in obj.Tokens)
+                {
+                    text = text.Replace($"%{kv.Key}%", pickOneAtRandom(kv.Value));
+                }
+            }
+            return text;
+        }
+
+        private T pickOneAtRandom<T>(IList<T> items)
+        {
+            return items[_random.Next(items.Count)];
+        }
+
         private struct BingoJsonObj
         {
-            public BingoJsonObj(string text, string? tooltip = null, int weight = 1, string[]? categories = null, CenterType center = CenterType.None)
+            public BingoJsonObj(string text, string? tooltip = null, int weight = 1, string[]? categories = null, IDictionary<string, string[]>? tokens = null, CenterType center = CenterType.None)
             {
                 Text = text;
                 Tooltip = tooltip == null ? string.Empty : tooltip;
                 Weight = weight;
                 Categories = new HashSet<string>(categories ?? Array.Empty<string>());
+                Tokens = tokens;
                 CenterType = center;
             }
 
@@ -213,6 +253,7 @@ namespace EldenBingoServer
             public string Tooltip { get; init; }
             public int Weight { get; init; }
             public ISet<string> Categories { get; init; }
+            public IDictionary<string, string[]>? Tokens { get; init; }
             public CenterType CenterType { get; init; }
 
             public override string ToString()
