@@ -99,7 +99,7 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
 
 # Json Format
-The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories and center square.  
+The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories, center square and token replacements. 
 ![json2](https://github.com/user-attachments/assets/847c42df-868c-4c3c-bc87-e73931643b82)
 
 Use the **tooltip** key to define a tooltip when hovering that square:  
