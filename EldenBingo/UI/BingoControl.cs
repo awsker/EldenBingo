@@ -1,5 +1,6 @@
 ﻿using EldenBingo.Net;
 using EldenBingo.Properties;
+using EldenBingo.Settings;
 using EldenBingoCommon;
 using Neto.Shared;
 using System.Drawing.Drawing2D;
@@ -351,13 +352,23 @@ namespace EldenBingo.UI
             {
                 redrawAllSquares();
             }
+            if (e.PropertyName == nameof(Properties.Settings.SquareColorsJson) || e.PropertyName == nameof(Properties.Settings.SquareColorsAlpha))
+            {
+                foreach (var square in Squares)
+                {
+                    square.UpdateBackgroundColor();
+                }
+                redrawAllSquares();
+            }
         }
 
         private void redrawAllSquares()
         {
             Invalidate();
             foreach (var square in Squares)
+            {
                 square.Invalidate();
+            }
         }
 
         private void setupClickHotkey()
@@ -593,8 +604,8 @@ namespace EldenBingo.UI
             public BingoSquareControl(int index, string text, string tooltip)
             {
                 SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                TextChanged += onTextChanged;
                 Index = index;
-                BackColor = BgColor;
                 Text = text;
                 _toolTip = new ToolTip();
                 ToolTip = tooltip;
@@ -627,6 +638,38 @@ namespace EldenBingo.UI
                         _gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, Color.Transparent);
                     }
                 };
+            }
+
+            private void onTextChanged(object? sender, EventArgs e)
+            {
+                UpdateBackgroundColor();
+            }
+
+            public void UpdateBackgroundColor()
+            {
+                var color = SquareColorsJsonHelper.GetColor(Text);
+                if (color != null)
+                {
+                    var a = backgroundColorAlpha();
+                    var r = BgColor.R + color.Color.R * a;
+                    var g = BgColor.G + color.Color.G * a;
+                    var b = BgColor.B + color.Color.B * a;
+                    int toInt(double c)
+                    {
+                        return Math.Clamp(Convert.ToInt32(c), 0, 255);
+                    }
+                    var newColor = Color.FromArgb(toInt(r), toInt(g), toInt(b));
+                    BackColor = newColor;
+                }
+                else
+                {
+                    BackColor = BgColor;
+                }
+            }
+
+            private float backgroundColorAlpha()
+            {
+                return Properties.Settings.Default.SquareColorsAlpha * 0.01f;
             }
 
             public int[] Teams
@@ -809,7 +852,7 @@ namespace EldenBingo.UI
                 //Draw empty background
                 if(_teams.Length == 0)
                 {
-                    Color color = BgColor;
+                    Color color = BackColor;
                     if (MouseOver)
                     {
                         color = color.Brighten(0.14f);

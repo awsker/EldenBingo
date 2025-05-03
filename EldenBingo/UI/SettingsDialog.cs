@@ -1,4 +1,5 @@
-﻿using EldenBingo.Sfx;
+﻿using EldenBingo.Settings;
+using EldenBingo.Sfx;
 
 namespace EldenBingo.UI
 {
@@ -12,12 +13,21 @@ namespace EldenBingo.UI
         private string _volumeLabelInitial;
         private string _shadowLabelInitial;
 
+        private string _numKeywordsLabelInitial;
+        private string _keywordAlphaLabelInitial;
+
+        private List<KeywordSquareColor> _keywordColors;
+
         public SettingsDialog()
         {
             InitializeComponent();
 
             _volumeLabelInitial = _volumeLabel.Text;
             _shadowLabelInitial = _shadowLabel.Text;
+            _numKeywordsLabelInitial = _numKeywordsLabel.Text;
+            _keywordAlphaLabelInitial = _keywordColorAlphaLabel.Text;
+
+            _keywordColors = new List<KeywordSquareColor>(SquareColorsJsonHelper.Colors);
 
             initControls();
         }
@@ -116,12 +126,16 @@ namespace EldenBingo.UI
 
             _checkUpdatesCheckBox.Checked = Properties.Settings.Default.CheckForUpdates;
 
+            _keywordColorAlphaTrackBar.Value = Properties.Settings.Default.SquareColorsAlpha;
+            _keywordColorAlphaTrackBar.ValueChanged += (o, e) => updateKeywordColorText();
+
             updateSizeEnable();
             updatePositionEnable();
             updateMaxSizeEnable();
             updateOutOfFocusText();
             updateVolumeText();
             updateShadowText();
+            updateKeywordColorText();
         }
 
         private void updateSizeEnable()
@@ -221,6 +235,9 @@ namespace EldenBingo.UI
 
             Properties.Settings.Default.CheckForUpdates = _checkUpdatesCheckBox.Checked;
 
+            SquareColorsJsonHelper.Colors = _keywordColors.ToArray();
+            Properties.Settings.Default.SquareColorsAlpha = _keywordColorAlphaTrackBar.Value;
+
             Properties.Settings.Default.Save();
             return true;
         }
@@ -228,7 +245,7 @@ namespace EldenBingo.UI
         private void SettingsDialog_Load(object sender, EventArgs e)
         {
             _swapMouseButtons.Text = _swapMouseButtons.Text.Replace("***", "\r\n");
-            
+
             initOutputDeviceComboBox();
         }
 
@@ -288,17 +305,23 @@ namespace EldenBingo.UI
 
         private void updateVolumeText()
         {
-            _volumeLabel.Text = $"{_volumeLabelInitial} {valToPercent(_volumeTrackBar.Value)}";
+            _volumeLabel.Text = $"{_volumeLabelInitial} {valToPercent(_volumeTrackBar.Value * 10)}";
         }
 
         private void updateShadowText()
         {
-            _shadowLabel.Text = $"{_shadowLabelInitial} {valToPercent(_shadowTrackBar.Value)}";
+            _shadowLabel.Text = $"{_shadowLabelInitial} {valToPercent(_shadowTrackBar.Value * 10)}";
+        }
+
+        private void updateKeywordColorText()
+        {
+            _numKeywordsLabel.Text = _numKeywordsLabelInitial.Replace("%x%", _keywordColors.Count.ToString());
+            _keywordColorAlphaLabel.Text = $"{_keywordAlphaLabelInitial} {valToPercent(_keywordColorAlphaTrackBar.Value)}";
         }
 
         private string valToPercent(int val)
         {
-            return $"({val * 10}%)";
+            return $"({val}%)";
         }
 
         private void _testSoundButton_Click(object sender, EventArgs e)
@@ -308,11 +331,25 @@ namespace EldenBingo.UI
             {
                 var prev = Properties.Settings.Default.OutputDevice;
                 var selected = _soundOutputDeviceComboBox.SelectedItem as AudioDevice;
-                if (selected != null) {
+                if (selected != null)
+                {
                     player.SetAudioDevice(selected.Id);
                     player.PlaySound(SoundType.SquareClaimedOther, Math.Clamp(_volumeTrackBar.Value * 10, 0, 100));
                 }
                 player.SetAudioDevice(prev);
+            }
+        }
+
+        private void _keywordColorsButton_Click(object sender, EventArgs e)
+        {
+            var dialog = new KeywordSquareColorEditorForm();
+            dialog.TopMost = true;
+            dialog.Colors = _keywordColors;
+            var res = dialog.ShowDialog(this);
+            if (res == DialogResult.OK)
+            {
+                _keywordColors = dialog.Colors;
+                updateKeywordColorText();
             }
         }
     }
