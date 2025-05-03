@@ -30,6 +30,8 @@ namespace EldenBingo.UI
             _keywordColors = new List<KeywordSquareColor>(SquareColorsJsonHelper.Colors);
 
             initControls();
+
+            tabControl1.SelectedIndex = Properties.Settings.Default.LastSettingsTab;
         }
 
         private void _colorPanel_Click(object sender, EventArgs e)
@@ -72,6 +74,7 @@ namespace EldenBingo.UI
         private void _cancelButton_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
+            Properties.Settings.Default.LastSettingsTab = tabControl1.SelectedIndex;
             Close();
         }
 
@@ -237,6 +240,8 @@ namespace EldenBingo.UI
 
             SquareColorsJsonHelper.Colors = _keywordColors.ToArray();
             Properties.Settings.Default.SquareColorsAlpha = _keywordColorAlphaTrackBar.Value;
+
+            Properties.Settings.Default.LastSettingsTab = tabControl1.SelectedIndex;
 
             Properties.Settings.Default.Save();
             return true;
