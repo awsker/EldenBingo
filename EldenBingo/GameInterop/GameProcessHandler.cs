@@ -228,11 +228,20 @@ namespace EldenBingo.GameInterop
                     gameExePath = PromptForGamePath();
                 }
             }
+            if (string.IsNullOrWhiteSpace(gameExePath))
+            {
+                UpdateStatus("Waiting for game...", IdleColor);
+                return;
+            }
+
             Properties.Settings.Default.GamePath = gameExePath;
             gamePath = Path.GetDirectoryName(gameExePath);
 
             if (gamePath == null)
+            {
+                UpdateStatus("Waiting for game...", IdleColor);
                 return;
+            }
 
             try
             {
@@ -242,7 +251,8 @@ namespace EldenBingo.GameInterop
             catch
             {
                 MessageBox.Show("Couldn't write steam id file!", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                Environment.Exit(0);
+                UpdateStatus("Waiting for game...", IdleColor);
+                return;
             }
 
             ProcessStartInfo siGame = new ProcessStartInfo(Path.Combine(gamePath, $"{Properties.Settings.Default.GameName}.exe"))
@@ -442,12 +452,12 @@ namespace EldenBingo.GameInterop
                             "Please specify the installation path yourself...", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             string? gameExePath = OpenSelectFileDialog("Select eldenring.exe", "C:\\", new[] { "*.exe" }, new[] { "Elden Ring Executable" }, true);
             if (string.IsNullOrEmpty(gameExePath) || !File.Exists(gameExePath))
-                Environment.Exit(0);
+                return string.Empty;
             var fileInfo = FileVersionInfo.GetVersionInfo(gameExePath);
             if (fileInfo?.FileDescription == null || !fileInfo.FileDescription.ToLower().Contains(GameData.PROCESS_DESCRIPTION))
             {
                 MessageBox.Show("Invalid game file!", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                Environment.Exit(0);
+                return string.Empty;
             }
             Properties.Settings.Default.GameName = Path.GetFileNameWithoutExtension(gameExePath);
             return gameExePath;
