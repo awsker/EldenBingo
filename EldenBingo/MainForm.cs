@@ -176,7 +176,7 @@ namespace EldenBingo
                 }
             }
             var form = new ConnectForm();
-            form.TopMost = true;
+            form.TopMost = Properties.Settings.Default.AlwaysOnTop;
             if (form.ShowDialog(this) == DialogResult.OK)
             {
                 await connect(form.Address, form.Port);
@@ -236,7 +236,7 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, true);
-            form.TopMost = true;
+            form.TopMost = Properties.Settings.Default.AlwaysOnTop;
             _ = _client.RequestRoomName();
             if (form.ShowDialog(this) == DialogResult.OK)
             {
@@ -273,7 +273,7 @@ namespace EldenBingo
                 return;
 
             var form = new CreateLobbyForm(_client, false);
-            form.TopMost = true;
+            form.TopMost = Properties.Settings.Default.AlwaysOnTop;
             form.RoomName = _lastRoom;
             if (form.ShowDialog(this) == DialogResult.OK)
             {
@@ -306,7 +306,7 @@ namespace EldenBingo
                 return;
 
             var form = new ChangeTeamForm();
-            form.TopMost = true;
+            form.TopMost = Properties.Settings.Default.AlwaysOnTop;
 
             var teamBefore = _client.LocalUser.Team;
             form.Team = teamBefore;
@@ -355,7 +355,7 @@ namespace EldenBingo
         private void _settingsButton_Click(object sender, EventArgs e)
         {
             var settingsDialog = new SettingsDialog();
-            settingsDialog.TopMost = true;
+            settingsDialog.TopMost = Properties.Settings.Default.AlwaysOnTop;
             settingsDialog.ShowDialog(this);
         }
 

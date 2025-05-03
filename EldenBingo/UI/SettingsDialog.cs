@@ -348,7 +348,7 @@ namespace EldenBingo.UI
         private void _keywordColorsButton_Click(object sender, EventArgs e)
         {
             var dialog = new KeywordSquareColorEditorForm();
-            dialog.TopMost = true;
+            dialog.TopMost = Properties.Settings.Default.AlwaysOnTop;
             dialog.Colors = _keywordColors;
             var res = dialog.ShowDialog(this);
             if (res == DialogResult.OK)
