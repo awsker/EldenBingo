@@ -152,7 +152,7 @@
             _helpImage.SizeMode = PictureBoxSizeMode.CenterImage;
             _helpImage.TabIndex = 17;
             _helpImage.TabStop = false;
-            toolTip1.SetToolTip(_helpImage, "The first rule (top to bottom) with a keyword that matches a square's text will be used to color the square with 10% intensity");
+            toolTip1.SetToolTip(_helpImage, "The first rule (top to bottom) with a keyword that matches a square's text (case-insensitive) will be used to color the square's background");
             // 
             // _moveDownButton
             // 
