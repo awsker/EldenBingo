@@ -1,18 +1,20 @@
 ﻿using EldenBingo.Settings;
+using Newtonsoft.Json;
 using System.ComponentModel;
 
 namespace EldenBingo.UI
 {
     internal partial class KeywordSquareColorEditorForm : Form
     {
+        private string? _currentFile;
+        private BindingList<KeywordSquareColor> _colors;
+
         public KeywordSquareColorEditorForm()
         {
             _colors = new BindingList<KeywordSquareColor>();
             InitializeComponent();
             updateButtonsAvailability();
         }
-
-        private BindingList<KeywordSquareColor> _colors;
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
@@ -169,6 +171,76 @@ namespace EldenBingo.UI
         private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             validate();
+        }
+
+        private void _newToolstripButton_Click(object sender, EventArgs e)
+        {
+            _currentFile = null;
+            _colors.Clear();
+        }
+
+        private void _openToolstripButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(_currentFile);
+                var dialog = new OpenFileDialog()
+                {
+                    Filter = ".Json Files (*.json)|*.json|All Files (*.*)|*.*",
+                    InitialDirectory = string.IsNullOrWhiteSpace(dir) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : dir,
+                    FileName = string.IsNullOrWhiteSpace(_currentFile) || !File.Exists(_currentFile) ? string.Empty : _currentFile,
+                };
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    var fileJson = File.ReadAllText(dialog.FileName);
+                    var data = JsonConvert.DeserializeObject<List<KeywordSquareColor>>(fileJson);
+                    if (data != null)
+                    {
+                        if (data.All(kwc => string.IsNullOrEmpty(kwc.Keyword)))
+                        {
+                            throw new Exception("File did not contain any valid keyword color data");
+                        }
+                        else
+                        {
+                            _colors = new BindingList<KeywordSquareColor>(data);
+                            dataGridView1.DataSource = _colors;
+                            _currentFile = dialog.FileName;
+                            validate();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void _saveToolstripButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(_currentFile);
+                var dialog = new SaveFileDialog()
+                {
+                    Filter = ".Json Files (*.json)|*.json|All Files (*.*)|*.*",
+                    InitialDirectory = string.IsNullOrWhiteSpace(dir) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : dir,
+                    FileName = string.IsNullOrWhiteSpace(_currentFile) || !File.Exists(_currentFile) ? string.Empty : _currentFile,
+                };
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    var data = JsonConvert.SerializeObject(_colors.ToArray());
+                    if (data != null)
+                    {
+                        File.WriteAllText(dialog.FileName, data);
+                        _currentFile = dialog.FileName;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public List<KeywordSquareColor> Colors
