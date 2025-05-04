@@ -501,9 +501,9 @@
             _keywordColorAlphaLabel.AutoSize = true;
             _keywordColorAlphaLabel.Location = new Point(12, 242);
             _keywordColorAlphaLabel.Name = "_keywordColorAlphaLabel";
-            _keywordColorAlphaLabel.Size = new Size(158, 15);
+            _keywordColorAlphaLabel.Size = new Size(133, 15);
             _keywordColorAlphaLabel.TabIndex = 28;
-            _keywordColorAlphaLabel.Text = "Keyword Square Color Alpha";
+            _keywordColorAlphaLabel.Text = "Keyword Color Intensity";
             // 
             // _keywordColorAlphaTrackBar
             // 
@@ -540,9 +540,9 @@
             label10.AutoSize = true;
             label10.Location = new Point(8, 192);
             label10.Name = "label10";
-            label10.Size = new Size(129, 15);
+            label10.Size = new Size(90, 15);
             label10.TabIndex = 25;
-            label10.Text = "Keyword Square Colors";
+            label10.Text = "Keyword Colors";
             // 
             // _highlightBingoCheckBox
             // 

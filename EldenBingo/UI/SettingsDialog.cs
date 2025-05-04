@@ -16,7 +16,7 @@ namespace EldenBingo.UI
         private string _numKeywordsLabelInitial;
         private string _keywordAlphaLabelInitial;
 
-        private List<KeywordSquareColor> _keywordColors;
+        private List<KeywordColor> _keywordColors;
 
         public SettingsDialog()
         {
@@ -27,7 +27,7 @@ namespace EldenBingo.UI
             _numKeywordsLabelInitial = _numKeywordsLabel.Text;
             _keywordAlphaLabelInitial = _keywordColorAlphaLabel.Text;
 
-            _keywordColors = new List<KeywordSquareColor>(SquareColorsJsonHelper.Colors);
+            _keywordColors = new List<KeywordColor>(KeywordColorsJsonHelper.Colors);
 
             initControls();
 
@@ -129,7 +129,7 @@ namespace EldenBingo.UI
 
             _checkUpdatesCheckBox.Checked = Properties.Settings.Default.CheckForUpdates;
 
-            _keywordColorAlphaTrackBar.Value = Properties.Settings.Default.SquareColorsAlpha;
+            _keywordColorAlphaTrackBar.Value = Properties.Settings.Default.KeywordColorsAlpha;
             _keywordColorAlphaTrackBar.ValueChanged += (o, e) => updateKeywordColorText();
 
             updateSizeEnable();
@@ -238,8 +238,8 @@ namespace EldenBingo.UI
 
             Properties.Settings.Default.CheckForUpdates = _checkUpdatesCheckBox.Checked;
 
-            SquareColorsJsonHelper.Colors = _keywordColors.ToArray();
-            Properties.Settings.Default.SquareColorsAlpha = _keywordColorAlphaTrackBar.Value;
+            KeywordColorsJsonHelper.Colors = _keywordColors.ToArray();
+            Properties.Settings.Default.KeywordColorsAlpha = _keywordColorAlphaTrackBar.Value;
 
             Properties.Settings.Default.LastSettingsTab = tabControl1.SelectedIndex;
 
@@ -347,7 +347,7 @@ namespace EldenBingo.UI
 
         private void _keywordColorsButton_Click(object sender, EventArgs e)
         {
-            var dialog = new KeywordSquareColorEditorForm();
+            var dialog = new KeywordColorsEditorForm();
             dialog.TopMost = Properties.Settings.Default.AlwaysOnTop;
             dialog.Colors = _keywordColors;
             var res = dialog.ShowDialog(this);

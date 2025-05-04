@@ -1,17 +1,18 @@
 ﻿using EldenBingo.Settings;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace EldenBingo.UI
 {
-    internal partial class KeywordSquareColorEditorForm : Form
+    internal partial class KeywordColorsEditorForm : Form
     {
         private string? _currentFile;
-        private BindingList<KeywordSquareColor> _colors;
+        private BindingList<KeywordColor> _colors;
 
-        public KeywordSquareColorEditorForm()
+        public KeywordColorsEditorForm()
         {
-            _colors = new BindingList<KeywordSquareColor>();
+            _colors = new BindingList<KeywordColor>();
             InitializeComponent();
             updateButtonsAvailability();
         }
@@ -100,7 +101,7 @@ namespace EldenBingo.UI
         private void _addButton_Click(object sender, EventArgs e)
         {
             validate();
-            _colors.Add(new KeywordSquareColor("", Color.FromArgb(170, 140, 0)));
+            _colors.Add(new KeywordColor("", Color.FromArgb(170, 140, 0)));
         }
 
         private void _removeButton_Click(object sender, EventArgs e)
@@ -163,10 +164,6 @@ namespace EldenBingo.UI
             return null;
         }
 
-        private void _helpButton_Click(object sender, EventArgs e)
-        {
-            toolTip1.Active = true;
-        }
 
         private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
@@ -193,7 +190,7 @@ namespace EldenBingo.UI
                 if (dialog.ShowDialog(this) == DialogResult.OK)
                 {
                     var fileJson = File.ReadAllText(dialog.FileName);
-                    var data = JsonConvert.DeserializeObject<List<KeywordSquareColor>>(fileJson);
+                    var data = JsonConvert.DeserializeObject<List<KeywordColor>>(fileJson);
                     if (data != null)
                     {
                         if (data.All(kwc => string.IsNullOrEmpty(kwc.Keyword)))
@@ -202,7 +199,7 @@ namespace EldenBingo.UI
                         }
                         else
                         {
-                            _colors = new BindingList<KeywordSquareColor>(data);
+                            _colors = new BindingList<KeywordColor>(data);
                             dataGridView1.DataSource = _colors;
                             _currentFile = dialog.FileName;
                             validate();
@@ -243,15 +240,25 @@ namespace EldenBingo.UI
             }
         }
 
-        public List<KeywordSquareColor> Colors
+        private void _helpButton_Click(object sender, EventArgs e)
+        {
+            _helpText.Visible = true;
+        }
+
+        private void _helpButton_MouseLeave(object sender, EventArgs e)
+        {
+            _helpText.Visible = false;
+        }
+
+        public List<KeywordColor> Colors
         {
             get
             {
-                return new List<KeywordSquareColor>(_colors);
+                return new List<KeywordColor>(_colors);
             }
             set
             {
-                _colors = new BindingList<KeywordSquareColor>(value.ToList());
+                _colors = new BindingList<KeywordColor>(value.ToList());
                 dataGridView1.DataSource = _colors;
             }
         }

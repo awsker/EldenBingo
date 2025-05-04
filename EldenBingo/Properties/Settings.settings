@@ -161,11 +161,11 @@
     <Setting Name="BingoHighlight" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="SquareColorsJson" Type="System.String" Scope="User">
+    <Setting Name="KeywordColorsJson" Type="System.String" Scope="User">
       <Value Profile="(Default)">[]</Value>
     </Setting>
-    <Setting Name="SquareColorsAlpha" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">8</Value>
+    <Setting Name="KeywordColorsAlpha" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="LastSettingsTab" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>

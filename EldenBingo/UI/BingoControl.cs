@@ -352,11 +352,11 @@ namespace EldenBingo.UI
             {
                 redrawAllSquares();
             }
-            if (e.PropertyName == nameof(Properties.Settings.SquareColorsJson) || e.PropertyName == nameof(Properties.Settings.SquareColorsAlpha))
+            if (e.PropertyName == nameof(Properties.Settings.KeywordColorsJson) || e.PropertyName == nameof(Properties.Settings.KeywordColorsAlpha))
             {
                 foreach (var square in Squares)
                 {
-                    square.UpdateBackgroundColor();
+                    square.UpdateKeywordColor();
                 }
                 redrawAllSquares();
             }
@@ -595,6 +595,8 @@ namespace EldenBingo.UI
             private static Bitmap _starImage;
             private static Bitmap _squareGradient;
 
+            private Color? _keywordColor;
+
             static BingoSquareControl()
             {
                 _starImage = Resources.tinystar;
@@ -605,6 +607,7 @@ namespace EldenBingo.UI
             {
                 SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
                 TextChanged += onTextChanged;
+                BackColor = BgColor;
                 Index = index;
                 Text = text;
                 _toolTip = new ToolTip();
@@ -642,34 +645,18 @@ namespace EldenBingo.UI
 
             private void onTextChanged(object? sender, EventArgs e)
             {
-                UpdateBackgroundColor();
+                UpdateKeywordColor();
             }
 
-            public void UpdateBackgroundColor()
+            public void UpdateKeywordColor()
             {
-                var color = SquareColorsJsonHelper.GetColor(Text);
-                if (color != null)
-                {
-                    var a = backgroundColorAlpha();
-                    var r = BgColor.R + color.Color.R * a;
-                    var g = BgColor.G + color.Color.G * a;
-                    var b = BgColor.B + color.Color.B * a;
-                    int toInt(double c)
-                    {
-                        return Math.Clamp(Convert.ToInt32(c), 0, 255);
-                    }
-                    var newColor = Color.FromArgb(toInt(r), toInt(g), toInt(b));
-                    BackColor = newColor;
-                }
-                else
-                {
-                    BackColor = BgColor;
-                }
+                _keywordColor = KeywordColorsJsonHelper.GetColor(Text)?.Color ?? null;
+                Invalidate();
             }
 
-            private float backgroundColorAlpha()
+            private float keywordColorAlpha()
             {
-                return Properties.Settings.Default.SquareColorsAlpha * 0.01f;
+                return Math.Clamp(Properties.Settings.Default.KeywordColorsAlpha * 0.01f, 0f, 1f);
             }
 
             public int[] Teams
@@ -802,8 +789,25 @@ namespace EldenBingo.UI
                 var shadowRect = new Rectangle(1, 1 - textUp, ClientRectangle.Width, ClientRectangle.Height + textUp);
                 var shadowColor = Color.FromArgb(96, 0, 0, 0);
                 TextRenderer.DrawText(e, Text, f, shadowRect, shadowColor, flags);
-                TextRenderer.DrawText(e, Text, f, textRect, TextColor, flags);
+                //If a keyword color is set for this square (meaning a matching keyword rule was found)
+                //and no team has claimed the square yet:
+                //Color the text with the keyword color
+                var tc = TextColor;
+                if (_keywordColor != null && _teams.Length == 0)
+                {
+                    tc = blend(_keywordColor.Value, TextColor, keywordColorAlpha());
+                }
+                TextRenderer.DrawText(e, Text, f, textRect, tc, flags);
             }
+
+            private static Color blend(Color color, Color backColor, double amount)
+            {
+                byte r = (byte)(color.R * amount + backColor.R * (1 - amount));
+                byte g = (byte)(color.G * amount + backColor.G * (1 - amount));
+                byte b = (byte)(color.B * amount + backColor.B * (1 - amount));
+                return Color.FromArgb(r, g, b);
+            }
+
 
             private void drawCounters(PaintEventArgs e)
             {
@@ -852,7 +856,7 @@ namespace EldenBingo.UI
                 //Draw empty background
                 if(_teams.Length == 0)
                 {
-                    Color color = BackColor;
+                    Color color = BgColor;
                     if (MouseOver)
                     {
                         color = color.Brighten(0.14f);

@@ -2,9 +2,9 @@
 
 namespace EldenBingo.Settings
 {
-    internal class KeywordSquareColor
+    internal class KeywordColor
     {
-        public KeywordSquareColor(string kw, Color color)
+        public KeywordColor(string kw, Color color)
         {
             Keyword = kw;
             Color = color;
@@ -15,13 +15,13 @@ namespace EldenBingo.Settings
         public Color Color { get; set; }
     }
 
-    internal static class SquareColorsJsonHelper
+    internal static class KeywordColorsJsonHelper
     {
-        private static List<KeywordSquareColor> _colors;
+        private static List<KeywordColor> _colors;
 
-        static SquareColorsJsonHelper()
+        static KeywordColorsJsonHelper()
         {
-            _colors = new List<KeywordSquareColor>();
+            _colors = new List<KeywordColor>();
             LoadFromSettings();
         }
 
@@ -29,40 +29,40 @@ namespace EldenBingo.Settings
         {
             try
             {
-                Properties.Settings.Default.SquareColorsJson = JsonConvert.SerializeObject(_colors, Formatting.None);
+                Properties.Settings.Default.KeywordColorsJson = JsonConvert.SerializeObject(_colors, Formatting.None);
             } 
             catch
             {
-                Properties.Settings.Default.SquareColorsJson = "[]";
+                Properties.Settings.Default.KeywordColorsJson = "[]";
             }
         }
 
         private static void LoadFromSettings()
         {
-            var json = Properties.Settings.Default.SquareColorsJson;
+            var json = Properties.Settings.Default.KeywordColorsJson;
             try
             {
-                _colors = JsonConvert.DeserializeObject<List<KeywordSquareColor>>(json) ?? new List<KeywordSquareColor>();
+                _colors = JsonConvert.DeserializeObject<List<KeywordColor>>(json) ?? new List<KeywordColor>();
             }
             catch
             {
-                _colors = new List<KeywordSquareColor>();
+                _colors = new List<KeywordColor>();
             }
         }
 
         public static int NumColors => _colors.Count;
 
-        public static KeywordSquareColor[] Colors
+        public static KeywordColor[] Colors
         {
             get { return _colors.ToArray(); }
             set
             {
-                _colors = new List<KeywordSquareColor>(value);
+                _colors = new List<KeywordColor>(value);
                 PutIntoSettings();
             }
         }
 
-        public static KeywordSquareColor? GetColor(string key)
+        public static KeywordColor? GetColor(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
                 return null;

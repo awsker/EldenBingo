@@ -1,6 +1,6 @@
 ﻿namespace EldenBingo.UI
 {
-    partial class KeywordSquareColorEditorForm
+    partial class KeywordColorsEditorForm
     {
         /// <summary>
         /// Required designer variable.
@@ -29,16 +29,16 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(KeywordColorsEditorForm));
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(KeywordSquareColorEditorForm));
             panel1 = new Panel();
+            _helpButton = new Button();
             _okButton = new Button();
             _cancelButton = new Button();
             dataGridView1 = new DataGridView();
             KeywordColumn = new DataGridViewTextBoxColumn();
             ColorColumn = new DataGridViewTextBoxColumn();
             panel2 = new Panel();
-            _helpImage = new PictureBox();
             _moveDownButton = new Button();
             _moveUpButton = new Button();
             _removeButton = new Button();
@@ -48,15 +48,16 @@
             _newToolstripButton = new ToolStripButton();
             _openToolstripButton = new ToolStripButton();
             _saveToolstripButton = new ToolStripButton();
+            _helpText = new Label();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)_helpImage).BeginInit();
             toolStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
             // 
+            panel1.Controls.Add(_helpButton);
             panel1.Controls.Add(_okButton);
             panel1.Controls.Add(_cancelButton);
             panel1.Dock = DockStyle.Bottom;
@@ -64,6 +65,20 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(343, 38);
             panel1.TabIndex = 0;
+            // 
+            // _helpButton
+            // 
+            _helpButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            _helpButton.Image = (Image)resources.GetObject("_helpButton.Image");
+            _helpButton.Location = new Point(8, 6);
+            _helpButton.Name = "_helpButton";
+            _helpButton.Size = new Size(81, 27);
+            _helpButton.TabIndex = 4;
+            _helpButton.Text = "Help";
+            _helpButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            _helpButton.UseVisualStyleBackColor = true;
+            _helpButton.Click += _helpButton_Click;
+            _helpButton.MouseLeave += _helpButton_MouseLeave;
             // 
             // _okButton
             // 
@@ -135,7 +150,6 @@
             // 
             // panel2
             // 
-            panel2.Controls.Add(_helpImage);
             panel2.Controls.Add(_moveDownButton);
             panel2.Controls.Add(_moveUpButton);
             panel2.Controls.Add(_removeButton);
@@ -146,19 +160,6 @@
             panel2.Size = new Size(43, 213);
             panel2.TabIndex = 16;
             // 
-            // _helpImage
-            // 
-            _helpImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            _helpImage.BackColor = SystemColors.Control;
-            _helpImage.Image = (Image)resources.GetObject("_helpImage.Image");
-            _helpImage.Location = new Point(5, 175);
-            _helpImage.Name = "_helpImage";
-            _helpImage.Size = new Size(34, 34);
-            _helpImage.SizeMode = PictureBoxSizeMode.CenterImage;
-            _helpImage.TabIndex = 17;
-            _helpImage.TabStop = false;
-            toolTip1.SetToolTip(_helpImage, "The first rule (top to bottom) with a keyword that matches a square's text (case-insensitive) will be used to color the square's background");
-            // 
             // _moveDownButton
             // 
             _moveDownButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -167,6 +168,7 @@
             _moveDownButton.Name = "_moveDownButton";
             _moveDownButton.Size = new Size(34, 34);
             _moveDownButton.TabIndex = 3;
+            toolTip1.SetToolTip(_moveDownButton, "Move Down");
             _moveDownButton.UseVisualStyleBackColor = true;
             _moveDownButton.Click += _moveDownButton_Click;
             // 
@@ -178,6 +180,7 @@
             _moveUpButton.Name = "_moveUpButton";
             _moveUpButton.Size = new Size(34, 34);
             _moveUpButton.TabIndex = 2;
+            toolTip1.SetToolTip(_moveUpButton, "Move Up");
             _moveUpButton.UseVisualStyleBackColor = true;
             _moveUpButton.Click += _moveUpButton_Click;
             // 
@@ -189,6 +192,7 @@
             _removeButton.Name = "_removeButton";
             _removeButton.Size = new Size(34, 34);
             _removeButton.TabIndex = 1;
+            toolTip1.SetToolTip(_removeButton, "Remove Rule");
             _removeButton.UseVisualStyleBackColor = true;
             _removeButton.Click += _removeButton_Click;
             // 
@@ -200,6 +204,7 @@
             _addButton.Name = "_addButton";
             _addButton.Size = new Size(34, 34);
             _addButton.TabIndex = 0;
+            toolTip1.SetToolTip(_addButton, "Add Rule");
             _addButton.UseVisualStyleBackColor = true;
             _addButton.Click += _addButton_Click;
             // 
@@ -228,7 +233,7 @@
             _newToolstripButton.ImageTransparentColor = Color.Magenta;
             _newToolstripButton.Name = "_newToolstripButton";
             _newToolstripButton.Size = new Size(23, 22);
-            _newToolstripButton.ToolTipText = "New...";
+            _newToolstripButton.ToolTipText = "New Ruleset...";
             _newToolstripButton.Click += _newToolstripButton_Click;
             // 
             // _openToolstripButton
@@ -238,7 +243,7 @@
             _openToolstripButton.ImageTransparentColor = Color.Magenta;
             _openToolstripButton.Name = "_openToolstripButton";
             _openToolstripButton.Size = new Size(23, 22);
-            _openToolstripButton.ToolTipText = "Open...";
+            _openToolstripButton.ToolTipText = "Open Ruleset...";
             _openToolstripButton.Click += _openToolstripButton_Click;
             // 
             // _saveToolstripButton
@@ -248,30 +253,43 @@
             _saveToolstripButton.ImageTransparentColor = Color.Magenta;
             _saveToolstripButton.Name = "_saveToolstripButton";
             _saveToolstripButton.Size = new Size(23, 22);
-            _saveToolstripButton.ToolTipText = "Save As...";
+            _saveToolstripButton.ToolTipText = "Save Ruleset To File...";
             _saveToolstripButton.Click += _saveToolstripButton_Click;
             // 
-            // KeywordSquareColorEditorForm
+            // _helpText
+            // 
+            _helpText.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            _helpText.BackColor = SystemColors.Info;
+            _helpText.BorderStyle = BorderStyle.FixedSingle;
+            _helpText.FlatStyle = FlatStyle.Popup;
+            _helpText.Location = new Point(75, 175);
+            _helpText.Name = "_helpText";
+            _helpText.Size = new Size(225, 87);
+            _helpText.TabIndex = 4;
+            _helpText.Text = "The first rule (top to bottom) with a keyword found in a square's text (case-insensitive) will be used to color that square's text";
+            _helpText.Visible = false;
+            // 
+            // KeywordColorsEditorForm
             // 
             AcceptButton = _okButton;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = _cancelButton;
             ClientSize = new Size(343, 276);
+            Controls.Add(_helpText);
             Controls.Add(dataGridView1);
             Controls.Add(panel2);
             Controls.Add(panel1);
             Controls.Add(toolStrip1);
             MaximizeBox = false;
             MinimizeBox = false;
-            Name = "KeywordSquareColorEditorForm";
+            Name = "KeywordColorsEditorForm";
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterParent;
-            Text = "Keyword Square Colors Rules Editor";
+            Text = "Keyword Colors Editor";
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)_helpImage).EndInit();
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
             ResumeLayout(false);
@@ -297,5 +315,7 @@
         private ToolStripButton _newToolstripButton;
         private ToolStripButton _openToolstripButton;
         private ToolStripButton _saveToolstripButton;
+        private Button _helpButton;
+        private Label _helpText;
     }
 }

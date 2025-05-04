@@ -662,24 +662,24 @@ namespace EldenBingo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("[]")]
-        public string SquareColorsJson {
+        public string KeywordColorsJson {
             get {
-                return ((string)(this["SquareColorsJson"]));
+                return ((string)(this["KeywordColorsJson"]));
             }
             set {
-                this["SquareColorsJson"] = value;
+                this["KeywordColorsJson"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("8")]
-        public int SquareColorsAlpha {
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int KeywordColorsAlpha {
             get {
-                return ((int)(this["SquareColorsAlpha"]));
+                return ((int)(this["KeywordColorsAlpha"]));
             }
             set {
-                this["SquareColorsAlpha"] = value;
+                this["KeywordColorsAlpha"] = value;
             }
         }
         
