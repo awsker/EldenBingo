@@ -31,7 +31,6 @@ namespace EldenBingo.Util
                 var latestVersion = _currentVersion;
                 GitHubRelease? latestRelease = null;
                 string downloadUrl = string.Empty;
-                bool hasNewer = false;
 
                 foreach (var release in releases.OrderByDescending(r => new Version(r.Tag_Name)))
                 {
@@ -43,7 +42,6 @@ namespace EldenBingo.Util
 
                     if (releaseVersion > latestVersion)
                     {
-                        hasNewer = true;
                         latestVersion = releaseVersion;
                         latestRelease = release;
                         // Get the .zip asset URL if available

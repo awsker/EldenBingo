@@ -429,8 +429,7 @@ namespace EldenBingoServer
             try
             {
                 var token = JToken.Parse(bingoJson.Json);
-                JArray squares = null;
-                bool newFormat = false;
+                JArray? squares = null;
                 if (token is JArray)
                 {
                     squares = (JArray)token;
@@ -438,7 +437,6 @@ namespace EldenBingoServer
                 else if (token is JObject jobj && jobj.ContainsKey("squares") && jobj["squares"] is JArray jarr)
                 {
                     squares = jarr;
-                    newFormat = true;
                     if (jobj.ContainsKey("category limits") && jobj["category limits"] is JObject configObject)
                     {
                         var config = CategoryConfig.ParseConfig(configObject);
