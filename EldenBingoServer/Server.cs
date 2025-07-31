@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace EldenBingoServer
 {
@@ -427,8 +428,26 @@ namespace EldenBingoServer
             ServerBingoBoard? board = null;
             try
             {
-                var bg = new BingoBoardGenerator(bingoJson.Json, sender.Room.GameSettings.RandomSeed);
-                bg.CategoryLimit = sender.Room.GameSettings.CategoryLimit;
+                var token = JToken.Parse(bingoJson.Json);
+                JArray squares = null;
+                bool newFormat = false;
+                if (token is JArray)
+                {
+                    squares = (JArray)token;
+                } 
+                else if (token is JObject jobj && jobj.ContainsKey("squares") && jobj["squares"] is JArray jarr)
+                {
+                    squares = jarr;
+                    newFormat = true;
+                    if (jobj.ContainsKey("category limits") && jobj["category limits"] is JObject configObject)
+                    {
+                        var config = CategoryConfig.ParseConfig(configObject);
+                        sender.Room.CategoryConfig = config;
+                    }
+                }
+                if (squares == null)
+                    throw new Exception("Could not parse square data");
+                var bg = new BingoBoardGenerator(squares, sender.Room.GameSettings.RandomSeed);
                 sender.Room.BoardGenerator = bg;
                 //Don't update bingo board if match is running
                 if (sender.Room.Match.MatchStatus == MatchStatus.NotRunning || sender.Room.Match.MatchStatus == MatchStatus.Finished)
@@ -666,7 +685,6 @@ namespace EldenBingoServer
             {
                 //Update the current board generator with the new random seed
                 sender.Room.BoardGenerator.RandomSeed = settings.RandomSeed;
-                sender.Room.BoardGenerator.CategoryLimit = settings.CategoryLimit;
             }
             if (oldScorePerBingo != settings.PointsPerBingoLine)
             {

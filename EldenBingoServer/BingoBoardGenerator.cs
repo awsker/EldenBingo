@@ -10,13 +10,8 @@ namespace EldenBingoServer
         private int _randomSeed;
         private Random _random;
 
-        public BingoBoardGenerator(string json, int randomSeed)
+        public BingoBoardGenerator(JArray squareArray, int randomSeed)
         {
-            var token = JToken.Parse(json);
-            if (token is not JArray squareArray)
-            {
-                throw new ArgumentException("Json is not in the correct format", nameof(json));
-            }
             RandomSeed = randomSeed;
             _list = new List<BingoJsonObj>();
             foreach (var square in squareArray)
@@ -30,16 +25,16 @@ namespace EldenBingoServer
                 int? center = square.Value<int?>("center");
 
                 var categories = new HashSet<string>();
-                
-                if(category != null)
+
+                if (category != null)
                     categories.Add(category.Trim());
 
                 var categoryArray = square.Value<JArray>("categories");
-                if(categoryArray != null)
+                if (categoryArray != null)
                 {
-                    foreach(var v in categoryArray.OfType<JValue>())
+                    foreach (var v in categoryArray.OfType<JValue>())
                     {
-                        if(v.Value is string c)
+                        if (v.Value is string c)
                         {
                             categories.Add(c.Trim());
                         }
@@ -49,11 +44,11 @@ namespace EldenBingoServer
                 foreach (var textToken in getTokens(name))
                 {
                     var tokenArray = square.Value<JArray>(textToken);
-                    if(tokenArray == null || tokenArray.Count == 0)
+                    if (tokenArray == null || tokenArray.Count == 0)
                         throw new Exception($"Non-existent token '{textToken}' in '{name}'");
                     if (!tokenDict.ContainsKey(textToken))
                     {
-                        if(tokenArray.Any(t => t.Type != JTokenType.String))
+                        if (tokenArray.Any(t => t.Type != JTokenType.String))
                         {
                             throw new Exception($"Invalid type inside '{textToken}' in '{name}'");
                         }
@@ -79,13 +74,11 @@ namespace EldenBingoServer
             }
         }
 
-        public int CategoryLimit { get; set; }
-
         public ServerBingoBoard? CreateBingoBoard(ServerRoom room)
         {
             var squareList = new List<BingoJsonObj>(shuffleList(_list, _random));
             var squares = new List<BingoJsonObj>();
-            var categoryCount = new Dictionary<string, int>();
+            var categoryCount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             var numSquares = room.GameSettings.BoardSize * room.GameSettings.BoardSize;
             bool anySquareFailedCategoryLimit = false;
@@ -93,7 +86,7 @@ namespace EldenBingoServer
             //var anyCenterSpecifics = squareList.Any(s => s.CenterType > CenterType.None);
             BingoJsonObj? centerSquare = null;
 
-            if(numSquares % 2 == 1)
+            if (numSquares % 2 == 1)
             {
                 for (int i = squareList.Count - 1; i >= 0; --i)
                 {
@@ -106,7 +99,7 @@ namespace EldenBingoServer
                 }
             }
             //If center square was found, increase all its categories used by 1
-            if(centerSquare.HasValue)
+            if (centerSquare.HasValue)
             {
                 //Decrease how many squares we're looking for
                 --numSquares;
@@ -123,19 +116,21 @@ namespace EldenBingoServer
                 //Pick the first square in queue as the potential square (since we already removed all ForcedCenter squares)
                 BingoJsonObj potentialSquare = squareList[0];
                 squareList.RemoveAt(0);
-                if (CategoryLimit > 0)
+                foreach (var category in potentialSquare.Categories)
                 {
-                    foreach (var category in potentialSquare.Categories)
+                    int limit = room.GameSettings.CategoryLimit > 0 ? room.GameSettings.CategoryLimit : 99999;
+                    if (room.CategoryConfig != null)
                     {
-                        if (categoryCount.TryGetValue(category, out int count) && count + 1 > CategoryLimit)
-                        {
-                            anySquareFailedCategoryLimit = true;
-                            thisSquareFailedCategoryCheck = true;
-                            break;
-                        }
+                        limit = Math.Min(limit, room.CategoryConfig.GetCategoryLimit(category));
+                    }
+                    if (categoryCount.TryGetValue(category, out int count) && count + 1 > limit)
+                    {
+                        anySquareFailedCategoryLimit = true;
+                        thisSquareFailedCategoryCheck = true;
+                        break;
                     }
                 }
-                if(thisSquareFailedCategoryCheck)
+                if (thisSquareFailedCategoryCheck)
                 {
                     //Try next square instead
                     continue;
@@ -158,7 +153,7 @@ namespace EldenBingoServer
             if (anySquareFailedCategoryLimit)
                 squares = shuffleList(squares, _random).ToList();
 
-            if(centerSquare.HasValue)
+            if (centerSquare.HasValue)
             {
                 //Add center square to the middle of the board, after reshuffle
                 squares.Insert(numSquares / 2, centerSquare.Value);
@@ -180,15 +175,15 @@ namespace EldenBingoServer
             return new ServerBingoBoard(room,
                 room.GameSettings.BoardSize,
                 room.GameSettings.Lockout,
-                squares.Select(s => 
+                squares.Select(s =>
                     new BingoBoardSquare(
-                        getTextWithResolvedTokens(s), 
-                        s.Tooltip, 
-                        Array.Empty<int>(), 
-                        false, 
+                        getTextWithResolvedTokens(s),
+                        s.Tooltip,
+                        Array.Empty<int>(),
+                        false,
                         Array.Empty<SquareCounter>()
                     )
-                ).ToArray(), 
+                ).ToArray(),
             classes);
         }
 

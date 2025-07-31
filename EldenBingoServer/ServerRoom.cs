@@ -20,6 +20,7 @@ namespace EldenBingoServer
             CreateTime = DateTime.Now;
             Match.MatchStatusChanged += match_MatchStatusChanged;
             GameSettings = gameSettings;
+            CategoryConfig = new CategoryConfig();
             LastActivity = DateTime.Now;
             _creatorGuid = creator?.ClientGuid ?? Guid.Empty;
             _customTeamNames = new Dictionary<int, string>();
@@ -39,6 +40,8 @@ namespace EldenBingoServer
         public DateTime LastActivity { get; set; }
         [JsonProperty]
         public BingoGameSettings GameSettings { get; set; }
+        [JsonProperty]
+        public CategoryConfig CategoryConfig { get; set; }
         [JsonProperty]
         public bool BoardAlreadyUsed { get; set; }
 
