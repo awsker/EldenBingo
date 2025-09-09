@@ -295,16 +295,14 @@ namespace EldenBingo.UI
             if (Squares == null)
                 return;
 
+            BingoSquareControl? square;
             var key = Properties.Settings.Default.ClickHotkey;
             if (key != 0 && e.KeyValue == key)
             {
-                foreach (var square in Squares)
+                square = getSelectedSquare();
+                if (square != null)
                 {
-                    if (square.MouseOver)
-                    {
-                        await clickSquare(square);
-                        return;
-                    }
+                    await clickSquare(square);
                 }
             }
             // Exit early if we're not using numpad navigation
@@ -316,7 +314,7 @@ namespace EldenBingo.UI
             if (size > 0 && Squares != null && Squares.Length > 0)
             {
                 bool dontMoveCursor = false;
-                int prevSelected = getSelectedSquare();
+                int prevSelected = getSelectedSquareIndex();
                 if (prevSelected <= -1)
                 {
                     // No square was selected, so highlight the first square (so just ensure a numpad key is pressed, but don't actually move the cursor)
@@ -370,6 +368,27 @@ namespace EldenBingo.UI
                             col = Math.Clamp(col + 1, 0, size - 1);
                             handled = true;
                             break;
+                        case Keys.Add:
+                            square = getSelectedSquare();
+                            if (square != null)
+                            {
+                                _ = changeSquareCounter(square, 1);
+                            }
+                            break;
+                        case Keys.Subtract:
+                            square = getSelectedSquare();
+                            if (square != null)
+                            {
+                                _ = changeSquareCounter(square, -1);
+                            }
+                            break;
+                        case Keys.Multiply:
+                            square = getSelectedSquare();
+                            if (square != null)
+                            {
+                                _ = markSquare(square);
+                            }
+                            break;
                     }
                 }
                 if (handled)
@@ -388,7 +407,20 @@ namespace EldenBingo.UI
 
         }
 
-        private int getSelectedSquare()
+        private BingoSquareControl? getSelectedSquare()
+        {
+            for (int i = 0; i < Squares.Length; ++i)
+            {
+                var s = Squares[i];
+                if (s.MouseOver)
+                {
+                    return s;
+                }
+            }
+            return null;
+        }
+
+        private int getSelectedSquareIndex()
         {
             for (int i = 0; i < Squares.Length; ++i)
             {
@@ -429,13 +461,10 @@ namespace EldenBingo.UI
             if (Squares == null || e.Delta == 0)
                 return;
 
-            foreach (var square in Squares)
+            var square = getSelectedSquare();
+            if (square != null)
             {
-                if (square.MouseOver)
-                {
-                    await changeSquareCounter(square, Math.Clamp(e.Delta, -1, 1));
-                    return;
-                }
+                await changeSquareCounter(square, Math.Clamp(e.Delta, -1, 1));
             }
         }
 
