@@ -25,6 +25,7 @@ namespace EldenBingo.UI
         private System.Timers.Timer? _timer;
 
         private int _size;
+        private int _selectedSquareIndex = -1;
 
         public int[] ActiveTeams { get; private set; }
 
@@ -67,6 +68,7 @@ namespace EldenBingo.UI
                     var squareControl = _gridControl.Controls[lastIndex];
                     squareControl.MouseDown -= square_MouseDown;
                     squareControl.MouseEnter -= square_MouseEntered;
+                    squareControl.MouseLeave -= square_MouseLeave;
                     _gridControl.Controls.RemoveAt(lastIndex);
                 }
             }
@@ -78,6 +80,7 @@ namespace EldenBingo.UI
                     var squareControl = new BingoSquareControl(i++, string.Empty, string.Empty);
                     squareControl.MouseDown += square_MouseDown;
                     squareControl.MouseEnter += square_MouseEntered;
+                    squareControl.MouseLeave += square_MouseLeave;
                     _gridControl.Controls.Add(squareControl);
                 }
             }
@@ -88,6 +91,7 @@ namespace EldenBingo.UI
                 _size = size;
             }
         }
+
 
         public void FlashBingo(BingoLine bingo)
         {
@@ -314,7 +318,7 @@ namespace EldenBingo.UI
             if (size > 0 && Squares != null && Squares.Length > 0)
             {
                 bool dontMoveCursor = false;
-                int prevSelected = getSelectedSquareIndex();
+                int prevSelected = _selectedSquareIndex;
                 if (prevSelected <= -1)
                 {
                     // No square was selected, so highlight the first square (so just ensure a numpad key is pressed, but don't actually move the cursor)
@@ -409,51 +413,21 @@ namespace EldenBingo.UI
 
         private BingoSquareControl? getSelectedSquare()
         {
-            for (int i = 0; i < Squares.Length; ++i)
-            {
-                var s = Squares[i];
-                if (s.MouseOver)
-                {
-                    return s;
-                }
-            }
+            if (_selectedSquareIndex >= 0 && _selectedSquareIndex < Squares.Length)
+                return Squares[_selectedSquareIndex];
             return null;
-        }
-
-        private int getSelectedSquareIndex()
-        {
-            for (int i = 0; i < Squares.Length; ++i)
-            {
-                var s = Squares[i];
-                if (s.MouseOver)
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         private void setSelectedSquare(int newIndex)
         {
-            if (newIndex >= 0 && newIndex < Squares.Length)
-            {
-                for (int i = 0; i < Squares.Length; ++i)
-                {
-                    var s = Squares[i];
-                    if (i == newIndex)
-                    {
-                        s.MouseOver = true;
-                    }
-                    else if (s.MouseOver)
-                    {
-                        s.MouseOver = false;
-                    }
-                }
-            }
-            else if (newIndex < 0)
-            {
-                deselectAllSquares();
-            }
+            if (_selectedSquareIndex == newIndex) return;
+            // Deselect old square
+            if (_selectedSquareIndex >= 0 && _selectedSquareIndex < Squares.Length)
+                Squares[_selectedSquareIndex].MouseOver = false;
+            _selectedSquareIndex = newIndex;
+            // Select new square
+            if (_selectedSquareIndex >= 0 && _selectedSquareIndex < Squares.Length)
+                Squares[_selectedSquareIndex].MouseOver = true;
         }
 
         private async void mouseWheel(object? sender, MouseEventArgs e)
@@ -569,6 +543,7 @@ namespace EldenBingo.UI
                 {
                     updateSquare(board, i, false);
                 }
+                _selectedSquareIndex = -1;
                 redrawAllSquares();
             }
             if (InvokeRequired)
@@ -645,21 +620,17 @@ namespace EldenBingo.UI
             // When a square is entered, deselect all other squares
             if(sender is BingoSquareControl square)
             {
-                foreach(var s in Squares)
-                {
-                    if(s.MouseOver && s != square)
-                    {
-                        s.MouseOver = false;
-                    }
-                }
+                setSelectedSquare(square.Index);
             }
         }
 
-        private void deselectAllSquares()
+        private void square_MouseLeave(object? sender, EventArgs e)
         {
-            foreach (var s in Squares)
+            // When a square is entered, deselect all other squares
+            if (sender is BingoSquareControl square)
             {
-                s.MouseOver = false;
+                if (_selectedSquareIndex == square.Index)
+                    setSelectedSquare(-1);
             }
         }
 
@@ -806,14 +777,6 @@ namespace EldenBingo.UI
                 {
                     _gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, Color.Transparent);
                 }
-                MouseEnter += (o, e) =>
-                {
-                    MouseOver = true;
-                };
-                MouseLeave += (o, e) =>
-                {
-                    MouseOver = false;
-                };
                 SizeChanged += (o, e) =>
                 {
                     if (Height > 0)
