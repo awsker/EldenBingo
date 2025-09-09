@@ -259,12 +259,16 @@ namespace EldenBingo.UI
         private void _outOfFocusClickTextBox_Enter(object sender, EventArgs e)
         {
             _rebindingKey = true;
+            AcceptButton = null;
+            CancelButton = null;
             updateOutOfFocusText();
         }
 
         private void _outOfFocusClickTextBox_Leave(object sender, EventArgs e)
         {
             _rebindingKey = false;
+            AcceptButton = _okButton;
+            CancelButton = _cancelButton;
             updateOutOfFocusText();
         }
 
