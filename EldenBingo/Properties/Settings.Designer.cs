@@ -694,5 +694,17 @@ namespace EldenBingo.Properties {
                 this["LastSettingsTab"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool NumpadNavigation {
+            get {
+                return ((bool)(this["NumpadNavigation"]));
+            }
+            set {
+                this["NumpadNavigation"] = value;
+            }
+        }
     }
 }

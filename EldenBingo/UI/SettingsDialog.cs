@@ -107,6 +107,7 @@ namespace EldenBingo.UI
             _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
 
             _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
+            _numpadNavigationCheckBox.Checked = Properties.Settings.Default.NumpadNavigation;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
@@ -231,6 +232,7 @@ namespace EldenBingo.UI
             Properties.Settings.Default.MarkHighlight = _highlightMarkedCheckBox.Checked;
             Properties.Settings.Default.BingoHighlight = _highlightBingoCheckBox.Checked;
             Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
+            Properties.Settings.Default.NumpadNavigation = _numpadNavigationCheckBox.Checked;
 
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
 

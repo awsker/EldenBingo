@@ -215,6 +215,7 @@ namespace EldenBingo.UI
                 var inRoom = Client?.Room != null;
                 var admin = inRoom && Client?.LocalUser?.IsAdmin == true;
                 var matchStarted = Client?.Room != null && (Client.Room.Match.Running || Client.Room.Match.Paused);
+                _bingoJsonTextBox.ReadOnly = !admin || matchStarted;
                 _browseJsonButton.Enabled = admin;
                 _uploadJsonButton.Enabled = admin;
                 _lobbySettingsButton.Enabled = admin;

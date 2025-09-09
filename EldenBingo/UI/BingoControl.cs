@@ -64,6 +64,9 @@ namespace EldenBingo.UI
                 while(_gridControl.Controls.Count > targetSquares)
                 {
                     var lastIndex = _gridControl.Controls.Count - 1;
+                    var squareControl = _gridControl.Controls[lastIndex];
+                    squareControl.MouseDown -= square_MouseDown;
+                    squareControl.MouseEnter -= square_MouseEntered;
                     _gridControl.Controls.RemoveAt(lastIndex);
                 }
             }
@@ -74,6 +77,7 @@ namespace EldenBingo.UI
                 {
                     var squareControl = new BingoSquareControl(i++, string.Empty, string.Empty);
                     squareControl.MouseDown += square_MouseDown;
+                    squareControl.MouseEnter += square_MouseEntered;
                     _gridControl.Controls.Add(squareControl);
                 }
             }
@@ -303,6 +307,121 @@ namespace EldenBingo.UI
                     }
                 }
             }
+            // Exit early if we're not using numpad navigation
+            if (!Properties.Settings.Default.NumpadNavigation)
+                return;
+            // Handle arrow keys and numpad keys to move selection cursor
+            bool handled = false;
+            int size = _size;
+            if (size > 0 && Squares != null && Squares.Length > 0)
+            {
+                bool dontMoveCursor = false;
+                int prevSelected = getSelectedSquare();
+                if (prevSelected <= -1)
+                {
+                    // No square was selected, so highlight the first square (so just ensure a numpad key is pressed, but don't actually move the cursor)
+                    dontMoveCursor = true;
+                    // And set the selection to top-left
+                    prevSelected = 0;
+                }
+                int row = prevSelected / size;
+                int col = prevSelected % size;
+                if (!handled)
+                {
+                    switch (e.KeyCode)
+                    {
+                        case Keys.Left:
+                        case Keys.NumPad4:
+                            col = Math.Clamp(col - 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.Right:
+                        case Keys.NumPad6:
+                            col = Math.Clamp(col + 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.Up:
+                        case Keys.NumPad8:
+                            row = Math.Clamp(row - 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.Down:
+                        case Keys.NumPad2:
+                            row = Math.Clamp(row + 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.NumPad7:
+                            row = Math.Clamp(row - 1, 0, size - 1);
+                            col = Math.Clamp(col - 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.NumPad9:
+                            row = Math.Clamp(row - 1, 0, size - 1);
+                            col = Math.Clamp(col + 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.NumPad1:
+                            row = Math.Clamp(row + 1, 0, size - 1);
+                            col = Math.Clamp(col - 1, 0, size - 1);
+                            handled = true;
+                            break;
+                        case Keys.NumPad3:
+                            row = Math.Clamp(row + 1, 0, size - 1);
+                            col = Math.Clamp(col + 1, 0, size - 1);
+                            handled = true;
+                            break;
+                    }
+                }
+                if (handled)
+                {
+                    if (dontMoveCursor)
+                    {
+                        row = prevSelected / size;
+                        col = prevSelected % size;
+                    }
+                    int newIndex = row * size + col;
+                    setSelectedSquare(newIndex);
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+            }
+
+        }
+
+        private int getSelectedSquare()
+        {
+            for (int i = 0; i < Squares.Length; ++i)
+            {
+                var s = Squares[i];
+                if (s.MouseOver)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void setSelectedSquare(int newIndex)
+        {
+            if (newIndex >= 0 && newIndex < Squares.Length)
+            {
+                for (int i = 0; i < Squares.Length; ++i)
+                {
+                    var s = Squares[i];
+                    if (i == newIndex)
+                    {
+                        s.MouseOver = true;
+                    }
+                    else if (s.MouseOver)
+                    {
+                        s.MouseOver = false;
+                    }
+                }
+            }
+            else if (newIndex < 0)
+            {
+                deselectAllSquares();
+            }
         }
 
         private async void mouseWheel(object? sender, MouseEventArgs e)
@@ -492,6 +611,29 @@ namespace EldenBingo.UI
             }
         }
 
+        private void square_MouseEntered(object? sender, EventArgs e)
+        {
+            // When a square is entered, deselect all other squares
+            if(sender is BingoSquareControl square)
+            {
+                foreach(var s in Squares)
+                {
+                    if(s.MouseOver && s != square)
+                    {
+                        s.MouseOver = false;
+                    }
+                }
+            }
+        }
+
+        private void deselectAllSquares()
+        {
+            foreach (var s in Squares)
+            {
+                s.MouseOver = false;
+            }
+        }
+
         private async Task clickSquare(BingoSquareControl c)
         {
             //No room or no board set in room
@@ -579,7 +721,19 @@ namespace EldenBingo.UI
 
         private class BingoSquareControl : Control
         {
-            public bool MouseOver;
+            private bool _mouseOver;
+            public bool MouseOver
+            {
+                get { return _mouseOver; }
+                set
+                {
+                    if (_mouseOver != value)
+                    {
+                        _mouseOver = value;
+                        Invalidate();
+                    }
+                }
+            }
             public float CheckAnimationTimer;
             public float BingoAnimationTimer;
             private readonly ToolTip _toolTip;
@@ -623,16 +777,13 @@ namespace EldenBingo.UI
                 {
                     _gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.Transparent, Color.Transparent);
                 }
-                var control = this;
                 MouseEnter += (o, e) =>
                 {
                     MouseOver = true;
-                    control.Invalidate();
                 };
                 MouseLeave += (o, e) =>
                 {
                     MouseOver = false;
-                    control.Invalidate();
                 };
                 SizeChanged += (o, e) =>
                 {

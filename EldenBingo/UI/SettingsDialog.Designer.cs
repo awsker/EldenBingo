@@ -90,6 +90,7 @@
             _checkUpdatesCheckBox = new CheckBox();
             tabPage2 = new TabPage();
             groupBox11 = new GroupBox();
+            _numpadNavigationCheckBox = new CheckBox();
             groupBox9 = new GroupBox();
             panel2 = new Panel();
             label12 = new Label();
@@ -125,7 +126,7 @@
             _okButton.Location = new Point(361, 3);
             _okButton.Name = "_okButton";
             _okButton.Size = new Size(75, 23);
-            _okButton.TabIndex = 61;
+            _okButton.TabIndex = 62;
             _okButton.Text = "OK";
             _okButton.UseVisualStyleBackColor = true;
             _okButton.Click += _okButton_Click;
@@ -136,7 +137,7 @@
             _cancelButton.Location = new Point(442, 3);
             _cancelButton.Name = "_cancelButton";
             _cancelButton.Size = new Size(75, 23);
-            _cancelButton.TabIndex = 62;
+            _cancelButton.TabIndex = 63;
             _cancelButton.Text = "Cancel";
             _cancelButton.UseVisualStyleBackColor = true;
             _cancelButton.Click += _cancelButton_Click;
@@ -152,7 +153,7 @@
             groupBox1.Location = new Point(8, 113);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(240, 107);
-            groupBox1.TabIndex = 51;
+            groupBox1.TabIndex = 52;
             groupBox1.TabStop = false;
             groupBox1.Text = "Map Initial Size";
             // 
@@ -161,7 +162,7 @@
             _mapSizeCustomYTextBox.Location = new Point(117, 74);
             _mapSizeCustomYTextBox.Name = "_mapSizeCustomYTextBox";
             _mapSizeCustomYTextBox.Size = new Size(54, 23);
-            _mapSizeCustomYTextBox.TabIndex = 57;
+            _mapSizeCustomYTextBox.TabIndex = 58;
             // 
             // label2
             // 
@@ -169,7 +170,7 @@
             label2.Location = new Point(94, 77);
             label2.Name = "label2";
             label2.Size = new Size(17, 15);
-            label2.TabIndex = 56;
+            label2.TabIndex = 57;
             label2.Text = "Y:";
             // 
             // _mapSizeCustomRadioButton
@@ -178,7 +179,7 @@
             _mapSizeCustomRadioButton.Location = new Point(9, 46);
             _mapSizeCustomRadioButton.Name = "_mapSizeCustomRadioButton";
             _mapSizeCustomRadioButton.Size = new Size(90, 19);
-            _mapSizeCustomRadioButton.TabIndex = 53;
+            _mapSizeCustomRadioButton.TabIndex = 54;
             _mapSizeCustomRadioButton.TabStop = true;
             _mapSizeCustomRadioButton.Text = "Custom Size";
             _mapSizeCustomRadioButton.UseVisualStyleBackColor = true;
@@ -189,7 +190,7 @@
             _mapSizeRememberLastRadioButton.Location = new Point(9, 22);
             _mapSizeRememberLastRadioButton.Name = "_mapSizeRememberLastRadioButton";
             _mapSizeRememberLastRadioButton.Size = new Size(130, 19);
-            _mapSizeRememberLastRadioButton.TabIndex = 52;
+            _mapSizeRememberLastRadioButton.TabIndex = 43;
             _mapSizeRememberLastRadioButton.TabStop = true;
             _mapSizeRememberLastRadioButton.Text = "Remember Last Size";
             _mapSizeRememberLastRadioButton.UseVisualStyleBackColor = true;
@@ -199,7 +200,7 @@
             _mapSizeCustomXTextBox.Location = new Point(30, 74);
             _mapSizeCustomXTextBox.Name = "_mapSizeCustomXTextBox";
             _mapSizeCustomXTextBox.Size = new Size(54, 23);
-            _mapSizeCustomXTextBox.TabIndex = 55;
+            _mapSizeCustomXTextBox.TabIndex = 56;
             // 
             // label1
             // 
@@ -207,7 +208,7 @@
             label1.Location = new Point(7, 77);
             label1.Name = "label1";
             label1.Size = new Size(17, 15);
-            label1.TabIndex = 54;
+            label1.TabIndex = 55;
             label1.Text = "X:";
             // 
             // groupBox2
@@ -351,7 +352,7 @@
             groupBox4.Location = new Point(8, 6);
             groupBox4.Name = "groupBox4";
             groupBox4.Size = new Size(240, 107);
-            groupBox4.TabIndex = 44;
+            groupBox4.TabIndex = 45;
             groupBox4.TabStop = false;
             groupBox4.Text = "Map Initial Position";
             // 
@@ -360,7 +361,7 @@
             _mapPositionYTextBox.Location = new Point(117, 72);
             _mapPositionYTextBox.Name = "_mapPositionYTextBox";
             _mapPositionYTextBox.Size = new Size(54, 23);
-            _mapPositionYTextBox.TabIndex = 50;
+            _mapPositionYTextBox.TabIndex = 51;
             // 
             // label6
             // 
@@ -368,7 +369,7 @@
             label6.Location = new Point(94, 75);
             label6.Name = "label6";
             label6.Size = new Size(17, 15);
-            label6.TabIndex = 49;
+            label6.TabIndex = 50;
             label6.Text = "Y:";
             // 
             // _mapPositionCustomRadioButton
@@ -377,7 +378,7 @@
             _mapPositionCustomRadioButton.Location = new Point(9, 46);
             _mapPositionCustomRadioButton.Name = "_mapPositionCustomRadioButton";
             _mapPositionCustomRadioButton.Size = new Size(113, 19);
-            _mapPositionCustomRadioButton.TabIndex = 46;
+            _mapPositionCustomRadioButton.TabIndex = 47;
             _mapPositionCustomRadioButton.TabStop = true;
             _mapPositionCustomRadioButton.Text = "Custom Position";
             _mapPositionCustomRadioButton.UseVisualStyleBackColor = true;
@@ -388,7 +389,7 @@
             _mapPositionRelativeRadioButton.Location = new Point(9, 22);
             _mapPositionRelativeRadioButton.Name = "_mapPositionRelativeRadioButton";
             _mapPositionRelativeRadioButton.Size = new Size(127, 19);
-            _mapPositionRelativeRadioButton.TabIndex = 45;
+            _mapPositionRelativeRadioButton.TabIndex = 46;
             _mapPositionRelativeRadioButton.TabStop = true;
             _mapPositionRelativeRadioButton.Text = "Relative to Window";
             _mapPositionRelativeRadioButton.UseVisualStyleBackColor = true;
@@ -398,7 +399,7 @@
             _mapPositionXTextBox.Location = new Point(30, 72);
             _mapPositionXTextBox.Name = "_mapPositionXTextBox";
             _mapPositionXTextBox.Size = new Size(54, 23);
-            _mapPositionXTextBox.TabIndex = 48;
+            _mapPositionXTextBox.TabIndex = 49;
             // 
             // label7
             // 
@@ -406,7 +407,7 @@
             label7.Location = new Point(7, 75);
             label7.Name = "label7";
             label7.Size = new Size(17, 15);
-            label7.TabIndex = 47;
+            label7.TabIndex = 48;
             label7.Text = "X:";
             // 
             // groupBox5
@@ -454,7 +455,7 @@
             groupBox6.Location = new Point(8, 226);
             groupBox6.Name = "groupBox6";
             groupBox6.Size = new Size(240, 114);
-            groupBox6.TabIndex = 58;
+            groupBox6.TabIndex = 59;
             groupBox6.TabStop = false;
             groupBox6.Text = "Misc.";
             // 
@@ -463,7 +464,7 @@
             _showClassesCheckBox.Location = new Point(9, 65);
             _showClassesCheckBox.Name = "_showClassesCheckBox";
             _showClassesCheckBox.Size = new Size(218, 41);
-            _showClassesCheckBox.TabIndex = 60;
+            _showClassesCheckBox.TabIndex = 61;
             _showClassesCheckBox.Text = "Show available classes in an overlay on the map (for streaming)";
             _showClassesCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -472,7 +473,7 @@
             _swapMouseButtons.Location = new Point(9, 19);
             _swapMouseButtons.Name = "_swapMouseButtons";
             _swapMouseButtons.Size = new Size(218, 40);
-            _swapMouseButtons.TabIndex = 59;
+            _swapMouseButtons.TabIndex = 60;
             _swapMouseButtons.Text = "Swap mouse buttons***(Left = Draw, Right = Pan)";
             _swapMouseButtons.UseVisualStyleBackColor = true;
             // 
@@ -733,14 +734,25 @@
             // 
             // groupBox11
             // 
+            groupBox11.Controls.Add(_numpadNavigationCheckBox);
             groupBox11.Controls.Add(_outOfFocusClickTextBox);
             groupBox11.Controls.Add(label11);
             groupBox11.Location = new Point(257, 232);
             groupBox11.Name = "groupBox11";
-            groupBox11.Size = new Size(240, 78);
+            groupBox11.Size = new Size(240, 110);
             groupBox11.TabIndex = 41;
             groupBox11.TabStop = false;
             groupBox11.Text = "Hotkey";
+            // 
+            // _numpadNavigationCheckBox
+            // 
+            _numpadNavigationCheckBox.AutoSize = true;
+            _numpadNavigationCheckBox.Location = new Point(9, 76);
+            _numpadNavigationCheckBox.Name = "_numpadNavigationCheckBox";
+            _numpadNavigationCheckBox.Size = new Size(134, 19);
+            _numpadNavigationCheckBox.TabIndex = 44;
+            _numpadNavigationCheckBox.Text = "Numpad Navigation";
+            _numpadNavigationCheckBox.UseVisualStyleBackColor = true;
             // 
             // groupBox9
             // 
@@ -932,5 +944,6 @@
         private Label _numKeywordsLabel;
         private Label _keywordColorAlphaLabel;
         private TrackBar _keywordColorAlphaTrackBar;
+        private CheckBox _numpadNavigationCheckBox;
     }
 }
