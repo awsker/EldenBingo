@@ -14,6 +14,39 @@ namespace EldenBingo.UI
             InitializeComponent();
         }
 
+        private void AdminControl_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                _bingoJsonTextBox.Text = Properties.Settings.Default.LastBingoFile;
+            }
+            setFeatureToAllControls(this);
+        }
+
+        /// <summary>
+        /// This method will disable arrow inputs for this control and all its child controls
+        /// </summary>
+        /// <param name="cc"></param>
+        private void setFeatureToAllControls(Control cc)
+        {
+            if (cc != null)
+            {
+                foreach (Control control in cc.Controls)
+                {
+                    control.PreviewKeyDown += OnPreviewKeyDown;
+                    setFeatureToAllControls(control);
+                }
+            }
+        }
+
+        private void OnPreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)
+            {
+                e.IsInputKey = true;
+            }
+        }
+
         public override Color BackColor
         {
             get => base.BackColor;
@@ -53,6 +86,7 @@ namespace EldenBingo.UI
 
         private void _browseJsonButton_Click(object sender, EventArgs e)
         {
+            clearFocus();
             var file = _bingoJsonTextBox.Text;
             var dir = Path.GetDirectoryName(file);
             var dialog = new OpenFileDialog()
@@ -71,37 +105,41 @@ namespace EldenBingo.UI
 
         private async void _generateNewBoardButton_Click(object sender, EventArgs e)
         {
+            clearFocus();
             await randomizeNewBoard();
         }
 
         private async void _pauseMatchButton_Click(object sender, EventArgs e)
         {
+            clearFocus();
             await tryTogglePause();
         }
 
         private async void _startMatchButton_Click(object sender, EventArgs e)
         {
+            clearFocus();
             await tryChangeMatchStatus(MatchStatus.Starting);
         }
 
+
         private async void _stopMatchButton_Click(object sender, EventArgs e)
         {
-            if(MessageBox.Show("Stop match? The match will end immediately", "Stop match", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            clearFocus();
+            if (MessageBox.Show("Stop match? The match will end immediately", "Stop match", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 await tryChangeMatchStatus(MatchStatus.Finished);
         }
 
         private async void _uploadJsonButton_Click(object sender, EventArgs e)
         {
+            clearFocus();
             await uploadJsonData(_bingoJsonTextBox.Text);
         }
 
-        private void AdminControl_Load(object sender, EventArgs e)
+        private void clearFocus()
         {
-            if (!DesignMode)
-            {
-                _bingoJsonTextBox.Text = Properties.Settings.Default.LastBingoFile;
-            }
+            label3.Focus();
         }
+
 
         private void client_Connected(object? sender, EventArgs e)
         {
@@ -215,7 +253,6 @@ namespace EldenBingo.UI
                 var inRoom = Client?.Room != null;
                 var admin = inRoom && Client?.LocalUser?.IsAdmin == true;
                 var matchStarted = Client?.Room != null && (Client.Room.Match.Running || Client.Room.Match.Paused);
-                _bingoJsonTextBox.ReadOnly = !admin || matchStarted;
                 _browseJsonButton.Enabled = admin;
                 _uploadJsonButton.Enabled = admin;
                 _lobbySettingsButton.Enabled = admin;

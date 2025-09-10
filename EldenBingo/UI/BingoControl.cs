@@ -26,6 +26,7 @@ namespace EldenBingo.UI
 
         private int _size;
         private int _selectedSquareIndex = -1;
+        private int _lastNavigationSelection = 0;
 
         public int[] ActiveTeams { get; private set; }
 
@@ -309,8 +310,8 @@ namespace EldenBingo.UI
                     await clickSquare(square);
                 }
             }
-            // Exit early if we're not using numpad navigation
-            if (!Properties.Settings.Default.NumpadNavigation)
+            // Exit early if we're not using numpad or arrow navigation
+            if (!(Properties.Settings.Default.NumpadNavigation || Properties.Settings.Default.ArrowNavigation))
                 return;
             // Handle arrow keys and numpad keys to move selection cursor
             bool handled = false;
@@ -318,59 +319,67 @@ namespace EldenBingo.UI
             if (size > 0 && Squares != null && Squares.Length > 0)
             {
                 bool dontMoveCursor = false;
-                int prevSelected = _selectedSquareIndex;
-                if (prevSelected <= -1)
+                int selected = _selectedSquareIndex;
+                if (selected <= -1)
                 {
                     // No square was selected, so highlight the first square (so just ensure a numpad key is pressed, but don't actually move the cursor)
                     dontMoveCursor = true;
-                    // And set the selection to top-left
-                    prevSelected = 0;
+                    // And set the selection to the square that was previously selected
+                    selected = _lastNavigationSelection;
                 }
-                int row = prevSelected / size;
-                int col = prevSelected % size;
-                if (!handled)
+                int row = selected / size;
+                int col = selected % size;
+                void moveLeft()
+                {
+                    col = Math.Clamp(col - 1, 0, size - 1);
+                    handled = true;
+                }
+                void moveRight()
+                {
+                    col = Math.Clamp(col + 1, 0, size - 1);
+                    handled = true;
+                }
+                void moveUp()
+                {
+                    row = Math.Clamp(row - 1, 0, size - 1);
+                    handled = true;
+                }
+                void moveDown()
+                {
+                    row = Math.Clamp(row + 1, 0, size - 1);
+                    handled = true;
+                }
+                if (Properties.Settings.Default.NumpadNavigation)
                 {
                     switch (e.KeyCode)
                     {
-                        case Keys.Left:
                         case Keys.NumPad4:
-                            col = Math.Clamp(col - 1, 0, size - 1);
-                            handled = true;
+                            moveLeft();
                             break;
-                        case Keys.Right:
                         case Keys.NumPad6:
-                            col = Math.Clamp(col + 1, 0, size - 1);
-                            handled = true;
+                            moveRight();
                             break;
-                        case Keys.Up:
                         case Keys.NumPad8:
-                            row = Math.Clamp(row - 1, 0, size - 1);
-                            handled = true;
+                            moveUp();
                             break;
-                        case Keys.Down:
                         case Keys.NumPad2:
-                            row = Math.Clamp(row + 1, 0, size - 1);
-                            handled = true;
+                            moveDown();
                             break;
                         case Keys.NumPad7:
-                            row = Math.Clamp(row - 1, 0, size - 1);
-                            col = Math.Clamp(col - 1, 0, size - 1);
-                            handled = true;
+                            moveLeft();
+                            moveUp();
                             break;
                         case Keys.NumPad9:
-                            row = Math.Clamp(row - 1, 0, size - 1);
-                            col = Math.Clamp(col + 1, 0, size - 1);
-                            handled = true;
+                            moveRight();
+                            moveUp();
                             break;
                         case Keys.NumPad1:
-                            row = Math.Clamp(row + 1, 0, size - 1);
-                            col = Math.Clamp(col - 1, 0, size - 1);
-                            handled = true;
+                            moveLeft();
+                            moveDown();
                             break;
                         case Keys.NumPad3:
-                            row = Math.Clamp(row + 1, 0, size - 1);
-                            col = Math.Clamp(col + 1, 0, size - 1);
-                            handled = true;
+                            moveRight();
+                            moveDown();
                             break;
                         case Keys.Add:
                             square = getSelectedSquare();
@@ -395,20 +404,38 @@ namespace EldenBingo.UI
                             break;
                     }
                 }
+                if (Properties.Settings.Default.ArrowNavigation)
+                {
+                    switch (e.KeyCode)
+                    {
+                        case Keys.Left:
+                            moveLeft();
+                            break;
+                        case Keys.Right:
+                            moveRight();
+                            break;
+                        case Keys.Up:
+                            moveUp();
+                            break;
+                        case Keys.Down:
+                            moveDown();
+                            break;
+                    }
+                }
                 if (handled)
                 {
                     if (dontMoveCursor)
                     {
-                        row = prevSelected / size;
-                        col = prevSelected % size;
+                        row = selected / size;
+                        col = selected % size;
                     }
                     int newIndex = row * size + col;
+                    _lastNavigationSelection = newIndex;
                     setSelectedSquare(newIndex);
                     e.Handled = true;
                     e.SuppressKeyPress = true;
                 }
             }
-
         }
 
         private BingoSquareControl? getSelectedSquare()
@@ -544,6 +571,7 @@ namespace EldenBingo.UI
                     updateSquare(board, i, false);
                 }
                 _selectedSquareIndex = -1;
+                _lastNavigationSelection = 0;
                 redrawAllSquares();
             }
             if (InvokeRequired)

@@ -706,5 +706,17 @@ namespace EldenBingo.Properties {
                 this["NumpadNavigation"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ArrowNavigation {
+            get {
+                return ((bool)(this["ArrowNavigation"]));
+            }
+            set {
+                this["ArrowNavigation"] = value;
+            }
+        }
     }
 }

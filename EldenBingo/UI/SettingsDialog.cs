@@ -108,6 +108,7 @@ namespace EldenBingo.UI
 
             _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
             _numpadNavigationCheckBox.Checked = Properties.Settings.Default.NumpadNavigation;
+            _arrowNavigationCheckBox.Checked = Properties.Settings.Default.ArrowNavigation;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
@@ -233,6 +234,7 @@ namespace EldenBingo.UI
             Properties.Settings.Default.BingoHighlight = _highlightBingoCheckBox.Checked;
             Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
             Properties.Settings.Default.NumpadNavigation = _numpadNavigationCheckBox.Checked;
+            Properties.Settings.Default.ArrowNavigation = _arrowNavigationCheckBox.Checked;
 
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
 
@@ -258,18 +260,12 @@ namespace EldenBingo.UI
 
         private void _outOfFocusClickTextBox_Enter(object sender, EventArgs e)
         {
-            _rebindingKey = true;
-            AcceptButton = null;
-            CancelButton = null;
-            updateOutOfFocusText();
+            startRebind();
         }
 
         private void _outOfFocusClickTextBox_Leave(object sender, EventArgs e)
         {
-            _rebindingKey = false;
-            AcceptButton = _okButton;
-            CancelButton = _cancelButton;
-            updateOutOfFocusText();
+            stopRebind();
         }
 
         private void _outOfFocusClickTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -277,10 +273,25 @@ namespace EldenBingo.UI
             if (_rebindingKey)
             {
                 _outOfFocusKey = e.KeyCode == Keys.Escape ? Keys.None : e.KeyCode;
-                _rebindingKey = false;
-                updateOutOfFocusText();
+                stopRebind();
                 label11.Focus();
             }
+        }
+
+        private void startRebind()
+        {
+            _rebindingKey = true;
+            AcceptButton = null;
+            CancelButton = null;
+            updateOutOfFocusText();
+        }
+
+        private void stopRebind()
+        {
+            _rebindingKey = false;
+            AcceptButton = _okButton;
+            CancelButton = _cancelButton;
+            updateOutOfFocusText();
         }
 
         private void initOutputDeviceComboBox()
