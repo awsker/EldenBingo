@@ -600,6 +600,7 @@ namespace EldenBingo
                 }
                 string jsonFile = Path.Combine(appSpecificFolder, "serverData.json");
                 _server = new Server(Properties.Settings.Default.Port, jsonFile);
+                _server.MatchLogDirectory = appSpecificFolder;
                 _server.OnStatus += server_OnStatus;
                 _server.OnError += server_OnError;
                 _server.Host();

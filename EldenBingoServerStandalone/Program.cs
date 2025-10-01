@@ -1,6 +1,7 @@
 ﻿using EldenBingoCommon;
 using EldenBingoServer;
 using InteractiveReadLine;
+using Microsoft.Extensions.Configuration;
 using Neto.Shared;
 
 namespace EldenBingoServerStandalone
@@ -30,29 +31,39 @@ namespace EldenBingoServerStandalone
         public static void Main(string[] args)
         {
             int port = BingoConstants.DefaultPort;
-            if (args.Length > 0)
+
+            var config = new ConfigurationBuilder()
+                .AddCommandLine(args)
+                .Build();
+
+            if (config["port"] != null)
             {
-                if (!int.TryParse(args[0], out port))
+                if (!int.TryParse(config["port"], out port))
                 {
                     output("Invalid port", ErrorColor);
                 }
             }
-            if (args.Length > 1)
+            if (config["serverdata"] != null)
             {
-                _jsonFile = args[1];
+                _jsonFile = config["serverdata"];
             }
             else
             {
-                string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string appSpecificFolder = Path.Combine(appDataFolder, "EldenBingo");
-
-                if (!Directory.Exists(appSpecificFolder))
-                {
-                    Directory.CreateDirectory(appSpecificFolder);
-                }
-                _jsonFile = Path.Combine(appSpecificFolder, "serverData.json");
+                _jsonFile = Path.Combine(getApplicationDirectory(), "serverData.json");
             }
             _server = new Server(port, _jsonFile);
+            if (config["matchlog"] != null)
+            {
+                _server.MatchLogging = true;
+            }
+            if (config["matchlogdir"] != null)
+            {
+                _server.MatchLogDirectory = config["matchlogdir"];
+            }
+            else
+            {
+                _server.MatchLogDirectory = getApplicationDirectory();
+            }
             _server.OnError += server_OnError;
             _server.OnStatus += server_OnStatus;
             _server.Host();
@@ -72,6 +83,18 @@ namespace EldenBingoServerStandalone
                 waitHandle.Set();
             };
             waitHandle.WaitOne();
+        }
+
+        private static string getApplicationDirectory()
+        {
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string appSpecificFolder = Path.Combine(appDataFolder, "EldenBingo");
+
+            if (!Directory.Exists(appSpecificFolder))
+            {
+                Directory.CreateDirectory(appSpecificFolder);
+            }
+            return appSpecificFolder;
         }
 
         private static void log(string text)

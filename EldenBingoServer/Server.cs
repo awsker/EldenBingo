@@ -31,6 +31,9 @@ namespace EldenBingoServer
 
         private string? _jsonPath;
 
+        public bool MatchLogging { get; set; } = false;
+        public string MatchLogDirectory { get; set; } = string.Empty;
+
         public Server(int port, string? jsonPath = null) : base(port)
         {
             _rooms = new ConcurrentDictionary<string, ServerRoom>(StringComparer.OrdinalIgnoreCase);
@@ -511,15 +514,26 @@ namespace EldenBingoServer
             if (!await confirm(sender, admin: true, inRoom: true))
                 return;
 
-            if (matchStatus.MatchStatus == MatchStatus.Starting && sender.Room.Match != null && sender.Room.BoardGenerator != null)
+            if (matchStatus.MatchStatus == MatchStatus.Starting && sender.Room.Match != null)
             {
-                //Generate a board if no board is set or if the current board was used in last bingo, or if current board is wrong size
-                if (sender.Room.Match.Board == null || sender.Room.BoardAlreadyUsed || sender.Room.Match.Board.Size != sender.Room.GameSettings.BoardSize)
+                if (sender.Room.BoardGenerator == null)
                 {
-                    var board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
-                    if (board != null)
+                    if (sender.Room.BoardAlreadyUsed)
                     {
-                        await setRoomBingoBoard(sender.Room, board);
+                        await sendAdminErrorMessage(sender, "No bingo json file uploaded");
+                        return;
+                    }
+                }
+                else
+                {
+                    //Generate a board if no board is set or if the current board was used in last bingo, or if current board is wrong size
+                    if (sender.Room.Match.Board == null || sender.Room.BoardAlreadyUsed || sender.Room.Match.Board.Size != sender.Room.GameSettings.BoardSize)
+                    {
+                        var board = sender.Room.BoardGenerator.CreateBingoBoard(sender.Room);
+                        if (board != null)
+                        {
+                            await setRoomBingoBoard(sender.Room, board);
+                        }
                     }
                 }
             }
@@ -537,7 +551,9 @@ namespace EldenBingoServer
             if (result.Success)
             {
                 if (matchStatus.MatchStatus == MatchStatus.Starting)
-                {
+                { 
+                    // Clear match events from previous match if present
+                    sender.Room.MatchEvents.Clear();
                     var p = new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
                     //Reset the board for all players (except AdminSpectators, who already have the new board)
                     await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
@@ -545,6 +561,12 @@ namespace EldenBingoServer
                 if (matchStatus.MatchStatus == MatchStatus.Finished)
                 {
                     sender.Room.BoardAlreadyUsed = true;
+                    if (MatchLogging)
+                    {
+                        var log = new MatchLog() { Events = sender.Room.MatchEvents.ToArray() };
+                        log.Save(MatchLogDirectory, sender.Room);
+                        sender.Room.MatchEvents.Clear();
+                    }
                 }
             }
         }
@@ -573,6 +595,9 @@ namespace EldenBingoServer
                     {
                         var tasks = new List<Task>();
                         var check = board.CheckStatus[tryCheck.Index];
+                        sender.Room.MatchEvents.Add(
+                                new LEvent(sender.Room.Match.MatchMilliseconds, tryCheck.Index, userToSet.Team, userInfo.Nick, check.IsChecked(userToSet.Team), userInfo.IsAdmin && userInfo.IsSpectator)
+                            );
                         ServerSquareUpdate squareUpdate;
                         ServerUserChecked userCheck;
                         ServerScoreboardUpdate scoreboard = createScoreboardUpdatePacket(sender.Room);

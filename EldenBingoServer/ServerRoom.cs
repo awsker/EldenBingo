@@ -13,6 +13,8 @@ namespace EldenBingoServer
         private System.Timers.Timer? _timer;
         [JsonProperty]
         private Dictionary<int, string> _customTeamNames;
+        [JsonProperty]
+        internal List<LEvent> MatchEvents { get; }
 
         public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
         {
@@ -24,6 +26,7 @@ namespace EldenBingoServer
             LastActivity = DateTime.Now;
             _creatorGuid = creator?.ClientGuid ?? Guid.Empty;
             _customTeamNames = new Dictionary<int, string>();
+            MatchEvents = new List<LEvent>();
         }
 
         public event EventHandler<RoomEventArgs>? TimerElapsed;
