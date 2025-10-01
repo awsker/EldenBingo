@@ -9,6 +9,8 @@ namespace EldenBingo.Sfx
     {
         SquareClaimedOther,
         SquareClaimedOwn,
+        SquareUnclaimedOther,
+        SquareUnclaimedOwn,
         Bingo,
     }
 
@@ -38,6 +40,8 @@ namespace EldenBingo.Sfx
         {
             "square_claimed_other.wav",
             "square_claimed_own.wav",
+            "square_unclaimed_other.wav",
+            "square_unclaimed_own.wav",
             "bingo.wav"
         };
 

@@ -453,6 +453,13 @@ namespace EldenBingo
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
                     _sounds.PlaySound(SoundType.SquareClaimedOther);
+            } 
+            else
+            {
+                if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
+                    _sounds.PlaySound(SoundType.SquareUnclaimedOwn);
+                else
+                    _sounds.PlaySound(SoundType.SquareUnclaimedOther);
             }
         }
 
