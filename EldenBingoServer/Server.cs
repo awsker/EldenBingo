@@ -561,9 +561,9 @@ namespace EldenBingoServer
                 if (matchStatus.MatchStatus == MatchStatus.Finished)
                 {
                     sender.Room.BoardAlreadyUsed = true;
-                    if (MatchLogging)
+                    if (MatchLogging && sender.Room.MatchEvents.Count > 0)
                     {
-                        var log = new MatchLog() { Events = sender.Room.MatchEvents.ToArray() };
+                        var log = new MatchLog() { Room = sender.Room.Name, Events = sender.Room.MatchEvents.ToArray() };
                         log.Save(MatchLogDirectory, sender.Room);
                         sender.Room.MatchEvents.Clear();
                     }

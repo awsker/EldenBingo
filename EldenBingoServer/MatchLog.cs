@@ -6,7 +6,8 @@ namespace EldenBingoServer
 {
     internal class MatchLog
     {
-        public DateTime DateTime;
+        public string Room { get; set; }
+        public DateTime DateTime { get; set; }
         public int MatchLength { get; set; }
         public LTeam[] Teams { get; set; }
         public string[] Squares { get; set; }
