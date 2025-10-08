@@ -25,6 +25,7 @@ namespace EldenBingoServerStandalone
             {'k', new("List keyboard commands", showShortcuts)},
             {'r', new("List all rooms", printRooms)},
             {'j', new("Print path to server data json", showJsonPath)},
+            {'l', new("Toggle match logging", toggleLogging)},
             {'m', new("Enable Maintenance mode", maintenanceMode)},
         };
 
@@ -187,6 +188,20 @@ namespace EldenBingoServerStandalone
             finally
             {
                 _readInput = true;
+            }
+        }
+
+        private static void toggleLogging()
+        {
+            _server.MatchLogging = !_server.MatchLogging;
+            
+            if (_server.MatchLogging)
+            {
+                output($"Match logging enabled: {_server.MatchLogDirectory}");
+            }
+            else
+            {
+                output("Match logging disabled");
             }
         }
 
