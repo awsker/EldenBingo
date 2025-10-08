@@ -59,7 +59,7 @@ namespace EldenBingoServer
                     Formatting = Formatting.Indented
                 };
                 var json = JsonConvert.SerializeObject(this, settings);
-                var fullPath = Path.Combine(targetDirectory, generateFileName());
+                var fullPath = Path.Combine(targetDirectory, generateFileName(serverRoom));
                 File.WriteAllText(fullPath, json);
             }
             catch(Exception ex) 
@@ -107,13 +107,13 @@ namespace EldenBingoServer
             return teams.Values.Select(t => new LTeam(t.TeamIndex, t.Name, t.Color, t.Players.ToArray())).ToArray();
         }
 
-        private string generateFileName()
+        private string generateFileName(ServerRoom room)
         {
             // Date prefix
             string timestamp = DateTime.ToString("yyyy-MM-dd-HH-mm");
 
             // Join all team names with underscores
-            string teamNames = string.Join("_", Teams.Select(t => sanitizeTeamName(t.Name)));
+            string teamNames = string.Join("_", room.Name);
 
             // Final filename
             return $"{timestamp}_{teamNames}.json";
