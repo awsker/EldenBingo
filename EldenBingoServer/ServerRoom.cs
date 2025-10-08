@@ -130,11 +130,14 @@ namespace EldenBingoServer
             {
                 foreach (var sq in serverboard.CheckStatus)
                 {
-                    foreach (var team in sq.Teams)
+                    lock (sq)
                     {
-                        if (!dict.ContainsKey(team))
+                        foreach (var team in sq.Teams)
                         {
-                            dict.Add(team, GetUnifiedName(team, new BingoClientInRoom[0]));
+                            if (!dict.ContainsKey(team))
+                            {
+                                dict.Add(team, GetUnifiedName(team, new BingoClientInRoom[0]));
+                            }
                         }
                     }
                 }

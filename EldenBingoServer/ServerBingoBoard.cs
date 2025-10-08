@@ -169,13 +169,16 @@ namespace EldenBingoServer
         public BingoBoardSquare GetSquareDataForUser(UserInRoom user, int index, IList<Team>? teams = null)
         {
             var status = CheckStatus[index];
-            teams ??= Room.GetActiveTeams();
-            return new BingoBoardSquare(
-                Squares[index].Text,
-                Squares[index].Tooltip,
-                status.Teams.ToArray(),
-                status.IsMarked(user),
-                status.GetCountersForPlayer(user, Room.Users, teams));
+            lock (status)
+            {
+                teams ??= Room.GetActiveTeams();
+                return new BingoBoardSquare(
+                    Squares[index].Text,
+                    Squares[index].Tooltip,
+                    status.Teams.ToArray(),
+                    status.IsMarked(user),
+                    status.GetCountersForPlayer(user, Room.Users, teams));
+            }
         }
 
         public bool UserChangeCount(int i, UserInRoom user, int change)
@@ -265,12 +268,15 @@ namespace EldenBingoServer
             
             foreach (var square in CheckStatus)
             {
-                foreach (var t in square.Teams)
+                lock (square)
                 {
-                    if (squaresCountPerTeam.TryGetValue(t, out int c))
-                        squaresCountPerTeam[t] = c + 1;
-                    else
-                        squaresCountPerTeam[t] = 1;
+                    foreach (var t in square.Teams)
+                    {
+                        if (squaresCountPerTeam.TryGetValue(t, out int c))
+                            squaresCountPerTeam[t] = c + 1;
+                        else
+                            squaresCountPerTeam[t] = 1;
+                    }
                 }
             }
             return squaresCountPerTeam;
@@ -291,12 +297,15 @@ namespace EldenBingoServer
                 for (int i = 0; i < Size; ++i)
                 {
                     var s = CheckStatus[index(x, y)];
-                    foreach (var t in s.Teams)
+                    lock (s)
                     {
-                        if (squaresCountPerTeam.TryGetValue(t, out int c))
-                            squaresCountPerTeam[t] = c + 1;
-                        else
-                            squaresCountPerTeam[t] = 1;
+                        foreach (var t in s.Teams)
+                        {
+                            if (squaresCountPerTeam.TryGetValue(t, out int c))
+                                squaresCountPerTeam[t] = c + 1;
+                            else
+                                squaresCountPerTeam[t] = 1;
+                        }
                     }
                     x += dx;
                     y += dy;
