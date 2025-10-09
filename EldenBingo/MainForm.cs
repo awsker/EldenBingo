@@ -21,7 +21,7 @@ namespace EldenBingo
     {
         private static object _connectLock = new object();
         private readonly Client _client;
-        private readonly GameProcessHandler _processHandler;
+        private readonly GameProcessHandler? _processHandler;
         private MapCoordinateProviderHandler? _mapCoordinateProviderHandler;
         private EventManager? _eventManager;
         private MapWindow? _mapWindow;
@@ -39,9 +39,9 @@ namespace EldenBingo
         {
             InitializeComponent();
             Icon = Resources.icon;
-            _processHandler = new GameProcessHandler();
-            _processHandler.StatusChanged += _processHandler_StatusChanged;
-            _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
+            //_processHandler = new GameProcessHandler();
+            //_processHandler.StatusChanged += _processHandler_StatusChanged;
+            //_processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
 
             _sounds = new SoundLibrary();
             _sounds.SetAudioDevice(Properties.Settings.Default.OutputDevice);
@@ -59,7 +59,7 @@ namespace EldenBingo
             FormClosing += async (o, e) =>
             {
                 _autoReconnect = false;
-                _processHandler.Dispose();
+                //_processHandler.Dispose();
                 _sounds.Dispose();
                 _mapWindow?.DisposeDrawablesOnExit();
                 _mapWindow?.Stop();
@@ -670,7 +670,7 @@ namespace EldenBingo
             updateStatusString();
 
             //Start looking for Elden Ring process
-            _processHandler.StartScan();
+            //_processHandler.StartScan();
 
             if (Properties.Settings.Default.AutoConnect && !string.IsNullOrWhiteSpace(Properties.Settings.Default.ServerAddress))
             {
@@ -682,7 +682,7 @@ namespace EldenBingo
             {
                 checkForUpdates();
             }
-            _eventManager = new EventManager(_processHandler, _client);
+            //_eventManager = new EventManager(_processHandler, _client);
         }
 
         private void _lobbyControl_HandleCreated(object? sender, EventArgs e)

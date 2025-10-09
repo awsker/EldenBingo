@@ -31,9 +31,9 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             tabControl1 = new TabControl();
             _consolePage = new TabPage();
-            _consoleControl = new UI.ConsoleControl();
+            _consoleControl = new EldenBingo.UI.ConsoleControl();
             _lobbyPage = new TabPage();
-            _lobbyControl = new UI.LobbyControl();
+            _lobbyControl = new EldenBingo.UI.LobbyControl();
             _processMonitorStatusTextBox = new TextBox();
             toolStrip1 = new ToolStrip();
             _connectButton = new ToolStripButton();
@@ -49,7 +49,7 @@
             _settingsButton = new ToolStripButton();
             _startGameButton = new ToolStripButton();
             splitContainer1 = new SplitContainer();
-            _usersListBox = new UI.RichListBox();
+            _usersListBox = new EldenBingo.UI.RichListBox();
             panel1 = new Panel();
             _clientStatusTextBox = new TextBox();
             tabControl1.SuspendLayout();
@@ -69,20 +69,21 @@
             tabControl1.Controls.Add(_lobbyPage);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
-            tabControl1.Location = new Point(0, 70);
+            tabControl1.Location = new Point(0, 105);
+            tabControl1.Margin = new Padding(4);
             tabControl1.Multiline = true;
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(947, 591);
+            tabControl1.Size = new Size(1420, 887);
             tabControl1.TabIndex = 1;
             // 
             // _consolePage
             // 
             _consolePage.Controls.Add(_consoleControl);
-            _consolePage.Location = new Point(30, 4);
+            _consolePage.Location = new Point(42, 4);
             _consolePage.Margin = new Padding(0);
             _consolePage.Name = "_consolePage";
-            _consolePage.Size = new Size(913, 583);
+            _consolePage.Size = new Size(1374, 879);
             _consolePage.TabIndex = 0;
             _consolePage.Text = "Console";
             _consolePage.UseVisualStyleBackColor = true;
@@ -92,16 +93,18 @@
             // 
             _consoleControl.Dock = DockStyle.Fill;
             _consoleControl.Location = new Point(0, 0);
+            _consoleControl.Margin = new Padding(6);
             _consoleControl.Name = "_consoleControl";
-            _consoleControl.Size = new Size(913, 583);
+            _consoleControl.Size = new Size(1374, 879);
             _consoleControl.TabIndex = 0;
             // 
             // _lobbyPage
             // 
             _lobbyPage.Controls.Add(_lobbyControl);
-            _lobbyPage.Location = new Point(30, 4);
+            _lobbyPage.Location = new Point(42, 4);
+            _lobbyPage.Margin = new Padding(4);
             _lobbyPage.Name = "_lobbyPage";
-            _lobbyPage.Size = new Size(913, 583);
+            _lobbyPage.Size = new Size(1374, 879);
             _lobbyPage.TabIndex = 1;
             _lobbyPage.Text = "Lobby";
             _lobbyPage.UseVisualStyleBackColor = true;
@@ -111,8 +114,9 @@
             _lobbyControl.Client = null;
             _lobbyControl.Dock = DockStyle.Fill;
             _lobbyControl.Location = new Point(0, 0);
+            _lobbyControl.Margin = new Padding(6);
             _lobbyControl.Name = "_lobbyControl";
-            _lobbyControl.Size = new Size(913, 583);
+            _lobbyControl.Size = new Size(1374, 879);
             _lobbyControl.TabIndex = 0;
             // 
             // _processMonitorStatusTextBox
@@ -120,10 +124,11 @@
             _processMonitorStatusTextBox.BackColor = SystemColors.Control;
             _processMonitorStatusTextBox.Dock = DockStyle.Right;
             _processMonitorStatusTextBox.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
-            _processMonitorStatusTextBox.Location = new Point(753, 0);
+            _processMonitorStatusTextBox.Location = new Point(1131, 0);
+            _processMonitorStatusTextBox.Margin = new Padding(4);
             _processMonitorStatusTextBox.Name = "_processMonitorStatusTextBox";
             _processMonitorStatusTextBox.ReadOnly = true;
-            _processMonitorStatusTextBox.Size = new Size(194, 27);
+            _processMonitorStatusTextBox.Size = new Size(289, 37);
             _processMonitorStatusTextBox.TabIndex = 3;
             _processMonitorStatusTextBox.TextAlign = HorizontalAlignment.Center;
             // 
@@ -131,10 +136,12 @@
             // 
             toolStrip1.AutoSize = false;
             toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
+            toolStrip1.ImageScalingSize = new Size(24, 24);
             toolStrip1.Items.AddRange(new ToolStripItem[] { _connectButton, _disconnectButton, toolStripSeparator1, _createLobbyButton, _joinLobbyButton, _leaveRoomButton, _changeTeamButton, toolStripSeparator2, _openMapButton, toolStripSeparator3, _settingsButton, _startGameButton });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
-            toolStrip1.Size = new Size(947, 70);
+            toolStrip1.Padding = new Padding(0, 0, 3, 0);
+            toolStrip1.Size = new Size(1420, 105);
             toolStrip1.TabIndex = 4;
             toolStrip1.Text = "toolStrip1";
             // 
@@ -144,7 +151,7 @@
             _connectButton.ImageScaling = ToolStripItemImageScaling.None;
             _connectButton.ImageTransparentColor = Color.Magenta;
             _connectButton.Name = "_connectButton";
-            _connectButton.Size = new Size(56, 67);
+            _connectButton.Size = new Size(81, 100);
             _connectButton.Text = "Connect";
             _connectButton.TextAlign = ContentAlignment.BottomCenter;
             _connectButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -156,7 +163,7 @@
             _disconnectButton.ImageScaling = ToolStripItemImageScaling.None;
             _disconnectButton.ImageTransparentColor = Color.Magenta;
             _disconnectButton.Name = "_disconnectButton";
-            _disconnectButton.Size = new Size(70, 67);
+            _disconnectButton.Size = new Size(103, 100);
             _disconnectButton.Text = "Disconnect";
             _disconnectButton.TextAlign = ContentAlignment.BottomCenter;
             _disconnectButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -165,7 +172,7 @@
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(6, 70);
+            toolStripSeparator1.Size = new Size(6, 105);
             // 
             // _createLobbyButton
             // 
@@ -173,7 +180,7 @@
             _createLobbyButton.ImageScaling = ToolStripItemImageScaling.None;
             _createLobbyButton.ImageTransparentColor = Color.Magenta;
             _createLobbyButton.Name = "_createLobbyButton";
-            _createLobbyButton.Size = new Size(81, 67);
+            _createLobbyButton.Size = new Size(121, 100);
             _createLobbyButton.Text = "Create Lobby";
             _createLobbyButton.TextAlign = ContentAlignment.BottomCenter;
             _createLobbyButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -185,7 +192,7 @@
             _joinLobbyButton.ImageScaling = ToolStripItemImageScaling.None;
             _joinLobbyButton.ImageTransparentColor = Color.Magenta;
             _joinLobbyButton.Name = "_joinLobbyButton";
-            _joinLobbyButton.Size = new Size(68, 67);
+            _joinLobbyButton.Size = new Size(102, 100);
             _joinLobbyButton.Text = "Join Lobby";
             _joinLobbyButton.TextAlign = ContentAlignment.BottomCenter;
             _joinLobbyButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -197,7 +204,7 @@
             _leaveRoomButton.ImageScaling = ToolStripItemImageScaling.None;
             _leaveRoomButton.ImageTransparentColor = Color.Magenta;
             _leaveRoomButton.Name = "_leaveRoomButton";
-            _leaveRoomButton.Size = new Size(77, 67);
+            _leaveRoomButton.Size = new Size(115, 100);
             _leaveRoomButton.Text = "Leave Lobby";
             _leaveRoomButton.TextAlign = ContentAlignment.BottomCenter;
             _leaveRoomButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -209,7 +216,7 @@
             _changeTeamButton.ImageScaling = ToolStripItemImageScaling.None;
             _changeTeamButton.ImageTransparentColor = Color.Magenta;
             _changeTeamButton.Name = "_changeTeamButton";
-            _changeTeamButton.Size = new Size(83, 67);
+            _changeTeamButton.Size = new Size(122, 100);
             _changeTeamButton.Text = "Change Team";
             _changeTeamButton.TextAlign = ContentAlignment.BottomCenter;
             _changeTeamButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -218,15 +225,16 @@
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(6, 70);
+            toolStripSeparator2.Size = new Size(6, 105);
             // 
             // _openMapButton
             // 
+            _openMapButton.Enabled = false;
             _openMapButton.Image = (Image)resources.GetObject("_openMapButton.Image");
             _openMapButton.ImageScaling = ToolStripItemImageScaling.None;
             _openMapButton.ImageTransparentColor = Color.Magenta;
             _openMapButton.Name = "_openMapButton";
-            _openMapButton.Size = new Size(67, 67);
+            _openMapButton.Size = new Size(101, 100);
             _openMapButton.Text = "Open Map";
             _openMapButton.TextAlign = ContentAlignment.BottomCenter;
             _openMapButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -236,7 +244,7 @@
             // toolStripSeparator3
             // 
             toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new Size(6, 70);
+            toolStripSeparator3.Size = new Size(6, 105);
             // 
             // _settingsButton
             // 
@@ -244,7 +252,7 @@
             _settingsButton.ImageScaling = ToolStripItemImageScaling.None;
             _settingsButton.ImageTransparentColor = Color.Magenta;
             _settingsButton.Name = "_settingsButton";
-            _settingsButton.Size = new Size(53, 67);
+            _settingsButton.Size = new Size(80, 100);
             _settingsButton.Text = "Settings";
             _settingsButton.TextAlign = ContentAlignment.BottomCenter;
             _settingsButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -253,11 +261,12 @@
             // _startGameButton
             // 
             _startGameButton.Alignment = ToolStripItemAlignment.Right;
+            _startGameButton.Enabled = false;
             _startGameButton.Image = (Image)resources.GetObject("_startGameButton.Image");
             _startGameButton.ImageScaling = ToolStripItemImageScaling.None;
             _startGameButton.ImageTransparentColor = Color.Magenta;
             _startGameButton.Name = "_startGameButton";
-            _startGameButton.Size = new Size(94, 67);
+            _startGameButton.Size = new Size(141, 100);
             _startGameButton.Text = "Start Elden Ring";
             _startGameButton.TextAlign = ContentAlignment.BottomCenter;
             _startGameButton.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -266,15 +275,15 @@
             // splitContainer1
             // 
             splitContainer1.Dock = DockStyle.Fill;
-            splitContainer1.Location = new Point(0, 70);
+            splitContainer1.Location = new Point(0, 105);
+            splitContainer1.Margin = new Padding(4);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(_usersListBox);
-            splitContainer1.Size = new Size(947, 591);
-            splitContainer1.SplitterDistance = 750;
-            splitContainer1.SplitterWidth = 3;
+            splitContainer1.Size = new Size(1420, 887);
+            splitContainer1.SplitterDistance = 1124;
             splitContainer1.TabIndex = 0;
             // 
             // _usersListBox
@@ -287,8 +296,9 @@
             _usersListBox.IntegralHeight = false;
             _usersListBox.ItemHeight = 20;
             _usersListBox.Location = new Point(0, 0);
+            _usersListBox.Margin = new Padding(4);
             _usersListBox.Name = "_usersListBox";
-            _usersListBox.Size = new Size(194, 591);
+            _usersListBox.Size = new Size(292, 887);
             _usersListBox.TabIndex = 0;
             // 
             // panel1
@@ -296,9 +306,10 @@
             panel1.Controls.Add(_clientStatusTextBox);
             panel1.Controls.Add(_processMonitorStatusTextBox);
             panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(0, 661);
+            panel1.Location = new Point(0, 992);
+            panel1.Margin = new Padding(4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(947, 27);
+            panel1.Size = new Size(1420, 40);
             panel1.TabIndex = 0;
             // 
             // _clientStatusTextBox
@@ -307,22 +318,24 @@
             _clientStatusTextBox.Dock = DockStyle.Fill;
             _clientStatusTextBox.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
             _clientStatusTextBox.Location = new Point(0, 0);
+            _clientStatusTextBox.Margin = new Padding(4);
             _clientStatusTextBox.Name = "_clientStatusTextBox";
             _clientStatusTextBox.ReadOnly = true;
-            _clientStatusTextBox.Size = new Size(753, 27);
+            _clientStatusTextBox.Size = new Size(1131, 37);
             _clientStatusTextBox.TabIndex = 4;
             _clientStatusTextBox.TextAlign = HorizontalAlignment.Center;
             // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleDimensions = new SizeF(144F, 144F);
             AutoScaleMode = AutoScaleMode.Dpi;
-            ClientSize = new Size(947, 688);
+            ClientSize = new Size(1420, 1032);
             Controls.Add(tabControl1);
             Controls.Add(splitContainer1);
             Controls.Add(panel1);
             Controls.Add(toolStrip1);
-            MinimumSize = new Size(954, 572);
+            Margin = new Padding(4);
+            MinimumSize = new Size(1420, 830);
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Elden Bingo";

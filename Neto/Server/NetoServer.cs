@@ -61,6 +61,22 @@ namespace Neto.Server
             return null;
         }
 
+        //public void Host()
+        //{
+        //    if (Hosting)
+        //        throw new Exception("Already hosting");
+
+        //    _tcpListeners.Clear();
+        //    _cancelToken = new CancellationTokenSource();
+
+        //    // 🔧 Bind to all interfaces
+        //    var thread = new Thread(() => runTcpListener(IPAddress.Any));
+        //    thread.Start();
+
+        //    Hosting = true;
+        //    FireOnStatus($"Hosting server on port {Port}");
+        //}
+
         public void Host()
         {
             if (Hosting)

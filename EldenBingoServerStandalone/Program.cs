@@ -70,9 +70,17 @@ namespace EldenBingoServerStandalone
             _server.Host();
             output("Press 'k' to list all keyboard commands", InfoColor);
 
-            _keyboardListenThread = new Thread(new ThreadStart(listenKeyBoardEvent));
-            _keyboardListenThread.Start();
-            _readInput = true;
+            if (!Console.IsInputRedirected)
+            {
+                _readInput = true;
+                _keyboardListenThread = new Thread(listenKeyBoardEvent);
+                _keyboardListenThread.Start();
+            }
+            else
+            {
+                output("Running in headless mode (no keyboard input)", InfoColor);
+            }
+
             var waitHandle = new ManualResetEvent(false);
 
             Console.CancelKeyPress += async (o, e) =>

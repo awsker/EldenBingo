@@ -9,7 +9,7 @@
       <Value Profile="(Default)">C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING\Game</Value>
     </Setting>
     <Setting Name="ServerAddress" Type="System.String" Scope="User">
-      <Value Profile="(Default)">bingobrawlers.com</Value>
+      <Value Profile="(Default)">bingo.ignitesouls.io</Value>
     </Setting>
     <Setting Name="Port" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">4501</Value>
