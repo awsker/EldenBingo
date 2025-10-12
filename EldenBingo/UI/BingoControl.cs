@@ -27,6 +27,7 @@ namespace EldenBingo.UI
         private int _size;
         private int _selectedSquareIndex = -1;
         private int _lastNavigationSelection = 0;
+        private int _mouseHoverSquare = -1;
 
         public int[] ActiveTeams { get; private set; }
 
@@ -459,12 +460,12 @@ namespace EldenBingo.UI
 
         private async void mouseWheel(object? sender, MouseEventArgs e)
         {
-            if (Squares == null || e.Delta == 0)
+            if (Squares == null || e.Delta == 0 || _mouseHoverSquare == -1)
                 return;
 
-            var square = getSelectedSquare();
-            if (square != null)
+            if (_mouseHoverSquare >= 0 && _mouseHoverSquare < Squares.Length)
             {
+                var square = Squares[_mouseHoverSquare];
                 await changeSquareCounter(square, Math.Clamp(e.Delta, -1, 1));
             }
         }
@@ -649,6 +650,7 @@ namespace EldenBingo.UI
             if(sender is BingoSquareControl square)
             {
                 setSelectedSquare(square.Index);
+                _mouseHoverSquare = square.Index;
             }
         }
 
@@ -659,6 +661,8 @@ namespace EldenBingo.UI
             {
                 if (_selectedSquareIndex == square.Index)
                     setSelectedSquare(-1);
+                if (_mouseHoverSquare == square.Index)
+                    _mouseHoverSquare = -1;
             }
         }
 
@@ -685,18 +689,6 @@ namespace EldenBingo.UI
 
             var p = new Packet(new ClientTryMark(c.Index));
             await Client.SendPacketToServer(p);
-        }
-
-        private async void square_MouseWheel(object? sender, MouseEventArgs e)
-        {
-            if (sender is not BingoSquareControl c)
-                return;
-
-            if (e.Delta != 0)
-            {
-                var change = Math.Max(-1, Math.Min(1, e.Delta));
-                await changeSquareCounter(c, change);
-            }
         }
 
         private async Task changeSquareCounter(BingoSquareControl c, int change)
