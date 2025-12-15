@@ -727,7 +727,10 @@ namespace EldenBingo
 
             _mapWindowThread = new Thread(() =>
             {
-                Vector2u windowSize;
+                try
+                {
+
+                    Vector2u windowSize;
                 if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
                 {
                     windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
@@ -743,14 +746,20 @@ namespace EldenBingo
                 _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
                 if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
                 {
-                    _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                        _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                    }
+                    else
+                    {
+                        _mapWindow.Position = new Vector2i(Left + Width, Top);
+                    }
+                    _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
+                    _mapWindow.Start();
                 }
-                else
+                catch (Exception e)
                 {
-                    _mapWindow.Position = new Vector2i(Left + Width, Top);
+                    MessageBox.Show($"Error opening game map: {e.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
-                _mapWindow.Start();
+
             });
             _mapWindowThread.Start();
         }
