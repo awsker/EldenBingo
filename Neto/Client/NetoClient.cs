@@ -10,6 +10,8 @@ namespace Neto.Client
         private TcpClient? _tcp;
         private string _clientUniqueToken;
 
+        private const int KeepAliveTimer = 5000; // Send keep-alive every 5 seconds
+
         /// <summary>
         /// Create a client
         /// </summary>
@@ -122,6 +124,16 @@ namespace Neto.Client
             return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
         }
 
+        private async void sendPeriodicalKeepAlive()
+        {
+            while(!CancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(KeepAliveTimer);
+                if (_tcp != null && _tcp.Connected)
+                    await SendPacketToServer(new Packet(PacketTypes.KeepAlive, new KeepAlive()));
+            }
+        }
+
         public async Task<ConnectionResult> Connect(IPEndPoint ipEndpoint)
         {
             if (_tcp != null && _tcp.Connected)
@@ -199,7 +211,7 @@ namespace Neto.Client
             Connected?.Invoke(this, EventArgs.Empty);
         }
 
-        private void FireOnDisconnect(string message)
+        private void FireOnDisconnected(string message)
         {
             Disconnected?.Invoke(this, new StringEventArgs(message));
         }
@@ -222,7 +234,7 @@ namespace Neto.Client
                     }
                     else
                     {
-                        FireOnDisconnect("Invalid server response");
+                        FireOnDisconnected("Invalid server response");
                         await Disconnect();
                     }
                     break;
@@ -239,7 +251,7 @@ namespace Neto.Client
 
                 case PacketTypes.ServerShutdown:
                     CancellationToken.Cancel();
-                    FireOnDisconnect("Server shutting down");
+                    FireOnDisconnected("Server shutting down");
                     break;
 
                 case PacketTypes.ObjectData:
@@ -256,6 +268,7 @@ namespace Neto.Client
         {
             try
             {
+                sendPeriodicalKeepAlive();
                 var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, _clientUniqueToken));
                 await SendPacketToServer(registerPacket);
                 while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
@@ -273,7 +286,7 @@ namespace Neto.Client
                 _tcp.Close();
             }
             _tcp = null;
-            FireOnDisconnect("Disconnected");
+            FireOnDisconnected("Disconnected");
         }
 
         private async Task waitForPacketAsync()
