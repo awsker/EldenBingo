@@ -116,7 +116,9 @@ namespace EldenBingo.Sfx
                     if (s != null)
                     {
                         s.ResetPosition();
-                        s.SetVolume((volume ?? Properties.Settings.Default.SoundVolume) * 0.01f);
+                        double v = (volume ?? Properties.Settings.Default.SoundVolume) * 0.01;
+                        v = Math.Pow(v, 2.2);
+                        s.SetVolume((float)v);
 
                         WasapiOut? p = _players[i];
                         p?.Stop();
