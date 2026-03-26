@@ -119,7 +119,12 @@ namespace Neto.Server
                 client.IsRegistered = false;
             }
             client.Stop();
-            _clients.Remove(client.ClientGuid, out _);
+            // Only remove this client from the dictionary if it hasn't already been replaced by a new connection. 
+            // Compare TcpClients to ensure the client is still the same
+            if (_clients.TryGetValue(client.ClientGuid, out var knownClient) && client.TcpClient == knownClient.TcpClient)
+            {
+                _clients.Remove(client.ClientGuid, out _);
+            }
         }
 
         protected async Task KickClient(CM client, string reason)
@@ -295,14 +300,11 @@ namespace Neto.Server
                                         {
                                             _ = SendPacketToClient(new Packet(new KeepAlive()), alreadyConnectedClient);
                                         }
-                                        else
-                                        {
-                                            //No other client connected, so switch out the guid of the client,
-                                            //and replace the client guid in the dictionary
-                                            _clients.Remove(client.ClientGuid, out _);
-                                            client.ClientGuid = identity.ClientGuid;
-                                            _clients[client.ClientGuid] = client;
-                                        }
+                                        //Switch out the guid of the client,
+                                        //and replace the client guid in the dictionary
+                                        _clients.Remove(client.ClientGuid, out _);
+                                        client.ClientGuid = identity.ClientGuid;
+                                        _clients[client.ClientGuid] = client;
                                     }
                                     else
                                     {
