@@ -74,13 +74,13 @@ namespace Neto.Shared
         protected async Task<Packet?[]> ReadPackets(TcpClient client, CancellationTokenSource cancelToken)
         {
             var stream = client.GetStream();
-            var size = client.ReceiveBufferSize;
+            const int size = 8192;
             try
             {
                 MemoryStream ms = new MemoryStream(size);
+                byte[] buffer = new byte[size];
                 do
                 {
-                    byte[] buffer = new byte[size];
                     var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), cancelToken.Token);
                     //0 bytes read when connection closed on the other end
                     if (bytesRead == 0)
@@ -90,7 +90,7 @@ namespace Neto.Shared
                     ms.Write(buffer, 0, bytesRead);
                 } while (!IsMessageTerminated(ms));
 
-                return readPackets(ms.ToArray());
+                return readPackets(ms.GetBuffer(), ms.Length);
             }
             catch (OperationCanceledException)
             {
@@ -99,13 +99,13 @@ namespace Neto.Shared
             }
         }
 
-        private Packet?[] readPackets(byte[] bytes)
+        private Packet?[] readPackets(byte[] bytes, long len)
         {
             var packets = new List<Packet?>();
             try
             {
                 var messagePackReader = new MessagePackReader(bytes);
-                while (!messagePackReader.End)
+                while (!messagePackReader.End && messagePackReader.Consumed < len)
                 {
                     var p = MessagePackSerializer.Deserialize<Packet>(ref messagePackReader, _cachedOptions);
                     packets.Add(p);
