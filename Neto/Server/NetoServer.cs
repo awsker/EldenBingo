@@ -387,7 +387,7 @@ namespace Neto.Server
         {
             try
             {
-                var packets = await ReadPackets(client.TcpClient, client.CancellationToken);
+                var packets = await ReadPackets(client.TcpClient.GetStream(), client.CancellationToken);
                 foreach (var packet in packets)
                 {
                     if (packet == null)
