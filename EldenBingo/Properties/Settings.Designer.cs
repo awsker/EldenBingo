@@ -49,18 +49,6 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("bingobrawlers.com")]
-        public string ServerAddress {
-            get {
-                return ((string)(this["ServerAddress"]));
-            }
-            set {
-                this["ServerAddress"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4501")]
         public int Port {
             get {
@@ -716,6 +704,30 @@ namespace EldenBingo.Properties {
             }
             set {
                 this["ArrowNavigation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bingocard.bingobrawlers.com")]
+        public string ServerAddress {
+            get {
+                return ((string)(this["ServerAddress"]));
+            }
+            set {
+                this["ServerAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bingobrawlers.com")]
+        public string OldServerAddresses {
+            get {
+                return ((string)(this["OldServerAddresses"]));
+            }
+            set {
+                this["OldServerAddresses"] = value;
             }
         }
     }

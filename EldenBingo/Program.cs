@@ -1,5 +1,7 @@
 using EldenBingo.Util;
 using EldenBingoCommon;
+using System.Configuration;
+using System.Reflection;
 
 namespace EldenBingo
 {
@@ -30,13 +32,35 @@ namespace EldenBingo
                 Properties.Settings.Default.IdentityToken = IdentityToken.GenerateIdentityToken(idTokenLength);
                 save = true;
             }
-            if(save)
+            // Save settings if the address was changed from the old default value
+            save |= rewriteOldAddress();
+            if (save)
             {
                 Properties.Settings.Default.Save();
             }
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(EldenBingo_UnhandledException);
             _mainForm = new MainForm();
             Application.Run(_mainForm);
+        }
+
+        private static bool rewriteOldAddress()
+        {
+            var serverAddress = Properties.Settings.Default.ServerAddress;
+            var oldServerAddresses = new HashSet<string>(Properties.Settings.Default.OldServerAddresses.Split('|'), StringComparer.InvariantCultureIgnoreCase);
+            if (oldServerAddresses.Contains(serverAddress)) 
+            {
+                var prop = typeof(Properties.Settings).GetProperty("ServerAddress");
+                if (prop != null)
+                {
+                    var defValue = prop.GetCustomAttribute<DefaultSettingValueAttribute>();
+                    if (defValue != null)
+                    {
+                        Properties.Settings.Default.ServerAddress = defValue.Value;
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private static void EldenBingo_UnhandledException(object sender, UnhandledExceptionEventArgs e)
