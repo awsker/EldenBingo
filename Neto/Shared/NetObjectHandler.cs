@@ -72,7 +72,7 @@ namespace Neto.Shared
 
         protected async Task<Packet?[]> ReadPackets(Stream stream, CancellationTokenSource cancelToken)
         {
-            const int size = 8192;
+            const int size = 1024;
             try
             {
                 MemoryStream ms = new MemoryStream(size);
