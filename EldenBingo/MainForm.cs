@@ -728,29 +728,41 @@ namespace EldenBingo
             _mapWindowThread = new Thread(() =>
             {
                 Vector2u windowSize;
-                if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
+                try
                 {
-                    windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
-                }
-                else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
+                    if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
+                    {
+                        windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
+                    }
+                    else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
+                    {
+                        windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
+                    }
+                    else
+                    {
+                        windowSize = new Vector2u(500, 500);
+                    }
+                    _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
+                    if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
+                    {
+                        _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                    }
+                    else
+                    {
+                        _mapWindow.Position = new Vector2i(Left + Width, Top);
+                    }
+                    _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
+                    _mapWindow.Start();
+                } 
+                catch (Exception ex)
                 {
-                    windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
+                    MessageBox.Show($"Error in map thread: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (_mapWindow != null)
+                    {
+                        _mapWindow.Close();
+                        _mapWindow = null;
+                    }
                 }
-                else
-                {
-                    windowSize = new Vector2u(500, 500);
-                }
-                _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
-                if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
-                {
-                    _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
-                }
-                else
-                {
-                    _mapWindow.Position = new Vector2i(Left + Width, Top);
-                }
-                _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
-                _mapWindow.Start();
             });
             _mapWindowThread.Start();
         }
