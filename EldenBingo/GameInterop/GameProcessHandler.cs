@@ -1010,7 +1010,9 @@ namespace EldenBingo.GameInterop
         /// </summary>
         public uint Execute(IntPtr address, uint timeout = 0xFFFFFFFF)
         {
-            var thread = WinAPI.CreateRemoteThread(_gameAccessHwnd, IntPtr.Zero, 0, address, IntPtr.Zero, 0, IntPtr.Zero);
+            IntPtr thread;
+            WinAPI.NtCreateThreadEx(out thread, 0x1FFFFF, IntPtr.Zero, _gameAccessHwnd, address, IntPtr.Zero, false, 0, 0, 0, IntPtr.Zero );
+            
             var result = WinAPI.WaitForSingleObject(thread, timeout);
             WinAPI.CloseHandle(thread);
             return result;
