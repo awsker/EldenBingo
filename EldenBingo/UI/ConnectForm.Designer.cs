@@ -28,112 +28,111 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this._cancelButton = new System.Windows.Forms.Button();
-            this._connectButton = new System.Windows.Forms.Button();
-            this._addressTextBox = new System.Windows.Forms.TextBox();
-            this._portTextBox = new System.Windows.Forms.TextBox();
-            this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
-            this._autoConnectCheckBox = new System.Windows.Forms.CheckBox();
-            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            label1 = new Label();
+            label2 = new Label();
+            _cancelButton = new Button();
+            _connectButton = new Button();
+            _addressTextBox = new TextBox();
+            _portTextBox = new TextBox();
+            errorProvider1 = new ErrorProvider(components);
+            _autoConnectCheckBox = new CheckBox();
+            ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
+            SuspendLayout();
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 12);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(52, 15);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Address:";
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 12);
+            label1.Name = "label1";
+            label1.Size = new Size(52, 15);
+            label1.TabIndex = 0;
+            label1.Text = "Address:";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 41);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(32, 15);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Port:";
+            label2.AutoSize = true;
+            label2.Location = new Point(12, 41);
+            label2.Name = "label2";
+            label2.Size = new Size(32, 15);
+            label2.TabIndex = 2;
+            label2.Text = "Port:";
             // 
             // _cancelButton
             // 
-            this._cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._cancelButton.Location = new System.Drawing.Point(177, 103);
-            this._cancelButton.Name = "_cancelButton";
-            this._cancelButton.Size = new System.Drawing.Size(75, 23);
-            this._cancelButton.TabIndex = 5;
-            this._cancelButton.Text = "Cancel";
-            this._cancelButton.UseVisualStyleBackColor = true;
-            this._cancelButton.Click += new System.EventHandler(this._cancelButton_Click);
+            _cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            _cancelButton.Location = new Point(177, 103);
+            _cancelButton.Name = "_cancelButton";
+            _cancelButton.Size = new Size(75, 23);
+            _cancelButton.TabIndex = 6;
+            _cancelButton.Text = "Cancel";
+            _cancelButton.UseVisualStyleBackColor = true;
+            _cancelButton.Click += _cancelButton_Click;
             // 
             // _connectButton
             // 
-            this._connectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this._connectButton.Location = new System.Drawing.Point(96, 103);
-            this._connectButton.Name = "_connectButton";
-            this._connectButton.Size = new System.Drawing.Size(75, 23);
-            this._connectButton.TabIndex = 4;
-            this._connectButton.Text = "Connect";
-            this._connectButton.UseVisualStyleBackColor = true;
-            this._connectButton.Click += new System.EventHandler(this._connectButton_Click);
+            _connectButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            _connectButton.Location = new Point(96, 103);
+            _connectButton.Name = "_connectButton";
+            _connectButton.Size = new Size(75, 23);
+            _connectButton.TabIndex = 5;
+            _connectButton.Text = "Connect";
+            _connectButton.UseVisualStyleBackColor = true;
+            _connectButton.Click += _connectButton_Click;
             // 
             // _addressTextBox
             // 
-            this._addressTextBox.Location = new System.Drawing.Point(77, 9);
-            this._addressTextBox.Name = "_addressTextBox";
-            this._addressTextBox.Size = new System.Drawing.Size(175, 23);
-            this._addressTextBox.TabIndex = 1;
+            _addressTextBox.Location = new Point(77, 9);
+            _addressTextBox.Name = "_addressTextBox";
+            _addressTextBox.Size = new Size(175, 23);
+            _addressTextBox.TabIndex = 1;
             // 
             // _portTextBox
             // 
-            this._portTextBox.Location = new System.Drawing.Point(77, 38);
-            this._portTextBox.Name = "_portTextBox";
-            this._portTextBox.Size = new System.Drawing.Size(63, 23);
-            this._portTextBox.TabIndex = 3;
+            _portTextBox.Location = new Point(77, 38);
+            _portTextBox.Name = "_portTextBox";
+            _portTextBox.Size = new Size(63, 23);
+            _portTextBox.TabIndex = 3;
             // 
             // errorProvider1
             // 
-            this.errorProvider1.ContainerControl = this;
+            errorProvider1.ContainerControl = this;
             // 
             // _autoConnectCheckBox
             // 
-            this._autoConnectCheckBox.AutoSize = true;
-            this._autoConnectCheckBox.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this._autoConnectCheckBox.Checked = true;
-            this._autoConnectCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this._autoConnectCheckBox.Location = new System.Drawing.Point(12, 70);
-            this._autoConnectCheckBox.Name = "_autoConnectCheckBox";
-            this._autoConnectCheckBox.Size = new System.Drawing.Size(103, 19);
-            this._autoConnectCheckBox.TabIndex = 6;
-            this._autoConnectCheckBox.Text = "Auto-connect:";
-            this._autoConnectCheckBox.UseVisualStyleBackColor = true;
+            _autoConnectCheckBox.AutoSize = true;
+            _autoConnectCheckBox.CheckAlign = ContentAlignment.MiddleRight;
+            _autoConnectCheckBox.Checked = true;
+            _autoConnectCheckBox.CheckState = CheckState.Checked;
+            _autoConnectCheckBox.Location = new Point(12, 70);
+            _autoConnectCheckBox.Name = "_autoConnectCheckBox";
+            _autoConnectCheckBox.Size = new Size(103, 19);
+            _autoConnectCheckBox.TabIndex = 4;
+            _autoConnectCheckBox.Text = "Auto-connect:";
+            _autoConnectCheckBox.UseVisualStyleBackColor = true;
             // 
             // ConnectForm
             // 
-            this.AcceptButton = this._connectButton;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.CancelButton = this._cancelButton;
-            this.ClientSize = new System.Drawing.Size(264, 138);
-            this.Controls.Add(this._autoConnectCheckBox);
-            this.Controls.Add(this._portTextBox);
-            this.Controls.Add(this._addressTextBox);
-            this.Controls.Add(this._connectButton);
-            this.Controls.Add(this._cancelButton);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "ConnectForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Connect To Bingo Server";
-            this.Load += new System.EventHandler(this.ConnectForm_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AcceptButton = _connectButton;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            CancelButton = _cancelButton;
+            ClientSize = new Size(264, 138);
+            Controls.Add(_autoConnectCheckBox);
+            Controls.Add(_portTextBox);
+            Controls.Add(_addressTextBox);
+            Controls.Add(_connectButton);
+            Controls.Add(_cancelButton);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            Name = "ConnectForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Connect To Bingo Server";
+            Load += ConnectForm_Load;
+            ((System.ComponentModel.ISupportInitialize)errorProvider1).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

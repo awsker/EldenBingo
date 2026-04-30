@@ -55,7 +55,7 @@
             _roomNameTextBox.Location = new Point(111, 23);
             _roomNameTextBox.Name = "_roomNameTextBox";
             _roomNameTextBox.Size = new Size(113, 23);
-            _roomNameTextBox.TabIndex = 7;
+            _roomNameTextBox.TabIndex = 8;
             // 
             // label1
             // 
@@ -63,7 +63,7 @@
             label1.Location = new Point(6, 26);
             label1.Name = "label1";
             label1.Size = new Size(75, 15);
-            label1.TabIndex = 6;
+            label1.TabIndex = 7;
             label1.Text = "Room name:";
             // 
             // label2
@@ -72,7 +72,7 @@
             label2.Location = new Point(6, 25);
             label2.Name = "label2";
             label2.Size = new Size(64, 15);
-            label2.TabIndex = 0;
+            label2.TabIndex = 1;
             label2.Text = "Nickname:";
             // 
             // _nicknameTextBox
@@ -80,7 +80,7 @@
             _nicknameTextBox.Location = new Point(111, 22);
             _nicknameTextBox.Name = "_nicknameTextBox";
             _nicknameTextBox.Size = new Size(113, 23);
-            _nicknameTextBox.TabIndex = 1;
+            _nicknameTextBox.TabIndex = 2;
             // 
             // _adminPasswordTextBox
             // 
@@ -89,7 +89,7 @@
             _adminPasswordTextBox.PasswordChar = '*';
             _adminPasswordTextBox.PlaceholderText = "(optional)";
             _adminPasswordTextBox.Size = new Size(113, 23);
-            _adminPasswordTextBox.TabIndex = 9;
+            _adminPasswordTextBox.TabIndex = 10;
             // 
             // label3
             // 
@@ -97,7 +97,7 @@
             label3.Location = new Point(6, 56);
             label3.Name = "label3";
             label3.Size = new Size(99, 15);
-            label3.TabIndex = 8;
+            label3.TabIndex = 9;
             label3.Text = "Admin Password:";
             // 
             // label5
@@ -106,7 +106,7 @@
             label5.Location = new Point(6, 57);
             label5.Name = "label5";
             label5.Size = new Size(38, 15);
-            label5.TabIndex = 4;
+            label5.TabIndex = 3;
             label5.Text = "Team:";
             // 
             // groupBox1
@@ -119,7 +119,7 @@
             groupBox1.Location = new Point(12, 9);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(235, 86);
-            groupBox1.TabIndex = 5;
+            groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "User Info";
             // 
@@ -129,7 +129,7 @@
             _colorPanel.Location = new Point(80, 53);
             _colorPanel.Name = "_colorPanel";
             _colorPanel.Size = new Size(26, 25);
-            _colorPanel.TabIndex = 3;
+            _colorPanel.TabIndex = 4;
             // 
             // _teamComboBox
             // 
@@ -149,7 +149,7 @@
             groupBox2.Location = new Point(12, 101);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(235, 87);
-            groupBox2.TabIndex = 0;
+            groupBox2.TabIndex = 6;
             groupBox2.TabStop = false;
             groupBox2.Text = "Room Info";
             // 
@@ -159,7 +159,7 @@
             _cancelButton.Location = new Point(172, 223);
             _cancelButton.Name = "_cancelButton";
             _cancelButton.Size = new Size(75, 23);
-            _cancelButton.TabIndex = 11;
+            _cancelButton.TabIndex = 14;
             _cancelButton.Text = "Cancel";
             _cancelButton.UseVisualStyleBackColor = true;
             _cancelButton.Click += _cancelButton_Click;
@@ -170,7 +170,7 @@
             _createButton.Location = new Point(91, 223);
             _createButton.Name = "_createButton";
             _createButton.Size = new Size(75, 23);
-            _createButton.TabIndex = 10;
+            _createButton.TabIndex = 13;
             _createButton.Text = "OK";
             _createButton.UseVisualStyleBackColor = true;
             _createButton.Click += _createButton_Click;
@@ -196,7 +196,7 @@
             _seedLabel.Location = new Point(12, 197);
             _seedLabel.Name = "_seedLabel";
             _seedLabel.Size = new Size(44, 15);
-            _seedLabel.TabIndex = 13;
+            _seedLabel.TabIndex = 11;
             _seedLabel.Text = "Seed: 0";
             _seedLabel.Visible = false;
             // 
