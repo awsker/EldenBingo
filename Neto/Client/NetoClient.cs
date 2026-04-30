@@ -193,7 +193,7 @@ namespace Neto.Client
             }
             try
             {
-                using (var cts = new CancellationTokenSource(5000))
+                using (var cts = new CancellationTokenSource(15000))
                 {
                     var stream = _tcp.GetStream();
                     await stream.WriteAsync(data, cts.Token).ConfigureAwait(false);

@@ -190,7 +190,7 @@ namespace Neto.Server
                     return;
                 }
                 var stream = client.TcpClient.GetStream();
-                using (var cts = new CancellationTokenSource(5000))
+                using (var cts = new CancellationTokenSource(15000))
                 {
                     await stream.WriteAsync(bytes, cts.Token).ConfigureAwait(false);
                 }
