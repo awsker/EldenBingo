@@ -10,8 +10,6 @@ namespace Neto.Client
         private TcpClient? _tcp;
         private string _clientUniqueToken;
 
-        private const int KeepAliveTimer = 5000; // Send keep-alive every 5 seconds
-
         /// <summary>
         /// Create a client
         /// </summary>
@@ -38,7 +36,7 @@ namespace Neto.Client
         public Guid ClientGuid { get; private set; }
         public bool IsConnected => _tcp?.Connected == true;
         protected CancellationTokenSource CancellationToken { get; private set; }
-
+         
         public static IPEndPoint? EndPointFromAddress(string address, int port, out string error)
         {
             error = string.Empty;
@@ -107,6 +105,7 @@ namespace Neto.Client
 
                 if (_tcp.Connected)
                 {
+                    TcpKeepAliveSettings.Apply(_tcp);
                     FireOnStatus("Connected to server");
                     _ = run();
                 }
@@ -122,16 +121,6 @@ namespace Neto.Client
                 return ConnectionResult.Exception;
             }
             return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
-        }
-
-        private async void sendPeriodicalKeepAlive()
-        {
-            while(!CancellationToken.IsCancellationRequested)
-            {
-                await Task.Delay(KeepAliveTimer);
-                if (_tcp != null && _tcp.Connected)
-                    await SendPacketToServer(new Packet(PacketTypes.KeepAlive, new KeepAlive()));
-            }
         }
 
         public async Task<ConnectionResult> Connect(IPEndPoint ipEndpoint)
@@ -150,6 +139,7 @@ namespace Neto.Client
 
                 if (_tcp.Connected)
                 {
+                    TcpKeepAliveSettings.Apply(_tcp);
                     FireOnStatus("Connected to server");
                     _ = run();
                 }
@@ -268,7 +258,6 @@ namespace Neto.Client
         {
             try
             {
-                sendPeriodicalKeepAlive();
                 var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, _clientUniqueToken));
                 await SendPacketToServer(registerPacket);
                 while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)

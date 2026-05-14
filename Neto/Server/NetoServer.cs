@@ -9,13 +9,11 @@ namespace Neto.Server
 {
     public class NetoServer<CM> : NetObjectHandler<CM> where CM : ClientModel
     {
-        private const float KeepAliveTime = 25f;
         private readonly ConcurrentDictionary<Guid, CM> _clients;
         private readonly ConcurrentBag<TcpListener> _tcpListeners;
         private readonly ConstructorInfo _clientModelConstructor;
         private CancellationTokenSource _cancelToken;
 
-        private System.Timers.Timer _keepAliveTimer;
 
         public NetoServer(int port) : base()
         {
@@ -32,10 +30,6 @@ namespace Neto.Server
                 _clientModelConstructor = clientModelConstructor;
 
             CachedIdentities = new ConcurrentDictionary<string, ClientIdentity>();
-
-            _keepAliveTimer = new System.Timers.Timer(5000f);
-            _keepAliveTimer.Elapsed += keepAlive;
-            _keepAliveTimer.Start();
         }
 
         ~NetoServer()
@@ -222,6 +216,7 @@ namespace Neto.Server
             try
             {
                 var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
+                TcpKeepAliveSettings.Apply(tcpClient);
                 tcpClient.GetStream().WriteTimeout = 10000;
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 _clients[client.ClientGuid] = client;
@@ -414,24 +409,6 @@ namespace Neto.Server
                 //Stream was closed, most likely due to the client shutting down
                 //but could also be because client sent malformed packet
                 await DropClient(client);
-            }
-        }
-
-        private void keepAlive(object? sender, EventArgs e)
-        {
-            var now = DateTime.Now;
-            var clients = new List<CM>(_clients.Values);
-            foreach (var client in clients)
-            {
-                if (!client.TcpClient.Connected)
-                {
-                    _clients.Remove(client.ClientGuid, out _);
-                }
-                else if ((now - client.LastActivity).TotalSeconds > KeepAliveTime)
-                {
-                    _ = SendPacketToClient(new Packet(PacketTypes.KeepAlive, new KeepAlive()), client);
-                    client.LastActivity = DateTime.Now;
-                }
             }
         }
     }
