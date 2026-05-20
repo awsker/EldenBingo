@@ -2,8 +2,10 @@
 using Neto.Shared;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Neto.Server
 {
@@ -14,6 +16,11 @@ namespace Neto.Server
         private readonly ConstructorInfo _clientModelConstructor;
         private CancellationTokenSource _cancelToken;
 
+        // Timer to handle sending KeepAlive packets regularly
+        private System.Timers.Timer _keepAliveTimer;
+
+        // Message type or code for KeepAlive, customize as needed
+        private static readonly Packet KeepAlivePacket = new Packet(PacketTypes.KeepAlive, new KeepAlive());
 
         public NetoServer(int port) : base()
         {
@@ -63,12 +70,9 @@ namespace Neto.Server
             _tcpListeners.Clear();
 
             _cancelToken = new CancellationTokenSource();
-            foreach (var ip in getIpAddresses())
-            {
-                var localIp = ip;
-                var thread = new Thread(() => runTcpListener(localIp));
-                thread.Start();
-            }
+            _ = runTcpListenerAsync(IPAddress.Any);
+            _ = runTcpListenerAsync(IPAddress.IPv6Any);
+            startKeepAlive();
             Hosting = true;
             FireOnStatus($"Hosting server on port {Port}");
         }
@@ -78,6 +82,7 @@ namespace Neto.Server
             if (!Hosting)
                 throw new Exception("Not hosting");
 
+            stopKeepAlive();
             Hosting = false;
 
             await sendShutdownToAll();
@@ -163,15 +168,33 @@ namespace Neto.Server
             await SendPacketToClients(p, clientsToInclude);
         }
 
+        // Local unicast addresses (for display); listeners bind to IPAddress.Any and IPv6Any instead.
         private static IPAddress[] getIpAddresses()
         {
-            var addresses = Dns.GetHostAddresses(Dns.GetHostName());
-            var local = IPAddress.Parse("127.0.0.1");
-            if (!addresses.Any(a => a.Equals(local)))
+            var addresses = new List<IPAddress>();
+
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-                return addresses.Concat(new IPAddress[] { local }).ToArray();
+                if (ni.OperationalStatus != OperationalStatus.Up)
+                    continue;
+
+                var ipProps = ni.GetIPProperties();
+                foreach (var unicast in ipProps.UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily == AddressFamily.InterNetwork || unicast.Address.AddressFamily == AddressFamily.InterNetworkV6)
+                    {
+                        addresses.Add(unicast.Address);
+                    }
+                }
             }
-            return addresses;
+
+            // Always include loopback
+            if (!addresses.Any(a => IPAddress.IsLoopback(a)))
+            {
+                addresses.Add(IPAddress.Loopback);
+            }
+
+            return addresses.Distinct().ToArray();
         }
 
         private async Task sendBytesToClient(byte[] bytes, CM client)
@@ -260,7 +283,7 @@ namespace Neto.Server
             {
                 case PacketTypes.ClientRegister:
                     ClientRegister? objData = packet.GetObjectData<ClientRegister>();
-                    if (objData?.Message != NetConstants.ClientRegisterString)
+                    if (objData?.Message != NetConstants.ClientRegisterString && objData?.Message != NetConstants.ClientRegisterStringLegacy)
                     {
                         await DropClient(client);
                         return;
@@ -339,11 +362,12 @@ namespace Neto.Server
             return string.Empty;
         }
 
-        private async void runTcpListener(IPAddress ip)
+        private async Task runTcpListenerAsync(IPAddress bindAddress)
         {
+            TcpListener? tcp = null;
             try
             {
-                var tcp = new TcpListener(ip, Port);
+                tcp = new TcpListener(bindAddress, Port);
                 tcp.Start();
                 _tcpListeners.Add(tcp);
                 while (!_cancelToken.IsCancellationRequested)
@@ -351,19 +375,29 @@ namespace Neto.Server
                     await acceptIncomingConnections(tcp);
                 }
             }
-            catch (Exception e)
+            catch (SocketException e) when (bindAddress.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                FireOnError($"IPv6 listen unavailable on port {Port}: {e.Message}");
+            }
+            catch (Exception e) when (!_cancelToken.IsCancellationRequested)
             {
                 _cancelToken.Cancel();
                 FireOnError(e.Message);
+                try
+                {
+                    await sendShutdownToAll();
+                }
+                catch (Exception shutdownError)
+                {
+                    FireOnError(shutdownError.Message);
+                }
             }
-            try
+            finally
             {
-                await sendShutdownToAll();
-            }
-            catch (Exception e)
-            {
-                _cancelToken.Cancel();
-                FireOnError(e.Message);
+                if (tcp != null)
+                {
+                    try { tcp.Stop(); } catch { /* listener may already be stopped */ }
+                }
             }
         }
 
@@ -411,5 +445,30 @@ namespace Neto.Server
                 await DropClient(client);
             }
         }
+
+        private void startKeepAlive()
+        {
+            _keepAliveTimer = new System.Timers.Timer(5000);
+            _keepAliveTimer.Elapsed += (sender, e) =>
+            {
+                try
+                {
+                    _ = SendPacketToAllClients(KeepAlivePacket);
+                }
+                catch
+                {
+                    // Ignore errors for now
+                }
+            };
+            _keepAliveTimer.AutoReset = true;
+            _keepAliveTimer.Enabled = true;
+        }
+
+        private void stopKeepAlive()
+        {
+            _keepAliveTimer?.Dispose();
+            _keepAliveTimer = null;
+        }
+
     }
 }

@@ -620,8 +620,8 @@ namespace EldenBingo
                 await _client.Disconnect();
             updateButtonAvailability();
 
-            var ipendpoint = Neto.Client.NetoClient.EndPointFromAddress(address, port, out string error);
-            if (ipendpoint == null)
+            var endpoints = Neto.Client.NetoClient.EndPointsFromAddress(address, port, out string error);
+            if (endpoints == null || endpoints.Count == 0)
             {
                 MessageBox.Show(this, error, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return ConnectionResult.Denied;
