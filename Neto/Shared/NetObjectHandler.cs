@@ -75,18 +75,23 @@ namespace Neto.Shared
             const int size = 1024;
             try
             {
+                byte[] buffer = new byte[4];
+                await stream.ReadAsync(buffer, 0, 4);
+                var numBytes = BitConverter.ToInt32(buffer, 0);
+                var totalBytesRead = 0;
+                buffer = new byte[size];
                 MemoryStream ms = new MemoryStream(size);
-                byte[] buffer = new byte[size];
                 do
                 {
-                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), cancelToken.Token);
+                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, Math.Min(size, numBytes - totalBytesRead)), cancelToken.Token);
                     //0 bytes read when connection closed on the other end
                     if (bytesRead == 0)
                         cancelToken.Cancel();
+                    totalBytesRead += bytesRead;
                     if (cancelToken.IsCancellationRequested)
                         return Array.Empty<Packet?>();
                     ms.Write(buffer, 0, bytesRead);
-                } while (!IsMessageTerminated(ms));
+                } while (totalBytesRead < numBytes);
 
                 return readPackets(ms.GetBuffer(), ms.Length);
             }
@@ -107,8 +112,6 @@ namespace Neto.Shared
                 {
                     var p = MessagePackSerializer.Deserialize<Packet>(ref messagePackReader, _cachedOptions);
                     packets.Add(p);
-                    //Skip end message sequence
-                    messagePackReader.ReadRaw(NetConstants.EndOfMessage.Length);
                 }
             }
             catch (MessagePackSerializationException)
@@ -136,22 +139,6 @@ namespace Neto.Shared
         protected MessagePackSerializerOptions GetMessagePackOptions()
         {
             return _cachedOptions;
-        }
-
-        protected bool IsMessageTerminated(MemoryStream stream)
-        {
-            var eomLength = NetConstants.EndOfMessage.Length;
-            if (stream.Position < eomLength)
-                return false;
-            var lastBytes = new byte[eomLength];
-            stream.Seek(-4, SeekOrigin.End);
-            stream.Read(lastBytes, 0, eomLength);
-            for (int i = 0; i < eomLength; ++i)
-            {
-                if (lastBytes[i] != NetConstants.EndOfMessage[i])
-                    return false;
-            }
-            return true;
         }
 
         protected void FireOnStatus(string message)

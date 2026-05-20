@@ -99,7 +99,6 @@ namespace Neto.Server
             try
             {
                 data = MessagePackSerializer.Serialize(p, GetMessagePackOptions());
-                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessage);
             }
             catch (Exception e)
             {
@@ -144,7 +143,6 @@ namespace Neto.Server
             try
             {
                 data = MessagePackSerializer.Serialize(p, GetMessagePackOptions());
-                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessage);
             }
             catch (Exception e)
             {
@@ -208,6 +206,9 @@ namespace Neto.Server
                 var stream = client.TcpClient.GetStream();
                 using (var cts = new CancellationTokenSource(15000))
                 {
+                    // Write length of data before sending actual data
+                    await stream.WriteAsync(BitConverter.GetBytes(bytes.Length), cts.Token).ConfigureAwait(false);
+                    // Send actual data
                     await stream.WriteAsync(bytes, cts.Token).ConfigureAwait(false);
                 }
             }
@@ -447,6 +448,7 @@ namespace Neto.Server
 
         private void startKeepAlive()
         {
+            return;
             _keepAliveTimer = new System.Timers.Timer(5000);
             _keepAliveTimer.Elapsed += (sender, e) =>
             {
