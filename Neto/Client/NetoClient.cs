@@ -261,7 +261,6 @@ namespace Neto.Client
 
         private void startKeepAlive()
         {
-            return;
             if (_keepAliveTimer != null)
             {
                 _keepAliveTimer.Stop();

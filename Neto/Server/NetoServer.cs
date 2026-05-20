@@ -244,7 +244,7 @@ namespace Neto.Server
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 _clients[client.ClientGuid] = client;
                 FireOnStatus($"Client connected ({GetClientIp(client)})");
-                _ = Task.Run(() => clientTcpListenerTask(client));
+                _ = clientTcpListenerTask(client);
             }
             catch (OperationCanceledException)
             { }
@@ -257,6 +257,23 @@ namespace Neto.Server
         private async Task clientTcpListenerTask(CM client)
         {
             var ip = GetClientIp(client);
+            // Give the client 5 seconds to register
+            var checkRegistryTimer = new System.Timers.Timer(5000);
+            checkRegistryTimer.Elapsed += (sender, e) =>
+            {
+                // If the client didn't register in 5 seconds then we assume it 
+                // was probably because the registration packet was formatted according
+                // to the old way (data + EndOfMessage) and therefore could not be
+                // parsed
+                if (!client.IsRegistered)
+                {
+                    kickLegacyClient(client);
+                }
+                checkRegistryTimer.Dispose();
+                checkRegistryTimer = null;
+            };
+            checkRegistryTimer.AutoReset = false;
+            checkRegistryTimer.Enabled = true;
             try
             {
                 while (client.TcpClient.Connected && !client.CancellationToken.IsCancellationRequested)
@@ -290,7 +307,7 @@ namespace Neto.Server
                     }
                     if (objData?.Version != Version)
                     {
-                        var deniedPacket = new Packet(PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {objData?.Version}. Server is running version {Version}"));
+                        var deniedPacket = createRegistryDeniedPacket(objData?.Version);
                         await SendPacketToClient(deniedPacket, client);
                         await DropClient(client);
                         return;
@@ -346,11 +363,6 @@ namespace Neto.Server
                     DispatchObjects(client, packet.Objects);
                     break;
             }
-        }
-
-        private bool clientAlreadyExists(Guid potentialGuid)
-        {
-            return _clients.TryGetValue(potentialGuid, out var _);
         }
 
         private string clientToken(TcpClient client, string token)
@@ -448,13 +460,12 @@ namespace Neto.Server
 
         private void startKeepAlive()
         {
-            return;
             _keepAliveTimer = new System.Timers.Timer(5000);
             _keepAliveTimer.Elapsed += (sender, e) =>
             {
                 try
                 {
-                    _ = SendPacketToAllClients(KeepAlivePacket);
+                    _ = SendPacketToAllClients(KeepAlivePacket, true);
                 }
                 catch
                 {
@@ -472,6 +483,30 @@ namespace Neto.Server
                 _keepAliveTimer.Stop();
                 _keepAliveTimer.Dispose();
                 _keepAliveTimer = null;
+            }
+        }
+
+        private Packet createRegistryDeniedPacket(string? clientVersion = null)
+        {
+            return new Packet(PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {clientVersion ?? ""}. Server is running version {Version}"));
+        }
+
+        private async void kickLegacyClient(CM client)
+        {
+            try
+            {
+                var stream = client.TcpClient.GetStream();
+                var packet = createRegistryDeniedPacket();
+                // Send a packet formatted according to the old way (terminated with EndOfMessage)
+                // so that legacy clients become aware that they need to update
+                var data = MessagePackSerializer.Serialize(packet, GetMessagePackOptions());
+                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessageLegacy);
+                await stream.WriteAsync(data);
+                await DropClient(client);
+            }
+            catch (Exception)
+            {
+                // Ignore any errors in this rudimentary kick function
             }
         }
     }
