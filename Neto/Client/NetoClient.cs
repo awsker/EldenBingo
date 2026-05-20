@@ -8,12 +8,11 @@ namespace Neto.Client
     public class NetoClient : NetObjectHandler<ClientModel>
     {
         private TcpClient? _tcp;
-        private bool _connectedToLegacyServer;
         
         private string _clientUniqueToken;
 
         // Timer to handle reconnects if no keep alive packets arrived in time
-        private System.Timers.Timer _keepAliveTimer;
+        private System.Timers.Timer? _keepAliveTimer;
 
         /// <summary>
         /// Create a client
@@ -72,7 +71,9 @@ namespace Neto.Client
                     error = $"Unable to resolve hostname {address}";
                     return null;
                 }
-
+                // Sort endpoints by AddressFamily (e.g., prioritize IPv4, then IPv6, or as required)
+                endpoints.Sort((a, b) => a.AddressFamily.CompareTo(b.AddressFamily));
+        
                 return endpoints;
             }
             catch (Exception e)
@@ -125,7 +126,6 @@ namespace Neto.Client
                 FireOnError("Already connected");
                 return ConnectionResult.Denied;
             }
-            _connectedToLegacyServer = false;
             CancellationToken = new CancellationTokenSource();
             TcpClient? tcp = new TcpClient(ipEndpoint.AddressFamily);
             try
@@ -219,14 +219,7 @@ namespace Neto.Client
                     ServerRegisterAccepted? objData = packet.GetObjectData<ServerRegisterAccepted>();
                     if (objData?.Message == NetConstants.ServerRegisterString)
                     {
-                        _connectedToLegacyServer = false;
                         startKeepAlive();
-                        ClientGuid = objData.ClientGuid;
-                        FireOnConnected();
-                    }
-                    else if (objData?.Message == NetConstants.ServerRegisterStringLegacy)
-                    {
-                        _connectedToLegacyServer = true;
                         ClientGuid = objData.ClientGuid;
                         FireOnConnected();
                     }
@@ -272,8 +265,8 @@ namespace Neto.Client
                 _keepAliveTimer.Dispose();
             }
             //On a legacy server, we can only expect one keepalive packet every 25 seconds. On new servers, that time is 5 seconds. Delay disconnect accordingly
-            _keepAliveTimer = new System.Timers.Timer(_connectedToLegacyServer ? 60000 : 15000);
-            _keepAliveTimer.Elapsed += async (sender, e) =>
+            _keepAliveTimer = new System.Timers.Timer(15000);
+            _keepAliveTimer.Elapsed += (sender, e) =>
             {
                 try
                 {

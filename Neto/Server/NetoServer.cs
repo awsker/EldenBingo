@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace Neto.Server
 {
@@ -17,7 +16,7 @@ namespace Neto.Server
         private CancellationTokenSource _cancelToken;
 
         // Timer to handle sending KeepAlive packets regularly
-        private System.Timers.Timer _keepAliveTimer;
+        private System.Timers.Timer? _keepAliveTimer;
 
         // Message type or code for KeepAlive, customize as needed
         private static readonly Packet KeepAlivePacket = new Packet(PacketTypes.KeepAlive, new KeepAlive());
@@ -283,7 +282,7 @@ namespace Neto.Server
             {
                 case PacketTypes.ClientRegister:
                     ClientRegister? objData = packet.GetObjectData<ClientRegister>();
-                    if (objData?.Message != NetConstants.ClientRegisterString && objData?.Message != NetConstants.ClientRegisterStringLegacy)
+                    if (objData?.Message != NetConstants.ClientRegisterString)
                     {
                         await DropClient(client);
                         return;
@@ -466,9 +465,12 @@ namespace Neto.Server
 
         private void stopKeepAlive()
         {
-            _keepAliveTimer?.Dispose();
-            _keepAliveTimer = null;
+            if (_keepAliveTimer != null)
+            {
+                _keepAliveTimer.Stop();
+                _keepAliveTimer.Dispose();
+                _keepAliveTimer = null;
+            }
         }
-
     }
 }
