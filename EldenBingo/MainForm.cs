@@ -210,8 +210,6 @@ namespace EldenBingo
                                 Properties.Settings.Default.Nickname,
                                 Properties.Settings.Default.Team);
                             }
-                            //Set the flag to automatically reconnect. This will be set to false if a disconnect is triggered manually or by kick
-                            _autoReconnect = true;
                             return; //Successfully connected, so we return immediately
                         }
                     }
@@ -378,11 +376,13 @@ namespace EldenBingo
 
             client.Connected += client_Connected;
             client.Disconnected += client_Disconnected;
+            
             client.Kicked += client_Kicked;
             client.OnStatus += client_OnStatus;
             client.OnError += client_OnError;
             client.OnRoomChanged += client_RoomChanged;
 
+            client.AddListener<ServerRegisterAccepted>(registerAccepted);
             client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
@@ -390,6 +390,7 @@ namespace EldenBingo
             client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
             client.AddListener<ServerBroadcastMessage>(onServerMessage);
         }
+
 
         private void onServerMessage(ClientModel? model, ServerBroadcastMessage message)
         {
@@ -420,6 +421,12 @@ namespace EldenBingo
             _consoleControl.PrintToConsole(e.Message, Color.Red);
             _autoReconnect = false; //So we don't reconnect automatically after kick
             _connecting = false;
+        }
+
+        private void registerAccepted(ClientModel? model, ServerRegisterAccepted accepted)
+        {
+            // Only allow auto reconnect if the server actually responded positively to our registration
+            _autoReconnect = true;
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
