@@ -138,6 +138,11 @@ namespace EldenBingo.UI
             }
         }
 
+        public int GetSelectedSquareIndex()
+        {
+            return _selectedSquareIndex;
+        }
+
         protected override void AddClientListeners()
         {
             if (Client == null)

@@ -459,8 +459,13 @@ namespace EldenBingo
                 if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
+                {
+                    // Play snipe sound if we're a player in the match and the other team claimed the square that we had selected
+                    if (Properties.Settings.Default.SnipeSoundEnabled && _client?.LocalUser?.IsSpectator == false && userCheckedSquareArgs.Index == getCurrentlySelectedSquare())
+                        _sounds.PlaySound(SoundType.SquareSniped);
                     _sounds.PlaySound(SoundType.SquareClaimedOther);
-            } 
+                }
+            }
             else
             {
                 if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
@@ -476,6 +481,12 @@ namespace EldenBingo
             {
                 _sounds.PlaySound(SoundType.Bingo);
             }
+        }
+
+        private int getCurrentlySelectedSquare()
+        {
+            if (_lobbyControl == null) return -1;
+            return _lobbyControl.GetSelectedSquareIndex();
         }
 
         private void showLobbyTab()

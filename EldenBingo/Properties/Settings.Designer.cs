@@ -730,5 +730,17 @@ namespace EldenBingo.Properties {
                 this["OldServerAddresses"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SnipeSoundEnabled {
+            get {
+                return ((bool)(this["SnipeSoundEnabled"]));
+            }
+            set {
+                this["SnipeSoundEnabled"] = value;
+            }
+        }
     }
 }

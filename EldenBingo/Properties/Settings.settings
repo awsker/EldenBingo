@@ -179,5 +179,8 @@
     <Setting Name="OldServerAddresses" Type="System.String" Scope="User">
       <Value Profile="(Default)">bingobrawlers.com</Value>
     </Setting>
+    <Setting Name="SnipeSoundEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -54,6 +54,11 @@ namespace EldenBingo.UI
             }
         }
 
+        public int GetSelectedSquareIndex()
+        {
+            return _bingoControl.GetSelectedSquareIndex();
+        }
+
         protected override void AddClientListeners()
         {
             Client.OnRoomChanged += client_RoomChanged;
