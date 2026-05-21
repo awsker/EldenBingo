@@ -76,7 +76,7 @@ namespace Neto.Shared
             try
             {
                 byte[] buffer = new byte[4];
-                await stream.ReadAsync(buffer, 0, 4);
+                await stream.ReadAsync(buffer, 0, 4, cancelToken.Token);
                 var numBytes = BitConverter.ToInt32(buffer, 0);
                 var totalBytesRead = 0;
                 buffer = new byte[size];
