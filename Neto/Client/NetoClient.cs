@@ -142,6 +142,7 @@ namespace Neto.Client
                 }
                 _tcp = tcp;
                 tcp = null;
+                startKeepAlive();
                 TcpKeepAliveSettings.Apply(_tcp);
                 FireOnStatus("Connected to server");
                 _ = run();
@@ -221,7 +222,6 @@ namespace Neto.Client
                     ServerRegisterAccepted? objData = packet.GetObjectData<ServerRegisterAccepted>();
                     if (objData?.Message == NetConstants.ServerRegisterString)
                     {
-                        startKeepAlive();
                         ClientGuid = objData.ClientGuid;
                         FireOnConnected();
                     }
