@@ -115,6 +115,8 @@ namespace Neto.Client
                 lastResult = await Connect(endpoint);
                 if (lastResult == ConnectionResult.Connected)
                     return lastResult;
+                if (CancellationToken.IsCancellationRequested)
+                    break;
             }
             FireOnError($"Could not connect to {address}:{port}");
             return lastResult;
@@ -122,10 +124,17 @@ namespace Neto.Client
 
         public async Task<ConnectionResult> Connect(IPEndPoint ipEndpoint)
         {
-            if (_tcp != null && _tcp.Connected)
+            if (_tcp != null)
             {
-                FireOnError("Already connected");
-                return ConnectionResult.Denied;
+                if (_tcp.Connected)
+                {
+                    FireOnError("Already connected");
+                    return ConnectionResult.Denied;
+                } 
+                else
+                {
+                    CancellationToken.Cancel();
+                }
             }
             CancellationToken = new CancellationTokenSource();
             TcpClient? tcp = new TcpClient(ipEndpoint.AddressFamily);
@@ -150,7 +159,11 @@ namespace Neto.Client
                 _ = run();
                 return ConnectionResult.Connected;
             }
-            catch (Exception e)
+            catch (OperationCanceledException)
+            {
+                return ConnectionResult.Exception;
+            }
+            catch (Exception e) when (!CancellationToken.IsCancellationRequested)
             {
                 CancellationToken.Cancel();
                 FireOnError($"Connect Error: {e.Message}");
@@ -162,7 +175,8 @@ namespace Neto.Client
 
         public async Task Disconnect()
         {
-            await SendPacketToServer(new Packet(PacketTypes.ClientDisconnect));
+            if (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
+                await SendPacketToServer(new Packet(PacketTypes.ClientDisconnect));
             CancellationToken.Cancel();
         }
 
@@ -312,6 +326,12 @@ namespace Neto.Client
             }
             _tcp = null;
             FireOnDisconnected("Disconnected");
+            if (_keepAliveTimer != null)
+            {
+                _keepAliveTimer.Stop();
+                _keepAliveTimer.Dispose();
+                _keepAliveTimer = null;
+            }
         }
 
         private async Task waitForPacketAsync()
