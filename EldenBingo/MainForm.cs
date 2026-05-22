@@ -257,10 +257,10 @@ namespace EldenBingo
             var res = MessageBox.Show(this, "Disconnect from server?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (res == DialogResult.Yes)
             {
-                _connecting = false;
                 _autoReconnect = false;
-                if (_client?.IsConnected == true)
+                if (_client != null && (_connecting || _client.IsConnected))
                     await _client.Disconnect();
+                _connecting = false;
                 updateButtonAvailability();
             }
         }
