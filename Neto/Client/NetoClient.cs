@@ -13,6 +13,7 @@ namespace Neto.Client
 
         // Timer to handle reconnects if no keep alive packets arrived in time
         private System.Timers.Timer? _keepAliveTimer;
+        private SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Create a client
@@ -128,6 +129,7 @@ namespace Neto.Client
             }
             CancellationToken = new CancellationTokenSource();
             TcpClient? tcp = new TcpClient(ipEndpoint.AddressFamily);
+            tcp.NoDelay = true;
             try
             {
                 FireOnStatus($"Connecting to {ipEndpoint}...");
@@ -181,21 +183,25 @@ namespace Neto.Client
                 FireOnError(e.Message);
                 return;
             }
+            await _writeSemaphore.WaitAsync(CancellationToken.Token);
             try
             {
-                using (var cts = new CancellationTokenSource(15000))
+                using (var timeoutCts = new CancellationTokenSource(15000))
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, CancellationToken.Token))
                 {
                     var stream = _tcp.GetStream();
-                    // Write length of data before sending actual data
-                    await stream.WriteAsync(BitConverter.GetBytes(data.Length), cts.Token);
-                    // Send actual data
-                    await stream.WriteAsync(data, cts.Token);
+                    // Send the length of the data + the actual data
+                    await stream.WriteAsync(PacketHelper.ConcatBytes(BitConverter.GetBytes(data.Length), data), linkedCts.Token).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
             {
                 CancellationToken.Cancel();
                 FireOnError($"Error sending message to server: {e.Message}");
+            }
+            finally
+            {
+                _writeSemaphore.Release();
             }
         }
 

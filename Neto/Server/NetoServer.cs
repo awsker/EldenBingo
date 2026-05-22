@@ -196,6 +196,7 @@ namespace Neto.Server
 
         private async Task sendBytesToClient(byte[] bytes, CM client)
         {
+            await client.WriteSemaphore.WaitAsync(_cancelToken.Token);
             try
             {
                 if (!client.TcpClient.Connected)
@@ -204,12 +205,11 @@ namespace Neto.Server
                     return;
                 }
                 var stream = client.TcpClient.GetStream();
-                using (var cts = new CancellationTokenSource(15000))
+                using (var timeoutCts = new CancellationTokenSource(15000))
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, _cancelToken.Token))
                 {
-                    // Write length of data before sending actual data
-                    await stream.WriteAsync(BitConverter.GetBytes(bytes.Length), cts.Token).ConfigureAwait(false);
-                    // Send actual data
-                    await stream.WriteAsync(bytes, cts.Token).ConfigureAwait(false);
+                    // Send the length of the data + the actual data
+                    await stream.WriteAsync(PacketHelper.ConcatBytes(BitConverter.GetBytes(bytes.Length), bytes), linkedCts.Token).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -221,6 +221,10 @@ namespace Neto.Server
             catch
             {
                 await DropClient(client);
+            }
+            finally
+            {
+                client.WriteSemaphore.Release();
             }
         }
 
@@ -239,6 +243,7 @@ namespace Neto.Server
             try
             {
                 var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
+                tcpClient.NoDelay = true;
                 TcpKeepAliveSettings.Apply(tcpClient);
                 tcpClient.GetStream().WriteTimeout = 10000;
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
