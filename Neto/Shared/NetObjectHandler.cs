@@ -95,7 +95,7 @@ namespace Neto.Shared
 
                 return readPackets(ms.GetBuffer(), ms.Length);
             }
-            catch (OperationCanceledException)
+            catch (Exception)
             {
                 //Do nothing, disconnect requested
                 return Array.Empty<Packet?>();
