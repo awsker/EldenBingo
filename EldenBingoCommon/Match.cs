@@ -163,10 +163,10 @@ namespace EldenBingoCommon
         {
             ServerTimer = timer;
             StatusChangedLocalDateTime = DateTime.Now;
-            Paused = paused;
             if (board != null)
                 Board = board;
-            if (status != MatchStatus) {
+            if (paused != Paused || status != MatchStatus) {
+                Paused = paused;
                 MatchStatus = status;
                 onMatchStatusChanged();
             }
