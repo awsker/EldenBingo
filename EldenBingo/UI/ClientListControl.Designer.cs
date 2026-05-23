@@ -52,14 +52,14 @@
             // 
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { _banPlayerToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(196, 26);
+            contextMenuStrip1.Size = new Size(182, 26);
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // _banPlayerToolStripMenuItem
             // 
             _banPlayerToolStripMenuItem.Name = "_banPlayerToolStripMenuItem";
-            _banPlayerToolStripMenuItem.Size = new Size(195, 22);
-            _banPlayerToolStripMenuItem.Text = "Ban Player From Room";
+            _banPlayerToolStripMenuItem.Size = new Size(181, 22);
+            _banPlayerToolStripMenuItem.Text = "Ban user from lobby";
             _banPlayerToolStripMenuItem.Click += _banPlayerToolStripMenuItem_Click;
             // 
             // ClientListControl
