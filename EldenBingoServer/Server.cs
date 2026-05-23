@@ -264,6 +264,7 @@ namespace EldenBingoServer
             AddListener<ClientTogglePause>(clientTogglePause);
             AddListener<ClientSetTeamName>(clientSetTeamName);
             AddListener<ClientRequestTeamChange>(clientTeamChange);
+            AddListener<ClientBanUserFromRoom>(clientBanUser);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -841,6 +842,31 @@ namespace EldenBingoServer
             }
         }
 
+        private void clientBanUser(BingoClientModel? sender, ClientBanUserFromRoom banUserRequest)
+        {
+            if (sender == null || sender.IsAdmin == false || sender.Room == null)
+            {
+                return;
+            }
+            var user = sender.Room.GetUser(banUserRequest.BannedUser);
+            if (user == null)
+            {
+                _ = sendAdminErrorMessage(sender, "Invalid user");
+                return;
+            }
+            if (user.Guid == sender.ClientGuid)
+            {
+                _ = sendAdminErrorMessage(sender, "Trying to ban yourself? Not very bright, are you?");
+                return;
+            }
+            if (user.IsAdmin)
+            {
+                _ = sendAdminErrorMessage(sender, "Cannot ban another admin");
+                return;
+            }
+            _ = banUserFromRoom(user.Client, sender.Room);
+        }
+
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
@@ -880,8 +906,14 @@ namespace EldenBingoServer
 
         private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
         {
+            if (room.IsUserBanned(client))
+            {
+                await SendPacketToClient(new Packet(new ServerJoinRoomDenied("Banned from lobby")), client);
+                return;
+            }
             if (client.Room != null)
                 await leaveUserRoom(client);
+
 
             BingoClientInRoom clientInRoom = room.AddUser(client, nick, adminPass, team);
 
@@ -933,6 +965,24 @@ namespace EldenBingoServer
                 var scoreboard = createScoreboardUpdatePacket(room);
                 //Send user leaving packet to all users remaining in the room
                 await sendPacketToRoom(new Packet(leftPacket, scoreboard), room);
+            }
+        }
+
+        private async Task banUserFromRoom(BingoClientModel client, ServerRoom room)
+        {
+            if (client.Room == null)
+                return;
+
+            room.BanUser(client);
+            var user = room.RemoveUser(client);
+            if (user != null)
+            {
+                client.Room = null;
+                var banPacket = new ServerUserBannedFromRoom(new UserInRoom(user));
+                var leftPacket = new ServerUserLeftRoom(new UserInRoom(user));
+                var scoreboard = createScoreboardUpdatePacket(room);
+                await sendPacketToRoom(new Packet(banPacket, leftPacket, scoreboard), room);
+                await SendPacketToClient(new Packet(banPacket), client);
             }
         }
 

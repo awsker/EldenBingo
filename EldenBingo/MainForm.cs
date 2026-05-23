@@ -546,10 +546,12 @@ namespace EldenBingo
                 if (_client.Room != null && _lobbyPage.Parent == null)
                 {
                     showLobbyTab();
+                    updateButtonAvailability();
                 }
                 if (_client.Room == null && _lobbyPage.Parent != null)
                 {
                     hideLobbyTab();
+                    updateButtonAvailability();
                 }
                 _clientStatusTextBox.Text = _client.GetConnectionStatusString();
             }

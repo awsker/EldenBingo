@@ -28,33 +28,54 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this._clientList = new EldenBingo.UI.RichListBox();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            _clientList = new RichListBox();
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            _banPlayerToolStripMenuItem = new ToolStripMenuItem();
+            contextMenuStrip1.SuspendLayout();
+            SuspendLayout();
             // 
             // _clientList
             // 
-            this._clientList.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this._clientList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._clientList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-            this._clientList.IntegralHeight = false;
-            this._clientList.ItemHeight = 20;
-            this._clientList.Location = new System.Drawing.Point(0, 0);
-            this._clientList.Name = "_clientList";
-            this._clientList.Size = new System.Drawing.Size(150, 150);
-            this._clientList.TabIndex = 0;
+            _clientList.BorderStyle = BorderStyle.None;
+            _clientList.ContextMenuStrip = contextMenuStrip1;
+            _clientList.Dock = DockStyle.Fill;
+            _clientList.DrawMode = DrawMode.OwnerDrawFixed;
+            _clientList.IntegralHeight = false;
+            _clientList.ItemHeight = 20;
+            _clientList.Location = new Point(0, 0);
+            _clientList.Name = "_clientList";
+            _clientList.Size = new Size(150, 150);
+            _clientList.TabIndex = 0;
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { _banPlayerToolStripMenuItem });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(196, 26);
+            contextMenuStrip1.Opening += contextMenuStrip1_Opening;
+            // 
+            // _banPlayerToolStripMenuItem
+            // 
+            _banPlayerToolStripMenuItem.Name = "_banPlayerToolStripMenuItem";
+            _banPlayerToolStripMenuItem.Size = new Size(195, 22);
+            _banPlayerToolStripMenuItem.Text = "Ban Player From Room";
+            _banPlayerToolStripMenuItem.Click += _banPlayerToolStripMenuItem_Click;
             // 
             // ClientListControl
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.Controls.Add(this._clientList);
-            this.Name = "ClientListControl2";
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            Controls.Add(_clientList);
+            Name = "ClientListControl";
+            contextMenuStrip1.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
         #endregion
 
         private RichListBox _clientList;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem _banPlayerToolStripMenuItem;
     }
 }

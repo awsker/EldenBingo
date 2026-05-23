@@ -38,7 +38,7 @@ namespace EldenBingo.UI
                 if (_instance.Client.LocalUser.IsAdmin != true || _instance.Client.LocalUser.IsSpectator != true)
                     return _instance.Client.LocalUser;
 
-                var selectedClient = _instance._clientList.SelectedItem as UserInRoom;
+                var selectedClient = _instance._clientList.SelectedUser;
                 return selectedClient ?? _instance.Client.LocalUser;
             }
         }
@@ -65,12 +65,12 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
+            Client.AddListener<ServerUserBannedFromRoom>(userBanned);
             Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
             Client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
             Client.AddListener<ServerTeamNameChanged>(teamNameChanged);
             Client.AddListener<ServerUserChangedTeam>(userChangedTeam);
-
             Client.AddListener<ServerBroadcastMessage>(serverMessage);
         }
 
@@ -98,9 +98,13 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+            Client.RemoveListener<ServerUserBannedFromRoom>(userBanned);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.RemoveListener<ServerUserChat>(userChat);
             Client.RemoveListener<ServerBingoAchievedUpdate>(bingoAchieved);
+            Client.RemoveListener<ServerTeamNameChanged>(teamNameChanged);
+            Client.RemoveListener<ServerUserChangedTeam>(userChangedTeam);
+            Client.RemoveListener<ServerBroadcastMessage>(serverMessage);
         }
 
         private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
@@ -133,6 +137,15 @@ namespace EldenBingo.UI
             {
                 updateMatchLog(new[] { userLeftArgs.User.Nick, "left the lobby" },
                         new Color?[] { userLeftArgs.User.ColorBright, null }, true);
+            }
+        }
+
+        private void userBanned(ClientModel? _, ServerUserBannedFromRoom userBannedArgs)
+        {
+            if (Client?.Room != null)
+            {
+                updateMatchLog(new[] { userBannedArgs.User.Nick, "was banned from this room" },
+                        new Color?[] { userBannedArgs.User.ColorBright, null }, true);
             }
         }
 
