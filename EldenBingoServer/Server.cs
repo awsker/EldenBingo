@@ -265,6 +265,7 @@ namespace EldenBingoServer
             AddListener<ClientSetTeamName>(clientSetTeamName);
             AddListener<ClientRequestTeamChange>(clientTeamChange);
             AddListener<ClientBanUserFromRoom>(clientBanUser);
+            AddListener<ClientPromoteToAdmin>(clientPromoteUser);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -864,7 +865,32 @@ namespace EldenBingoServer
                 _ = sendAdminErrorMessage(sender, "Cannot ban another admin");
                 return;
             }
-            _ = banUserFromRoom(user.Client, sender.Room);
+            _ = banUserFromRoom(user.Client, sender, sender.Room);
+        }
+
+        private void clientPromoteUser(BingoClientModel? sender, ClientPromoteToAdmin promoteUserRequest)
+        {
+            if (sender == null || sender.IsAdmin == false || sender.Room == null)
+            {
+                return;
+            }
+            var user = sender.Room.GetUser(promoteUserRequest.PromotedUser);
+            if (user == null)
+            {
+                _ = sendAdminErrorMessage(sender, "Invalid user");
+                return;
+            }
+            if (user.Guid == sender.ClientGuid)
+            {
+                _ = sendAdminErrorMessage(sender, "Cannot promote yourself");
+                return;
+            }
+            if (user.IsAdmin)
+            {
+                _ = sendAdminErrorMessage(sender, "Cannot promote someone that's already an admin");
+                return;
+            }
+            _ = promoteUserInRoom(user.Client, sender, sender.Room);
         }
 
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
@@ -968,21 +994,44 @@ namespace EldenBingoServer
             }
         }
 
-        private async Task banUserFromRoom(BingoClientModel client, ServerRoom room)
+        private async Task banUserFromRoom(BingoClientModel bannedUser, BingoClientModel bannedBy, ServerRoom room)
         {
-            if (client.Room == null)
+            if (bannedUser.Room == null || !bannedBy.IsAdmin)
                 return;
 
-            room.BanUser(client);
-            var user = room.RemoveUser(client);
-            if (user != null)
+            var user2 = room.GetUser(bannedBy.ClientGuid);
+            if (user2 == null)
+                return;
+
+            var user = room.RemoveUser(bannedUser);
+            if (user != null && user2 != null)
             {
-                client.Room = null;
-                var banPacket = new ServerUserBannedFromRoom(new UserInRoom(user));
-                var leftPacket = new ServerUserLeftRoom(new UserInRoom(user));
+                room.BanUser(bannedUser);
+                bannedUser.Room = null;
+                var userInRoom = new UserInRoom(user);
+                var banPacket = new ServerUserBannedFromRoom(userInRoom, new UserInRoom(user2));
+                var leftPacket = new ServerUserLeftRoom(userInRoom);
                 var scoreboard = createScoreboardUpdatePacket(room);
                 await sendPacketToRoom(new Packet(banPacket, leftPacket, scoreboard), room);
-                await SendPacketToClient(new Packet(banPacket), client);
+                await SendPacketToClient(new Packet(banPacket), bannedUser);
+            }
+        }
+
+        private async Task promoteUserInRoom(BingoClientModel promotedUser, BingoClientModel promotedBy, ServerRoom room)
+        {
+            if (promotedUser.Room == null || !promotedBy.IsAdmin)
+                return;
+
+            if (promotedUser != null && !promotedUser.IsAdmin)
+            {
+                var user = room.GetUser(promotedUser.ClientGuid);
+                var user2 = room.GetUser(promotedBy.ClientGuid);
+                if (user != null && user2 != null)
+                {
+                    user.IsAdmin = true;
+                    var promotePacket = new ServerPromoteToAdmin(new UserInRoom(user), new UserInRoom(user2));
+                    await sendPacketToRoom(new Packet(promotePacket), room);
+                }
             }
         }
 

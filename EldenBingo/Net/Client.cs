@@ -148,6 +148,7 @@ namespace EldenBingo
             AddListener<ServerUserJoinedRoom>(userJoinedRoom);
             AddListener<ServerUserLeftRoom>(userLeftRoom);
             AddListener<ServerUserBannedFromRoom>(userBanned);
+            AddListener<ServerPromoteToAdmin>(userPromoted);
             AddListener<ServerCreateRoomDenied>(createRoomDenied);
             AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
@@ -179,6 +180,18 @@ namespace EldenBingo
             {
                 Room = null;
                 FireOnStatus("Banned from lobby");
+            }
+        }
+
+        private void userPromoted(ClientModel? model, ServerPromoteToAdmin userPromoted)
+        {
+            if (Room != null) 
+            {
+                var user = Room.GetUser(userPromoted.User.Guid);
+                if (user != null)
+                {
+                    user.IsAdmin = true;
+                }
             }
         }
 

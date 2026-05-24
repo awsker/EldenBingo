@@ -32,6 +32,7 @@
             _clientList = new RichListBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
             _banPlayerToolStripMenuItem = new ToolStripMenuItem();
+            _promoteToAdminToolStripMenuItem = new ToolStripMenuItem();
             contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -50,9 +51,9 @@
             // 
             // contextMenuStrip1
             // 
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { _banPlayerToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { _banPlayerToolStripMenuItem, _promoteToAdminToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(182, 26);
+            contextMenuStrip1.Size = new Size(182, 48);
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // _banPlayerToolStripMenuItem
@@ -61,6 +62,13 @@
             _banPlayerToolStripMenuItem.Size = new Size(181, 22);
             _banPlayerToolStripMenuItem.Text = "Ban user from lobby";
             _banPlayerToolStripMenuItem.Click += _banPlayerToolStripMenuItem_Click;
+            // 
+            // _promoteToAdminToolStripMenuItem
+            // 
+            _promoteToAdminToolStripMenuItem.Name = "_promoteToAdminToolStripMenuItem";
+            _promoteToAdminToolStripMenuItem.Size = new Size(181, 22);
+            _promoteToAdminToolStripMenuItem.Text = "Promote to admin";
+            _promoteToAdminToolStripMenuItem.Click += _promoteToAdminToolStripMenuItem_Click;
             // 
             // ClientListControl
             // 
@@ -77,5 +85,6 @@
         private RichListBox _clientList;
         private ContextMenuStrip contextMenuStrip1;
         private ToolStripMenuItem _banPlayerToolStripMenuItem;
+        private ToolStripMenuItem _promoteToAdminToolStripMenuItem;
     }
 }

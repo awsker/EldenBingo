@@ -66,6 +66,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
             Client.AddListener<ServerUserBannedFromRoom>(userBanned);
+            Client.AddListener<ServerPromoteToAdmin>(userPromoted);
             Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
             Client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
@@ -144,8 +145,22 @@ namespace EldenBingo.UI
         {
             if (Client?.Room != null)
             {
-                updateMatchLog(new[] { userBannedArgs.User.Nick, "was banned from this room" },
-                        new Color?[] { userBannedArgs.User.ColorBright, null }, true);
+                updateMatchLog(new[] { userBannedArgs.User.Nick, "was banned from this lobby by", userBannedArgs.Banner.Nick },
+                        new Color?[] { userBannedArgs.User.ColorBright, null, userBannedArgs.Banner.ColorBright }, true);
+            }
+        }
+
+        private void userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
+        {
+            if (Client?.Room != null)
+            {
+                // If own user was upgraded to admin, show the admin controls
+                if (Client?.ClientGuid == userPromotedArgs.User.Guid && Client.LocalUser != null)
+                    // Set admin flag just to be sure, even though it's probably already set by Client.cs
+                    Client.LocalUser.IsAdmin = true;
+                    showHideAdminControls();
+                updateMatchLog(new[] { userPromotedArgs.User.Nick, "was promoted to admin by", userPromotedArgs.Promoter.Nick },
+                       new Color?[] { userPromotedArgs.User.ColorBright, null, userPromotedArgs.Promoter.ColorBright }, true);
             }
         }
 
@@ -494,7 +509,7 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void updateMatchLog(string text, Color color, bool timestamp)
+        private void updateMatchLog(string text, Color? color, bool timestamp)
         {
             updateMatchLog(new[] { text }, new Color?[] { color }, timestamp);
         }

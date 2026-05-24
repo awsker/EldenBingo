@@ -29,6 +29,7 @@ namespace EldenBingo.UI
                 Client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
                 Client.AddListener<ServerUserJoinedRoom>(userJoined);
                 Client.AddListener<ServerUserLeftRoom>(userLeft);
+                Client.AddListener<ServerPromoteToAdmin>(userPromoted);
                 Client.AddListener<ServerUserChangedTeam>(userChangedTeam);
             }
         }
@@ -63,6 +64,12 @@ namespace EldenBingo.UI
         }
 
         private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
+        {
+            if (Client?.Room != null)
+                updateUsersList(Client.Room);
+        }
+
+        private void userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
         {
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
@@ -144,6 +151,19 @@ namespace EldenBingo.UI
             if (Client != null && selectedUser != null)
             {
                 await Client.SendPacketToServer(new Packet(new ClientBanUserFromRoom(selectedUser.Guid)));
+            }
+        }
+
+        private async void _promoteToAdminToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (Client?.Room == null || Client.Room.GetUser(Client.ClientGuid)?.IsAdmin != true)
+            {
+                return;
+            }
+            var selectedUser = SelectedUser;
+            if (Client != null && selectedUser != null)
+            {
+                await Client.SendPacketToServer(new Packet(new ClientPromoteToAdmin(selectedUser.Guid)));
             }
         }
     }
