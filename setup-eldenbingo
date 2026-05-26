@@ -1,0 +1,547 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GITHUB_REPO="awsker/EldenBingo"
+GITHUB_LATEST_RELEASE_API_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
+DEFAULT_INSTALL_DIR="$HOME/.local/share/eldenbingo"
+INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+DEFAULT_PREFIX="$DEFAULT_INSTALL_DIR/wineprefix"
+DEFAULT_EXE="$DEFAULT_INSTALL_DIR/EldenBingo.exe"
+DEFAULT_LAUNCHER="$HOME/.local/bin/eldenbingo"
+DEFAULT_DESKTOP_FILE="$HOME/.local/share/applications/eldenbingo.desktop"
+DOTNET_DESKTOP_RUNTIME_URL="https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe"
+SHOULD_INIT_PREFIX=1
+USE_PROTON_LAUNCHER=0
+STEAM_CLIENT_INSTALL_PATH=""
+ELDEN_RING_COMPATDATA_DIR=""
+PROTON_PATH=""
+
+print_usage() {
+  cat <<EOF
+Usage: $(basename "$0") [--install-dir PATH]
+
+Options:
+  --install-dir, -d PATH   Install EldenBingo release files to PATH
+                           (default: $DEFAULT_INSTALL_DIR)
+  --help, -h               Show this help message
+EOF
+}
+
+log() {
+  printf '[setup] %s\n' "$*"
+}
+
+warn() {
+  printf '[setup][warn] %s\n' "$*" >&2
+}
+
+die() {
+  printf '[setup][error] %s\n' "$*" >&2
+  exit 1
+}
+
+ask_yes_no() {
+  local prompt="$1"
+  local reply
+  while true; do
+    read -r -p "$prompt [y/N]: " reply
+    case "${reply,,}" in
+      y|yes) return 0 ;;
+      n|no|"") return 1 ;;
+      *) printf 'Please answer y or n.\n' ;;
+    esac
+  done
+}
+
+expand_home_path() {
+  local input="$1"
+  if [[ "$input" == "~" ]]; then
+    printf '%s\n' "$HOME"
+  elif [[ "$input" == ~/* ]]; then
+    printf '%s/%s\n' "$HOME" "${input#~/}"
+  else
+    printf '%s\n' "$input"
+  fi
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --install-dir|-d)
+        [[ $# -ge 2 ]] || die "Missing value for $1"
+        INSTALL_DIR="$(expand_home_path "$2")"
+        shift 2
+        ;;
+      --help|-h)
+        print_usage
+        exit 0
+        ;;
+      *)
+        die "Unknown argument: $1"
+        ;;
+    esac
+  done
+
+  DEFAULT_PREFIX="$INSTALL_DIR/wineprefix"
+  DEFAULT_EXE="$INSTALL_DIR/EldenBingo.exe"
+}
+
+require_supported_distro() {
+  [[ -f /etc/os-release ]] || die "Cannot detect distro (missing /etc/os-release)."
+  # shellcheck disable=SC1091
+  source /etc/os-release
+
+  DISTRO_ID="${ID:-}"
+  DISTRO_LIKE="${ID_LIKE:-}"
+
+  if [[ "$DISTRO_ID" =~ ^(arch|manjaro|endeavouros)$ ]] || [[ "$DISTRO_LIKE" == *arch* ]]; then
+    DISTRO_FAMILY="arch"
+    PKG_MANAGER="pacman"
+    PKG_INSTALL=(sudo pacman -S --needed)
+    PKG_UPDATE=()
+    REQUIRED_PACKAGES=(wine winetricks curl cabextract unzip xdg-utils)
+  elif [[ "$DISTRO_ID" =~ ^(ubuntu|debian|linuxmint|pop)$ ]] || [[ "$DISTRO_LIKE" == *debian* ]]; then
+    DISTRO_FAMILY="ubuntu"
+    PKG_MANAGER="apt"
+    PKG_UPDATE=(sudo apt update)
+    PKG_INSTALL=(sudo apt install -y)
+    REQUIRED_PACKAGES=(wine64 winetricks curl cabextract unzip xdg-utils)
+  elif [[ "$DISTRO_ID" =~ ^(fedora|rhel|centos|rocky|almalinux)$ ]] || [[ "$DISTRO_LIKE" == *fedora* ]] || [[ "$DISTRO_LIKE" == *rhel* ]]; then
+    DISTRO_FAMILY="fedora"
+    PKG_MANAGER="dnf"
+    PKG_UPDATE=()
+    PKG_INSTALL=(sudo dnf install -y)
+    REQUIRED_PACKAGES=(wine winetricks curl cabextract unzip xdg-utils)
+  else
+    die "Unsupported distro: ID=${DISTRO_ID:-unknown}, ID_LIKE=${DISTRO_LIKE:-unknown}. Supported: Arch, Ubuntu/Debian, Fedora/RHEL families."
+  fi
+
+  log "Detected distro family: $DISTRO_FAMILY (package manager: $PKG_MANAGER)"
+}
+
+check_base_tools() {
+  local missing_tools=()
+  local tool
+  for tool in sudo; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      missing_tools+=("$tool")
+    fi
+  done
+
+  if (( ${#missing_tools[@]} > 0 )); then
+    die "Missing required base tool(s): ${missing_tools[*]}"
+  fi
+}
+
+check_runtime_dependencies() {
+  local missing_runtime=()
+  local tool
+  for tool in wine winetricks curl unzip; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      missing_runtime+=("$tool")
+    fi
+  done
+
+  if (( ${#missing_runtime[@]} == 0 )); then
+    log "All required runtime commands already installed."
+    return 0
+  fi
+
+  warn "Missing runtime command(s): ${missing_runtime[*]}"
+  if ask_yes_no "Install required packages with $PKG_MANAGER now?"; then
+    if (( ${#PKG_UPDATE[@]} > 0 )); then
+      "${PKG_UPDATE[@]}"
+    fi
+    "${PKG_INSTALL[@]}" "${REQUIRED_PACKAGES[@]}"
+  else
+    die "Cannot continue without dependencies."
+  fi
+
+  # Re-check after install.
+  for tool in wine winetricks curl unzip; do
+    command -v "$tool" >/dev/null 2>&1 || die "Dependency still missing after install: $tool"
+  done
+}
+
+download_and_install_latest_release() {
+  local release_json
+  local release_tag
+  local asset_url
+  local tmp_archive
+  local extract_dir
+  local extracted_exe
+  local source_root
+
+  log "Fetching latest release metadata for $GITHUB_REPO"
+  release_json="$(curl -fsSL "$GITHUB_LATEST_RELEASE_API_URL")" || die "Failed to fetch latest release metadata."
+
+  release_tag="$(printf '%s\n' "$release_json" | sed -nE 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' | head -n1)"
+  asset_url="$(printf '%s\n' "$release_json" \
+    | grep -Eo '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]+"' \
+    | sed -E 's/.*"([^"]+)"/\1/' \
+    | grep -Ei '\.zip$' \
+    | head -n1 || true)"
+
+  [[ -n "$asset_url" ]] || die "No .zip release asset found for latest release."
+
+  tmp_archive="$(mktemp --suffix=.zip)"
+  extract_dir="$(mktemp -d)"
+
+  log "Downloading EldenBingo release ${release_tag:-unknown}: $asset_url"
+  curl -fL "$asset_url" -o "$tmp_archive"
+
+  log "Extracting release archive"
+  unzip -q "$tmp_archive" -d "$extract_dir"
+
+  extracted_exe="$(find "$extract_dir" -type f -name 'EldenBingo.exe' | head -n1 || true)"
+  [[ -n "$extracted_exe" ]] || die "Could not find EldenBingo.exe in downloaded release archive."
+
+  source_root="$(dirname "$extracted_exe")"
+  mkdir -p "$INSTALL_DIR"
+
+  log "Installing release files to: $INSTALL_DIR"
+  cp -a "$source_root"/. "$INSTALL_DIR"/
+
+  EXE_PATH="$INSTALL_DIR/EldenBingo.exe"
+  [[ -f "$EXE_PATH" ]] || die "Install completed but EldenBingo.exe was not found at $EXE_PATH"
+
+  rm -rf "$extract_dir"
+  rm -f "$tmp_archive"
+}
+
+add_unique_path() {
+  local candidate="$1"
+  local existing
+
+  [[ -n "$candidate" ]] || return 0
+
+  for existing in "${STEAM_LIBRARY_PATHS[@]:-}"; do
+    if [[ "$existing" == "$candidate" ]]; then
+      return 0
+    fi
+  done
+
+  STEAM_LIBRARY_PATHS+=("$candidate")
+}
+
+collect_steam_library_paths() {
+  local root
+  local library_vdf
+  local path_line
+  local parsed_path
+  local default_roots=(
+    "$HOME/.steam/steam"
+    "$HOME/.local/share/Steam"
+    "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam"
+  )
+
+  STEAM_LIBRARY_PATHS=()
+
+  for root in "${default_roots[@]}"; do
+    if [[ -d "$root/steamapps" ]]; then
+      add_unique_path "$root"
+      if [[ -z "$STEAM_CLIENT_INSTALL_PATH" ]]; then
+        STEAM_CLIENT_INSTALL_PATH="$root"
+      fi
+    fi
+
+    library_vdf="$root/steamapps/libraryfolders.vdf"
+    if [[ -f "$library_vdf" ]]; then
+      while IFS= read -r path_line; do
+        parsed_path="$(sed -E 's/.*"path"[[:space:]]+"([^"]+)".*/\1/' <<< "$path_line")"
+        parsed_path="${parsed_path//\\\\/\\}"
+        if [[ -d "$parsed_path/steamapps" ]]; then
+          add_unique_path "$parsed_path"
+        fi
+      done < <(grep -E '"path"[[:space:]]+"' "$library_vdf" || true)
+    fi
+  done
+}
+
+detect_proton_path() {
+  local config_info
+  local version_file
+  local version_name
+  local candidate
+  local best_candidate
+  local line
+
+  PROTON_PATH=""
+  config_info="$ELDEN_RING_COMPATDATA_DIR/config_info"
+  version_file="$ELDEN_RING_COMPATDATA_DIR/version"
+
+  if [[ -f "$config_info" ]]; then
+    while IFS= read -r line; do
+      candidate="$(sed -nE 's/.*([A-Za-z0-9_./ -]+\/proton).*/\1/p' <<< "$line" | head -n1)"
+      if [[ -n "$candidate" && -x "$candidate" ]]; then
+        PROTON_PATH="$candidate"
+        break
+      fi
+    done < "$config_info"
+  fi
+
+  if [[ -z "$PROTON_PATH" && -f "$version_file" ]]; then
+    version_name="$(tr -d '\r\n' < "$version_file")"
+    if [[ -n "$version_name" ]]; then
+      for candidate in \
+        "$STEAM_CLIENT_INSTALL_PATH/steamapps/common/$version_name/proton" \
+        "$HOME/.steam/root/compatibilitytools.d/$version_name/proton" \
+        "$HOME/.local/share/Steam/compatibilitytools.d/$version_name/proton" \
+        "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam/compatibilitytools.d/$version_name/proton"
+      do
+        if [[ -x "$candidate" ]]; then
+          PROTON_PATH="$candidate"
+          break
+        fi
+      done
+    fi
+  fi
+
+  if [[ -z "$PROTON_PATH" ]]; then
+    best_candidate=""
+    for candidate in \
+      "$STEAM_CLIENT_INSTALL_PATH/steamapps/common/Proton"*/proton \
+      "$HOME/.steam/root/compatibilitytools.d"/*/proton \
+      "$HOME/.local/share/Steam/compatibilitytools.d"/*/proton \
+      "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam/compatibilitytools.d"/*/proton
+    do
+      if [[ -x "$candidate" ]]; then
+        best_candidate="$candidate"
+      fi
+    done
+
+    if [[ -n "$best_candidate" ]]; then
+      PROTON_PATH="$best_candidate"
+    fi
+  fi
+}
+
+detect_elden_ring_install() {
+  local library
+  local manifest_path
+  local compat_prefix
+  local install_dir
+
+  ELDEN_RING_PREFIX=""
+  ELDEN_RING_INSTALL_DIR=""
+  ELDEN_RING_COMPATDATA_DIR=""
+
+  collect_steam_library_paths
+
+  for library in "${STEAM_LIBRARY_PATHS[@]:-}"; do
+    manifest_path="$library/steamapps/appmanifest_1245620.acf"
+    ELDEN_RING_COMPATDATA_DIR="$library/steamapps/compatdata/1245620"
+    compat_prefix="$ELDEN_RING_COMPATDATA_DIR/pfx"
+    install_dir="$library/steamapps/common/ELDEN RING"
+
+    if [[ -f "$manifest_path" ]]; then
+      if [[ -d "$install_dir" ]]; then
+        ELDEN_RING_INSTALL_DIR="$install_dir"
+      else
+        ELDEN_RING_INSTALL_DIR="$library/steamapps/common/ELDEN RING"
+      fi
+
+      if [[ -d "$compat_prefix" ]]; then
+        ELDEN_RING_PREFIX="$compat_prefix"
+        detect_proton_path
+        break
+      fi
+    fi
+  done
+}
+
+select_wine_prefix() {
+  local input
+
+  detect_elden_ring_install
+
+  if [[ -n "$ELDEN_RING_PREFIX" ]]; then
+    log "Detected Elden Ring Steam install: $ELDEN_RING_INSTALL_DIR"
+    log "Using Elden Ring prefix for integration: $ELDEN_RING_PREFIX"
+    WINEPREFIX_PATH="$ELDEN_RING_PREFIX"
+    SHOULD_INIT_PREFIX=0
+    if [[ -n "$PROTON_PATH" ]]; then
+      USE_PROTON_LAUNCHER=1
+      log "Detected Proton for Elden Ring: $PROTON_PATH"
+    else
+      USE_PROTON_LAUNCHER=0
+      warn "Could not detect Elden Ring Proton tool. Launcher will use wine."
+    fi
+
+    if ask_yes_no "Use a different prefix instead?"; then
+      read -r -p "Wine prefix path [$ELDEN_RING_PREFIX]: " input
+      input="${input:-$ELDEN_RING_PREFIX}"
+      WINEPREFIX_PATH="$(expand_home_path "$input")"
+      if [[ "$WINEPREFIX_PATH" == "$ELDEN_RING_PREFIX" ]]; then
+        SHOULD_INIT_PREFIX=0
+        if [[ -n "$PROTON_PATH" ]]; then
+          USE_PROTON_LAUNCHER=1
+        else
+          USE_PROTON_LAUNCHER=0
+        fi
+      else
+        SHOULD_INIT_PREFIX=1
+        USE_PROTON_LAUNCHER=0
+      fi
+    fi
+    return 0
+  fi
+
+  warn "No Elden Ring Steam installation with Proton prefix was found."
+  warn "Game integration feature requires EldenBingo and Elden Ring in the same prefix."
+
+  if ! ask_yes_no "Create/use a standalone Wine prefix anyway?"; then
+    die "Setup cancelled. Install Elden Ring via Steam first, then rerun setup for integration support."
+  fi
+
+  read -r -p "Wine prefix path [$DEFAULT_PREFIX]: " input
+  input="${input:-$DEFAULT_PREFIX}"
+  WINEPREFIX_PATH="$(expand_home_path "$input")"
+  SHOULD_INIT_PREFIX=1
+  USE_PROTON_LAUNCHER=0
+}
+
+prompt_user_values() {
+  local input
+
+  read -r -p "Launcher script path [$DEFAULT_LAUNCHER]: " input
+  input="${input:-$DEFAULT_LAUNCHER}"
+  LAUNCHER_PATH="$(expand_home_path "$input")"
+
+  read -r -p "Desktop entry path [$DEFAULT_DESKTOP_FILE]: " input
+  input="${input:-$DEFAULT_DESKTOP_FILE}"
+  DESKTOP_FILE_PATH="$(expand_home_path "$input")"
+}
+
+confirm_overwrite_targets() {
+  if [[ -f "$LAUNCHER_PATH" ]]; then
+    if ! ask_yes_no "Launcher already exists at $LAUNCHER_PATH. Overwrite it?"; then
+      die "Aborted to avoid overwriting launcher."
+    fi
+  fi
+
+  if [[ -f "$DESKTOP_FILE_PATH" ]]; then
+    if ! ask_yes_no "Desktop entry already exists at $DESKTOP_FILE_PATH. Overwrite it?"; then
+      die "Aborted to avoid overwriting desktop entry."
+    fi
+  fi
+}
+
+create_wine_prefix() {
+  if [[ "$SHOULD_INIT_PREFIX" -eq 0 ]]; then
+    log "Skipping wineboot for Steam-managed prefix: $WINEPREFIX_PATH"
+    return 0
+  fi
+
+  log "Creating/updating Wine prefix: $WINEPREFIX_PATH"
+  mkdir -p "$WINEPREFIX_PATH"
+  WINEARCH=win64 WINEPREFIX="$WINEPREFIX_PATH" wineboot -u
+}
+
+install_windows_dependencies() {
+  local tmp_installer
+  tmp_installer="$(mktemp --suffix=.exe)"
+
+  log "Installing common Windows dependencies (corefonts, vcrun2022) via winetricks"
+  if ! WINEPREFIX="$WINEPREFIX_PATH" winetricks -q corefonts vcrun2022; then
+    warn "winetricks reported an issue. Continuing to .NET install."
+  fi
+
+  log "Downloading .NET Desktop Runtime installer"
+  curl -fL "$DOTNET_DESKTOP_RUNTIME_URL" -o "$tmp_installer"
+
+  log "Installing .NET Desktop Runtime 8 into Wine prefix"
+  WINEPREFIX="$WINEPREFIX_PATH" wine "$tmp_installer" /install /quiet /norestart
+
+  rm -f "$tmp_installer"
+
+  log "Validating .NET runtimes in prefix"
+  WINEPREFIX="$WINEPREFIX_PATH" wine "$WINEPREFIX_PATH/drive_c/Program Files/dotnet/dotnet.exe" --list-runtimes || true
+}
+
+create_launcher_script() {
+  mkdir -p "$(dirname "$LAUNCHER_PATH")"
+
+  if [[ "$USE_PROTON_LAUNCHER" -eq 1 && -n "$PROTON_PATH" && -n "$ELDEN_RING_COMPATDATA_DIR" && -n "$STEAM_CLIENT_INSTALL_PATH" ]]; then
+    cat > "$LAUNCHER_PATH" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+unset DOTNET_ROOT
+unset DOTNET_ROOT_X64
+unset DOTNET_ROOT_X86
+unset DOTNET_MULTILEVEL_LOOKUP
+
+export STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAM_CLIENT_INSTALL_PATH"
+export STEAM_COMPAT_DATA_PATH="$ELDEN_RING_COMPATDATA_DIR"
+
+APP_DIR="$(dirname "$EXE_PATH")"
+cd "$APP_DIR"
+
+exec "$PROTON_PATH" run "./$(basename "$EXE_PATH")" "\$@"
+EOF
+    log "Launcher created (Proton mode): $LAUNCHER_PATH"
+  else
+    cat > "$LAUNCHER_PATH" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+unset DOTNET_ROOT
+unset DOTNET_ROOT_X64
+unset DOTNET_ROOT_X86
+unset DOTNET_MULTILEVEL_LOOKUP
+
+APP_DIR="$(dirname "$EXE_PATH")"
+cd "$APP_DIR"
+
+WINEPREFIX="$WINEPREFIX_PATH" \\
+  wine "./$(basename "$EXE_PATH")" "\$@"
+EOF
+    log "Launcher created (Wine mode): $LAUNCHER_PATH"
+  fi
+
+  chmod +x "$LAUNCHER_PATH"
+}
+
+create_desktop_entry() {
+  mkdir -p "$(dirname "$DESKTOP_FILE_PATH")"
+
+  cat > "$DESKTOP_FILE_PATH" <<EOF
+[Desktop Entry]
+Type=Application
+Name=EldenBingo
+Comment=Launch EldenBingo via Wine
+Exec=$LAUNCHER_PATH
+Icon=wine
+Terminal=false
+Categories=Game;
+StartupNotify=true
+EOF
+
+  chmod +x "$DESKTOP_FILE_PATH"
+
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$(dirname "$DESKTOP_FILE_PATH")" >/dev/null 2>&1 || true
+  fi
+
+  log "Desktop entry created: $DESKTOP_FILE_PATH"
+}
+
+main() {
+  parse_args "$@"
+  check_base_tools
+  require_supported_distro
+  check_runtime_dependencies
+  select_wine_prefix
+  download_and_install_latest_release
+  prompt_user_values
+  confirm_overwrite_targets
+  create_wine_prefix
+  install_windows_dependencies
+  create_launcher_script
+  create_desktop_entry
+  log "Setup complete. Installed EldenBingo to: $INSTALL_DIR"
+  log "Start EldenBingo with: $LAUNCHER_PATH"
+}
+
+main "$@"
