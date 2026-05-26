@@ -15,15 +15,44 @@ USE_PROTON_LAUNCHER=0
 STEAM_CLIENT_INSTALL_PATH=""
 ELDEN_RING_COMPATDATA_DIR=""
 PROTON_PATH=""
+PREFIX_PATH_OVERRIDE=""
+LAUNCHER_PATH_OVERRIDE=""
+DESKTOP_FILE_PATH_OVERRIDE=""
+FORCE_OVERWRITE=0
 
 print_usage() {
   cat <<EOF
 Usage: $(basename "$0") [--install-dir PATH]
 
 Options:
-  --install-dir, -d PATH   Install EldenBingo release files to PATH
-                           (default: $DEFAULT_INSTALL_DIR)
-  --help, -h               Show this help message
+  --install-dir, -d PATH   Extract and install EldenBingo release files to PATH.
+                           Default: $DEFAULT_INSTALL_DIR
+
+  --prefix-path PATH       Override the Wine prefix path used to run EldenBingo.
+                           If omitted and Steam Elden Ring is detected, the Steam
+                           compat prefix is used automatically.
+
+  --launcher-path PATH     Path for generated launcher script.
+                           Default: $DEFAULT_LAUNCHER
+
+  --desktop-file PATH      Path for generated desktop entry file.
+                           Default: $DEFAULT_DESKTOP_FILE
+
+  --force, -f              Overwrite existing launcher/desktop files without prompts.
+
+  --help, -h               Show this help message.
+
+Behavior:
+  1) Detect Elden Ring Steam install and Proton tool.
+  2) Use Elden Ring Steam prefix by default when found.
+  3) If not found, prompt for standalone prefix unless --prefix-path is provided.
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --force
+  $(basename "$0") --install-dir "$HOME/.local/share/eldenbingo-dev"
+  $(basename "$0") --prefix-path "$HOME/.local/share/eldenbingo/wineprefix"
+  $(basename "$0") --launcher-path "$HOME/.local/bin/eldenbingo-dev" --force
 EOF
 }
 
@@ -72,6 +101,25 @@ parse_args() {
         INSTALL_DIR="$(expand_home_path "$2")"
         shift 2
         ;;
+      --prefix-path)
+        [[ $# -ge 2 ]] || die "Missing value for $1"
+        PREFIX_PATH_OVERRIDE="$(expand_home_path "$2")"
+        shift 2
+        ;;
+      --launcher-path)
+        [[ $# -ge 2 ]] || die "Missing value for $1"
+        LAUNCHER_PATH_OVERRIDE="$(expand_home_path "$2")"
+        shift 2
+        ;;
+      --desktop-file)
+        [[ $# -ge 2 ]] || die "Missing value for $1"
+        DESKTOP_FILE_PATH_OVERRIDE="$(expand_home_path "$2")"
+        shift 2
+        ;;
+      --force|-f)
+        FORCE_OVERWRITE=1
+        shift
+        ;;
       --help|-h)
         print_usage
         exit 0
@@ -84,6 +132,14 @@ parse_args() {
 
   DEFAULT_PREFIX="$INSTALL_DIR/wineprefix"
   DEFAULT_EXE="$INSTALL_DIR/EldenBingo.exe"
+
+  if [[ -n "$LAUNCHER_PATH_OVERRIDE" ]]; then
+    DEFAULT_LAUNCHER="$LAUNCHER_PATH_OVERRIDE"
+  fi
+
+  if [[ -n "$DESKTOP_FILE_PATH_OVERRIDE" ]]; then
+    DEFAULT_DESKTOP_FILE="$DESKTOP_FILE_PATH_OVERRIDE"
+  fi
 }
 
 require_supported_distro() {
@@ -355,6 +411,26 @@ select_wine_prefix() {
 
   detect_elden_ring_install
 
+  if [[ -n "$PREFIX_PATH_OVERRIDE" ]]; then
+    WINEPREFIX_PATH="$PREFIX_PATH_OVERRIDE"
+
+    if [[ -n "$ELDEN_RING_PREFIX" && "$WINEPREFIX_PATH" == "$ELDEN_RING_PREFIX" ]]; then
+      SHOULD_INIT_PREFIX=0
+      if [[ -n "$PROTON_PATH" ]]; then
+        USE_PROTON_LAUNCHER=1
+      else
+        USE_PROTON_LAUNCHER=0
+      fi
+      log "Using prefix override (matches Elden Ring Steam prefix): $WINEPREFIX_PATH"
+    else
+      SHOULD_INIT_PREFIX=1
+      USE_PROTON_LAUNCHER=0
+      log "Using prefix override: $WINEPREFIX_PATH"
+    fi
+
+    return 0
+  fi
+
   if [[ -n "$ELDEN_RING_PREFIX" ]]; then
     log "Detected Elden Ring Steam install: $ELDEN_RING_INSTALL_DIR"
     log "Using Elden Ring prefix for integration: $ELDEN_RING_PREFIX"
@@ -368,30 +444,30 @@ select_wine_prefix() {
       warn "Could not detect Elden Ring Proton tool. Launcher will use wine."
     fi
 
-    if ask_yes_no "Use a different prefix instead?"; then
-      read -r -p "Wine prefix path [$ELDEN_RING_PREFIX]: " input
-      input="${input:-$ELDEN_RING_PREFIX}"
-      WINEPREFIX_PATH="$(expand_home_path "$input")"
-      if [[ "$WINEPREFIX_PATH" == "$ELDEN_RING_PREFIX" ]]; then
-        SHOULD_INIT_PREFIX=0
-        if [[ -n "$PROTON_PATH" ]]; then
-          USE_PROTON_LAUNCHER=1
-        else
-          USE_PROTON_LAUNCHER=0
-        fi
-      else
-        SHOULD_INIT_PREFIX=1
-        USE_PROTON_LAUNCHER=0
-      fi
-    fi
+    # if ask_yes_no "Use a different prefix instead?"; then
+    #   read -r -p "Wine prefix path [$ELDEN_RING_PREFIX]: " input
+    #   input="${input:-$ELDEN_RING_PREFIX}"
+    #   WINEPREFIX_PATH="$(expand_home_path "$input")"
+    #   if [[ "$WINEPREFIX_PATH" == "$ELDEN_RING_PREFIX" ]]; then
+    #     SHOULD_INIT_PREFIX=0
+    #     if [[ -n "$PROTON_PATH" ]]; then
+    #       USE_PROTON_LAUNCHER=1
+    #     else
+    #       USE_PROTON_LAUNCHER=0
+    #     fi
+    #   else
+    #     SHOULD_INIT_PREFIX=1
+    #     USE_PROTON_LAUNCHER=0
+    #   fi
+    # fi
     return 0
   fi
 
   warn "No Elden Ring Steam installation with Proton prefix was found."
-  warn "Game integration feature requires EldenBingo and Elden Ring in the same prefix."
+  warn "Game integration features require EldenBingo and Elden Ring in the same prefix. The bingo board can work without it, but map and launching integration will not."
 
   if ! ask_yes_no "Create/use a standalone Wine prefix anyway?"; then
-    die "Setup cancelled. Install Elden Ring via Steam first, then rerun setup for integration support."
+    die "Setup cancelled. Install Elden Ring via Steam first, launch once, then rerun setup for integration support."
   fi
 
   read -r -p "Wine prefix path [$DEFAULT_PREFIX]: " input
@@ -401,19 +477,28 @@ select_wine_prefix() {
   USE_PROTON_LAUNCHER=0
 }
 
-prompt_user_values() {
-  local input
+# prompt_user_values() {
+#   local input
 
-  read -r -p "Launcher script path [$DEFAULT_LAUNCHER]: " input
-  input="${input:-$DEFAULT_LAUNCHER}"
-  LAUNCHER_PATH="$(expand_home_path "$input")"
+#   read -r -p "Launcher script path [$DEFAULT_LAUNCHER]: " input
+#   input="${input:-$DEFAULT_LAUNCHER}"
+#   LAUNCHER_PATH="$(expand_home_path "$input")"
 
-  read -r -p "Desktop entry path [$DEFAULT_DESKTOP_FILE]: " input
-  input="${input:-$DEFAULT_DESKTOP_FILE}"
-  DESKTOP_FILE_PATH="$(expand_home_path "$input")"
-}
+#   read -r -p "Desktop entry path [$DEFAULT_DESKTOP_FILE]: " input
+#   input="${input:-$DEFAULT_DESKTOP_FILE}"
+#   DESKTOP_FILE_PATH="$(expand_home_path "$input")"
+# }
 
 confirm_overwrite_targets() {
+  
+  LAUNCHER_PATH="$(expand_home_path "$DEFAULT_LAUNCHER")"
+  DESKTOP_FILE_PATH="$(expand_home_path "$DEFAULT_DESKTOP_FILE")"
+
+  if [[ "$FORCE_OVERWRITE" -eq 1 ]]; then
+    log "Force mode enabled: existing launcher/desktop files will be overwritten."
+    return 0
+  fi
+  
   if [[ -f "$LAUNCHER_PATH" ]]; then
     if ! ask_yes_no "Launcher already exists at $LAUNCHER_PATH. Overwrite it?"; then
       die "Aborted to avoid overwriting launcher."
@@ -442,21 +527,10 @@ install_windows_dependencies() {
   local tmp_installer
   tmp_installer="$(mktemp --suffix=.exe)"
 
-  log "Installing common Windows dependencies (corefonts, vcrun2022) via winetricks"
-  if ! WINEPREFIX="$WINEPREFIX_PATH" winetricks -q corefonts vcrun2022; then
-    warn "winetricks reported an issue. Continuing to .NET install."
+  log "Installing common Windows dependencies (corefonts, vcrun2022, dotnetdesktop8) via winetricks"
+  if ! WINEPREFIX="$WINEPREFIX_PATH" winetricks -q corefonts vcrun2022 dotnetdesktop8; then
+    warn "winetricks reported an issue."
   fi
-
-  log "Downloading .NET Desktop Runtime installer"
-  curl -fL "$DOTNET_DESKTOP_RUNTIME_URL" -o "$tmp_installer"
-
-  log "Installing .NET Desktop Runtime 8 into Wine prefix"
-  WINEPREFIX="$WINEPREFIX_PATH" wine "$tmp_installer" /install /quiet /norestart
-
-  rm -f "$tmp_installer"
-
-  log "Validating .NET runtimes in prefix"
-  WINEPREFIX="$WINEPREFIX_PATH" wine "$WINEPREFIX_PATH/drive_c/Program Files/dotnet/dotnet.exe" --list-runtimes || true
 }
 
 create_launcher_script() {
@@ -477,7 +551,7 @@ export STEAM_COMPAT_DATA_PATH="$ELDEN_RING_COMPATDATA_DIR"
 export ELDEN_RING_INSTALL_DIR="$ELDEN_RING_INSTALL_DIR"
 
 APP_DIR="$(dirname "$EXE_PATH")"
-cd "$APP_DIR"
+cd "\$APP_DIR"
 
 exec "$PROTON_PATH" run "./$(basename "$EXE_PATH")" "\$@"
 EOF
@@ -495,7 +569,7 @@ unset DOTNET_MULTILEVEL_LOOKUP
 export ELDEN_RING_INSTALL_DIR="$ELDEN_RING_INSTALL_DIR"
 
 APP_DIR="$(dirname "$EXE_PATH")"
-cd "$APP_DIR"
+cd "\$APP_DIR"
 
 WINEPREFIX="$WINEPREFIX_PATH" \\
   wine "./$(basename "$EXE_PATH")" "\$@"
@@ -537,7 +611,7 @@ main() {
   check_runtime_dependencies
   select_wine_prefix
   download_and_install_latest_release
-  prompt_user_values
+  # prompt_user_values
   confirm_overwrite_targets
   create_wine_prefix
   install_windows_dependencies
