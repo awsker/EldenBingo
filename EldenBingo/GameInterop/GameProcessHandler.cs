@@ -134,13 +134,7 @@ namespace EldenBingo.GameInterop
                 installPath = winePath;
                 return true;
             }
-
-            if (Directory.Exists(trimmed))
-            {
-                installPath = trimmed;
-                return true;
-            }
-
+            
             return false;
         }
 
