@@ -6,19 +6,19 @@ GITHUB_LATEST_RELEASE_API_URL="https://api.github.com/repos/${GITHUB_REPO}/relea
 DEFAULT_INSTALL_DIR="$HOME/.local/share/eldenbingo"
 INSTALL_DIR="$DEFAULT_INSTALL_DIR"
 DEFAULT_PREFIX="$DEFAULT_INSTALL_DIR/wineprefix"
-DEFAULT_EXE="$DEFAULT_INSTALL_DIR/EldenBingo.exe"
-DEFAULT_LAUNCHER="$HOME/.local/bin/eldenbingo"
-DEFAULT_DESKTOP_FILE="$HOME/.local/share/applications/eldenbingo.desktop"
-DOTNET_DESKTOP_RUNTIME_URL="https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe"
+DEFAULT_LAUNCHER_PATH="$HOME/.local/bin/eldenbingo"
+DEFAULT_DESKTOP_FILE_PATH="$HOME/.local/share/applications/eldenbingo.desktop"
+LAUNCHER_PATH="$DEFAULT_LAUNCHER_PATH"
+DESKTOP_FILE_PATH="$DEFAULT_DESKTOP_FILE_PATH"
 SHOULD_INIT_PREFIX=1
 USE_PROTON_LAUNCHER=0
 STEAM_CLIENT_INSTALL_PATH=""
 ELDEN_RING_COMPATDATA_DIR=""
 PROTON_PATH=""
 PREFIX_PATH_OVERRIDE=""
-LAUNCHER_PATH_OVERRIDE=""
-DESKTOP_FILE_PATH_OVERRIDE=""
 FORCE_OVERWRITE=0
+SKIP_SYSTEM_PACKAGE_INSTALL=0
+DOCTOR_ONLY=0
 
 print_usage() {
   cat <<EOF
@@ -33,12 +33,20 @@ Options:
                            compat prefix is used automatically.
 
   --launcher-path PATH     Path for generated launcher script.
-                           Default: $DEFAULT_LAUNCHER
+                           Default: $DEFAULT_LAUNCHER_PATH
 
   --desktop-file PATH      Path for generated desktop entry file.
-                           Default: $DEFAULT_DESKTOP_FILE
+                           Default: $DEFAULT_DESKTOP_FILE_PATH
 
   --force, -f              Overwrite existing launcher/desktop files without prompts.
+
+  --skip-system-install    Never attempt package-manager installs.
+                           Use this on immutable hosts (e.g. SteamOS/Bazzite)
+                           when dependencies are already available.
+
+  --doctor                 Run environment diagnostics only and exit.
+                           Does not install packages, download releases, or
+                           modify launcher/desktop files.
 
   --help, -h               Show this help message.
 
@@ -50,6 +58,8 @@ Behavior:
 Examples:
   $(basename "$0")
   $(basename "$0") --force
+  $(basename "$0") --skip-system-install
+  $(basename "$0") --doctor
   $(basename "$0") --install-dir "$HOME/.local/share/eldenbingo-dev"
   $(basename "$0") --prefix-path "$HOME/.local/share/eldenbingo/wineprefix"
   $(basename "$0") --launcher-path "$HOME/.local/bin/eldenbingo-dev" --force
@@ -108,16 +118,24 @@ parse_args() {
         ;;
       --launcher-path)
         [[ $# -ge 2 ]] || die "Missing value for $1"
-        LAUNCHER_PATH_OVERRIDE="$(expand_home_path "$2")"
+        LAUNCHER_PATH="$(expand_home_path "$2")"
         shift 2
         ;;
       --desktop-file)
         [[ $# -ge 2 ]] || die "Missing value for $1"
-        DESKTOP_FILE_PATH_OVERRIDE="$(expand_home_path "$2")"
+        DESKTOP_FILE_PATH="$(expand_home_path "$2")"
         shift 2
         ;;
       --force|-f)
         FORCE_OVERWRITE=1
+        shift
+        ;;
+      --skip-system-install)
+        SKIP_SYSTEM_PACKAGE_INSTALL=1
+        shift
+        ;;
+      --doctor)
+        DOCTOR_ONLY=1
         shift
         ;;
       --help|-h)
@@ -131,15 +149,6 @@ parse_args() {
   done
 
   DEFAULT_PREFIX="$INSTALL_DIR/wineprefix"
-  DEFAULT_EXE="$INSTALL_DIR/EldenBingo.exe"
-
-  if [[ -n "$LAUNCHER_PATH_OVERRIDE" ]]; then
-    DEFAULT_LAUNCHER="$LAUNCHER_PATH_OVERRIDE"
-  fi
-
-  if [[ -n "$DESKTOP_FILE_PATH_OVERRIDE" ]]; then
-    DEFAULT_DESKTOP_FILE="$DESKTOP_FILE_PATH_OVERRIDE"
-  fi
 }
 
 require_supported_distro() {
@@ -153,20 +162,20 @@ require_supported_distro() {
   if [[ "$DISTRO_ID" =~ ^(arch|manjaro|endeavouros)$ ]] || [[ "$DISTRO_LIKE" == *arch* ]]; then
     DISTRO_FAMILY="arch"
     PKG_MANAGER="pacman"
-    PKG_INSTALL=(sudo pacman -S --needed)
+    PKG_INSTALL=(pacman -S --needed)
     PKG_UPDATE=()
     REQUIRED_PACKAGES=(wine winetricks curl cabextract unzip xdg-utils)
   elif [[ "$DISTRO_ID" =~ ^(ubuntu|debian|linuxmint|pop)$ ]] || [[ "$DISTRO_LIKE" == *debian* ]]; then
     DISTRO_FAMILY="ubuntu"
     PKG_MANAGER="apt"
-    PKG_UPDATE=(sudo apt update)
-    PKG_INSTALL=(sudo apt install -y)
+    PKG_UPDATE=(apt update)
+    PKG_INSTALL=(apt install -y)
     REQUIRED_PACKAGES=(wine64 winetricks curl cabextract unzip xdg-utils)
   elif [[ "$DISTRO_ID" =~ ^(fedora|rhel|centos|rocky|almalinux)$ ]] || [[ "$DISTRO_LIKE" == *fedora* ]] || [[ "$DISTRO_LIKE" == *rhel* ]]; then
     DISTRO_FAMILY="fedora"
     PKG_MANAGER="dnf"
     PKG_UPDATE=()
-    PKG_INSTALL=(sudo dnf install -y)
+    PKG_INSTALL=(dnf install -y)
     REQUIRED_PACKAGES=(wine winetricks curl cabextract unzip xdg-utils)
   else
     die "Unsupported distro: ID=${DISTRO_ID:-unknown}, ID_LIKE=${DISTRO_LIKE:-unknown}. Supported: Arch, Ubuntu/Debian, Fedora/RHEL families."
@@ -175,18 +184,22 @@ require_supported_distro() {
   log "Detected distro family: $DISTRO_FAMILY (package manager: $PKG_MANAGER)"
 }
 
-check_base_tools() {
-  local missing_tools=()
-  local tool
-  for tool in sudo; do
-    if ! command -v "$tool" >/dev/null 2>&1; then
-      missing_tools+=("$tool")
-    fi
-  done
+is_immutable_host() {
+  [[ -e /run/ostree-booted || -e /usr/bin/rpm-ostree || -e /usr/lib/extension-release.d ]]
+}
 
-  if (( ${#missing_tools[@]} > 0 )); then
-    die "Missing required base tool(s): ${missing_tools[*]}"
+run_privileged() {
+  if [[ "$EUID" -eq 0 ]]; then
+    "$@"
+    return $?
   fi
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo "$@"
+    return $?
+  fi
+
+  return 127
 }
 
 check_runtime_dependencies() {
@@ -204,11 +217,29 @@ check_runtime_dependencies() {
   fi
 
   warn "Missing runtime command(s): ${missing_runtime[*]}"
+
+  if [[ "$SKIP_SYSTEM_PACKAGE_INSTALL" -eq 1 ]]; then
+    die "Dependencies missing and --skip-system-install was set. Install these tools manually first: ${missing_runtime[*]}"
+  fi
+
+  if ! command -v "$PKG_MANAGER" >/dev/null 2>&1; then
+    die "Cannot auto-install dependencies: package manager '$PKG_MANAGER' is unavailable. Missing: ${missing_runtime[*]}"
+  fi
+
   if ask_yes_no "Install required packages with $PKG_MANAGER now?"; then
     if (( ${#PKG_UPDATE[@]} > 0 )); then
-      "${PKG_UPDATE[@]}"
+      if ! run_privileged "${PKG_UPDATE[@]}"; then
+        die "Failed to update package metadata with $PKG_MANAGER."
+      fi
     fi
-    "${PKG_INSTALL[@]}" "${REQUIRED_PACKAGES[@]}"
+
+    if ! run_privileged "${PKG_INSTALL[@]}" "${REQUIRED_PACKAGES[@]}"; then
+      if is_immutable_host; then
+        die "Package install failed on an immutable host. Install dependencies via your host workflow, then rerun with --skip-system-install. Missing: ${missing_runtime[*]}"
+      fi
+
+      die "Failed to install dependencies with $PKG_MANAGER. Missing: ${missing_runtime[*]}"
+    fi
   else
     die "Cannot continue without dependencies."
   fi
@@ -219,9 +250,86 @@ check_runtime_dependencies() {
   done
 }
 
+print_doctor_report() {
+  local tool
+  local tools=(wine winetricks curl unzip)
+
+  log "Doctor mode: running non-destructive environment diagnostics"
+  log "Distro family: $DISTRO_FAMILY (package manager: $PKG_MANAGER)"
+
+  if is_immutable_host; then
+    log "Host model: immutable/ostree-style detected"
+  else
+    log "Host model: mutable"
+  fi
+
+  if command -v "$PKG_MANAGER" >/dev/null 2>&1; then
+    log "Package manager command available: $PKG_MANAGER"
+  else
+    warn "Package manager command not available: $PKG_MANAGER"
+  fi
+
+  if [[ "$SKIP_SYSTEM_PACKAGE_INSTALL" -eq 1 ]]; then
+    log "Option active: --skip-system-install"
+  fi
+
+  for tool in "${tools[@]}"; do
+    if command -v "$tool" >/dev/null 2>&1; then
+      log "Dependency OK: $tool ($(command -v "$tool"))"
+    else
+      warn "Dependency missing: $tool"
+    fi
+  done
+
+  detect_elden_ring_install
+
+  if [[ -n "$ELDEN_RING_INSTALL_DIR" ]]; then
+    log "Elden Ring install detected: $ELDEN_RING_INSTALL_DIR"
+  else
+    warn "Elden Ring install not detected via Steam appmanifest"
+  fi
+
+  if [[ -n "$ELDEN_RING_PREFIX" ]]; then
+    log "Elden Ring compat prefix detected: $ELDEN_RING_PREFIX"
+  else
+    warn "Elden Ring compat prefix not detected"
+  fi
+
+  if [[ -n "$PROTON_PATH" ]]; then
+    log "Proton detected: $PROTON_PATH"
+  else
+    warn "Proton path not detected"
+  fi
+
+  log "Configured install dir: $INSTALL_DIR"
+  log "Configured launcher path: $LAUNCHER_PATH"
+  log "Configured desktop file path: $DESKTOP_FILE_PATH"
+
+  if [[ -n "$PREFIX_PATH_OVERRIDE" ]]; then
+    log "Configured prefix override: $PREFIX_PATH_OVERRIDE"
+  else
+    log "Configured prefix override: (none)"
+  fi
+
+  if [[ -f "$LAUNCHER_PATH" ]]; then
+    log "Existing launcher file found: $LAUNCHER_PATH"
+  else
+    log "Existing launcher file not found: $LAUNCHER_PATH"
+  fi
+
+  if [[ -f "$DESKTOP_FILE_PATH" ]]; then
+    log "Existing desktop entry found: $DESKTOP_FILE_PATH"
+  else
+    log "Existing desktop entry not found: $DESKTOP_FILE_PATH"
+  fi
+
+  log "Doctor mode complete"
+}
+
 download_and_install_latest_release() {
   local release_json
   local release_tag
+  local asset_urls
   local asset_url
   local tmp_archive
   local extract_dir
@@ -232,11 +340,16 @@ download_and_install_latest_release() {
   release_json="$(curl -fsSL "$GITHUB_LATEST_RELEASE_API_URL")" || die "Failed to fetch latest release metadata."
 
   release_tag="$(printf '%s\n' "$release_json" | sed -nE 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' | head -n1)"
-  asset_url="$(printf '%s\n' "$release_json" \
+  asset_urls="$(printf '%s\n' "$release_json" \
     | grep -Eo '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]+"' \
     | sed -E 's/.*"([^"]+)"/\1/' \
-    | grep -Ei '\.zip$' \
-    | head -n1 || true)"
+    | grep -Ei '\.zip$' || true)"
+
+  # Prefer the canonical release zip name when multiple zip assets are present.
+  asset_url="$(printf '%s\n' "$asset_urls" | grep -E '/EldenBingo_v[^/]*\.zip$' | head -n1 || true)"
+  if [[ -z "$asset_url" ]]; then
+    asset_url="$(printf '%s\n' "$asset_urls" | head -n1 || true)"
+  fi
 
   [[ -n "$asset_url" ]] || die "No .zip release asset found for latest release."
 
@@ -443,23 +556,6 @@ select_wine_prefix() {
       USE_PROTON_LAUNCHER=0
       warn "Could not detect Elden Ring Proton tool. Launcher will use wine."
     fi
-
-    # if ask_yes_no "Use a different prefix instead?"; then
-    #   read -r -p "Wine prefix path [$ELDEN_RING_PREFIX]: " input
-    #   input="${input:-$ELDEN_RING_PREFIX}"
-    #   WINEPREFIX_PATH="$(expand_home_path "$input")"
-    #   if [[ "$WINEPREFIX_PATH" == "$ELDEN_RING_PREFIX" ]]; then
-    #     SHOULD_INIT_PREFIX=0
-    #     if [[ -n "$PROTON_PATH" ]]; then
-    #       USE_PROTON_LAUNCHER=1
-    #     else
-    #       USE_PROTON_LAUNCHER=0
-    #     fi
-    #   else
-    #     SHOULD_INIT_PREFIX=1
-    #     USE_PROTON_LAUNCHER=0
-    #   fi
-    # fi
     return 0
   fi
 
@@ -477,28 +573,12 @@ select_wine_prefix() {
   USE_PROTON_LAUNCHER=0
 }
 
-# prompt_user_values() {
-#   local input
-
-#   read -r -p "Launcher script path [$DEFAULT_LAUNCHER]: " input
-#   input="${input:-$DEFAULT_LAUNCHER}"
-#   LAUNCHER_PATH="$(expand_home_path "$input")"
-
-#   read -r -p "Desktop entry path [$DEFAULT_DESKTOP_FILE]: " input
-#   input="${input:-$DEFAULT_DESKTOP_FILE}"
-#   DESKTOP_FILE_PATH="$(expand_home_path "$input")"
-# }
-
 confirm_overwrite_targets() {
-  
-  LAUNCHER_PATH="$(expand_home_path "$DEFAULT_LAUNCHER")"
-  DESKTOP_FILE_PATH="$(expand_home_path "$DEFAULT_DESKTOP_FILE")"
-
   if [[ "$FORCE_OVERWRITE" -eq 1 ]]; then
     log "Force mode enabled: existing launcher/desktop files will be overwritten."
     return 0
   fi
-  
+
   if [[ -f "$LAUNCHER_PATH" ]]; then
     if ! ask_yes_no "Launcher already exists at $LAUNCHER_PATH. Overwrite it?"; then
       die "Aborted to avoid overwriting launcher."
@@ -524,13 +604,17 @@ create_wine_prefix() {
 }
 
 install_windows_dependencies() {
-  local tmp_installer
-  tmp_installer="$(mktemp --suffix=.exe)"
-
   log "Installing common Windows dependencies (corefonts, vcrun2022, dotnetdesktop8) via winetricks"
   if ! WINEPREFIX="$WINEPREFIX_PATH" winetricks -q corefonts vcrun2022 dotnetdesktop8; then
     warn "winetricks reported an issue."
   fi
+}
+
+desktop_escape_exec_arg() {
+  local arg="$1"
+  arg="${arg//\\/\\\\}"
+  arg="${arg//\"/\\\"}"
+  printf '"%s"' "$arg"
 }
 
 create_launcher_script() {
@@ -581,14 +665,17 @@ EOF
 }
 
 create_desktop_entry() {
+  local desktop_exec
+
   mkdir -p "$(dirname "$DESKTOP_FILE_PATH")"
+  desktop_exec="$(desktop_escape_exec_arg "$LAUNCHER_PATH")"
 
   cat > "$DESKTOP_FILE_PATH" <<EOF
 [Desktop Entry]
 Type=Application
 Name=EldenBingo
 Comment=Launch EldenBingo via Wine
-Exec=$LAUNCHER_PATH
+Exec=$desktop_exec
 Icon=wine
 Terminal=false
 Categories=Game;
@@ -606,12 +693,16 @@ EOF
 
 main() {
   parse_args "$@"
-  check_base_tools
   require_supported_distro
+
+  if [[ "$DOCTOR_ONLY" -eq 1 ]]; then
+    print_doctor_report
+    exit 0
+  fi
+
   check_runtime_dependencies
   select_wine_prefix
   download_and_install_latest_release
-  # prompt_user_values
   confirm_overwrite_targets
   create_wine_prefix
   install_windows_dependencies
