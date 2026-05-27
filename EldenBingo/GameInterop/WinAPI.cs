@@ -91,8 +91,8 @@ namespace EldenBingo.GameInterop
         
         [DllImport("kernel32.dll")]
         public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
-        [DllImport("kernel32.dll")]
-        public static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+        [DllImport("ntdll.dll")]
+        public static extern int NtCreateThreadEx(out IntPtr threadHandle, uint desiredAccess, IntPtr objectAttributes, IntPtr processHandle, IntPtr startAddress, IntPtr parameter, bool createSuspended, int stackZeroBits, int sizeOfStackCommit, int sizeOfStackReserve, IntPtr bytesBuffer);
         [DllImport("kernel32.dll")]
         public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, IntPtr dwSize, uint dwFreeType);
     }

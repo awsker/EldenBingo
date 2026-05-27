@@ -101,6 +101,12 @@ namespace EldenBingo
             await SendPacketToServer(new Packet(new ClientRequestLeaveRoom()));
         }
 
+        public void BannedFromCurrentRoom()
+        {
+            Room = null;
+            FireOnStatus("Banned from lobby");
+        }
+
         protected override async void DispatchObjects(ClientModel? sender, IEnumerable<object> objects)
         {
             if (PacketDelayMs > 0 && LocalUser != null && LocalUser.IsSpectator)
@@ -141,6 +147,8 @@ namespace EldenBingo
         {
             AddListener<ServerUserJoinedRoom>(userJoinedRoom);
             AddListener<ServerUserLeftRoom>(userLeftRoom);
+            AddListener<ServerUserBannedFromRoom>(userBanned);
+            AddListener<ServerPromoteToAdmin>(userPromoted);
             AddListener<ServerCreateRoomDenied>(createRoomDenied);
             AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
@@ -163,6 +171,27 @@ namespace EldenBingo
             {
                 Room.RemoveUser(userLeft.User);
                 fireOnUsersChanged();
+            }
+        }
+
+        private void userBanned(ClientModel? model, ServerUserBannedFromRoom userBanned)
+        {
+            if (Room != null && userBanned.User.Guid == ClientGuid)
+            {
+                Room = null;
+                FireOnStatus("Banned from lobby");
+            }
+        }
+
+        private void userPromoted(ClientModel? model, ServerPromoteToAdmin userPromoted)
+        {
+            if (Room != null) 
+            {
+                var user = Room.GetUser(userPromoted.User.Guid);
+                if (user != null)
+                {
+                    user.IsAdmin = true;
+                }
             }
         }
 

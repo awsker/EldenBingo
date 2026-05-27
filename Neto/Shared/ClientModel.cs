@@ -10,6 +10,7 @@ namespace Neto.Shared
             ClientGuid = Guid.NewGuid();
             CancellationToken = new CancellationTokenSource();
             LastActivity = DateTime.Now;
+            WriteSemaphore = new SemaphoreSlim(1, 1);
         }
 
         public TcpClient TcpClient { get; init; }
@@ -18,6 +19,7 @@ namespace Neto.Shared
         public bool IsRegistered { get; set; }
         internal int MalformedPackets { get; set; }
         public DateTime LastActivity { get; set; }
+        public SemaphoreSlim WriteSemaphore { get; init; }
 
         public virtual void Stop()
         {

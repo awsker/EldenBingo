@@ -210,8 +210,6 @@ namespace EldenBingo
                                 Properties.Settings.Default.Nickname,
                                 Properties.Settings.Default.Team);
                             }
-                            //Set the flag to automatically reconnect. This will be set to false if a disconnect is triggered manually or by kick
-                            _autoReconnect = true;
                             return; //Successfully connected, so we return immediately
                         }
                     }
@@ -259,10 +257,10 @@ namespace EldenBingo
             var res = MessageBox.Show(this, "Disconnect from server?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (res == DialogResult.Yes)
             {
-                _connecting = false;
                 _autoReconnect = false;
-                if (_client?.IsConnected == true)
+                if (_client != null && (_connecting || _client.IsConnected))
                     await _client.Disconnect();
+                _connecting = false;
                 updateButtonAvailability();
             }
         }
@@ -378,11 +376,13 @@ namespace EldenBingo
 
             client.Connected += client_Connected;
             client.Disconnected += client_Disconnected;
+            
             client.Kicked += client_Kicked;
             client.OnStatus += client_OnStatus;
             client.OnError += client_OnError;
             client.OnRoomChanged += client_RoomChanged;
 
+            client.AddListener<ServerRegisterAccepted>(registerAccepted);
             client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
@@ -390,6 +390,7 @@ namespace EldenBingo
             client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
             client.AddListener<ServerBroadcastMessage>(onServerMessage);
         }
+
 
         private void onServerMessage(ClientModel? model, ServerBroadcastMessage message)
         {
@@ -422,6 +423,12 @@ namespace EldenBingo
             _connecting = false;
         }
 
+        private void registerAccepted(ClientModel? model, ServerRegisterAccepted accepted)
+        {
+            // Only allow auto reconnect if the server actually responded positively to our registration
+            _autoReconnect = true;
+        }
+
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
         {
             updateButtonAvailability();
@@ -452,8 +459,13 @@ namespace EldenBingo
                 if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
+                {
+                    // Play snipe sound if we're a player in the match and the other team claimed the square that we had selected
+                    if (Properties.Settings.Default.SnipeSoundEnabled && _client?.LocalUser?.IsSpectator == false && userCheckedSquareArgs.Index == getCurrentlySelectedSquare())
+                        _sounds.PlaySound(SoundType.SquareSniped);
                     _sounds.PlaySound(SoundType.SquareClaimedOther);
-            } 
+                }
+            }
             else
             {
                 if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
@@ -469,6 +481,12 @@ namespace EldenBingo
             {
                 _sounds.PlaySound(SoundType.Bingo);
             }
+        }
+
+        private int getCurrentlySelectedSquare()
+        {
+            if (_lobbyControl == null) return -1;
+            return _lobbyControl.GetSelectedSquareIndex();
         }
 
         private void showLobbyTab()
@@ -528,10 +546,12 @@ namespace EldenBingo
                 if (_client.Room != null && _lobbyPage.Parent == null)
                 {
                     showLobbyTab();
+                    updateButtonAvailability();
                 }
                 if (_client.Room == null && _lobbyPage.Parent != null)
                 {
                     hideLobbyTab();
+                    updateButtonAvailability();
                 }
                 _clientStatusTextBox.Text = _client.GetConnectionStatusString();
             }
@@ -620,8 +640,8 @@ namespace EldenBingo
                 await _client.Disconnect();
             updateButtonAvailability();
 
-            var ipendpoint = Neto.Client.NetoClient.EndPointFromAddress(address, port, out string error);
-            if (ipendpoint == null)
+            var endpoints = Neto.Client.NetoClient.EndPointsFromAddress(address, port, out string error);
+            if (endpoints == null || endpoints.Count == 0)
             {
                 MessageBox.Show(this, error, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return ConnectionResult.Denied;
@@ -728,29 +748,41 @@ namespace EldenBingo
             _mapWindowThread = new Thread(() =>
             {
                 Vector2u windowSize;
-                if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
+                try
                 {
-                    windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
-                }
-                else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
+                    if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
+                    {
+                        windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
+                    }
+                    else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
+                    {
+                        windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
+                    }
+                    else
+                    {
+                        windowSize = new Vector2u(500, 500);
+                    }
+                    _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
+                    if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
+                    {
+                        _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                    }
+                    else
+                    {
+                        _mapWindow.Position = new Vector2i(Left + Width, Top);
+                    }
+                    _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
+                    _mapWindow.Start();
+                } 
+                catch (Exception ex)
                 {
-                    windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
+                    MessageBox.Show($"Error in map thread: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (_mapWindow != null)
+                    {
+                        _mapWindow.Close();
+                        _mapWindow = null;
+                    }
                 }
-                else
-                {
-                    windowSize = new Vector2u(500, 500);
-                }
-                _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
-                if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
-                {
-                    _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
-                }
-                else
-                {
-                    _mapWindow.Position = new Vector2i(Left + Width, Top);
-                }
-                _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
-                _mapWindow.Start();
             });
             _mapWindowThread.Start();
         }

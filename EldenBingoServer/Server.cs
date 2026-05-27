@@ -264,6 +264,8 @@ namespace EldenBingoServer
             AddListener<ClientTogglePause>(clientTogglePause);
             AddListener<ClientSetTeamName>(clientSetTeamName);
             AddListener<ClientRequestTeamChange>(clientTeamChange);
+            AddListener<ClientBanUserFromRoom>(clientBanUser);
+            AddListener<ClientPromoteToAdmin>(clientPromoteUser);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -841,6 +843,56 @@ namespace EldenBingoServer
             }
         }
 
+        private void clientBanUser(BingoClientModel? sender, ClientBanUserFromRoom banUserRequest)
+        {
+            if (sender == null || sender.IsAdmin == false || sender.Room == null)
+            {
+                return;
+            }
+            var user = sender.Room.GetUser(banUserRequest.BannedUser);
+            if (user == null)
+            {
+                _ = sendAdminErrorMessage(sender, "Invalid user");
+                return;
+            }
+            if (user.Guid == sender.ClientGuid)
+            {
+                _ = sendAdminErrorMessage(sender, "Trying to ban yourself? Not very bright, are you?");
+                return;
+            }
+            if (user.IsAdmin)
+            {
+                _ = sendAdminErrorMessage(sender, "Cannot ban another admin");
+                return;
+            }
+            _ = banUserFromRoom(user.Client, sender, sender.Room);
+        }
+
+        private void clientPromoteUser(BingoClientModel? sender, ClientPromoteToAdmin promoteUserRequest)
+        {
+            if (sender == null || sender.IsAdmin == false || sender.Room == null)
+            {
+                return;
+            }
+            var user = sender.Room.GetUser(promoteUserRequest.PromotedUser);
+            if (user == null)
+            {
+                _ = sendAdminErrorMessage(sender, "Invalid user");
+                return;
+            }
+            if (user.Guid == sender.ClientGuid)
+            {
+                _ = sendAdminErrorMessage(sender, "Cannot promote yourself");
+                return;
+            }
+            if (user.IsAdmin)
+            {
+                _ = sendAdminErrorMessage(sender, "Cannot promote someone that's already an admin");
+                return;
+            }
+            _ = promoteUserInRoom(user.Client, sender, sender.Room);
+        }
+
         private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
@@ -880,8 +932,14 @@ namespace EldenBingoServer
 
         private async Task joinUserRoom(BingoClientModel client, string nick, string adminPass, int team, ServerRoom room, bool created = false)
         {
+            if (room.IsUserBanned(client))
+            {
+                await SendPacketToClient(new Packet(new ServerJoinRoomDenied("Banned from lobby")), client);
+                return;
+            }
             if (client.Room != null)
                 await leaveUserRoom(client);
+
 
             BingoClientInRoom clientInRoom = room.AddUser(client, nick, adminPass, team);
 
@@ -933,6 +991,47 @@ namespace EldenBingoServer
                 var scoreboard = createScoreboardUpdatePacket(room);
                 //Send user leaving packet to all users remaining in the room
                 await sendPacketToRoom(new Packet(leftPacket, scoreboard), room);
+            }
+        }
+
+        private async Task banUserFromRoom(BingoClientModel bannedUser, BingoClientModel bannedBy, ServerRoom room)
+        {
+            if (bannedUser.Room == null || !bannedBy.IsAdmin)
+                return;
+
+            var user2 = room.GetUser(bannedBy.ClientGuid);
+            if (user2 == null)
+                return;
+
+            var user = room.RemoveUser(bannedUser);
+            if (user != null && user2 != null)
+            {
+                room.BanUser(bannedUser);
+                bannedUser.Room = null;
+                var userInRoom = new UserInRoom(user);
+                var banPacket = new ServerUserBannedFromRoom(userInRoom, new UserInRoom(user2));
+                var leftPacket = new ServerUserLeftRoom(userInRoom);
+                var scoreboard = createScoreboardUpdatePacket(room);
+                await sendPacketToRoom(new Packet(banPacket, leftPacket, scoreboard), room);
+                await SendPacketToClient(new Packet(banPacket), bannedUser);
+            }
+        }
+
+        private async Task promoteUserInRoom(BingoClientModel promotedUser, BingoClientModel promotedBy, ServerRoom room)
+        {
+            if (promotedUser.Room == null || !promotedBy.IsAdmin)
+                return;
+
+            if (promotedUser != null && !promotedUser.IsAdmin)
+            {
+                var user = room.GetUser(promotedUser.ClientGuid);
+                var user2 = room.GetUser(promotedBy.ClientGuid);
+                if (user != null && user2 != null)
+                {
+                    user.IsAdmin = true;
+                    var promotePacket = new ServerPromoteToAdmin(new UserInRoom(user), new UserInRoom(user2));
+                    await sendPacketToRoom(new Packet(promotePacket), room);
+                }
             }
         }
 

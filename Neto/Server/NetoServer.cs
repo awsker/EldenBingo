@@ -2,6 +2,7 @@
 using Neto.Shared;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
 
@@ -9,13 +10,16 @@ namespace Neto.Server
 {
     public class NetoServer<CM> : NetObjectHandler<CM> where CM : ClientModel
     {
-        private const float KeepAliveTime = 25f;
         private readonly ConcurrentDictionary<Guid, CM> _clients;
         private readonly ConcurrentBag<TcpListener> _tcpListeners;
         private readonly ConstructorInfo _clientModelConstructor;
         private CancellationTokenSource _cancelToken;
 
-        private System.Timers.Timer _keepAliveTimer;
+        // Timer to handle sending KeepAlive packets regularly
+        private System.Timers.Timer? _keepAliveTimer;
+
+        // Message type or code for KeepAlive, customize as needed
+        private static readonly Packet KeepAlivePacket = new Packet(PacketTypes.KeepAlive, new KeepAlive());
 
         public NetoServer(int port) : base()
         {
@@ -32,10 +36,6 @@ namespace Neto.Server
                 _clientModelConstructor = clientModelConstructor;
 
             CachedIdentities = new ConcurrentDictionary<string, ClientIdentity>();
-
-            _keepAliveTimer = new System.Timers.Timer(5000f);
-            _keepAliveTimer.Elapsed += keepAlive;
-            _keepAliveTimer.Start();
         }
 
         ~NetoServer()
@@ -85,12 +85,9 @@ namespace Neto.Server
             _tcpListeners.Clear();
 
             _cancelToken = new CancellationTokenSource();
-            foreach (var ip in getIpAddresses())
-            {
-                var localIp = ip;
-                var thread = new Thread(() => runTcpListener(localIp));
-                thread.Start();
-            }
+            _ = runTcpListenerAsync(IPAddress.Any);
+            _ = runTcpListenerAsync(IPAddress.IPv6Any);
+            startKeepAlive();
             Hosting = true;
             FireOnStatus($"Hosting server on port {Port}");
         }
@@ -100,6 +97,7 @@ namespace Neto.Server
             if (!Hosting)
                 throw new Exception("Not hosting");
 
+            stopKeepAlive();
             Hosting = false;
 
             await sendShutdownToAll();
@@ -117,7 +115,6 @@ namespace Neto.Server
             try
             {
                 data = MessagePackSerializer.Serialize(p, GetMessagePackOptions());
-                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessage);
             }
             catch (Exception e)
             {
@@ -135,7 +132,12 @@ namespace Neto.Server
                 client.IsRegistered = false;
             }
             client.Stop();
-            _clients.Remove(client.ClientGuid, out _);
+            // Only remove this client from the dictionary if it hasn't already been replaced by a new connection. 
+            // Compare TcpClients to ensure the client is still the same
+            if (_clients.TryGetValue(client.ClientGuid, out var knownClient) && client.TcpClient == knownClient.TcpClient)
+            {
+                _clients.Remove(client.ClientGuid, out _);
+            }
         }
 
         protected async Task KickClient(CM client, string reason)
@@ -157,7 +159,6 @@ namespace Neto.Server
             try
             {
                 data = MessagePackSerializer.Serialize(p, GetMessagePackOptions());
-                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessage);
             }
             catch (Exception e)
             {
@@ -180,19 +181,38 @@ namespace Neto.Server
             await SendPacketToClients(p, clientsToInclude);
         }
 
+        // Local unicast addresses (for display); listeners bind to IPAddress.Any and IPv6Any instead.
         private static IPAddress[] getIpAddresses()
         {
-            var addresses = Dns.GetHostAddresses(Dns.GetHostName());
-            var local = IPAddress.Parse("127.0.0.1");
-            if (!addresses.Any(a => a.Equals(local)))
+            var addresses = new List<IPAddress>();
+
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-                return addresses.Concat(new IPAddress[] { local }).ToArray();
+                if (ni.OperationalStatus != OperationalStatus.Up)
+                    continue;
+
+                var ipProps = ni.GetIPProperties();
+                foreach (var unicast in ipProps.UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily == AddressFamily.InterNetwork || unicast.Address.AddressFamily == AddressFamily.InterNetworkV6)
+                    {
+                        addresses.Add(unicast.Address);
+                    }
+                }
             }
-            return addresses;
+
+            // Always include loopback
+            if (!addresses.Any(a => IPAddress.IsLoopback(a)))
+            {
+                addresses.Add(IPAddress.Loopback);
+            }
+
+            return addresses.Distinct().ToArray();
         }
 
         private async Task sendBytesToClient(byte[] bytes, CM client)
         {
+            await client.WriteSemaphore.WaitAsync(_cancelToken.Token);
             try
             {
                 if (!client.TcpClient.Connected)
@@ -201,9 +221,11 @@ namespace Neto.Server
                     return;
                 }
                 var stream = client.TcpClient.GetStream();
-                using (var cts = new CancellationTokenSource(5000))
+                using (var timeoutCts = new CancellationTokenSource(15000))
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, _cancelToken.Token))
                 {
-                    await stream.WriteAsync(bytes, cts.Token).ConfigureAwait(false);
+                    // Send the length of the data + the actual data
+                    await stream.WriteAsync(PacketHelper.ConcatBytes(BitConverter.GetBytes(bytes.Length), bytes), linkedCts.Token).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -215,6 +237,10 @@ namespace Neto.Server
             catch
             {
                 await DropClient(client);
+            }
+            finally
+            {
+                client.WriteSemaphore.Release();
             }
         }
 
@@ -247,7 +273,7 @@ namespace Neto.Server
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 _clients[client.ClientGuid] = client;
                 FireOnStatus($"Client connected ({GetClientIp(client)})");
-                _ = Task.Run(() => clientTcpListenerTask(client));
+                _ = clientTcpListenerTask(client);
             }
             catch (OperationCanceledException)
             { }
@@ -260,6 +286,23 @@ namespace Neto.Server
         private async Task clientTcpListenerTask(CM client)
         {
             var ip = GetClientIp(client);
+            // Give the client 5 seconds to register
+            var checkRegistryTimer = new System.Timers.Timer(5000);
+            checkRegistryTimer.Elapsed += (sender, e) =>
+            {
+                // If the client didn't register in 5 seconds then we assume it 
+                // was probably because the registration packet was formatted according
+                // to the old way (data + EndOfMessage) and therefore could not be
+                // parsed
+                if (!client.IsRegistered)
+                {
+                    kickLegacyClient(client);
+                }
+                checkRegistryTimer.Dispose();
+                checkRegistryTimer = null;
+            };
+            checkRegistryTimer.AutoReset = false;
+            checkRegistryTimer.Enabled = true;
             try
             {
                 while (client.TcpClient.Connected && !client.CancellationToken.IsCancellationRequested)
@@ -293,7 +336,7 @@ namespace Neto.Server
                     }
                     if (objData?.Version != Version)
                     {
-                        var deniedPacket = new Packet(PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {objData?.Version}. Server is running version {Version}"));
+                        var deniedPacket = createRegistryDeniedPacket(objData?.Version);
                         await SendPacketToClient(deniedPacket, client);
                         await DropClient(client);
                         return;
@@ -321,14 +364,11 @@ namespace Neto.Server
                                         {
                                             _ = SendPacketToClient(new Packet(new KeepAlive()), alreadyConnectedClient);
                                         }
-                                        else
-                                        {
-                                            //No other client connected, so switch out the guid of the client,
-                                            //and replace the client guid in the dictionary
-                                            _clients.Remove(client.ClientGuid, out _);
-                                            client.ClientGuid = identity.ClientGuid;
-                                            _clients[client.ClientGuid] = client;
-                                        }
+                                        //Switch out the guid of the client,
+                                        //and replace the client guid in the dictionary
+                                        _clients.Remove(client.ClientGuid, out _);
+                                        client.ClientGuid = identity.ClientGuid;
+                                        _clients[client.ClientGuid] = client;
                                     }
                                     else
                                     {
@@ -354,11 +394,6 @@ namespace Neto.Server
             }
         }
 
-        private bool clientAlreadyExists(Guid potentialGuid)
-        {
-            return _clients.TryGetValue(potentialGuid, out var _);
-        }
-
         private string clientToken(TcpClient client, string token)
         {
             if (client.Client?.RemoteEndPoint is IPEndPoint ip)
@@ -368,11 +403,12 @@ namespace Neto.Server
             return string.Empty;
         }
 
-        private async void runTcpListener(IPAddress ip)
+        private async Task runTcpListenerAsync(IPAddress bindAddress)
         {
+            TcpListener? tcp = null;
             try
             {
-                var tcp = new TcpListener(ip, Port);
+                tcp = new TcpListener(bindAddress, Port);
                 tcp.Start();
                 _tcpListeners.Add(tcp);
                 while (!_cancelToken.IsCancellationRequested)
@@ -380,19 +416,29 @@ namespace Neto.Server
                     await acceptIncomingConnections(tcp);
                 }
             }
-            catch (Exception e)
+            catch (SocketException e) when (bindAddress.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                FireOnError($"IPv6 listen unavailable on port {Port}: {e.Message}");
+            }
+            catch (Exception e) when (!_cancelToken.IsCancellationRequested)
             {
                 _cancelToken.Cancel();
                 FireOnError(e.Message);
+                try
+                {
+                    await sendShutdownToAll();
+                }
+                catch (Exception shutdownError)
+                {
+                    FireOnError(shutdownError.Message);
+                }
             }
-            try
+            finally
             {
-                await sendShutdownToAll();
-            }
-            catch (Exception e)
-            {
-                _cancelToken.Cancel();
-                FireOnError(e.Message);
+                if (tcp != null)
+                {
+                    try { tcp.Stop(); } catch { /* listener may already be stopped */ }
+                }
             }
         }
 
@@ -411,7 +457,7 @@ namespace Neto.Server
         {
             try
             {
-                var packets = await ReadPackets(client.TcpClient, client.CancellationToken);
+                var packets = await ReadPackets(client.TcpClient.GetStream(), client.CancellationToken);
                 foreach (var packet in packets)
                 {
                     if (packet == null)
@@ -441,21 +487,55 @@ namespace Neto.Server
             }
         }
 
-        private void keepAlive(object? sender, EventArgs e)
+        private void startKeepAlive()
         {
-            var now = DateTime.Now;
-            var clients = new List<CM>(_clients.Values);
-            foreach (var client in clients)
+            _keepAliveTimer = new System.Timers.Timer(5000);
+            _keepAliveTimer.Elapsed += (sender, e) =>
             {
-                if (!client.TcpClient.Connected)
+                try
                 {
-                    _clients.Remove(client.ClientGuid, out _);
+                    _ = SendPacketToAllClients(KeepAlivePacket, true);
                 }
-                else if ((now - client.LastActivity).TotalSeconds > KeepAliveTime)
+                catch
                 {
-                    _ = SendPacketToClient(new Packet(PacketTypes.KeepAlive, new KeepAlive()), client);
-                    client.LastActivity = DateTime.Now;
+                    // Ignore errors for now
                 }
+            };
+            _keepAliveTimer.AutoReset = true;
+            _keepAliveTimer.Enabled = true;
+        }
+
+        private void stopKeepAlive()
+        {
+            if (_keepAliveTimer != null)
+            {
+                _keepAliveTimer.Stop();
+                _keepAliveTimer.Dispose();
+                _keepAliveTimer = null;
+            }
+        }
+
+        private Packet createRegistryDeniedPacket(string? clientVersion = null)
+        {
+            return new Packet(PacketTypes.ServerRegisterDenied, new ServerRegisterDenied($"Incorrect version {clientVersion ?? ""}. Server is running version {Version}"));
+        }
+
+        private async void kickLegacyClient(CM client)
+        {
+            try
+            {
+                var stream = client.TcpClient.GetStream();
+                var packet = createRegistryDeniedPacket();
+                // Send a packet formatted according to the old way (terminated with EndOfMessage)
+                // so that legacy clients become aware that they need to update
+                var data = MessagePackSerializer.Serialize(packet, GetMessagePackOptions());
+                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessageLegacy);
+                await stream.WriteAsync(data);
+                await DropClient(client);
+            }
+            catch (Exception)
+            {
+                // Ignore any errors in this rudimentary kick function
             }
         }
     }

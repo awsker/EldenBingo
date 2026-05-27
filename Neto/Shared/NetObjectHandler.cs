@@ -2,7 +2,6 @@
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 
 namespace Neto.Shared
@@ -71,46 +70,48 @@ namespace Neto.Shared
             }
         }
 
-        protected async Task<Packet?[]> ReadPackets(TcpClient client, CancellationTokenSource cancelToken)
+        protected async Task<Packet?[]> ReadPackets(Stream stream, CancellationTokenSource cancelToken)
         {
-            var stream = client.GetStream();
-            var size = client.ReceiveBufferSize;
+            const int size = 1024;
             try
             {
+                byte[] buffer = new byte[4];
+                await stream.ReadAsync(buffer, 0, 4, cancelToken.Token);
+                var numBytes = BitConverter.ToInt32(buffer, 0);
+                var totalBytesRead = 0;
+                buffer = new byte[size];
                 MemoryStream ms = new MemoryStream(size);
                 do
                 {
-                    byte[] buffer = new byte[size];
-                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, size), cancelToken.Token);
+                    var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, Math.Min(size, numBytes - totalBytesRead)), cancelToken.Token);
                     //0 bytes read when connection closed on the other end
                     if (bytesRead == 0)
                         cancelToken.Cancel();
-                    if (cancelToken.IsCancellationRequested || client?.Connected != true)
+                    totalBytesRead += bytesRead;
+                    if (cancelToken.IsCancellationRequested)
                         return Array.Empty<Packet?>();
                     ms.Write(buffer, 0, bytesRead);
-                } while (!IsMessageTerminated(ms));
+                } while (totalBytesRead < numBytes);
 
-                return readPackets(ms.ToArray());
+                return readPackets(ms.GetBuffer(), ms.Length);
             }
-            catch (OperationCanceledException)
+            catch (Exception)
             {
                 //Do nothing, disconnect requested
                 return Array.Empty<Packet?>();
             }
         }
 
-        private Packet?[] readPackets(byte[] bytes)
+        private Packet?[] readPackets(byte[] bytes, long len)
         {
             var packets = new List<Packet?>();
             try
             {
                 var messagePackReader = new MessagePackReader(bytes);
-                while (!messagePackReader.End)
+                while (!messagePackReader.End && messagePackReader.Consumed < len)
                 {
                     var p = MessagePackSerializer.Deserialize<Packet>(ref messagePackReader, _cachedOptions);
                     packets.Add(p);
-                    //Skip end message sequence
-                    messagePackReader.ReadRaw(NetConstants.EndOfMessage.Length);
                 }
             }
             catch (MessagePackSerializationException)
@@ -138,22 +139,6 @@ namespace Neto.Shared
         protected MessagePackSerializerOptions GetMessagePackOptions()
         {
             return _cachedOptions;
-        }
-
-        protected bool IsMessageTerminated(MemoryStream stream)
-        {
-            var eomLength = NetConstants.EndOfMessage.Length;
-            if (stream.Position < eomLength)
-                return false;
-            var lastBytes = new byte[eomLength];
-            stream.Seek(-4, SeekOrigin.End);
-            stream.Read(lastBytes, 0, eomLength);
-            for (int i = 0; i < eomLength; ++i)
-            {
-                if (lastBytes[i] != NetConstants.EndOfMessage[i])
-                    return false;
-            }
-            return true;
         }
 
         protected void FireOnStatus(string message)

@@ -8,7 +8,12 @@ namespace Neto.Client
     public class NetoClient : NetObjectHandler<ClientModel>
     {
         private TcpClient? _tcp;
+        
         private string _clientUniqueToken;
+
+        // Timer to handle reconnects if no keep alive packets arrived in time
+        private System.Timers.Timer? _keepAliveTimer;
+        private SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Create a client
@@ -36,8 +41,12 @@ namespace Neto.Client
         public Guid ClientGuid { get; private set; }
         public bool IsConnected => _tcp?.Connected == true;
         protected CancellationTokenSource CancellationToken { get; private set; }
-
-        public static IPEndPoint? EndPointFromAddress(string address, int port, out string error)
+         
+        /// <summary>
+        /// Resolves <paramref name="address"/> and <paramref name="port"/> to one or more endpoints.
+        /// Hostnames may yield multiple addresses (e.g. IPv4 and IPv6); literals yield a single endpoint.
+        /// </summary>
+        public static IReadOnlyList<IPEndPoint>? EndPointsFromAddress(string address, int port, out string error)
         {
             error = string.Empty;
             if (port < 1 || port > 65535)
@@ -45,31 +54,33 @@ namespace Neto.Client
                 error = "Invalid port";
                 return null;
             }
+
             if (IPAddress.TryParse(address, out var ipAddress))
+                return new[] { new IPEndPoint(ipAddress, port) };
+
+            try
             {
-                var endpoint = new IPEndPoint(ipAddress, port);
-                return endpoint;
-            }
-            else
-            {
-                try
+                var entry = Dns.GetHostEntry(address);
+                var endpoints = new List<IPEndPoint>();
+                foreach (var ip in entry.AddressList)
                 {
-                    IPAddress[] addresses = Dns.GetHostAddresses(address);
-                    foreach (var ip in addresses)
-                    {
-                        if (ip.ToString() == "::1")
-                            continue;
-                        var endpoint = new IPEndPoint(ip, port);
-                        return endpoint;
-                    }
+                    endpoints.Add(new IPEndPoint(ip, port));
+                }
+
+                if (endpoints.Count == 0)
+                {
                     error = $"Unable to resolve hostname {address}";
                     return null;
                 }
-                catch (Exception e)
-                {
-                    error = $"Unable to resolve hostname {address}: {e.Message}";
-                    return null;
-                }
+                // Sort endpoints by AddressFamily (e.g., prioritize IPv4, then IPv6, or as required)
+                endpoints.Sort((a, b) => a.AddressFamily.CompareTo(b.AddressFamily));
+        
+                return endpoints;
+            }
+            catch (Exception e)
+            {
+                error = $"Error resolving hostname {address}: {e.Message}";
+                return null;
             }
         }
 
@@ -85,23 +96,11 @@ namespace Neto.Client
 
         public async Task<ConnectionResult> Connect(string address, int port)
         {
-            var ipEndpoint = EndPointFromAddress(address, port, out string error);
-            if (ipEndpoint == null)
-            {
-                FireOnError(error);
-                return ConnectionResult.Denied;
-            }
             if (_tcp != null && _tcp.Connected)
             {
                 FireOnError("Already connected");
                 return ConnectionResult.Denied;
             }
-            CancellationToken = new CancellationTokenSource();
-            _tcp = new TcpClient(ipEndpoint.AddressFamily);
-            try
-            {
-                FireOnStatus($"Connecting to {address}:{port}...");
-                await _tcp.ConnectAsync(ipEndpoint, CancellationToken.Token);
 
                 if (_tcp.Connected)
                 {
@@ -127,27 +126,41 @@ namespace Neto.Client
                     CancellationToken.Cancel();
                 }
             }
-            catch (Exception e)
+
+            ConnectionResult lastResult = ConnectionResult.Denied;
+            foreach (var endpoint in endpoints)
             {
-                FireOnError($"Connect Error: {e.Message}");
-                return ConnectionResult.Exception;
+                lastResult = await Connect(endpoint);
+                if (lastResult == ConnectionResult.Connected)
+                    return lastResult;
+                if (CancellationToken.IsCancellationRequested)
+                    break;
             }
-            return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
+            FireOnError($"Could not connect to {address}:{port}");
+            return lastResult;
         }
 
         public async Task<ConnectionResult> Connect(IPEndPoint ipEndpoint)
         {
-            if (_tcp != null && _tcp.Connected)
+            if (_tcp != null)
             {
-                FireOnError("Already connected");
-                return ConnectionResult.Denied;
+                if (_tcp.Connected)
+                {
+                    FireOnError("Already connected");
+                    return ConnectionResult.Denied;
+                } 
+                else
+                {
+                    CancellationToken.Cancel();
+                }
             }
             CancellationToken = new CancellationTokenSource();
-            _tcp = new TcpClient(ipEndpoint.AddressFamily);
+            TcpClient? tcp = new TcpClient(ipEndpoint.AddressFamily);
+            tcp.NoDelay = true;
             try
             {
                 FireOnStatus($"Connecting to {ipEndpoint}...");
-                await _tcp.ConnectAsync(ipEndpoint, CancellationToken.Token);
+                await tcp.ConnectAsync(ipEndpoint, CancellationToken.Token);
 
                 if (_tcp.Connected)
                 {
@@ -169,21 +182,37 @@ namespace Neto.Client
                 }
                 else
                 {
-                    FireOnError($"Could not connect to {ipEndpoint.Address}:{ipEndpoint.Port}");
+                    FireOnError($"Could not connect to {ipEndpoint}");
                     CancellationToken.Cancel();
+                    tcp.Dispose();
+                    return ConnectionResult.Denied;
                 }
+                _tcp = tcp;
+                tcp = null;
+                startKeepAlive();
+                TcpKeepAliveSettings.Apply(_tcp);
+                FireOnStatus("Connected to server");
+                _ = run();
+                return ConnectionResult.Connected;
             }
-            catch (Exception e)
+            catch (OperationCanceledException)
             {
-                FireOnError($"Connect Error: {e.Message}");
                 return ConnectionResult.Exception;
             }
-            return _tcp != null && _tcp.Connected ? ConnectionResult.Connected : ConnectionResult.Denied;
+            catch (Exception e) when (!CancellationToken.IsCancellationRequested)
+            {
+                CancellationToken.Cancel();
+                FireOnError($"Connect Error: {e.Message}");
+                tcp?.Dispose();
+                _tcp = null;
+                return ConnectionResult.Exception;
+            }
         }
 
         public async Task Disconnect()
         {
-            await SendPacketToServer(new Packet(PacketTypes.ClientDisconnect));
+            if (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
+                await SendPacketToServer(new Packet(PacketTypes.ClientDisconnect));
             CancellationToken.Cancel();
         }
 
@@ -198,25 +227,31 @@ namespace Neto.Client
             try
             {
                 data = MessagePackSerializer.Serialize(p, GetMessagePackOptions());
-                data = PacketHelper.ConcatBytes(data, NetConstants.EndOfMessage);
             }
             catch (Exception e)
             {
                 FireOnError(e.Message);
                 return;
             }
+            await _writeSemaphore.WaitAsync(CancellationToken.Token);
             try
             {
-                using (var cts = new CancellationTokenSource(5000))
+                using (var timeoutCts = new CancellationTokenSource(15000))
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, CancellationToken.Token))
                 {
                     var stream = _tcp.GetStream();
-                    await stream.WriteAsync(data, cts.Token).ConfigureAwait(false);
+                    // Send the length of the data + the actual data
+                    await stream.WriteAsync(PacketHelper.ConcatBytes(BitConverter.GetBytes(data.Length), data), linkedCts.Token).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
             {
                 CancellationToken.Cancel();
                 FireOnError($"Error sending message to server: {e.Message}");
+            }
+            finally
+            {
+                _writeSemaphore.Release();
             }
         }
 
@@ -225,7 +260,7 @@ namespace Neto.Client
             Connected?.Invoke(this, EventArgs.Empty);
         }
 
-        private void FireOnDisconnect(string message)
+        private void FireOnDisconnected(string message)
         {
             Disconnected?.Invoke(this, new StringEventArgs(message));
         }
@@ -248,15 +283,17 @@ namespace Neto.Client
                     }
                     else
                     {
-                        FireOnDisconnect("Invalid server response");
+                        FireOnDisconnected("Invalid server response");
                         await Disconnect();
                     }
                     break;
+
                 case PacketTypes.ServerRegisterDenied:
                     ServerRegisterDenied? deniedData = packet.GetObjectData<ServerRegisterDenied>();
                     FireOnKicked($"Registration denied: {deniedData?.Message ?? "Unknown reason"}");
                     await Disconnect();
                     break;
+
                 case PacketTypes.ServerClientDropped:
                     CancellationToken.Cancel();
                     ServerKicked? kickedData = packet.GetObjectData<ServerKicked>();
@@ -265,7 +302,7 @@ namespace Neto.Client
 
                 case PacketTypes.ServerShutdown:
                     CancellationToken.Cancel();
-                    FireOnDisconnect("Server shutting down");
+                    FireOnDisconnected("Server shutting down");
                     break;
 
                 case PacketTypes.ObjectData:
@@ -273,9 +310,34 @@ namespace Neto.Client
                     break;
 
                 case PacketTypes.KeepAlive:
-                    await SendPacketToServer(new Packet(PacketTypes.KeepAlive, new KeepAlive()));
+                    startKeepAlive();
                     break;
             }
+        }
+
+        private void startKeepAlive()
+        {
+            if (_keepAliveTimer != null)
+            {
+                _keepAliveTimer.Stop();
+                _keepAliveTimer.Dispose();
+            }
+            //On a legacy server, we can only expect one keepalive packet every 25 seconds. On new servers, that time is 5 seconds. Delay disconnect accordingly
+            _keepAliveTimer = new System.Timers.Timer(15000);
+            _keepAliveTimer.Elapsed += (sender, e) =>
+            {
+                try
+                {
+                    FireOnError("Expected keepalive packets but did not receive any from server for 15 seconds");
+                    CancellationToken.Cancel();
+                }
+                catch
+                {
+                    // Ignore errors for now
+                }
+            };
+            _keepAliveTimer.AutoReset = false;
+            _keepAliveTimer.Enabled = true;
         }
 
         private async Task run()
@@ -299,7 +361,13 @@ namespace Neto.Client
                 _tcp.Close();
             }
             _tcp = null;
-            FireOnDisconnect("Disconnected");
+            FireOnDisconnected("Disconnected");
+            if (_keepAliveTimer != null)
+            {
+                _keepAliveTimer.Stop();
+                _keepAliveTimer.Dispose();
+                _keepAliveTimer = null;
+            }
         }
 
         private async Task waitForPacketAsync()
@@ -309,7 +377,7 @@ namespace Neto.Client
 
             try
             {
-                var packets = await ReadPackets(_tcp, CancellationToken);
+                var packets = await ReadPackets(_tcp.GetStream(), CancellationToken);
                 foreach (var packet in packets)
                 {
                     if (packet != null)

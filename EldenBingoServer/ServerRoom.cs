@@ -15,6 +15,8 @@ namespace EldenBingoServer
         private Dictionary<int, string> _customTeamNames;
         [JsonProperty]
         internal List<LEvent> MatchEvents { get; }
+        //No need to serialize this property because the server will not assign the same Guid to the same players upon restart
+        internal HashSet<Guid> BannedUsers { get; }
 
         public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
         {
@@ -27,6 +29,7 @@ namespace EldenBingoServer
             _creatorGuid = creator?.ClientGuid ?? Guid.Empty;
             _customTeamNames = new Dictionary<int, string>();
             MatchEvents = new List<LEvent>();
+            BannedUsers = new HashSet<Guid>();
         }
 
         public event EventHandler<RoomEventArgs>? TimerElapsed;
@@ -58,6 +61,27 @@ namespace EldenBingoServer
             AddUser(cl);
             updateLastActivity();
             return cl;
+        }
+
+        public void BanUser(BingoClientModel client)
+        {
+            BannedUsers.Add(client.ClientGuid);
+            // Remove all counters for the banned player
+            if (Match?.Board is ServerBingoBoard board)
+            {
+                foreach (var sq in board.CheckStatus)
+                {
+                    lock (sq)
+                    {
+                        sq.SetCounter(client.ClientGuid, 0);
+                    }
+                }
+            }
+        }
+
+        public bool IsUserBanned(BingoClientModel client)
+        {
+            return BannedUsers.Contains(client.ClientGuid);
         }
 
         public bool IsAdminByDefault(BingoClientModel client)

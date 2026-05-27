@@ -123,6 +123,7 @@ namespace EldenBingo.UI
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
             _volumeTrackBar.Value = Properties.Settings.Default.SoundVolume / 10;
             _volumeTrackBar.ValueChanged += (o, e) => updateVolumeText();
+            _snipeCheckBox.Checked = Properties.Settings.Default.SnipeSoundEnabled;
 
             _colorPanel.BackColor = Properties.Settings.Default.ControlBackColor;
             _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
@@ -228,6 +229,7 @@ namespace EldenBingo.UI
             Properties.Settings.Default.PlaySounds = _soundCheckBox.Checked;
             Properties.Settings.Default.SoundVolume = Math.Clamp(_volumeTrackBar.Value * 10, 0, 100);
             Properties.Settings.Default.OutputDevice = (_soundOutputDeviceComboBox.SelectedItem as AudioDevice)?.Id ?? string.Empty;
+            Properties.Settings.Default.SnipeSoundEnabled = _snipeCheckBox.Checked;
 
             Properties.Settings.Default.SquareShadows = Math.Clamp(_shadowTrackBar.Value * 10, 0, 100);
             Properties.Settings.Default.MarkHighlight = _highlightMarkedCheckBox.Checked;

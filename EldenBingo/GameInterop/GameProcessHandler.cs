@@ -1,4 +1,4 @@
-﻿using EldenBingo.Util;
+using EldenBingo.Util;
 using EldenBingoCommon;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -111,8 +111,47 @@ namespace EldenBingo.GameInterop
             if ((key = getInstallDir(Registry.LocalMachine, @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall")) != null)
                 return key;
 
+            // See if Linux Launcher provided environment variable for install path (for users running Elden Bingo through Proton on Linux)
+            if (TryGetInstallPathFromEnvironment(out string? envInstallPath))
+                return envInstallPath;
+
             // NOT FOUND
             return null;
+        }
+
+        private static bool TryGetInstallPathFromEnvironment(out string? installPath)
+        {
+            installPath = null;
+            var envPath = Environment.GetEnvironmentVariable("ELDEN_RING_INSTALL_DIR");
+            if (string.IsNullOrWhiteSpace(envPath))
+                return false;
+
+            var trimmed = envPath.Trim();
+            var winePath = ConvertUnixPathToWineZDrivePath(trimmed);
+
+            if (Directory.Exists(winePath))
+            {
+                installPath = winePath;
+                return true;
+            }
+            
+            return false;
+        }
+
+        private static string ConvertUnixPathToWineZDrivePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return path;
+
+            // Already a Windows drive path.
+            if (path.Length >= 2 && char.IsLetter(path[0]) && path[1] == ':')
+                return path.Replace('/', '\\');
+
+            // Convert /home/... to Z:\home\... for Wine path resolution.
+            if (path.StartsWith('/'))
+                return "Z:" + path.Replace('/', '\\');
+
+            return path;
         }
 
         public void Dispose()
@@ -1010,7 +1049,9 @@ namespace EldenBingo.GameInterop
         /// </summary>
         public uint Execute(IntPtr address, uint timeout = 0xFFFFFFFF)
         {
-            var thread = WinAPI.CreateRemoteThread(_gameAccessHwnd, IntPtr.Zero, 0, address, IntPtr.Zero, 0, IntPtr.Zero);
+            IntPtr thread;
+            WinAPI.NtCreateThreadEx(out thread, 0x1FFFFF, IntPtr.Zero, _gameAccessHwnd, address, IntPtr.Zero, false, 0, 0, 0, IntPtr.Zero );
+            
             var result = WinAPI.WaitForSingleObject(thread, timeout);
             WinAPI.CloseHandle(thread);
             return result;

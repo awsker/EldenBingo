@@ -186,14 +186,28 @@ namespace EldenBingo.Rendering.Game
                     if (_window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0)
                         break;
                     var zoomChange = _userZoom * 0.12f;
+                    var calculatePostZoomCameraPosition = () =>
+                    {
+                        if (!e.MousePosition.HasValue)
+                            return;
+                        var zoomTargetPosition = screenToWorldCoordinates(e.MousePosition.Value);
+                        var cameraScreenOffset = zoomTargetPosition - _camera.Position;
+                        var scale = _userZoom / _camera.Zoom;
+                        var newCameraScreenOffset = cameraScreenOffset * scale;
+                        var newCameraPosition = zoomTargetPosition - newCameraScreenOffset;
+                        _camera.Position = newCameraPosition;
+                    };
                     if (e.Action == UIActions.ZoomIn)
                     {
-                        _userZoom = Math.Max(_camera.MinZoom, _userZoom - zoomChange);
+                        _userZoom = Math.Max(CameraMode == CameraMode.FitAll ? 1.0f : _camera.MinZoom, _userZoom - zoomChange);
+                        calculatePostZoomCameraPosition();
                         _camera.Zoom = getZoom();
+                        
                     }
                     else if (e.Action == UIActions.ZoomOut)
                     {
                         _userZoom = Math.Min(_camera.MaxZoom, _userZoom + zoomChange);
+                        calculatePostZoomCameraPosition();
                         _camera.Zoom = getZoom();
                     }
                     break;
@@ -244,10 +258,9 @@ namespace EldenBingo.Rendering.Game
 
         private void onMouseMoved(object? sender, MouseMoveEventArgs e)
         {
-            var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
-
             if (Enabled && _window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0 && CameraMode == CameraMode.FreeCam)
             {
+                var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
                 var diff = _lastMouseWorldPosition - pos;
                 _camera.Position += diff;
                 if (_camera is LerpCamera lerp)

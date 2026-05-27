@@ -12,6 +12,7 @@ namespace EldenBingo.Sfx
         SquareUnclaimedOther,
         SquareUnclaimedOwn,
         Bingo,
+        SquareSniped,
     }
 
     public class AudioDevice
@@ -42,7 +43,8 @@ namespace EldenBingo.Sfx
             "square_claimed_own.wav",
             "square_unclaimed_other.wav",
             "square_unclaimed_own.wav",
-            "bingo.wav"
+            "bingo.wav",
+            "square_sniped.wav"
         };
 
         private readonly CachedSoundSampleProvider?[] _sounds;
@@ -116,7 +118,9 @@ namespace EldenBingo.Sfx
                     if (s != null)
                     {
                         s.ResetPosition();
-                        s.SetVolume((volume ?? Properties.Settings.Default.SoundVolume) * 0.01f);
+                        double v = (volume ?? Properties.Settings.Default.SoundVolume) * 0.01;
+                        v = Math.Pow(v, 2.2);
+                        s.SetVolume((float)v);
 
                         WasapiOut? p = _players[i];
                         p?.Stop();

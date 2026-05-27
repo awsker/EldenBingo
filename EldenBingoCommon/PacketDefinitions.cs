@@ -21,6 +21,8 @@ public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
 public record ServerTeamNameChanged(Guid UserGuid, int Team, string TeamColorName, string Name);
 public record ServerBroadcastMessage(string Message);
 public record ServerUserChangedTeam(Guid UserGuid, int Team, string TeamColorName, UserInRoom[] Users);
+public record ServerUserBannedFromRoom(UserInRoom User, UserInRoom Banner);
+public record ServerPromoteToAdmin(UserInRoom User, UserInRoom Promoter);
 
 #endregion Server to client
 
@@ -43,5 +45,7 @@ public record ClientSetGameSettings(BingoGameSettings GameSettings);
 public record ClientRequestCurrentGameSettings();
 public record ClientSetTeamName(int Team, string Name);
 public record ClientRequestTeamChange(int Team);
+public record ClientBanUserFromRoom(Guid BannedUser);
+public record ClientPromoteToAdmin(Guid PromotedUser);
 
 #endregion Client to server

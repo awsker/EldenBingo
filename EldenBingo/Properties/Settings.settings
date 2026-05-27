@@ -176,5 +176,14 @@
     <Setting Name="ArrowNavigation" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="ServerAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bingocard.bingobrawlers.com</Value>
+    </Setting>
+    <Setting Name="OldServerAddresses" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bingobrawlers.com</Value>
+    </Setting>
+    <Setting Name="SnipeSoundEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

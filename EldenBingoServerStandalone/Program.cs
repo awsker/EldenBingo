@@ -154,7 +154,8 @@ namespace EldenBingoServerStandalone
             output("---- Current Rooms ----", InfoColor);
             foreach (var room in _server.Rooms)
             {
-                output($"{room.Name}: {room.Users.Count} users | Last Activity: {room.LastActivity.ToShortDateString()} {room.LastActivity.ToShortTimeString()}", InfoColor);
+                var matchStatus = room.Match == null ? string.Empty : $"Match Status: {room.Match.TimerString} {room.Match.MatchStatus} | ";
+                output($"{room.Name}: {room.Users.Count} users | {matchStatus}Last Activity: {room.LastActivity.ToShortDateString()} {room.LastActivity.ToShortTimeString()}", InfoColor);
                 foreach (var client in room.Users)
                 {
                     output($"\t{client.Nick}", DefaultColor);

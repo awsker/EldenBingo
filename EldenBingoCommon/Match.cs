@@ -19,7 +19,7 @@ namespace EldenBingoCommon
         {
             MatchStatus = MatchStatus.NotRunning;
             ServerTimer = 0;
-            updateMatchStatus();
+            UpdateMatchStatus(MatchStatus, Paused, ServerTimer, Board);
         }
 
         public event EventHandler? MatchStatusChanged;
@@ -149,9 +149,13 @@ namespace EldenBingoCommon
         {
             ServerTimer = timer;
             StatusChangedLocalDateTime = DateTime.Now;
-            MatchStatus = status;
             if (board != null)
                 Board = board;
+            if (status != MatchStatus)
+            {
+                MatchStatus = status;
+                onMatchStatusChanged();
+            }
             onMatchStatusChanged();
         }
 
@@ -159,21 +163,18 @@ namespace EldenBingoCommon
         {
             ServerTimer = timer;
             StatusChangedLocalDateTime = DateTime.Now;
-            MatchStatus = status;
-            Paused = paused;
             if (board != null)
                 Board = board;
-            onMatchStatusChanged();
+            if (paused != Paused || status != MatchStatus) {
+                Paused = paused;
+                MatchStatus = status;
+                onMatchStatusChanged();
+            }
         }
 
         private void onMatchStatusChanged()
         {
             MatchStatusChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void updateMatchStatus()
-        {
-            UpdateMatchStatus(MatchStatus, Paused, ServerTimer, Board);
         }
     }
 }

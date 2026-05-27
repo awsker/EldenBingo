@@ -38,7 +38,7 @@ namespace EldenBingo.UI
                 if (_instance.Client.LocalUser.IsAdmin != true || _instance.Client.LocalUser.IsSpectator != true)
                     return _instance.Client.LocalUser;
 
-                var selectedClient = _instance._clientList.SelectedItem as UserInRoom;
+                var selectedClient = _instance._clientList.SelectedUser;
                 return selectedClient ?? _instance.Client.LocalUser;
             }
         }
@@ -54,18 +54,24 @@ namespace EldenBingo.UI
             }
         }
 
+        public int GetSelectedSquareIndex()
+        {
+            return _bingoControl.GetSelectedSquareIndex();
+        }
+
         protected override void AddClientListeners()
         {
             Client.OnRoomChanged += client_RoomChanged;
             Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
+            Client.AddListener<ServerUserBannedFromRoom>(userBanned);
+            Client.AddListener<ServerPromoteToAdmin>(userPromoted);
             Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
             Client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
             Client.AddListener<ServerTeamNameChanged>(teamNameChanged);
             Client.AddListener<ServerUserChangedTeam>(userChangedTeam);
-
             Client.AddListener<ServerBroadcastMessage>(serverMessage);
         }
 
@@ -93,9 +99,13 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+            Client.RemoveListener<ServerUserBannedFromRoom>(userBanned);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.RemoveListener<ServerUserChat>(userChat);
             Client.RemoveListener<ServerBingoAchievedUpdate>(bingoAchieved);
+            Client.RemoveListener<ServerTeamNameChanged>(teamNameChanged);
+            Client.RemoveListener<ServerUserChangedTeam>(userChangedTeam);
+            Client.RemoveListener<ServerBroadcastMessage>(serverMessage);
         }
 
         private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
@@ -128,6 +138,29 @@ namespace EldenBingo.UI
             {
                 updateMatchLog(new[] { userLeftArgs.User.Nick, "left the lobby" },
                         new Color?[] { userLeftArgs.User.ColorBright, null }, true);
+            }
+        }
+
+        private void userBanned(ClientModel? _, ServerUserBannedFromRoom userBannedArgs)
+        {
+            if (Client?.Room != null)
+            {
+                updateMatchLog(new[] { userBannedArgs.User.Nick, "was banned from this lobby by", userBannedArgs.Banner.Nick },
+                        new Color?[] { userBannedArgs.User.ColorBright, null, userBannedArgs.Banner.ColorBright }, true);
+            }
+        }
+
+        private void userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
+        {
+            if (Client?.Room != null)
+            {
+                // If own user was upgraded to admin, show the admin controls
+                if (Client?.ClientGuid == userPromotedArgs.User.Guid && Client.LocalUser != null)
+                    // Set admin flag just to be sure, even though it's probably already set by Client.cs
+                    Client.LocalUser.IsAdmin = true;
+                    showHideAdminControls();
+                updateMatchLog(new[] { userPromotedArgs.User.Nick, "was promoted to admin by", userPromotedArgs.Promoter.Nick },
+                       new Color?[] { userPromotedArgs.User.ColorBright, null, userPromotedArgs.Promoter.ColorBright }, true);
             }
         }
 
@@ -476,7 +509,7 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void updateMatchLog(string text, Color color, bool timestamp)
+        private void updateMatchLog(string text, Color? color, bool timestamp)
         {
             updateMatchLog(new[] { text }, new Color?[] { color }, timestamp);
         }

@@ -78,7 +78,7 @@ namespace EldenBingoServer
                 var c = GetCounter(player);
                 if (c.HasValue)
                 {
-                    counter = Math.Max(counter ?? 0, c.Value);
+                    counter = (counter ?? 0) + c.Value;
                 }
             }
             return counter;

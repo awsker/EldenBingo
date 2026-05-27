@@ -78,6 +78,7 @@
             _outOfFocusClickTextBox = new TextBox();
             label11 = new Label();
             groupBox8 = new GroupBox();
+            _snipeCheckBox = new CheckBox();
             _testSoundButton = new Button();
             label14 = new Label();
             _soundOutputDeviceComboBox = new ComboBox();
@@ -90,6 +91,7 @@
             _checkUpdatesCheckBox = new CheckBox();
             tabPage2 = new TabPage();
             groupBox11 = new GroupBox();
+            _arrowNavigationCheckBox = new CheckBox();
             _numpadNavigationCheckBox = new CheckBox();
             groupBox9 = new GroupBox();
             panel2 = new Panel();
@@ -98,7 +100,6 @@
             label13 = new Label();
             tabPage3 = new TabPage();
             panel1 = new Panel();
-            _arrowNavigationCheckBox = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -324,7 +325,7 @@
             // _fontLinkLabel
             // 
             _fontLinkLabel.AutoSize = true;
-            _fontLinkLabel.Font = new Font("Lucida Sans Unicode", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            _fontLinkLabel.Font = new Font("Lucida Sans Unicode", 12F);
             _fontLinkLabel.Location = new Point(8, 43);
             _fontLinkLabel.Name = "_fontLinkLabel";
             _fontLinkLabel.Size = new Size(90, 20);
@@ -605,6 +606,7 @@
             // 
             // groupBox8
             // 
+            groupBox8.Controls.Add(_snipeCheckBox);
             groupBox8.Controls.Add(_testSoundButton);
             groupBox8.Controls.Add(label14);
             groupBox8.Controls.Add(_soundOutputDeviceComboBox);
@@ -613,16 +615,25 @@
             groupBox8.Controls.Add(_soundCheckBox);
             groupBox8.Location = new Point(8, 102);
             groupBox8.Name = "groupBox8";
-            groupBox8.Size = new Size(240, 198);
+            groupBox8.Size = new Size(240, 249);
             groupBox8.TabIndex = 5;
             groupBox8.TabStop = false;
             groupBox8.Text = "Sounds";
             // 
+            // _snipeCheckBox
+            // 
+            _snipeCheckBox.Location = new Point(12, 109);
+            _snipeCheckBox.Name = "_snipeCheckBox";
+            _snipeCheckBox.Size = new Size(222, 52);
+            _snipeCheckBox.TabIndex = 9;
+            _snipeCheckBox.Text = "Special alert when currently hovered square is marked by opponent (sniped)";
+            _snipeCheckBox.UseVisualStyleBackColor = true;
+            // 
             // _testSoundButton
             // 
-            _testSoundButton.Location = new Point(7, 163);
+            _testSoundButton.Location = new Point(8, 218);
             _testSoundButton.Name = "_testSoundButton";
-            _testSoundButton.Size = new Size(107, 23);
+            _testSoundButton.Size = new Size(107, 24);
             _testSoundButton.TabIndex = 11;
             _testSoundButton.Text = "Play Test Sfx";
             _testSoundButton.UseVisualStyleBackColor = true;
@@ -631,7 +642,7 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(9, 111);
+            label14.Location = new Point(10, 166);
             label14.Name = "label14";
             label14.Size = new Size(86, 15);
             label14.TabIndex = 9;
@@ -641,7 +652,7 @@
             // 
             _soundOutputDeviceComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             _soundOutputDeviceComboBox.FormattingEnabled = true;
-            _soundOutputDeviceComboBox.Location = new Point(8, 132);
+            _soundOutputDeviceComboBox.Location = new Point(9, 187);
             _soundOutputDeviceComboBox.Name = "_soundOutputDeviceComboBox";
             _soundOutputDeviceComboBox.Size = new Size(225, 23);
             _soundOutputDeviceComboBox.TabIndex = 10;
@@ -649,7 +660,7 @@
             // _volumeLabel
             // 
             _volumeLabel.AutoSize = true;
-            _volumeLabel.Location = new Point(12, 52);
+            _volumeLabel.Location = new Point(12, 49);
             _volumeLabel.Name = "_volumeLabel";
             _volumeLabel.Size = new Size(47, 15);
             _volumeLabel.TabIndex = 7;
@@ -658,7 +669,7 @@
             // _volumeTrackBar
             // 
             _volumeTrackBar.AutoSize = false;
-            _volumeTrackBar.Location = new Point(6, 73);
+            _volumeTrackBar.Location = new Point(6, 70);
             _volumeTrackBar.Name = "_volumeTrackBar";
             _volumeTrackBar.Size = new Size(228, 35);
             _volumeTrackBar.TabIndex = 8;
@@ -666,7 +677,7 @@
             // _soundCheckBox
             // 
             _soundCheckBox.AutoSize = true;
-            _soundCheckBox.Location = new Point(12, 25);
+            _soundCheckBox.Location = new Point(12, 24);
             _soundCheckBox.Name = "_soundCheckBox";
             _soundCheckBox.Size = new Size(128, 19);
             _soundCheckBox.TabIndex = 6;
@@ -745,6 +756,16 @@
             groupBox11.TabIndex = 41;
             groupBox11.TabStop = false;
             groupBox11.Text = "Hotkey";
+            // 
+            // _arrowNavigationCheckBox
+            // 
+            _arrowNavigationCheckBox.AutoSize = true;
+            _arrowNavigationCheckBox.Location = new Point(9, 102);
+            _arrowNavigationCheckBox.Name = "_arrowNavigationCheckBox";
+            _arrowNavigationCheckBox.Size = new Size(119, 19);
+            _arrowNavigationCheckBox.TabIndex = 45;
+            _arrowNavigationCheckBox.Text = "Arrow Navigation";
+            _arrowNavigationCheckBox.UseVisualStyleBackColor = true;
             // 
             // _numpadNavigationCheckBox
             // 
@@ -825,16 +846,6 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(521, 29);
             panel1.TabIndex = 34;
-            // 
-            // _arrowNavigationCheckBox
-            // 
-            _arrowNavigationCheckBox.AutoSize = true;
-            _arrowNavigationCheckBox.Location = new Point(9, 102);
-            _arrowNavigationCheckBox.Name = "_arrowNavigationCheckBox";
-            _arrowNavigationCheckBox.Size = new Size(119, 19);
-            _arrowNavigationCheckBox.TabIndex = 45;
-            _arrowNavigationCheckBox.Text = "Arrow Navigation";
-            _arrowNavigationCheckBox.UseVisualStyleBackColor = true;
             // 
             // SettingsDialog
             // 
@@ -958,5 +969,6 @@
         private TrackBar _keywordColorAlphaTrackBar;
         private CheckBox _numpadNavigationCheckBox;
         private CheckBox _arrowNavigationCheckBox;
+        private CheckBox _snipeCheckBox;
     }
 }
