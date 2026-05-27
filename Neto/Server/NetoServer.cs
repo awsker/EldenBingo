@@ -233,6 +233,16 @@ namespace Neto.Server
             try
             {
                 var tcpClient = await tcp.AcceptTcpClientAsync(_cancelToken.Token);
+
+                tcpClient.NoDelay = true;
+                tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 15);
+                tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+                tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+                tcpClient.ReceiveBufferSize = 8192;
+                tcpClient.SendBufferSize = 8192;
+                tcpClient.LingerState = new LingerOption(true, 0);
+                                                                  
                 tcpClient.GetStream().WriteTimeout = 10000;
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 _clients[client.ClientGuid] = client;

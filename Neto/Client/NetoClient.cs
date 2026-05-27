@@ -105,6 +105,19 @@ namespace Neto.Client
 
                 if (_tcp.Connected)
                 {
+                    _tcp.NoDelay = true;
+                    _tcp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                    _tcp.ReceiveBufferSize = 8192;
+                    _tcp.SendBufferSize = 8192;
+                    _tcp.LingerState = new LingerOption(true, 0);
+                    try
+                    {
+                        _tcp.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 15);
+                        _tcp.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+                        _tcp.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+                    }
+                    catch { }
+
                     FireOnStatus("Connected to server");
                     _ = run();
                 }
@@ -138,6 +151,19 @@ namespace Neto.Client
 
                 if (_tcp.Connected)
                 {
+                    _tcp.NoDelay = true;
+                    _tcp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                    _tcp.ReceiveBufferSize = 8192;
+                    _tcp.SendBufferSize = 8192;
+                    _tcp.LingerState = new LingerOption(true, 0);
+                    try
+                    {
+                        _tcp.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 15);
+                        _tcp.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+                        _tcp.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+                    }
+                    catch { }
+
                     FireOnStatus("Connected to server");
                     _ = run();
                 }
