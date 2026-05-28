@@ -285,8 +285,9 @@ namespace EldenBingo.UI
 
         private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            if (Client?.Room?.Match != null)
-                setMatchTimerLabel(Client.Room.Match.TimerString);
+            var match = Client?.Room?.Match;
+            if (match != null)
+                setMatchTimerLabel(match.TimerString);
         }
 
         private void appendText(string text, Color color)
