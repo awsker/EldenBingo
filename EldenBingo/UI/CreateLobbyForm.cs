@@ -17,7 +17,7 @@ namespace EldenBingo.UI
             _initWidth = Width;
             _initHeight = Height;
             _client = client;
-            
+
             if (!create)
             {
                 Text = "Join Lobby";
@@ -32,7 +32,7 @@ namespace EldenBingo.UI
 
             initTeamComboBox();
             loadSettings();
-            if(create)
+            if (create)
                 updateSeedLabel();
         }
 
@@ -42,7 +42,7 @@ namespace EldenBingo.UI
             {
                 _seedLabel.Text = $"Seed: {_gameSettingsControl.CurrentSeed}";
                 _seedLabel.Visible = _gameSettingsControl.CurrentSeed != 0;
-            } 
+            }
             else
             {
                 _seedLabel.Text = $"Seed: {Properties.Settings.Default.GS_RandomSeed}";
@@ -83,6 +83,16 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        private void CreateLobbyForm_Shown(object sender, EventArgs e)
+        {
+            // If nickname was already set, focus instead on the room name control
+            if (Nickname.Length > 0)
+            {
+                _roomNameTextBox.SelectAll();
+                _roomNameTextBox.Focus();
+            }
         }
 
         private void _cancelButton_Click(object sender, EventArgs e)
@@ -210,5 +220,6 @@ namespace EldenBingo.UI
                 GameSettingsHelper.SaveToSettings(settings, Properties.Settings.Default);
             }
         }
+
     }
 }
