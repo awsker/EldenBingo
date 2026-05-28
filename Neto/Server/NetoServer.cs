@@ -15,10 +15,7 @@ namespace Neto.Server
         private readonly ConstructorInfo _clientModelConstructor;
         private CancellationTokenSource _cancelToken;
 
-        // Timer to handle sending KeepAlive packets regularly
         private System.Timers.Timer? _keepAliveTimer;
-
-        // Message type or code for KeepAlive, customize as needed
         private static readonly Packet KeepAlivePacket = new Packet(PacketTypes.KeepAlive, new KeepAlive());
 
         public NetoServer(int port) : base()
@@ -338,7 +335,7 @@ namespace Neto.Server
                                         //server if it's not responded to within 5 seconds
                                         if (_clients.TryGetValue(identity.ClientGuid, out var alreadyConnectedClient))
                                         {
-                                            _ = SendPacketToClient(new Packet(new KeepAlive()), alreadyConnectedClient);
+                                            _ = KickClient(alreadyConnectedClient, "Another client with the same identity connected");
                                         }
                                         //Switch out the guid of the client,
                                         //and replace the client guid in the dictionary
