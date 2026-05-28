@@ -382,7 +382,6 @@ namespace EldenBingo
             client.OnError += client_OnError;
             client.OnRoomChanged += client_RoomChanged;
 
-            client.AddListener<ServerRegisterAccepted>(registerAccepted);
             client.AddListener<ServerJoinRoomAccepted>(joinRoomAccepted);
             client.AddListener<ServerJoinRoomDenied>(joinRoomDenied);
             client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
@@ -400,6 +399,7 @@ namespace EldenBingo
         private void client_Connected(object? sender, EventArgs e)
         {
             updateButtonAvailability();
+            _autoReconnect = true;
         }
 
         private async void client_Disconnected(object? sender, StringEventArgs e)
@@ -421,12 +421,6 @@ namespace EldenBingo
             _consoleControl.PrintToConsole(e.Message, Color.Red);
             _autoReconnect = false; //So we don't reconnect automatically after kick
             _connecting = false;
-        }
-
-        private void registerAccepted(ClientModel? model, ServerRegisterAccepted accepted)
-        {
-            // Only allow auto reconnect if the server actually responded positively to our registration
-            _autoReconnect = true;
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
@@ -509,8 +503,11 @@ namespace EldenBingo
         {
             void update()
             {
-                tabControl1.TabPages.Remove(_lobbyPage);
-                tabControl1.SelectedIndex = 0;
+                if (_client.Room == null)
+                {
+                    tabControl1.TabPages.Remove(_lobbyPage);
+                    tabControl1.SelectedIndex = 0;
+                }
             }
             if (InvokeRequired)
             {
