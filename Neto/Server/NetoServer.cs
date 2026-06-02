@@ -462,7 +462,7 @@ namespace Neto.Server
 
         private void startKeepAlive()
         {
-            _keepAliveTimer = new System.Timers.Timer(5000);
+            _keepAliveTimer = new System.Timers.Timer(3000);
             _keepAliveTimer.Elapsed += (sender, e) =>
             {
                 try
