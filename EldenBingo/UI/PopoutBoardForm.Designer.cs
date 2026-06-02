@@ -36,16 +36,18 @@
             _resizeButton = new PictureBox();
             _opacityButton = new PictureBox();
             _closeButton = new PictureBox();
-            panel2 = new Panel();
             scoreboardControl1 = new ScoreboardControl();
             _timerLabel = new Label();
             toolTip1 = new ToolTip(components);
+            panel3 = new Panel();
+            tableLayoutPanel1 = new TableLayoutPanel();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)_moveButton).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_resizeButton).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_opacityButton).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_closeButton).BeginInit();
-            panel2.SuspendLayout();
+            panel3.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
             // bingoControl1
@@ -122,44 +124,58 @@
             _closeButton.MouseDown += _closeButton_MouseDown;
             _closeButton.MouseUp += _button_MouseUp;
             // 
-            // panel2
-            // 
-            panel2.Controls.Add(scoreboardControl1);
-            panel2.Controls.Add(_timerLabel);
-            panel2.Dock = DockStyle.Fill;
-            panel2.Location = new Point(0, 347);
-            panel2.MinimumSize = new Size(0, 50);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(346, 50);
-            panel2.TabIndex = 2;
-            // 
             // scoreboardControl1
             // 
             scoreboardControl1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             scoreboardControl1.Client = null;
-            scoreboardControl1.Location = new Point(3, 8);
+            scoreboardControl1.Location = new Point(9, 7);
             scoreboardControl1.Name = "scoreboardControl1";
-            scoreboardControl1.Size = new Size(186, 24);
+            scoreboardControl1.Size = new Size(155, 24);
             scoreboardControl1.TabIndex = 8;
             // 
             // _timerLabel
             // 
-            _timerLabel.Dock = DockStyle.Right;
+            _timerLabel.Dock = DockStyle.Fill;
             _timerLabel.Font = new Font("Segoe UI", 24F, FontStyle.Bold);
             _timerLabel.ForeColor = Color.White;
-            _timerLabel.Location = new Point(134, 0);
+            _timerLabel.Location = new Point(176, 0);
             _timerLabel.Name = "_timerLabel";
-            _timerLabel.Size = new Size(212, 50);
+            _timerLabel.Size = new Size(167, 64);
             _timerLabel.TabIndex = 7;
             _timerLabel.Text = "00:00:00";
             _timerLabel.TextAlign = ContentAlignment.TopRight;
+            // 
+            // panel3
+            // 
+            panel3.Controls.Add(scoreboardControl1);
+            panel3.Dock = DockStyle.Fill;
+            panel3.Location = new Point(3, 3);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(167, 58);
+            panel3.TabIndex = 9;
+            // 
+            // tableLayoutPanel1
+            // 
+            tableLayoutPanel1.ColumnCount = 2;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel1.Controls.Add(panel3, 0, 0);
+            tableLayoutPanel1.Controls.Add(_timerLabel, 1, 0);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(0, 347);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 1;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tableLayoutPanel1.Size = new Size(346, 64);
+            tableLayoutPanel1.TabIndex = 9;
             // 
             // PopoutBoardForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(346, 397);
-            Controls.Add(panel2);
+            ClientSize = new Size(346, 411);
+            Controls.Add(tableLayoutPanel1);
             Controls.Add(bingoControl1);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.None;
@@ -174,7 +190,8 @@
             ((System.ComponentModel.ISupportInitialize)_resizeButton).EndInit();
             ((System.ComponentModel.ISupportInitialize)_opacityButton).EndInit();
             ((System.ComponentModel.ISupportInitialize)_closeButton).EndInit();
-            panel2.ResumeLayout(false);
+            panel3.ResumeLayout(false);
+            tableLayoutPanel1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -186,9 +203,10 @@
         private PictureBox _moveButton;
         private PictureBox _resizeButton;
         private PictureBox _opacityButton;
-        private Panel panel2;
         private Label _timerLabel;
         private ScoreboardControl scoreboardControl1;
         private ToolTip toolTip1;
+        private Panel panel3;
+        private TableLayoutPanel tableLayoutPanel1;
     }
 }

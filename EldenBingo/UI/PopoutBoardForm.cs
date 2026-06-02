@@ -10,6 +10,7 @@ namespace EldenBingo.UI
         private MouseAction _mouseAction;
         private Point _previousMousePos;
         private Client? _client;
+        private float _fontScaleFactor = 1.0f;
 
         internal BingoControl BingoControl => bingoControl1;
 
@@ -53,10 +54,34 @@ namespace EldenBingo.UI
             get { return _client; }
             set
             {
+                if (_client != null)
+                {
+                    disconnectClientListeners(_client);
+                }
                 _client = value;
+                if (_client != null)
+                {
+                    connectClientListeners(_client);
+                }
                 bingoControl1.Client = value;
                 scoreboardControl1.Client = value;
+                
             }
+        }
+
+        private void connectClientListeners(Client client)
+        {
+            client.OnRoomChanged += Client_OnRoomChanged;
+        }
+
+        private void disconnectClientListeners(Client client)
+        {
+            client.OnRoomChanged -= Client_OnRoomChanged;
+        }
+
+        private void Client_OnRoomChanged(object? sender, Net.RoomChangedEventArgs e)
+        {
+            
         }
 
         private void OnMouseEnteredForm()
@@ -147,6 +172,10 @@ namespace EldenBingo.UI
                 board_max_x = Convert.ToInt32(board_max_y * BingoControl.AspectRatio);
             }
             bingoControl1.Size = new Size(board_max_x, board_max_y);
+            _fontScaleFactor = board_max_x / 160.0f;
+            var f = new Font(_timerLabel.Font.FontFamily, 8f * _fontScaleFactor, FontStyle.Bold);
+            _timerLabel.Font = f;
+            updateScoreboardFont();
         }
 
         private void PopoutBoardForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -157,6 +186,8 @@ namespace EldenBingo.UI
                 _mouseHoverTimer.Dispose();
             }
             Properties.Settings.Default.PropertyChanged -= default_PropertyChanged;
+            if (_client != null)
+                disconnectClientListeners(_client);
         }
 
         private void _button_MouseUp(object sender, MouseEventArgs e)
@@ -213,7 +244,7 @@ namespace EldenBingo.UI
         {
             void update()
             {
-                var font = MainForm.GetFontFromSettings(scoreboardControl1.Font, 11f);
+                var font = MainForm.GetFontFromSettings(scoreboardControl1.Font, 4f * _fontScaleFactor);
                 if (font != scoreboardControl1.Font)
                 {
                     scoreboardControl1.Font = font;
@@ -240,6 +271,11 @@ namespace EldenBingo.UI
                 return;
             }
             update();
+        }
+
+        internal void SetScoreboardFromScoreboard(ScoreboardControl scoreboard)
+        {
+            scoreboardControl1.CopyFromScoreboard(scoreboard);
         }
     }
 }

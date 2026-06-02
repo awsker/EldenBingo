@@ -16,6 +16,7 @@ namespace EldenBingo.UI
         private const float BingoAnimationTimerMax = 3.0f;
         private const int AnimationFPS = 30;
 
+        public GridControl Grid => _gridControl;
         private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
         private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
         private BoardStatusEnum _boardStatus;
@@ -491,6 +492,8 @@ namespace EldenBingo.UI
             void update()
             {
                 initSquareControls(0);
+                _boardStatusLabel.Text = string.Empty;
+                _boardStatusLabel.Visible = true;
                 Invalidate();
             }
             if (InvokeRequired)

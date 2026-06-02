@@ -75,6 +75,7 @@ namespace EldenBingo.UI
             _popout.Show();
             // Disconnect the key bindings for the regular bingo control. Only the popup control will read keys as long as its open
             _bingoControl.DisconnectClickHotkey();
+            _popout.SetScoreboardFromScoreboard(_scoreboardControl);
         }
 
         protected override void AddClientListeners()
