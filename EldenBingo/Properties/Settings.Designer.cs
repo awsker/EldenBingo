@@ -742,5 +742,65 @@ namespace EldenBingo.Properties {
                 this["SnipeSoundEnabled"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int PopoutLocationX {
+            get {
+                return ((int)(this["PopoutLocationX"]));
+            }
+            set {
+                this["PopoutLocationX"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int PopoutLocationY {
+            get {
+                return ((int)(this["PopoutLocationY"]));
+            }
+            set {
+                this["PopoutLocationY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int PopoutSizeX {
+            get {
+                return ((int)(this["PopoutSizeX"]));
+            }
+            set {
+                this["PopoutSizeX"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int PopoutSizeY {
+            get {
+                return ((int)(this["PopoutSizeY"]));
+            }
+            set {
+                this["PopoutSizeY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public float PopoutOpacity {
+            get {
+                return ((float)(this["PopoutOpacity"]));
+            }
+            set {
+                this["PopoutOpacity"] = value;
+            }
+        }
     }
 }

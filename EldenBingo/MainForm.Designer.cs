@@ -45,6 +45,7 @@
             _changeTeamButton = new ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
             _openMapButton = new ToolStripButton();
+            _openExternalBoardToolStripButton = new ToolStripButton();
             toolStripSeparator3 = new ToolStripSeparator();
             _settingsButton = new ToolStripButton();
             _startGameButton = new ToolStripButton();
@@ -68,7 +69,7 @@
             tabControl1.Controls.Add(_consolePage);
             tabControl1.Controls.Add(_lobbyPage);
             tabControl1.Dock = DockStyle.Fill;
-            tabControl1.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
+            tabControl1.Font = new Font("Segoe UI", 11.25F);
             tabControl1.Location = new Point(0, 70);
             tabControl1.Multiline = true;
             tabControl1.Name = "tabControl1";
@@ -119,7 +120,7 @@
             // 
             _processMonitorStatusTextBox.BackColor = SystemColors.Control;
             _processMonitorStatusTextBox.Dock = DockStyle.Right;
-            _processMonitorStatusTextBox.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
+            _processMonitorStatusTextBox.Font = new Font("Segoe UI", 11.25F);
             _processMonitorStatusTextBox.Location = new Point(753, 0);
             _processMonitorStatusTextBox.Name = "_processMonitorStatusTextBox";
             _processMonitorStatusTextBox.ReadOnly = true;
@@ -131,7 +132,7 @@
             // 
             toolStrip1.AutoSize = false;
             toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
-            toolStrip1.Items.AddRange(new ToolStripItem[] { _connectButton, _disconnectButton, toolStripSeparator1, _createLobbyButton, _joinLobbyButton, _leaveRoomButton, _changeTeamButton, toolStripSeparator2, _openMapButton, toolStripSeparator3, _settingsButton, _startGameButton });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { _connectButton, _disconnectButton, toolStripSeparator1, _createLobbyButton, _joinLobbyButton, _leaveRoomButton, _changeTeamButton, toolStripSeparator2, _openMapButton, _openExternalBoardToolStripButton, toolStripSeparator3, _settingsButton, _startGameButton });
             toolStrip1.Location = new Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(947, 70);
@@ -233,6 +234,18 @@
             _openMapButton.ToolTipText = "Open Map";
             _openMapButton.Click += _openMapButton_Click;
             // 
+            // _openExternalBoardToolStripButton
+            // 
+            _openExternalBoardToolStripButton.Image = (Image)resources.GetObject("_openExternalBoardToolStripButton.Image");
+            _openExternalBoardToolStripButton.ImageScaling = ToolStripItemImageScaling.None;
+            _openExternalBoardToolStripButton.ImageTransparentColor = Color.Magenta;
+            _openExternalBoardToolStripButton.Name = "_openExternalBoardToolStripButton";
+            _openExternalBoardToolStripButton.Size = new Size(91, 67);
+            _openExternalBoardToolStripButton.Text = "Pop-Out Board";
+            _openExternalBoardToolStripButton.TextAlign = ContentAlignment.BottomCenter;
+            _openExternalBoardToolStripButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            _openExternalBoardToolStripButton.Click += _openExternalBoardToolStripButton_Click;
+            // 
             // toolStripSeparator3
             // 
             toolStripSeparator3.Name = "toolStripSeparator3";
@@ -282,7 +295,7 @@
             _usersListBox.BackColor = SystemColors.ControlDark;
             _usersListBox.Dock = DockStyle.Fill;
             _usersListBox.DrawMode = DrawMode.OwnerDrawFixed;
-            _usersListBox.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
+            _usersListBox.Font = new Font("Segoe UI", 11.25F);
             _usersListBox.FormattingEnabled = true;
             _usersListBox.IntegralHeight = false;
             _usersListBox.ItemHeight = 20;
@@ -305,7 +318,7 @@
             // 
             _clientStatusTextBox.BackColor = SystemColors.Control;
             _clientStatusTextBox.Dock = DockStyle.Fill;
-            _clientStatusTextBox.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
+            _clientStatusTextBox.Font = new Font("Segoe UI", 11.25F);
             _clientStatusTextBox.Location = new Point(0, 0);
             _clientStatusTextBox.Name = "_clientStatusTextBox";
             _clientStatusTextBox.ReadOnly = true;
@@ -365,5 +378,6 @@
         private ToolStripButton _openMapButton;
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripButton _changeTeamButton;
+        private ToolStripButton _openExternalBoardToolStripButton;
     }
 }

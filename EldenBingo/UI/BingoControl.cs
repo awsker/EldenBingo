@@ -43,6 +43,11 @@ namespace EldenBingo.UI
             Squares = new BingoSquareControl[0];
             initSquareControls(_size);
             Load += bingoControl_Load;
+            Disposed += (o, e) =>
+            {
+                DisconnectClickHotkey();
+                disconnectMouseWheel();
+            };
             SizeChanged += bingoControl_SizeChanged;
             _gridControl.SizeChanged += _gridControl_SizeChanged;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
@@ -298,7 +303,8 @@ namespace EldenBingo.UI
         {
             _gridControl.UpdateGrid();
             recalculateFontSizeForSquares();
-            setupClickHotkey();
+            ConnectClickHotkey();
+            connectMouseWheel();
         }
 
         private async void keyPressed(object? sender, KeyEventArgs e)
@@ -526,13 +532,39 @@ namespace EldenBingo.UI
             }
         }
 
-        private void setupClickHotkey()
+        private void connectMouseWheel()
+        {
+            var mainForm = MainForm.GetMainForm(this);
+            if (mainForm != null)
+            {
+                mainForm.RawInput.MouseWheel += mouseWheel;
+            }
+        }
+
+        private void disconnectMouseWheel()
+        {
+            var mainForm = MainForm.GetMainForm(this);
+            if (mainForm != null)
+            {
+                mainForm.RawInput.MouseWheel -= mouseWheel;
+            }
+        }
+
+        public void ConnectClickHotkey()
         {
             var mainForm = MainForm.GetMainForm(this);
             if (mainForm != null)
             {                
                 mainForm.RawInput.KeyPressed += keyPressed;
-                mainForm.RawInput.MouseWheel += mouseWheel;
+            }
+        }
+
+        public void DisconnectClickHotkey()
+        {
+            var mainForm = MainForm.GetMainForm(this);
+            if (mainForm != null)
+            {
+                mainForm.RawInput.KeyPressed -= keyPressed;
             }
         }
 

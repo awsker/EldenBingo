@@ -19,6 +19,7 @@ namespace EldenBingo
 {
     public partial class MainForm : Form
     {
+        public static MainForm? Instance { get; private set; }
         private static object _connectLock = new object();
         private readonly Client _client;
         private readonly GameProcessHandler _processHandler;
@@ -80,8 +81,6 @@ namespace EldenBingo
             addVersionToTitle();
         }
 
-        public static MainForm? Instance { get; private set; }
-
         public RawInputHandler RawInput => _rawInput;
 
         public SoundLibrary SoundPlayer => _sounds;
@@ -112,6 +111,10 @@ namespace EldenBingo
 
         public static MainForm? GetMainForm(Control control)
         {
+            if (Instance != null)
+            {
+                return Instance;
+            }
             Control parent = control;
             while (parent.Parent != null)
             {
@@ -376,7 +379,7 @@ namespace EldenBingo
 
             client.Connected += client_Connected;
             client.Disconnected += client_Disconnected;
-            
+
             client.Kicked += client_Kicked;
             client.OnStatus += client_OnStatus;
             client.OnError += client_OnError;
@@ -770,7 +773,7 @@ namespace EldenBingo
                     }
                     _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
                     _mapWindow.Start();
-                } 
+                }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Error in map thread: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -890,6 +893,11 @@ namespace EldenBingo
                 _leaveRoomButton.Enabled = connected;
                 _changeTeamButton.Enabled = connected;
             }));
+        }
+
+        private void _openExternalBoardToolStripButton_Click(object sender, EventArgs e)
+        {
+            _lobbyControl.OpenPopoutForm();
         }
     }
 }

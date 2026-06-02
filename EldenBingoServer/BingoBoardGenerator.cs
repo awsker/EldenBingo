@@ -224,7 +224,7 @@ namespace EldenBingoServer
                     text = text.Replace($"%{kv.Key}%", pickOneAtRandom(kv.Value));
                 }
             }
-            return text;
+            return text.Trim();
         }
 
         private T pickOneAtRandom<T>(IList<T> items)
