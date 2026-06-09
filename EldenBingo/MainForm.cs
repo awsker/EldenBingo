@@ -97,7 +97,8 @@ namespace EldenBingo
                 {
                     Font? font;
                     var ff2 = new FontFamily(ffName);
-                    font = new Font(ff2, size * scale, (FontStyle)Properties.Settings.Default.BingoFontStyle);
+                    var emSize = Math.Max(0.01f, size * scale);
+                    font = new Font(ff2, emSize, (FontStyle)Properties.Settings.Default.BingoFontStyle);
                     if (font.Name == ffName)
                         return font;
                 }
@@ -747,30 +748,36 @@ namespace EldenBingo
 
             _mapWindowThread = new Thread(() =>
             {
-                Vector2u windowSize;
+                Size windowSize;
                 try
                 {
                     if (Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowWidth >= 0 && Properties.Settings.Default.MapWindowHeight >= 0)
                     {
-                        windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowWidth, (uint)Properties.Settings.Default.MapWindowHeight);
+                        windowSize = new Size(Properties.Settings.Default.MapWindowWidth, Properties.Settings.Default.MapWindowHeight);
                     }
                     else if (!Properties.Settings.Default.MapWindowCustomSize && Properties.Settings.Default.MapWindowLastWidth >= 0 && Properties.Settings.Default.MapWindowLastHeight >= 0)
                     {
-                        windowSize = new Vector2u((uint)Properties.Settings.Default.MapWindowLastWidth, (uint)Properties.Settings.Default.MapWindowLastHeight);
+                        windowSize = new Size(Properties.Settings.Default.MapWindowLastWidth, Properties.Settings.Default.MapWindowLastHeight);
                     }
                     else
                     {
-                        windowSize = new Vector2u(500, 500);
+                        windowSize = new Size(500, 500);
                     }
-                    _mapWindow = new MapWindow(windowSize.X, windowSize.Y);
+                    
+                    Point mapLocation;
                     if (Properties.Settings.Default.MapWindowCustomPosition && Properties.Settings.Default.MapWindowX >= 0 && Properties.Settings.Default.MapWindowY >= 0)
                     {
-                        _mapWindow.Position = new Vector2i(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
+                        mapLocation = new Point(Properties.Settings.Default.MapWindowX, Properties.Settings.Default.MapWindowY);
                     }
                     else
                     {
-                        _mapWindow.Position = new Vector2i(Left + Width, Top);
+                        mapLocation = new Point(Left + Width, Top);
                     }
+                    var offsets = WindowHelper.GetLocationAndSizeOffsets(mapLocation, windowSize, false, 24);
+                    mapLocation.Offset(offsets.Item1);
+                    windowSize = new Size(windowSize.Width + offsets.Item2.X, windowSize.Height + offsets.Item2.Y);
+                    _mapWindow = new MapWindow((uint)windowSize.Width, (uint)windowSize.Height);
+                    _mapWindow.Position = new Vector2i(mapLocation.X, mapLocation.Y);
                     _mapCoordinateProviderHandler = new MapCoordinateProviderHandler(_mapWindow, _processHandler, _client);
                     _mapWindow.Start();
                 }

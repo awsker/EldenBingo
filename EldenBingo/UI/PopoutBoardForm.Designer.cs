@@ -173,7 +173,7 @@
             // PopoutBoardForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = AutoScaleMode.None;
             ClientSize = new Size(346, 411);
             Controls.Add(tableLayoutPanel1);
             Controls.Add(bingoControl1);
