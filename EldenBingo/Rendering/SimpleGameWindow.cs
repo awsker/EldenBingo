@@ -18,7 +18,7 @@ namespace EldenBingo.Rendering
         private object _lock = new object();
 
         public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) :
-            base(new SFML.Window.VideoMode(width, height), title, styles)
+            base(new SFML.Window.VideoMode(width, height), title, styles, new SFML.Window.ContextSettings() { MajorVersion = 1, MinorVersion = 3, AttributeFlags = SFML.Window.ContextSettings.Attribute.Default})
         {
             SetVerticalSyncEnabled(true);
             SetFramerateLimit(60);
