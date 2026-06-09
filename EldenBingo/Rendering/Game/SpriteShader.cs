@@ -4,21 +4,23 @@ namespace EldenBingo.Rendering.Game
 {
     public static class SpriteShader
     {
-        private const string fragmentShader = @"uniform sampler2D texture;
+        private const string fragmentShader = @"#version 130
+uniform sampler2D tex;
 uniform float alpha;
 uniform vec4 tint;
 
 void main()
 {
     // lookup the pixel in the texture
-    vec4 pixel = texture2D(texture, gl_TexCoord[0].xy) * (tint/255f);
+    vec4 pixel = texture2D(tex, gl_TexCoord[0].xy) * (tint/255f);
     pixel.a *= alpha;
 
     // multiply it by the color
     gl_FragColor = gl_Color * pixel;
 }";
 
-        private const string vertexShader = @"void main()
+        private const string vertexShader = @"#version 130
+void main()
 {
     // transform the vertex position
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
@@ -32,7 +34,14 @@ void main()
 
         public static Shader Create()
         {
-            return Shader.FromString(vertexShader, null, fragmentShader);
+            try
+            {
+                return Shader.FromString(vertexShader, null, fragmentShader);
+            } 
+            catch (Exception ex)
+            {
+                throw new Exception("Error creating sprite shader: " + ex.Message);
+            }
         }
     }
 }

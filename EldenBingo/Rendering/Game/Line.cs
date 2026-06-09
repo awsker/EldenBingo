@@ -5,7 +5,7 @@ namespace EldenBingo.Rendering.Game
 {
     public class Line : Transformable, IDrawable
     {
-        private const string vertexShader = @"
+        private const string vertexShader = @"#version 130
 uniform float linewidth;
 void main()
 {
@@ -19,12 +19,12 @@ void main()
     gl_FrontColor = gl_Color;
 }";
 
-        private const string fragmentShader = @"
+        private const string fragmentShader = @"#version 130
 uniform vec4 tint;
 void main()
 {
     vec4 color = gl_Color;
-    color.a *= min(1f, (1f - length(gl_TexCoord[0].xy)) * 5);
+    color.a *= min(1.0, (1.0 - length(gl_TexCoord[0].xy)) * 5.0);
     gl_FragColor = color * tint;
 }";
 
@@ -38,7 +38,13 @@ void main()
 
         static Line()
         {
-            _shader = Shader.FromString(vertexShader, null, fragmentShader);
+            try
+            {
+                _shader = Shader.FromString(vertexShader, null, fragmentShader);
+            } catch(Exception ex)
+            {
+                throw new Exception("Error creating line shader: " + ex.Message);
+            }
         }
 
         public Line(System.Drawing.Color color, Vector2f start)
