@@ -1,7 +1,6 @@
 ﻿using EldenBingo.Settings;
 using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Windows.Forms;
 
 namespace EldenBingo.UI
 {
@@ -9,6 +8,7 @@ namespace EldenBingo.UI
     {
         private string? _currentFile;
         private BindingList<KeywordColor> _colors;
+        private const string CustomColorDelimiter = ",";
 
         public KeywordColorsEditorForm()
         {
@@ -42,14 +42,32 @@ namespace EldenBingo.UI
             if (e.ColumnIndex == 1 && e.RowIndex >= 0 && e.RowIndex < _colors.Count)
             {
                 var dialog = new ColorDialog();
+                dialog.CustomColors = stringToIntArray(Properties.Settings.Default.CustomColors);
                 dialog.Color = _colors[e.RowIndex].Color;
                 if (dialog.ShowDialog(this) == DialogResult.OK)
                 {
                     _colors[e.RowIndex].Color = dialog.Color;
                 }
+                Properties.Settings.Default.CustomColors = intArrayToString(dialog.CustomColors);
             }
-
         }
+
+        private string intArrayToString(int[] colors)
+        {
+            return string.Join(CustomColorDelimiter, colors);
+        }
+
+        private int[] stringToIntArray(string str)
+        {
+            var l = new List<int>();
+            foreach(var token in str.Split(CustomColorDelimiter))
+            {
+                if (int.TryParse((string)token, out var c))
+                    l.Add(c);
+            }
+            return l.ToArray();
+        }
+
         private void updateButtonsAvailability()
         {
             var selectedRows = dataGridView1.SelectedRows;
