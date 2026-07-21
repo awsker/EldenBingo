@@ -335,6 +335,7 @@
             Controls.Add(splitContainer1);
             Controls.Add(panel1);
             Controls.Add(toolStrip1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MinimumSize = new Size(954, 572);
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;

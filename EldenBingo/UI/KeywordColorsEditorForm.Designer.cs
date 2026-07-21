@@ -116,7 +116,6 @@
             dataGridView1.Location = new Point(0, 25);
             dataGridView1.MultiSelect = false;
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.RowTemplate.Height = 25;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.ShowCellErrors = false;
             dataGridView1.ShowCellToolTips = false;
@@ -175,7 +174,7 @@
             // _moveUpButton
             // 
             _moveUpButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            _moveUpButton.Image = Properties.Resources.Up;
+            _moveUpButton.Image = (Image)resources.GetObject("_moveUpButton.Image");
             _moveUpButton.Location = new Point(5, 85);
             _moveUpButton.Name = "_moveUpButton";
             _moveUpButton.Size = new Size(34, 34);
@@ -187,7 +186,7 @@
             // _removeButton
             // 
             _removeButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            _removeButton.Image = Properties.Resources.Delete;
+            _removeButton.Image = (Image)resources.GetObject("_removeButton.Image");
             _removeButton.Location = new Point(5, 39);
             _removeButton.Name = "_removeButton";
             _removeButton.Size = new Size(34, 34);

@@ -39,7 +39,6 @@ namespace EldenBingo
         public MainForm()
         {
             InitializeComponent();
-            Icon = Resources.icon;
             _processHandler = new GameProcessHandler();
             _processHandler.StatusChanged += _processHandler_StatusChanged;
             _processHandler.CoordinatesChanged += _processHandler_CoordinatesChanged;
