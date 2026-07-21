@@ -9,11 +9,13 @@ namespace EldenBingo.Util
         private const int RID_INPUT = 0x10000003;
         private const int WM_INPUT = 0x00FF;
 
-        private HashSet<ushort> _heldKeys;
+        private HashSet<uint> _heldKeys;
+
+        public bool Enabled { get; set; } = true;
 
         public RawInputHandler(IntPtr hwnd)
         {
-            _heldKeys = new HashSet<ushort>();
+            _heldKeys = new HashSet<uint>();
 
             RAWINPUTDEVICE[] rid = new RAWINPUTDEVICE[2];
             rid[0].usUsagePage = 0x01; // Generic desktop controls
@@ -38,7 +40,7 @@ namespace EldenBingo.Util
 
         public void ProcessRawInput(Message message)
         {
-            if (message.Msg != WM_INPUT)
+            if (!Enabled || message.Msg != WM_INPUT)
             {
                 return;
             }
@@ -64,6 +66,7 @@ namespace EldenBingo.Util
 
                     case RIM_TYPEKEYBOARD:
                         var rawKeyboard = (RAWINPUTKEYBOARD)Marshal.PtrToStructure(buffer, typeof(RAWINPUTKEYBOARD));
+                        
                         if (rawKeyboard.keyboard.VKey == 0)
                             break;
                         bool pressed = (rawKeyboard.keyboard.Flags & 0x01) == 0;
@@ -73,7 +76,18 @@ namespace EldenBingo.Util
                             //so we don't get repeating keypressed events when key is held
                             if (!_heldKeys.Contains(rawKeyboard.keyboard.VKey))
                             {
-                                OnKeyPressed(new KeyEventArgs((Keys)rawKeyboard.keyboard.VKey));
+                                // Determine modifiers held: Shift, Control, Alt
+                                Keys modifiers = Keys.None;
+                                if (_heldKeys.Contains((int)Keys.ShiftKey))
+                                    modifiers |= Keys.Shift;
+                                if (_heldKeys.Contains((int)Keys.ControlKey))
+                                    modifiers |= Keys.Control;
+                                if (_heldKeys.Contains((int)Keys.Menu))
+                                    modifiers |= Keys.Alt;
+
+                                var keyWithModifiers = (Keys)rawKeyboard.keyboard.VKey | modifiers;
+
+                                OnKeyPressed(new KeyEventArgs(keyWithModifiers));
                                 _heldKeys.Add(rawKeyboard.keyboard.VKey);
                             }
                         }

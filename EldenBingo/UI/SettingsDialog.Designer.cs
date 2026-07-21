@@ -75,8 +75,6 @@
             _highlightMarkedCheckBox = new CheckBox();
             _shadowLabel = new Label();
             _shadowTrackBar = new TrackBar();
-            _outOfFocusClickTextBox = new TextBox();
-            label11 = new Label();
             groupBox8 = new GroupBox();
             _snipeCheckBox = new CheckBox();
             _testSoundButton = new Button();
@@ -90,15 +88,33 @@
             groupBox10 = new GroupBox();
             _checkUpdatesCheckBox = new CheckBox();
             tabPage2 = new TabPage();
-            groupBox11 = new GroupBox();
-            _arrowNavigationCheckBox = new CheckBox();
-            _numpadNavigationCheckBox = new CheckBox();
             groupBox9 = new GroupBox();
             panel2 = new Panel();
             label12 = new Label();
             _delayMatchEventsTextBox = new TextBox();
             label13 = new Label();
             tabPage3 = new TabPage();
+            tabPage4 = new TabPage();
+            groupBox12 = new GroupBox();
+            flowLayoutPanel1 = new FlowLayoutPanel();
+            _upBindingControl = new KeybindingControl();
+            _downBindingControl = new KeybindingControl();
+            _leftBindingControl = new KeybindingControl();
+            _rightBindingControl = new KeybindingControl();
+            _upLeftBindingControl = new KeybindingControl();
+            _upRightBindingControl = new KeybindingControl();
+            _downLeftBindingControl = new KeybindingControl();
+            _downRightBindingControl = new KeybindingControl();
+            _checkBindingControl = new KeybindingControl();
+            _starBindingControl = new KeybindingControl();
+            _countIncBindingControl = new KeybindingControl();
+            _countDecBindingControl = new KeybindingControl();
+            panel3 = new Panel();
+            label11 = new Label();
+            _shiftCheckBox = new CheckBox();
+            _controlCheckBox = new CheckBox();
+            _altCheckBox = new CheckBox();
+            label15 = new Label();
             panel1 = new Panel();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -115,20 +131,23 @@
             tabPage1.SuspendLayout();
             groupBox10.SuspendLayout();
             tabPage2.SuspendLayout();
-            groupBox11.SuspendLayout();
             groupBox9.SuspendLayout();
             panel2.SuspendLayout();
             tabPage3.SuspendLayout();
+            tabPage4.SuspendLayout();
+            groupBox12.SuspendLayout();
+            flowLayoutPanel1.SuspendLayout();
+            panel3.SuspendLayout();
             panel1.SuspendLayout();
             SuspendLayout();
             // 
             // _okButton
             // 
             _okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            _okButton.Location = new Point(361, 3);
+            _okButton.Location = new Point(360, 3);
             _okButton.Name = "_okButton";
             _okButton.Size = new Size(75, 23);
-            _okButton.TabIndex = 62;
+            _okButton.TabIndex = 76;
             _okButton.Text = "OK";
             _okButton.UseVisualStyleBackColor = true;
             _okButton.Click += _okButton_Click;
@@ -136,10 +155,10 @@
             // _cancelButton
             // 
             _cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            _cancelButton.Location = new Point(442, 3);
+            _cancelButton.Location = new Point(441, 3);
             _cancelButton.Name = "_cancelButton";
             _cancelButton.Size = new Size(75, 23);
-            _cancelButton.TabIndex = 63;
+            _cancelButton.TabIndex = 77;
             _cancelButton.Text = "Cancel";
             _cancelButton.UseVisualStyleBackColor = true;
             _cancelButton.Click += _cancelButton_Click;
@@ -155,7 +174,7 @@
             groupBox1.Location = new Point(8, 113);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(240, 107);
-            groupBox1.TabIndex = 53;
+            groupBox1.TabIndex = 48;
             groupBox1.TabStop = false;
             groupBox1.Text = "Map Initial Size";
             // 
@@ -164,7 +183,7 @@
             _mapSizeCustomYTextBox.Location = new Point(117, 74);
             _mapSizeCustomYTextBox.Name = "_mapSizeCustomYTextBox";
             _mapSizeCustomYTextBox.Size = new Size(54, 23);
-            _mapSizeCustomYTextBox.TabIndex = 59;
+            _mapSizeCustomYTextBox.TabIndex = 54;
             // 
             // label2
             // 
@@ -172,7 +191,7 @@
             label2.Location = new Point(94, 77);
             label2.Name = "label2";
             label2.Size = new Size(17, 15);
-            label2.TabIndex = 58;
+            label2.TabIndex = 53;
             label2.Text = "Y:";
             // 
             // _mapSizeCustomRadioButton
@@ -181,7 +200,7 @@
             _mapSizeCustomRadioButton.Location = new Point(9, 46);
             _mapSizeCustomRadioButton.Name = "_mapSizeCustomRadioButton";
             _mapSizeCustomRadioButton.Size = new Size(90, 19);
-            _mapSizeCustomRadioButton.TabIndex = 55;
+            _mapSizeCustomRadioButton.TabIndex = 50;
             _mapSizeCustomRadioButton.TabStop = true;
             _mapSizeCustomRadioButton.Text = "Custom Size";
             _mapSizeCustomRadioButton.UseVisualStyleBackColor = true;
@@ -192,7 +211,7 @@
             _mapSizeRememberLastRadioButton.Location = new Point(9, 22);
             _mapSizeRememberLastRadioButton.Name = "_mapSizeRememberLastRadioButton";
             _mapSizeRememberLastRadioButton.Size = new Size(130, 19);
-            _mapSizeRememberLastRadioButton.TabIndex = 54;
+            _mapSizeRememberLastRadioButton.TabIndex = 49;
             _mapSizeRememberLastRadioButton.TabStop = true;
             _mapSizeRememberLastRadioButton.Text = "Remember Last Size";
             _mapSizeRememberLastRadioButton.UseVisualStyleBackColor = true;
@@ -202,7 +221,7 @@
             _mapSizeCustomXTextBox.Location = new Point(30, 74);
             _mapSizeCustomXTextBox.Name = "_mapSizeCustomXTextBox";
             _mapSizeCustomXTextBox.Size = new Size(54, 23);
-            _mapSizeCustomXTextBox.TabIndex = 57;
+            _mapSizeCustomXTextBox.TabIndex = 52;
             // 
             // label1
             // 
@@ -210,7 +229,7 @@
             label1.Location = new Point(7, 77);
             label1.Name = "label1";
             label1.Size = new Size(17, 15);
-            label1.TabIndex = 56;
+            label1.TabIndex = 51;
             label1.Text = "X:";
             // 
             // groupBox2
@@ -354,7 +373,7 @@
             groupBox4.Location = new Point(8, 6);
             groupBox4.Name = "groupBox4";
             groupBox4.Size = new Size(240, 107);
-            groupBox4.TabIndex = 46;
+            groupBox4.TabIndex = 41;
             groupBox4.TabStop = false;
             groupBox4.Text = "Map Initial Position";
             // 
@@ -363,7 +382,7 @@
             _mapPositionYTextBox.Location = new Point(117, 72);
             _mapPositionYTextBox.Name = "_mapPositionYTextBox";
             _mapPositionYTextBox.Size = new Size(54, 23);
-            _mapPositionYTextBox.TabIndex = 52;
+            _mapPositionYTextBox.TabIndex = 47;
             // 
             // label6
             // 
@@ -371,7 +390,7 @@
             label6.Location = new Point(94, 75);
             label6.Name = "label6";
             label6.Size = new Size(17, 15);
-            label6.TabIndex = 51;
+            label6.TabIndex = 46;
             label6.Text = "Y:";
             // 
             // _mapPositionCustomRadioButton
@@ -380,7 +399,7 @@
             _mapPositionCustomRadioButton.Location = new Point(9, 46);
             _mapPositionCustomRadioButton.Name = "_mapPositionCustomRadioButton";
             _mapPositionCustomRadioButton.Size = new Size(113, 19);
-            _mapPositionCustomRadioButton.TabIndex = 48;
+            _mapPositionCustomRadioButton.TabIndex = 43;
             _mapPositionCustomRadioButton.TabStop = true;
             _mapPositionCustomRadioButton.Text = "Custom Position";
             _mapPositionCustomRadioButton.UseVisualStyleBackColor = true;
@@ -391,7 +410,7 @@
             _mapPositionRelativeRadioButton.Location = new Point(9, 22);
             _mapPositionRelativeRadioButton.Name = "_mapPositionRelativeRadioButton";
             _mapPositionRelativeRadioButton.Size = new Size(127, 19);
-            _mapPositionRelativeRadioButton.TabIndex = 47;
+            _mapPositionRelativeRadioButton.TabIndex = 42;
             _mapPositionRelativeRadioButton.TabStop = true;
             _mapPositionRelativeRadioButton.Text = "Relative to Window";
             _mapPositionRelativeRadioButton.UseVisualStyleBackColor = true;
@@ -401,7 +420,7 @@
             _mapPositionXTextBox.Location = new Point(30, 72);
             _mapPositionXTextBox.Name = "_mapPositionXTextBox";
             _mapPositionXTextBox.Size = new Size(54, 23);
-            _mapPositionXTextBox.TabIndex = 50;
+            _mapPositionXTextBox.TabIndex = 45;
             // 
             // label7
             // 
@@ -409,7 +428,7 @@
             label7.Location = new Point(7, 75);
             label7.Name = "label7";
             label7.Size = new Size(17, 15);
-            label7.TabIndex = 49;
+            label7.TabIndex = 44;
             label7.Text = "X:";
             // 
             // groupBox5
@@ -457,7 +476,7 @@
             groupBox6.Location = new Point(8, 226);
             groupBox6.Name = "groupBox6";
             groupBox6.Size = new Size(240, 114);
-            groupBox6.TabIndex = 60;
+            groupBox6.TabIndex = 55;
             groupBox6.TabStop = false;
             groupBox6.Text = "Misc.";
             // 
@@ -466,7 +485,7 @@
             _showClassesCheckBox.Location = new Point(9, 65);
             _showClassesCheckBox.Name = "_showClassesCheckBox";
             _showClassesCheckBox.Size = new Size(218, 41);
-            _showClassesCheckBox.TabIndex = 62;
+            _showClassesCheckBox.TabIndex = 57;
             _showClassesCheckBox.Text = "Show available classes in an overlay on the map (for streaming)";
             _showClassesCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -475,7 +494,7 @@
             _swapMouseButtons.Location = new Point(9, 19);
             _swapMouseButtons.Name = "_swapMouseButtons";
             _swapMouseButtons.Size = new Size(218, 40);
-            _swapMouseButtons.TabIndex = 61;
+            _swapMouseButtons.TabIndex = 56;
             _swapMouseButtons.Text = "Swap mouse buttons***(Left = Draw, Right = Pan)";
             _swapMouseButtons.UseVisualStyleBackColor = true;
             // 
@@ -584,26 +603,6 @@
             _shadowTrackBar.Size = new Size(228, 35);
             _shadowTrackBar.TabIndex = 22;
             // 
-            // _outOfFocusClickTextBox
-            // 
-            _outOfFocusClickTextBox.Location = new Point(7, 43);
-            _outOfFocusClickTextBox.Name = "_outOfFocusClickTextBox";
-            _outOfFocusClickTextBox.ReadOnly = true;
-            _outOfFocusClickTextBox.Size = new Size(105, 23);
-            _outOfFocusClickTextBox.TabIndex = 43;
-            _outOfFocusClickTextBox.Enter += _outOfFocusClickTextBox_Enter;
-            _outOfFocusClickTextBox.KeyDown += _outOfFocusClickTextBox_KeyDown;
-            _outOfFocusClickTextBox.Leave += _outOfFocusClickTextBox_Leave;
-            // 
-            // label11
-            // 
-            label11.AutoSize = true;
-            label11.Location = new Point(6, 19);
-            label11.Name = "label11";
-            label11.Size = new Size(189, 15);
-            label11.TabIndex = 42;
-            label11.Text = "Out-of-focus click key (Keyboard):";
-            // 
             // groupBox8
             // 
             groupBox8.Controls.Add(_snipeCheckBox);
@@ -689,12 +688,14 @@
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
             tabControl1.Controls.Add(tabPage3);
+            tabControl1.Controls.Add(tabPage4);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(521, 396);
+            tabControl1.Size = new Size(520, 408);
             tabControl1.TabIndex = 34;
+            tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
             // 
             // tabPage1
             // 
@@ -706,7 +707,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(513, 368);
+            tabPage1.Size = new Size(512, 380);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "General";
             // 
@@ -733,49 +734,15 @@
             // tabPage2
             // 
             tabPage2.BackColor = SystemColors.Control;
-            tabPage2.Controls.Add(groupBox11);
             tabPage2.Controls.Add(groupBox9);
             tabPage2.Controls.Add(groupBox2);
             tabPage2.Controls.Add(groupBox7);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(513, 368);
+            tabPage2.Size = new Size(512, 380);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Bingo Board";
-            // 
-            // groupBox11
-            // 
-            groupBox11.Controls.Add(_arrowNavigationCheckBox);
-            groupBox11.Controls.Add(_numpadNavigationCheckBox);
-            groupBox11.Controls.Add(_outOfFocusClickTextBox);
-            groupBox11.Controls.Add(label11);
-            groupBox11.Location = new Point(257, 232);
-            groupBox11.Name = "groupBox11";
-            groupBox11.Size = new Size(240, 130);
-            groupBox11.TabIndex = 41;
-            groupBox11.TabStop = false;
-            groupBox11.Text = "Hotkey";
-            // 
-            // _arrowNavigationCheckBox
-            // 
-            _arrowNavigationCheckBox.AutoSize = true;
-            _arrowNavigationCheckBox.Location = new Point(9, 102);
-            _arrowNavigationCheckBox.Name = "_arrowNavigationCheckBox";
-            _arrowNavigationCheckBox.Size = new Size(119, 19);
-            _arrowNavigationCheckBox.TabIndex = 45;
-            _arrowNavigationCheckBox.Text = "Arrow Navigation";
-            _arrowNavigationCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // _numpadNavigationCheckBox
-            // 
-            _numpadNavigationCheckBox.AutoSize = true;
-            _numpadNavigationCheckBox.Location = new Point(9, 76);
-            _numpadNavigationCheckBox.Name = "_numpadNavigationCheckBox";
-            _numpadNavigationCheckBox.Size = new Size(134, 19);
-            _numpadNavigationCheckBox.TabIndex = 44;
-            _numpadNavigationCheckBox.Text = "Numpad Navigation";
-            _numpadNavigationCheckBox.UseVisualStyleBackColor = true;
             // 
             // groupBox9
             // 
@@ -833,18 +800,243 @@
             tabPage3.Controls.Add(groupBox6);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(513, 368);
+            tabPage3.Size = new Size(512, 380);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Map";
+            // 
+            // tabPage4
+            // 
+            tabPage4.BackColor = SystemColors.Control;
+            tabPage4.Controls.Add(groupBox12);
+            tabPage4.Location = new Point(4, 24);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Padding = new Padding(6, 6, 0, 0);
+            tabPage4.Size = new Size(512, 380);
+            tabPage4.TabIndex = 3;
+            tabPage4.Text = "Hotkeys";
+            // 
+            // groupBox12
+            // 
+            groupBox12.Controls.Add(flowLayoutPanel1);
+            groupBox12.Dock = DockStyle.Fill;
+            groupBox12.Location = new Point(6, 6);
+            groupBox12.Name = "groupBox12";
+            groupBox12.Size = new Size(506, 374);
+            groupBox12.TabIndex = 58;
+            groupBox12.TabStop = false;
+            groupBox12.Text = "Bingo Board Hotkeys";
+            // 
+            // flowLayoutPanel1
+            // 
+            flowLayoutPanel1.Controls.Add(_upBindingControl);
+            flowLayoutPanel1.Controls.Add(_downBindingControl);
+            flowLayoutPanel1.Controls.Add(_leftBindingControl);
+            flowLayoutPanel1.Controls.Add(_rightBindingControl);
+            flowLayoutPanel1.Controls.Add(_upLeftBindingControl);
+            flowLayoutPanel1.Controls.Add(_upRightBindingControl);
+            flowLayoutPanel1.Controls.Add(_downLeftBindingControl);
+            flowLayoutPanel1.Controls.Add(_downRightBindingControl);
+            flowLayoutPanel1.Controls.Add(_checkBindingControl);
+            flowLayoutPanel1.Controls.Add(_starBindingControl);
+            flowLayoutPanel1.Controls.Add(_countIncBindingControl);
+            flowLayoutPanel1.Controls.Add(_countDecBindingControl);
+            flowLayoutPanel1.Controls.Add(panel3);
+            flowLayoutPanel1.Controls.Add(label15);
+            flowLayoutPanel1.Dock = DockStyle.Fill;
+            flowLayoutPanel1.FlowDirection = FlowDirection.TopDown;
+            flowLayoutPanel1.Location = new Point(3, 19);
+            flowLayoutPanel1.Name = "flowLayoutPanel1";
+            flowLayoutPanel1.Size = new Size(500, 352);
+            flowLayoutPanel1.TabIndex = 2;
+            // 
+            // _upBindingControl
+            // 
+            _upBindingControl.DisplayName = "↑ Up";
+            _upBindingControl.Key = Keys.None;
+            _upBindingControl.Location = new Point(3, 3);
+            _upBindingControl.Name = "_upBindingControl";
+            _upBindingControl.Size = new Size(250, 23);
+            _upBindingControl.TabIndex = 59;
+            _upBindingControl.ValueName = "Hotkey_Up";
+            // 
+            // _downBindingControl
+            // 
+            _downBindingControl.DisplayName = "↓ Down";
+            _downBindingControl.Key = Keys.None;
+            _downBindingControl.Location = new Point(3, 32);
+            _downBindingControl.Name = "_downBindingControl";
+            _downBindingControl.Size = new Size(250, 23);
+            _downBindingControl.TabIndex = 60;
+            _downBindingControl.ValueName = "Hotkey_Down";
+            // 
+            // _leftBindingControl
+            // 
+            _leftBindingControl.DisplayName = "← Left";
+            _leftBindingControl.Key = Keys.None;
+            _leftBindingControl.Location = new Point(3, 61);
+            _leftBindingControl.Name = "_leftBindingControl";
+            _leftBindingControl.Size = new Size(250, 23);
+            _leftBindingControl.TabIndex = 61;
+            _leftBindingControl.ValueName = "Hotkey_Left";
+            // 
+            // _rightBindingControl
+            // 
+            _rightBindingControl.DisplayName = "→ Right";
+            _rightBindingControl.Key = Keys.None;
+            _rightBindingControl.Location = new Point(3, 90);
+            _rightBindingControl.Name = "_rightBindingControl";
+            _rightBindingControl.Size = new Size(250, 23);
+            _rightBindingControl.TabIndex = 62;
+            _rightBindingControl.ValueName = "Hotkey_Right";
+            // 
+            // _upLeftBindingControl
+            // 
+            _upLeftBindingControl.DisplayName = "↖️ Up Left";
+            _upLeftBindingControl.Key = Keys.None;
+            _upLeftBindingControl.Location = new Point(3, 119);
+            _upLeftBindingControl.Name = "_upLeftBindingControl";
+            _upLeftBindingControl.Size = new Size(250, 23);
+            _upLeftBindingControl.TabIndex = 63;
+            _upLeftBindingControl.ValueName = "Hotkey_UpLeft";
+            // 
+            // _upRightBindingControl
+            // 
+            _upRightBindingControl.DisplayName = "↗️ Up Right";
+            _upRightBindingControl.Key = Keys.None;
+            _upRightBindingControl.Location = new Point(3, 148);
+            _upRightBindingControl.Name = "_upRightBindingControl";
+            _upRightBindingControl.Size = new Size(250, 23);
+            _upRightBindingControl.TabIndex = 64;
+            _upRightBindingControl.ValueName = "Hotkey_UpRight";
+            // 
+            // _downLeftBindingControl
+            // 
+            _downLeftBindingControl.DisplayName = "↙️ Down Left";
+            _downLeftBindingControl.Key = Keys.None;
+            _downLeftBindingControl.Location = new Point(3, 177);
+            _downLeftBindingControl.Name = "_downLeftBindingControl";
+            _downLeftBindingControl.Size = new Size(250, 23);
+            _downLeftBindingControl.TabIndex = 65;
+            _downLeftBindingControl.ValueName = "Hotkey_DownLeft";
+            // 
+            // _downRightBindingControl
+            // 
+            _downRightBindingControl.DisplayName = "↘️ Down Right";
+            _downRightBindingControl.Key = Keys.None;
+            _downRightBindingControl.Location = new Point(3, 206);
+            _downRightBindingControl.Name = "_downRightBindingControl";
+            _downRightBindingControl.Size = new Size(250, 23);
+            _downRightBindingControl.TabIndex = 66;
+            _downRightBindingControl.ValueName = "Hotkey_DownRight";
+            // 
+            // _checkBindingControl
+            // 
+            _checkBindingControl.DisplayName = "✔️ Mark Square";
+            _checkBindingControl.Key = Keys.None;
+            _checkBindingControl.Location = new Point(3, 235);
+            _checkBindingControl.Name = "_checkBindingControl";
+            _checkBindingControl.Size = new Size(250, 23);
+            _checkBindingControl.TabIndex = 67;
+            _checkBindingControl.ValueName = "Hotkey_Check";
+            // 
+            // _starBindingControl
+            // 
+            _starBindingControl.DisplayName = "⭐ Star Square";
+            _starBindingControl.Key = Keys.None;
+            _starBindingControl.Location = new Point(3, 264);
+            _starBindingControl.Name = "_starBindingControl";
+            _starBindingControl.Size = new Size(250, 23);
+            _starBindingControl.TabIndex = 68;
+            _starBindingControl.ValueName = "Hotkey_Star";
+            // 
+            // _countIncBindingControl
+            // 
+            _countIncBindingControl.DisplayName = "➕ Increment Count";
+            _countIncBindingControl.Key = Keys.None;
+            _countIncBindingControl.Location = new Point(3, 293);
+            _countIncBindingControl.Name = "_countIncBindingControl";
+            _countIncBindingControl.Size = new Size(250, 23);
+            _countIncBindingControl.TabIndex = 69;
+            _countIncBindingControl.ValueName = "Hotkey_CountIncrease";
+            // 
+            // _countDecBindingControl
+            // 
+            _countDecBindingControl.DisplayName = "➖ Decrement Count";
+            _countDecBindingControl.Key = Keys.None;
+            _countDecBindingControl.Location = new Point(3, 322);
+            _countDecBindingControl.Name = "_countDecBindingControl";
+            _countDecBindingControl.Size = new Size(250, 23);
+            _countDecBindingControl.TabIndex = 70;
+            _countDecBindingControl.ValueName = "Hotkey_CountDecrease";
+            // 
+            // panel3
+            // 
+            panel3.Controls.Add(label11);
+            panel3.Controls.Add(_shiftCheckBox);
+            panel3.Controls.Add(_controlCheckBox);
+            panel3.Controls.Add(_altCheckBox);
+            panel3.Location = new Point(259, 3);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(235, 63);
+            panel3.TabIndex = 71;
+            // 
+            // label11
+            // 
+            label11.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            label11.Location = new Point(5, 4);
+            label11.Name = "label11";
+            label11.Size = new Size(227, 32);
+            label11.TabIndex = 71;
+            label11.Text = "Enable hotkeys only if these modifier keys are held:";
+            // 
+            // _shiftCheckBox
+            // 
+            _shiftCheckBox.AutoSize = true;
+            _shiftCheckBox.Location = new Point(10, 41);
+            _shiftCheckBox.Name = "_shiftCheckBox";
+            _shiftCheckBox.Size = new Size(50, 19);
+            _shiftCheckBox.TabIndex = 72;
+            _shiftCheckBox.Text = "Shift";
+            _shiftCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // _controlCheckBox
+            // 
+            _controlCheckBox.AutoSize = true;
+            _controlCheckBox.Location = new Point(77, 41);
+            _controlCheckBox.Name = "_controlCheckBox";
+            _controlCheckBox.Size = new Size(66, 19);
+            _controlCheckBox.TabIndex = 73;
+            _controlCheckBox.Text = "Control";
+            _controlCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // _altCheckBox
+            // 
+            _altCheckBox.AutoSize = true;
+            _altCheckBox.Location = new Point(157, 41);
+            _altCheckBox.Name = "_altCheckBox";
+            _altCheckBox.Size = new Size(64, 19);
+            _altCheckBox.TabIndex = 74;
+            _altCheckBox.Text = "Left Alt";
+            _altCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // label15
+            // 
+            label15.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            label15.Location = new Point(259, 69);
+            label15.Name = "label15";
+            label15.Padding = new Padding(2, 8, 0, 0);
+            label15.Size = new Size(235, 73);
+            label15.TabIndex = 75;
+            label15.Text = "Note: Mouse wheel is always bound to increment and decrement the counter for the hovered square";
             // 
             // panel1
             // 
             panel1.Controls.Add(_okButton);
             panel1.Controls.Add(_cancelButton);
             panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(0, 396);
+            panel1.Location = new Point(0, 408);
             panel1.Name = "panel1";
-            panel1.Size = new Size(521, 29);
+            panel1.Size = new Size(520, 29);
             panel1.TabIndex = 34;
             // 
             // SettingsDialog
@@ -853,7 +1045,7 @@
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             CancelButton = _cancelButton;
-            ClientSize = new Size(521, 425);
+            ClientSize = new Size(520, 437);
             Controls.Add(tabControl1);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -862,6 +1054,7 @@
             Name = "SettingsDialog";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Settings";
+            FormClosed += SettingsDialog_FormClosed;
             Load += SettingsDialog_Load;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
@@ -886,12 +1079,15 @@
             groupBox10.ResumeLayout(false);
             groupBox10.PerformLayout();
             tabPage2.ResumeLayout(false);
-            groupBox11.ResumeLayout(false);
-            groupBox11.PerformLayout();
             groupBox9.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             tabPage3.ResumeLayout(false);
+            tabPage4.ResumeLayout(false);
+            groupBox12.ResumeLayout(false);
+            flowLayoutPanel1.ResumeLayout(false);
+            panel3.ResumeLayout(false);
+            panel3.PerformLayout();
             panel1.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -939,8 +1135,6 @@
         private CheckBox _soundCheckBox;
         private TrackBar _volumeTrackBar;
         private Label _volumeLabel;
-        private TextBox _outOfFocusClickTextBox;
-        private Label label11;
         private CheckBox _alwaysOnTopCheckbox;
         private TabControl tabControl1;
         private TabPage tabPage1;
@@ -957,7 +1151,6 @@
         private Button _testSoundButton;
         private GroupBox groupBox10;
         private CheckBox _checkUpdatesCheckBox;
-        private GroupBox groupBox11;
         private CheckBox _highlightBingoCheckBox;
         private CheckBox _highlightMarkedCheckBox;
         private Label _shadowLabel;
@@ -967,8 +1160,27 @@
         private Label _numKeywordsLabel;
         private Label _keywordColorAlphaLabel;
         private TrackBar _keywordColorAlphaTrackBar;
-        private CheckBox _numpadNavigationCheckBox;
-        private CheckBox _arrowNavigationCheckBox;
         private CheckBox _snipeCheckBox;
+        private TabPage tabPage4;
+        private GroupBox groupBox12;
+        private KeybindingControl _leftBindingControl;
+        private FlowLayoutPanel flowLayoutPanel1;
+        private KeybindingControl _rightBindingControl;
+        private KeybindingControl _upBindingControl;
+        private KeybindingControl _downBindingControl;
+        private KeybindingControl _upLeftBindingControl;
+        private KeybindingControl _upRightBindingControl;
+        private KeybindingControl _downLeftBindingControl;
+        private KeybindingControl _downRightBindingControl;
+        private KeybindingControl _checkBindingControl;
+        private KeybindingControl _starBindingControl;
+        private KeybindingControl _countIncBindingControl;
+        private KeybindingControl _countDecBindingControl;
+        private Panel panel3;
+        private Label label11;
+        private CheckBox _controlCheckBox;
+        private CheckBox _altCheckBox;
+        private CheckBox _shiftCheckBox;
+        private Label label15;
     }
 }

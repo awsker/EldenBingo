@@ -1,6 +1,5 @@
 using EldenBingo.GameInterop;
 using EldenBingo.Net;
-using EldenBingo.Properties;
 using EldenBingo.Rendering;
 using EldenBingo.Settings;
 using EldenBingo.Sfx;
@@ -357,7 +356,9 @@ namespace EldenBingo
         {
             var settingsDialog = new SettingsDialog();
             settingsDialog.TopMost = Properties.Settings.Default.AlwaysOnTop;
+            _rawInput.Enabled = false;
             settingsDialog.ShowDialog(this);
+            _rawInput.Enabled = true;
         }
 
         private async void _startGameButton_Click(object sender, EventArgs e)

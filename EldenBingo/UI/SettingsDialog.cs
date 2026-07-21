@@ -7,9 +7,6 @@ namespace EldenBingo.UI
     {
         private const float fontSize = 12f;
 
-        private Keys _outOfFocusKey;
-        private bool _rebindingKey = false;
-
         private string _volumeLabelInitial;
         private string _shadowLabelInitial;
 
@@ -17,6 +14,7 @@ namespace EldenBingo.UI
         private string _keywordAlphaLabelInitial;
 
         private List<KeywordColor> _keywordColors;
+        private const string CustomColorDelimiter = ",";
 
         public SettingsDialog()
         {
@@ -32,15 +30,57 @@ namespace EldenBingo.UI
             initControls();
 
             tabControl1.SelectedIndex = Properties.Settings.Default.LastSettingsTab;
+
+            connectEvents();
+        }
+
+        private void connectEvents()
+        {
+            KeybindingControl.RebindStarted += onRebindStarted;
+            KeybindingControl.RebindFinished += onRebindFinished;
+        }
+
+        private void disconnectEvents()
+        {
+            KeybindingControl.RebindStarted -= onRebindStarted;
+            KeybindingControl.RebindFinished -= onRebindFinished;
+        }
+
+        private void onRebindStarted(object? sender, KeybindingControl.RebindControlEventArgs e)
+        {
+            startRebind();
+        }
+
+        private void onRebindFinished(object? sender, KeybindingControl.RebindControlEventArgs e)
+        {
+            stopRebind();
         }
 
         private void _colorPanel_Click(object sender, EventArgs e)
         {
+            colorDialog1.CustomColors = stringToIntArray(Properties.Settings.Default.CustomColors);
             colorDialog1.Color = _colorPanel.BackColor;
             if (colorDialog1.ShowDialog(this) == DialogResult.OK)
             {
                 _colorPanel.BackColor = colorDialog1.Color;
             }
+            Properties.Settings.Default.CustomColors = intArrayToString(colorDialog1.CustomColors);
+        }
+
+        private string intArrayToString(int[] colors)
+        {
+            return string.Join(CustomColorDelimiter, colors);
+        }
+
+        private int[] stringToIntArray(string str)
+        {
+            var l = new List<int>();
+            foreach (var token in str.Split(CustomColorDelimiter))
+            {
+                if (int.TryParse((string)token, out var c))
+                    l.Add(c);
+            }
+            return l.ToArray();
         }
 
         private void _fontLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -64,6 +104,7 @@ namespace EldenBingo.UI
 
         private void _okButton_Click(object sender, EventArgs e)
         {
+            KeybindingControl.OnTabClosed(true);
             if (saveSettings())
             {
                 DialogResult = DialogResult.OK;
@@ -73,6 +114,7 @@ namespace EldenBingo.UI
 
         private void _cancelButton_Click(object sender, EventArgs e)
         {
+            KeybindingControl.OnTabClosed(false);
             DialogResult = DialogResult.Cancel;
             Properties.Settings.Default.LastSettingsTab = tabControl1.SelectedIndex;
             Close();
@@ -106,9 +148,35 @@ namespace EldenBingo.UI
             _highlightMarkedCheckBox.Checked = Properties.Settings.Default.MarkHighlight;
             _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
 
-            _outOfFocusKey = (Keys)Properties.Settings.Default.ClickHotkey;
-            _numpadNavigationCheckBox.Checked = Properties.Settings.Default.NumpadNavigation;
-            _arrowNavigationCheckBox.Checked = Properties.Settings.Default.ArrowNavigation;
+            //Use previous binding for Click hotkey if set
+            if (Properties.Settings.Default.ClickHotkey > 0)
+            {
+                _checkBindingControl.Key = (Keys)Properties.Settings.Default.ClickHotkey;
+                Properties.Settings.Default.ClickHotkey = 0;
+            }
+            if (Properties.Settings.Default.NumpadNavigation)
+            {
+                _upBindingControl.Key = Keys.NumPad8;
+                _downBindingControl.Key = Keys.NumPad2;
+                _leftBindingControl.Key = Keys.NumPad4;
+                _rightBindingControl.Key = Keys.NumPad6;
+                _upLeftBindingControl.Key = Keys.NumPad7;
+                _upRightBindingControl.Key = Keys.NumPad9;
+                _downLeftBindingControl.Key = Keys.NumPad1;
+                _downRightBindingControl.Key = Keys.NumPad3;
+                _starBindingControl.Key = Keys.Multiply;
+                _countIncBindingControl.Key = Keys.Add;
+                _countDecBindingControl.Key = Keys.Subtract;
+                Properties.Settings.Default.NumpadNavigation = false;
+            }
+            else if (Properties.Settings.Default.ArrowNavigation)
+            {
+                _upBindingControl.Key = Keys.Up;
+                _downBindingControl.Key = Keys.Down;
+                _leftBindingControl.Key = Keys.Left;
+                _rightBindingControl.Key = Keys.Right;
+                Properties.Settings.Default.ArrowNavigation = false;
+            }
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
@@ -135,10 +203,12 @@ namespace EldenBingo.UI
             _keywordColorAlphaTrackBar.Value = Properties.Settings.Default.KeywordColorsAlpha;
             _keywordColorAlphaTrackBar.ValueChanged += (o, e) => updateKeywordColorText();
 
+            _shiftCheckBox.Checked = (Properties.Settings.Default.Hotkey_ModifierKeys & (int)Keys.Shift) > 0;
+            _controlCheckBox.Checked = (Properties.Settings.Default.Hotkey_ModifierKeys & (int)Keys.Control) > 0;
+            _altCheckBox.Checked = (Properties.Settings.Default.Hotkey_ModifierKeys & (int)Keys.Alt) > 0;
             updateSizeEnable();
             updatePositionEnable();
             updateMaxSizeEnable();
-            updateOutOfFocusText();
             updateVolumeText();
             updateShadowText();
             updateKeywordColorText();
@@ -234,9 +304,9 @@ namespace EldenBingo.UI
             Properties.Settings.Default.SquareShadows = Math.Clamp(_shadowTrackBar.Value * 10, 0, 100);
             Properties.Settings.Default.MarkHighlight = _highlightMarkedCheckBox.Checked;
             Properties.Settings.Default.BingoHighlight = _highlightBingoCheckBox.Checked;
-            Properties.Settings.Default.ClickHotkey = (int)_outOfFocusKey;
-            Properties.Settings.Default.NumpadNavigation = _numpadNavigationCheckBox.Checked;
-            Properties.Settings.Default.ArrowNavigation = _arrowNavigationCheckBox.Checked;
+            Properties.Settings.Default.ClickHotkey = 0;
+            Properties.Settings.Default.NumpadNavigation = false;
+            Properties.Settings.Default.ArrowNavigation = false;
 
             Properties.Settings.Default.AlwaysOnTop = _alwaysOnTopCheckbox.Checked;
 
@@ -249,6 +319,10 @@ namespace EldenBingo.UI
 
             Properties.Settings.Default.LastSettingsTab = tabControl1.SelectedIndex;
 
+            Properties.Settings.Default.Hotkey_ModifierKeys =
+                (_shiftCheckBox.Checked ? (int)Keys.Shift : 0) |
+                (_controlCheckBox.Checked ? (int)Keys.Control : 0) |
+                (_altCheckBox.Checked ? (int)Keys.Alt : 0);
             Properties.Settings.Default.Save();
             return true;
         }
@@ -260,40 +334,17 @@ namespace EldenBingo.UI
             initOutputDeviceComboBox();
         }
 
-        private void _outOfFocusClickTextBox_Enter(object sender, EventArgs e)
-        {
-            startRebind();
-        }
-
-        private void _outOfFocusClickTextBox_Leave(object sender, EventArgs e)
-        {
-            stopRebind();
-        }
-
-        private void _outOfFocusClickTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (_rebindingKey)
-            {
-                _outOfFocusKey = e.KeyCode == Keys.Escape ? Keys.None : e.KeyCode;
-                stopRebind();
-                label11.Focus();
-            }
-        }
 
         private void startRebind()
         {
-            _rebindingKey = true;
             AcceptButton = null;
             CancelButton = null;
-            updateOutOfFocusText();
         }
 
         private void stopRebind()
         {
-            _rebindingKey = false;
             AcceptButton = _okButton;
             CancelButton = _cancelButton;
-            updateOutOfFocusText();
         }
 
         private void initOutputDeviceComboBox()
@@ -313,18 +364,6 @@ namespace EldenBingo.UI
                     return i;
             }
             return 0;
-        }
-
-        private void updateOutOfFocusText()
-        {
-            if (_rebindingKey)
-            {
-                _outOfFocusClickTextBox.Text = "Press a key...";
-            }
-            else
-            {
-                _outOfFocusClickTextBox.Text = _outOfFocusKey.ToString().ToUpper();
-            }
         }
 
         private void updateVolumeText()
@@ -374,6 +413,19 @@ namespace EldenBingo.UI
             {
                 _keywordColors = dialog.Colors;
                 updateKeywordColorText();
+            }
+        }
+
+        private void SettingsDialog_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            disconnectEvents();
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedIndex != 3)
+            {
+                KeybindingControl.OnTabClosed(false);
             }
         }
     }

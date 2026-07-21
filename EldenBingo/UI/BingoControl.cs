@@ -46,7 +46,7 @@ namespace EldenBingo.UI
             Load += bingoControl_Load;
             Disposed += (o, e) =>
             {
-                DisconnectClickHotkey();
+                DisconnectHotkeys();
                 disconnectMouseWheel();
             };
             SizeChanged += bingoControl_SizeChanged;
@@ -304,28 +304,21 @@ namespace EldenBingo.UI
         {
             _gridControl.UpdateGrid();
             recalculateFontSizeForSquares();
-            ConnectClickHotkey();
+            ConnectHotkeys();
             connectMouseWheel();
         }
 
         private async void keyPressed(object? sender, KeyEventArgs e)
         {
-            if (Squares == null)
+            if (Squares == null ||e.KeyCode == Keys.None)
                 return;
 
-            BingoSquareControl? square;
-            var key = Properties.Settings.Default.ClickHotkey;
-            if (key != 0 && e.KeyValue == key)
-            {
-                square = getSelectedSquare();
-                if (square != null)
-                {
-                    await clickSquare(square);
-                }
-            }
-            // Exit early if we're not using numpad or arrow navigation
-            if (!(Properties.Settings.Default.NumpadNavigation || Properties.Settings.Default.ArrowNavigation))
+            var mods = (Keys)Properties.Settings.Default.Hotkey_ModifierKeys;
+
+            // If all defined modifiers are not pressed, ignore the input
+            if ((mods & e.Modifiers) != mods)
                 return;
+
             // Handle arrow keys and numpad keys to move selection cursor
             bool handled = false;
             int size = _size;
@@ -362,78 +355,58 @@ namespace EldenBingo.UI
                     row = Math.Clamp(row + 1, 0, size - 1);
                     handled = true;
                 }
-                if (Properties.Settings.Default.NumpadNavigation)
+                void check()
                 {
-                    switch (e.KeyCode)
-                    {
-                        case Keys.NumPad4:
-                            moveLeft();
-                            break;
-                        case Keys.NumPad6:
-                            moveRight();
-                            break;
-                        case Keys.NumPad8:
-                            moveUp();
-                            break;
-                        case Keys.NumPad2:
-                            moveDown();
-                            break;
-                        case Keys.NumPad7:
-                            moveLeft();
-                            moveUp();
-                            break;
-                        case Keys.NumPad9:
-                            moveRight();
-                            moveUp();
-                            break;
-                        case Keys.NumPad1:
-                            moveLeft();
-                            moveDown();
-                            break;
-                        case Keys.NumPad3:
-                            moveRight();
-                            moveDown();
-                            break;
-                        case Keys.Add:
-                            square = getSelectedSquare();
-                            if (square != null)
-                            {
-                                _ = changeSquareCounter(square, 1);
-                            }
-                            break;
-                        case Keys.Subtract:
-                            square = getSelectedSquare();
-                            if (square != null)
-                            {
-                                _ = changeSquareCounter(square, -1);
-                            }
-                            break;
-                        case Keys.Multiply:
-                            square = getSelectedSquare();
-                            if (square != null)
-                            {
-                                _ = markSquare(square);
-                            }
-                            break;
-                    }
+                    var square = getSelectedSquare();
+                    if (square != null)
+                        _ = clickSquare(square);
                 }
-                if (Properties.Settings.Default.ArrowNavigation)
+                void increment()
                 {
-                    switch (e.KeyCode)
-                    {
-                        case Keys.Left:
-                            moveLeft();
-                            break;
-                        case Keys.Right:
-                            moveRight();
-                            break;
-                        case Keys.Up:
-                            moveUp();
-                            break;
-                        case Keys.Down:
-                            moveDown();
-                            break;
-                    }
+                    var square = getSelectedSquare();
+                    if (square != null)
+                        _ = changeSquareCounter(square, 1);
+                }
+                void decrement()
+                {
+                    var square = getSelectedSquare();
+                    if (square != null)
+                        _ = changeSquareCounter(square, 1);
+                }
+                void star()
+                {
+                    var square = getSelectedSquare();
+                    if (square != null)
+                        _ = markSquare(square);
+                }
+                var key = e.KeyValue;
+                if (key == Properties.Settings.Default.Hotkey_Check) check();
+                if (key == Properties.Settings.Default.Hotkey_CountIncrease) increment();
+                if (key == Properties.Settings.Default.Hotkey_CountDecrease) decrement();
+                if (key == Properties.Settings.Default.Hotkey_Star) star();
+                if (key == Properties.Settings.Default.Hotkey_Up) moveUp();
+                if (key == Properties.Settings.Default.Hotkey_Down) moveDown();
+                if (key == Properties.Settings.Default.Hotkey_Left) moveLeft();
+                if (key == Properties.Settings.Default.Hotkey_Right) moveRight();
+                if (key == Properties.Settings.Default.Hotkey_UpLeft)
+                {
+                    moveUp();
+                    moveLeft();
+                }
+                if (key == Properties.Settings.Default.Hotkey_UpRight)
+                {
+                    moveUp();
+                    moveRight();
+                }
+                if (key == Properties.Settings.Default.Hotkey_DownLeft)
+                {
+                    moveDown();
+                    moveLeft();
+                }
+                if (key == Properties.Settings.Default.Hotkey_DownRight)
+                {
+                    moveDown();
+                    moveRight();
                 }
                 if (handled)
                 {
@@ -553,7 +526,7 @@ namespace EldenBingo.UI
             }
         }
 
-        public void ConnectClickHotkey()
+        public void ConnectHotkeys()
         {
             var mainForm = MainForm.GetMainForm(this);
             if (mainForm != null)
@@ -562,7 +535,7 @@ namespace EldenBingo.UI
             }
         }
 
-        public void DisconnectClickHotkey()
+        public void DisconnectHotkeys()
         {
             var mainForm = MainForm.GetMainForm(this);
             if (mainForm != null)

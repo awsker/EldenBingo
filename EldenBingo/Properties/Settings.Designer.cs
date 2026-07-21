@@ -814,5 +814,161 @@ namespace EldenBingo.Properties {
                 this["CustomColors"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_Check {
+            get {
+                return ((int)(this["Hotkey_Check"]));
+            }
+            set {
+                this["Hotkey_Check"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_Star {
+            get {
+                return ((int)(this["Hotkey_Star"]));
+            }
+            set {
+                this["Hotkey_Star"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_CountIncrease {
+            get {
+                return ((int)(this["Hotkey_CountIncrease"]));
+            }
+            set {
+                this["Hotkey_CountIncrease"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_CountDecrease {
+            get {
+                return ((int)(this["Hotkey_CountDecrease"]));
+            }
+            set {
+                this["Hotkey_CountDecrease"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_Up {
+            get {
+                return ((int)(this["Hotkey_Up"]));
+            }
+            set {
+                this["Hotkey_Up"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_Down {
+            get {
+                return ((int)(this["Hotkey_Down"]));
+            }
+            set {
+                this["Hotkey_Down"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_Left {
+            get {
+                return ((int)(this["Hotkey_Left"]));
+            }
+            set {
+                this["Hotkey_Left"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_Right {
+            get {
+                return ((int)(this["Hotkey_Right"]));
+            }
+            set {
+                this["Hotkey_Right"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_UpLeft {
+            get {
+                return ((int)(this["Hotkey_UpLeft"]));
+            }
+            set {
+                this["Hotkey_UpLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_UpRight {
+            get {
+                return ((int)(this["Hotkey_UpRight"]));
+            }
+            set {
+                this["Hotkey_UpRight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_DownLeft {
+            get {
+                return ((int)(this["Hotkey_DownLeft"]));
+            }
+            set {
+                this["Hotkey_DownLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_DownRight {
+            get {
+                return ((int)(this["Hotkey_DownRight"]));
+            }
+            set {
+                this["Hotkey_DownRight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Hotkey_ModifierKeys {
+            get {
+                return ((int)(this["Hotkey_ModifierKeys"]));
+            }
+            set {
+                this["Hotkey_ModifierKeys"] = value;
+            }
+        }
     }
 }
