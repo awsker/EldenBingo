@@ -112,6 +112,14 @@ namespace EldenBingoServer
             {
                 sb.AppendLine($"Match finished at {toNiceDate(FinishTime)} with a match time of {hours} hours, {minutes} minutes and {seconds} seconds");
             }
+            if (Teams.Length > 0)
+            {
+                sb.AppendLine($"{(room.Match.MatchStatus == MatchStatus.Finished ? "Final" : "Current")} scoreboard:");
+                foreach (var t in Teams)
+                {
+                    sb.AppendLine($"{t.Name}: {t.Score}");
+                }
+            }
             LogAsText = sb.ToString();
         }
 
@@ -150,10 +158,20 @@ namespace EldenBingoServer
         private LTeam[] getTeams(ServerRoom serverRoom)
         {
             var teams = new Dictionary<int, TempTeam>();
+
+            // Fetch the current score for all teams
+            IDictionary<int, int> teamScores;
+            if (serverRoom.Match != null && serverRoom.Match.Board is ServerBingoBoard board)
+                teamScores = board.GetScoresForAllTeams();
+            else
+                teamScores = new Dictionary<int, int>();
+            
             // Create empty teams for all teams with checked squares or lobby presence
             foreach (var t in serverRoom.GetActiveTeams())
             {
-                teams.Add(t.Index, new TempTeam(t.Index, t.Name, BingoConstants.GetTeamColor(t.Index),new HashSet<string>()));
+                int score = 0;
+                teamScores.TryGetValue(t.Index, out score);
+                teams.Add(t.Index, new TempTeam(t.Index, t.Name, BingoConstants.GetTeamColor(t.Index),new HashSet<string>(), score));
             }
             // Assign all players in lobby to their respective teams
             foreach (var user in serverRoom.Users)
@@ -180,10 +198,12 @@ namespace EldenBingoServer
                     {
                         playerSet.Add(e.Player);
                     }
-                    teams.Add(e.Team, new TempTeam(e.Team, serverRoom.GetTeamNameIgnoreUsers(e.Team), BingoConstants.GetTeamColor(e.Team), playerSet));
+                    int score = 0;
+                    teamScores.TryGetValue(e.Team, out score);
+                    teams.Add(e.Team, new TempTeam(e.Team, serverRoom.GetTeamNameIgnoreUsers(e.Team), BingoConstants.GetTeamColor(e.Team), playerSet, score));
                 }
             }
-            return teams.Values.Select(t => new LTeam(t.TeamIndex, t.Name, t.Color, t.Players.ToArray())).ToArray();
+            return teams.Values.Select(t => new LTeam(t.TeamIndex, t.Name, t.Color, t.Players.ToArray(), t.Score)).ToArray();
         }
 
         public string GenerateFileName(string roomName, bool json)
@@ -202,6 +222,6 @@ namespace EldenBingoServer
 
     }
 
-    internal record TempTeam(int TeamIndex, string Name, Color Color, ISet<string> Players);
-    internal record LTeam([property: JsonIgnore] int TeamIndex, string Name, Color Color, string[] Players);
+    internal record TempTeam(int TeamIndex, string Name, Color Color, ISet<string> Players, int Score);
+    internal record LTeam(int TeamIndex, string Name, Color Color, string[] Players, int Score);
 }

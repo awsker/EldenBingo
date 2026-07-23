@@ -954,22 +954,14 @@ namespace EldenBingoServer
 
             if (room.Match.Board is ServerBingoBoard board)
             {
-                var squaresPerTeam = board.GetSquaresPerTeam();
-                var bingosPerTeam = board.BingosPerTeam;
-
+                var scorePerTeam = board.GetScoresForAllTeams();
                 for (int i = 0; i < teamScores.Count; ++i)
                 {
-                    if (squaresPerTeam.TryGetValue(teamScores[i].Team, out int squares))
+                    var ts = teamScores[i];
+                    if (scorePerTeam.TryGetValue(ts.Team, out var score))
                     {
-                        var score = teamScores[i];
-                        score.Score += squares;
-                        teamScores[i] = score;
-                    }
-                    if (bingosPerTeam.TryGetValue(teamScores[i].Team, out var bingoLines))
-                    {
-                        var score = teamScores[i];
-                        score.Score += bingoLines.Count * room.GameSettings.PointsPerBingoLine;
-                        teamScores[i] = score;
+                        ts.Score = score;
+                        teamScores[i] = ts;
                     }
                 }
             }

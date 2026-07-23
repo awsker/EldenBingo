@@ -155,6 +155,29 @@ namespace EldenBingoServer
             get { return new HashSet<BingoLine>(_lastBingos.Values.SelectMany(t => t)); }
         }
 
+        public Dictionary<int, int> GetScoresForAllTeams()
+        {
+            var teams = Room.GetActiveTeams();
+            var dict = new Dictionary<int, int>();
+            var squaresPerTeam = GetSquaresPerTeam();
+            var bingosPerTeam = BingosPerTeam;
+            foreach (var team in teams)
+            {
+                var score = 0;
+
+                if (squaresPerTeam.TryGetValue(team.Index, out int squares))
+                {
+                    score += squares;
+                }
+                if (bingosPerTeam.TryGetValue(team.Index, out var bingoLines))
+                {
+                    score += bingoLines.Count * Room.GameSettings.PointsPerBingoLine;
+                }
+                dict[team.Index] = score;
+            }
+            return dict;
+        }
+
         public BingoBoardSquare[] GetSquareDataForUser(UserInRoom user)
         {
             var squares = new BingoBoardSquare[SquareCount];
