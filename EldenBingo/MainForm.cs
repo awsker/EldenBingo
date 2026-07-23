@@ -71,6 +71,7 @@ namespace EldenBingo
             _client = new Client();
             _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
             addClientListeners(_client);
+            handleSettingsChanges();
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
             LocationChanged += mainForm_LocationChanged;
@@ -134,6 +135,48 @@ namespace EldenBingo
                 _rawInput.ProcessRawInput(m);
             }
             base.WndProc(ref m);
+        }
+
+        private void handleSettingsChanges()
+        {
+            bool changed = false;
+            //Use previous binding for Click hotkey if set
+            if (Properties.Settings.Default.ClickHotkey > 0)
+            {
+                Properties.Settings.Default.Hotkey_Check = Properties.Settings.Default.ClickHotkey;
+                Properties.Settings.Default.ClickHotkey = 0;
+                changed = true;
+            }
+            if (Properties.Settings.Default.NumpadNavigation)
+            {
+                Properties.Settings.Default.Hotkey_Up = (int)Keys.NumPad8;
+                Properties.Settings.Default.Hotkey_Down = (int)Keys.NumPad2;
+                Properties.Settings.Default.Hotkey_Left = (int)Keys.NumPad4;
+                Properties.Settings.Default.Hotkey_Right = (int)Keys.NumPad6;
+                Properties.Settings.Default.Hotkey_UpLeft = (int)Keys.NumPad7;
+                Properties.Settings.Default.Hotkey_UpRight = (int)Keys.NumPad9;
+                Properties.Settings.Default.Hotkey_DownLeft = (int)Keys.NumPad1;
+                Properties.Settings.Default.Hotkey_DownRight = (int)Keys.NumPad3;
+                Properties.Settings.Default.Hotkey_Star = (int)Keys.Multiply;
+                Properties.Settings.Default.Hotkey_CountIncrease  = (int)Keys.Add;
+                Properties.Settings.Default.Hotkey_CountDecrease = (int)Keys.Subtract;
+                Properties.Settings.Default.NumpadNavigation = false;
+                changed = true;
+            }
+            else if (Properties.Settings.Default.ArrowNavigation)
+            {
+                Properties.Settings.Default.Hotkey_Up = (int)Keys.Up;
+                Properties.Settings.Default.Hotkey_Down = (int)Keys.Down;
+                Properties.Settings.Default.Hotkey_Left = (int)Keys.Left;
+                Properties.Settings.Default.Hotkey_Right = (int)Keys.Right;
+                Properties.Settings.Default.ArrowNavigation = false;
+                changed = true;
+            }
+            if (changed)
+            {
+                Properties.Settings.Default.Save();
+            }
+
         }
 
         private void addVersionToTitle()
@@ -452,21 +495,21 @@ namespace EldenBingo
             if (!Properties.Settings.Default.PlaySounds)
                 return;
             //Only play sound if the team checking is now present in the square
-            if (userCheckedSquareArgs.TeamsChecked.Contains(userCheckedSquareArgs.Team))
+            if (userCheckedSquareArgs.TeamsChecked.Contains(userCheckedSquareArgs.Event.Team))
             {
-                if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
+                if (userCheckedSquareArgs.Event.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
                 {
                     // Play snipe sound if we're a player in the match and the other team claimed the square that we had selected
-                    if (Properties.Settings.Default.SnipeSoundEnabled && _client?.LocalUser?.IsSpectator == false && userCheckedSquareArgs.Index == getCurrentlySelectedSquare())
+                    if (Properties.Settings.Default.SnipeSoundEnabled && _client?.LocalUser?.IsSpectator == false && userCheckedSquareArgs.Event.SquareIndex == getCurrentlySelectedSquare())
                         _sounds.PlaySound(SoundType.SquareSniped);
                     _sounds.PlaySound(SoundType.SquareClaimedOther);
                 }
             }
             else
             {
-                if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
+                if (userCheckedSquareArgs.Event.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareUnclaimedOwn);
                 else
                     _sounds.PlaySound(SoundType.SquareUnclaimedOther);

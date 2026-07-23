@@ -148,36 +148,6 @@ namespace EldenBingo.UI
             _highlightMarkedCheckBox.Checked = Properties.Settings.Default.MarkHighlight;
             _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
 
-            //Use previous binding for Click hotkey if set
-            if (Properties.Settings.Default.ClickHotkey > 0)
-            {
-                _checkBindingControl.Key = (Keys)Properties.Settings.Default.ClickHotkey;
-                Properties.Settings.Default.ClickHotkey = 0;
-            }
-            if (Properties.Settings.Default.NumpadNavigation)
-            {
-                _upBindingControl.Key = Keys.NumPad8;
-                _downBindingControl.Key = Keys.NumPad2;
-                _leftBindingControl.Key = Keys.NumPad4;
-                _rightBindingControl.Key = Keys.NumPad6;
-                _upLeftBindingControl.Key = Keys.NumPad7;
-                _upRightBindingControl.Key = Keys.NumPad9;
-                _downLeftBindingControl.Key = Keys.NumPad1;
-                _downRightBindingControl.Key = Keys.NumPad3;
-                _starBindingControl.Key = Keys.Multiply;
-                _countIncBindingControl.Key = Keys.Add;
-                _countDecBindingControl.Key = Keys.Subtract;
-                Properties.Settings.Default.NumpadNavigation = false;
-            }
-            else if (Properties.Settings.Default.ArrowNavigation)
-            {
-                _upBindingControl.Key = Keys.Up;
-                _downBindingControl.Key = Keys.Down;
-                _leftBindingControl.Key = Keys.Left;
-                _rightBindingControl.Key = Keys.Right;
-                Properties.Settings.Default.ArrowNavigation = false;
-            }
-
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
 
