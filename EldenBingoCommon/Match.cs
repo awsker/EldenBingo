@@ -19,6 +19,7 @@ namespace EldenBingoCommon
         {
             MatchStatus = MatchStatus.NotRunning;
             ServerTimer = 0;
+            MatchEvents = new List<MatchEvent>();
             UpdateMatchStatus(MatchStatus, Paused, ServerTimer, Board);
         }
 
@@ -85,6 +86,8 @@ namespace EldenBingoCommon
         }
 
         [JsonProperty]
+        public DateTime MatchStartTime { get; private set; }
+        [JsonProperty]
         public MatchStatus MatchStatus { get; set; }
         [JsonIgnore]
         public bool Running => MatchStatus > MatchStatus.NotRunning && MatchStatus < MatchStatus.Finished;
@@ -92,24 +95,31 @@ namespace EldenBingoCommon
         public int ServerTimer { get; private set; }
         [JsonProperty]
         public DateTime StatusChangedLocalDateTime { get; private set; }
+        [JsonProperty]
+        public List<MatchEvent> MatchEvents { get; }
 
         [JsonIgnore]
         public string TimerString
         {
             get
             {
-                var seconds = MatchSeconds;
-                bool negative = seconds < 0;
-                if (negative)
-                {
-                    seconds = -seconds;
-                }
-                var hours = seconds / 3600;
-                seconds %= 3600;
-                var minutes = seconds / 60;
-                seconds %= 60;
-                return $"{(negative ? "-" : string.Empty)}{hours.ToString("00")}:{minutes.ToString("00")}:{seconds.ToString("00")}";
+                return MatchTimeToString(MatchSeconds);
             }
+        }
+
+        public static string MatchTimeToString(int matchTimeInSeconds)
+        {
+            var seconds = matchTimeInSeconds;
+            bool negative = seconds < 0;
+            if (negative)
+            {
+                seconds = -seconds;
+            }
+            var hours = seconds / 3600;
+            seconds %= 3600;
+            var minutes = seconds / 60;
+            seconds %= 60;
+            return $"{(negative ? "-" : string.Empty)}{hours.ToString("00")}:{minutes.ToString("00")}:{seconds.ToString("00")}";
         }
 
         public static string MatchStatusToString(MatchStatus status, bool paused, out Color color)
@@ -154,6 +164,11 @@ namespace EldenBingoCommon
             if (status != MatchStatus)
             {
                 MatchStatus = status;
+                if(status == MatchStatus.Starting)
+                {
+                    MatchStartTime = DateTime.Now;
+                    MatchEvents.Clear();
+                }
                 onMatchStatusChanged();
             }
             onMatchStatusChanged();
@@ -168,6 +183,10 @@ namespace EldenBingoCommon
             if (paused != Paused || status != MatchStatus) {
                 Paused = paused;
                 MatchStatus = status;
+                if (status == MatchStatus.Starting)
+                {
+                    MatchStartTime = DateTime.Now;
+                }
                 onMatchStatusChanged();
             }
         }

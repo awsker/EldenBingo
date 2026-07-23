@@ -33,6 +33,10 @@
             _scoreboardControl = new ScoreboardControl();
             _logBoxBorderPanel = new Panel();
             _logTextBox = new RichTextBoxCustom();
+            _requestLogParentPanel = new Panel();
+            _requestLogLinkLabel = new LinkLabel();
+            _requestJsonLinkLabel = new LinkLabel();
+            _chatTextPanel = new Panel();
             _chatTextBox = new TextBox();
             _timerLabel = new Label();
             _matchStatusLabel = new Label();
@@ -47,6 +51,8 @@
             splitContainer1.SuspendLayout();
             _lobbyStatusPanel.SuspendLayout();
             _logBoxBorderPanel.SuspendLayout();
+            _requestLogParentPanel.SuspendLayout();
+            _chatTextPanel.SuspendLayout();
             _bingoBoardPanel.SuspendLayout();
             SuspendLayout();
             // 
@@ -100,7 +106,8 @@
             _logBoxBorderPanel.BackColor = Color.FromArgb(118, 110, 97);
             _logBoxBorderPanel.BorderStyle = BorderStyle.FixedSingle;
             _logBoxBorderPanel.Controls.Add(_logTextBox);
-            _logBoxBorderPanel.Controls.Add(_chatTextBox);
+            _logBoxBorderPanel.Controls.Add(_requestLogParentPanel);
+            _logBoxBorderPanel.Controls.Add(_chatTextPanel);
             _logBoxBorderPanel.Location = new Point(5, 104);
             _logBoxBorderPanel.Name = "_logBoxBorderPanel";
             _logBoxBorderPanel.Padding = new Padding(1);
@@ -115,29 +122,87 @@
             _logTextBox.Dock = DockStyle.Fill;
             _logTextBox.Font = new Font("Segoe UI", 9.75F);
             _logTextBox.ForeColor = Color.White;
-            _logTextBox.Location = new Point(1, 1);
+            _logTextBox.Location = new Point(1, 28);
             _logTextBox.MustHideCaret = true;
             _logTextBox.Name = "_logTextBox";
             _logTextBox.ReadOnly = true;
             _logTextBox.ScrollBars = RichTextBoxScrollBars.Vertical;
-            _logTextBox.Size = new Size(255, 286);
+            _logTextBox.Size = new Size(255, 257);
             _logTextBox.TabIndex = 8;
             _logTextBox.TabStop = false;
             _logTextBox.Text = "";
             _logTextBox.LinkClicked += _logTextBox_LinkClicked;
             // 
+            // _requestLogParentPanel
+            // 
+            _requestLogParentPanel.Controls.Add(_requestLogLinkLabel);
+            _requestLogParentPanel.Controls.Add(_requestJsonLinkLabel);
+            _requestLogParentPanel.Dock = DockStyle.Top;
+            _requestLogParentPanel.Location = new Point(1, 1);
+            _requestLogParentPanel.Name = "_requestLogParentPanel";
+            _requestLogParentPanel.Size = new Size(255, 27);
+            _requestLogParentPanel.TabIndex = 11;
+            _requestLogParentPanel.Visible = false;
+            // 
+            // _requestLogLinkLabel
+            // 
+            _requestLogLinkLabel.ActiveLinkColor = Color.AliceBlue;
+            _requestLogLinkLabel.Dock = DockStyle.Fill;
+            _requestLogLinkLabel.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            _requestLogLinkLabel.ForeColor = Color.SkyBlue;
+            _requestLogLinkLabel.LinkBehavior = LinkBehavior.HoverUnderline;
+            _requestLogLinkLabel.LinkColor = Color.SkyBlue;
+            _requestLogLinkLabel.Location = new Point(0, 0);
+            _requestLogLinkLabel.Name = "_requestLogLinkLabel";
+            _requestLogLinkLabel.Size = new Size(175, 27);
+            _requestLogLinkLabel.TabIndex = 11;
+            _requestLogLinkLabel.TabStop = true;
+            _requestLogLinkLabel.Text = "Download Match Log";
+            _requestLogLinkLabel.TextAlign = ContentAlignment.MiddleRight;
+            _requestLogLinkLabel.VisitedLinkColor = Color.SkyBlue;
+            _requestLogLinkLabel.LinkClicked += _requestLogLinkLabel_LinkClicked;
+            // 
+            // _requestJsonLinkLabel
+            // 
+            _requestJsonLinkLabel.ActiveLinkColor = Color.AliceBlue;
+            _requestJsonLinkLabel.Dock = DockStyle.Right;
+            _requestJsonLinkLabel.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            _requestJsonLinkLabel.ForeColor = Color.MediumSeaGreen;
+            _requestJsonLinkLabel.LinkBehavior = LinkBehavior.HoverUnderline;
+            _requestJsonLinkLabel.LinkColor = Color.MediumSeaGreen;
+            _requestJsonLinkLabel.Location = new Point(175, 0);
+            _requestJsonLinkLabel.Name = "_requestJsonLinkLabel";
+            _requestJsonLinkLabel.Size = new Size(80, 27);
+            _requestJsonLinkLabel.TabIndex = 12;
+            _requestJsonLinkLabel.TabStop = true;
+            _requestJsonLinkLabel.Text = "(as Json)";
+            _requestJsonLinkLabel.TextAlign = ContentAlignment.MiddleLeft;
+            _requestJsonLinkLabel.VisitedLinkColor = Color.PaleGreen;
+            _requestJsonLinkLabel.LinkClicked += _requestJsonLinkLabel_LinkClicked;
+            // 
+            // _chatTextPanel
+            // 
+            _chatTextPanel.BackColor = Color.FromArgb(35, 35, 35);
+            _chatTextPanel.Controls.Add(_chatTextBox);
+            _chatTextPanel.Dock = DockStyle.Bottom;
+            _chatTextPanel.Location = new Point(1, 285);
+            _chatTextPanel.Name = "_chatTextPanel";
+            _chatTextPanel.Padding = new Padding(4, 4, 0, 0);
+            _chatTextPanel.Size = new Size(255, 28);
+            _chatTextPanel.TabIndex = 12;
+            // 
             // _chatTextBox
             // 
             _chatTextBox.BackColor = Color.FromArgb(35, 35, 35);
             _chatTextBox.BorderStyle = BorderStyle.None;
-            _chatTextBox.Dock = DockStyle.Bottom;
+            _chatTextBox.Dock = DockStyle.Fill;
             _chatTextBox.ForeColor = Color.White;
-            _chatTextBox.Location = new Point(1, 287);
+            _chatTextBox.Location = new Point(4, 4);
             _chatTextBox.Margin = new Padding(0);
             _chatTextBox.MaxLength = 327670;
             _chatTextBox.Name = "_chatTextBox";
             _chatTextBox.PlaceholderText = "Send a message";
-            _chatTextBox.Size = new Size(255, 26);
+            _chatTextBox.Size = new Size(251, 16);
             _chatTextBox.TabIndex = 9;
             _chatTextBox.KeyPress += _chatTextBox_KeyPress;
             // 
@@ -225,6 +290,9 @@
             splitContainer1.ResumeLayout(false);
             _lobbyStatusPanel.ResumeLayout(false);
             _logBoxBorderPanel.ResumeLayout(false);
+            _requestLogParentPanel.ResumeLayout(false);
+            _chatTextPanel.ResumeLayout(false);
+            _chatTextPanel.PerformLayout();
             _bingoBoardPanel.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -244,5 +312,9 @@
         private Label _adminInfoLabel;
         private ScoreboardControl _scoreboardControl;
         private TextBox _chatTextBox;
+        private LinkLabel _requestLogLinkLabel;
+        private Panel _chatTextPanel;
+        private Panel _requestLogParentPanel;
+        private LinkLabel _requestJsonLinkLabel;
     }
 }

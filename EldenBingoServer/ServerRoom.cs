@@ -13,8 +13,8 @@ namespace EldenBingoServer
         private System.Timers.Timer? _timer;
         [JsonProperty]
         private Dictionary<int, string> _customTeamNames;
-        [JsonProperty]
-        internal List<LEvent> MatchEvents { get; }
+        
+        internal MatchLog? LastMatchLog { get; set; }
         //No need to serialize this property because the server will not assign the same Guid to the same players upon restart
         internal HashSet<Guid> BannedUsers { get; }
 
@@ -28,7 +28,6 @@ namespace EldenBingoServer
             LastActivity = DateTime.Now;
             _creatorGuid = creator?.ClientGuid ?? Guid.Empty;
             _customTeamNames = new Dictionary<int, string>();
-            MatchEvents = new List<LEvent>();
             BannedUsers = new HashSet<Guid>();
         }
 
@@ -160,7 +159,7 @@ namespace EldenBingoServer
                         {
                             if (!dict.ContainsKey(team))
                             {
-                                dict.Add(team, GetUnifiedName(team, new BingoClientInRoom[0]));
+                                dict.Add(team, GetUnifiedName(team, Array.Empty<BingoClientInRoom>()));
                             }
                         }
                     }

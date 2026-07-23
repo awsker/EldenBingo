@@ -32,5 +32,6 @@ namespace EldenBingoServer
         }
 
         public ServerRoom? Room { get; set; }
+        public DateTime LastLogRequest { get; set; } = DateTime.MinValue;
     }
 }

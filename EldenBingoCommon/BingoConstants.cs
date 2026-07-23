@@ -24,6 +24,11 @@ namespace EldenBingoCommon
 
     public record struct BingoLine(int Team, string Name, int Type, int BingoIndex) : IEquatable<BingoLine>
     {
+        /*  Type 0: Column
+            Type 1: Row
+            Type 2: Top-Left -> Bottom Right
+            Type 3: Bottom-Left -> Top Right
+        */
         public bool Equals(BingoLine other)
         {
             return Team == other.Team && Type == other.Type && BingoIndex == other.BingoIndex;
@@ -33,7 +38,30 @@ namespace EldenBingoCommon
         {
             return Team.GetHashCode() ^ (61 + Type.GetHashCode()) ^ (1337 + BingoIndex.GetHashCode());
         }
+
+        public MatchEvent ToMatchEvent(int timeStamp)
+        {
+            var bingoIndex = -1;
+            switch(Type)
+            {
+                case 0:
+                case 1:
+                    bingoIndex = Type * 5 + BingoIndex;
+                        break;
+                case 2:
+                    bingoIndex = 10;
+                    break;
+                case 3:
+                    bingoIndex = 11;
+                    break;
+            }
+            return new MatchEvent(timeStamp, bingoIndex, Team, Name, true, MatchEventType.Bingo);
+        }
     }
+
+    public enum MatchEventType { PlayerCheck, RefereeCheck, Bingo }
+
+    public record struct MatchEvent(int Timestamp, int SquareIndex, int Team, string Player, bool Checked, MatchEventType EventType);
 
     public static class BingoConstants
     {
