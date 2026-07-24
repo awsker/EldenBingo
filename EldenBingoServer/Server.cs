@@ -611,7 +611,7 @@ namespace EldenBingoServer
                     var check = board.CheckStatus[tryCheck.Index];
                     var wasChecked = check.IsChecked(userToSet.Team);
                     var referee = userInfo.IsAdmin && userInfo.IsSpectator;
-                    var ev = new MatchEvent(sender.Room.Match.MatchMilliseconds, tryCheck.Index, userInfo.Team, userInfo.Nick, wasChecked, referee ? MatchEventType.RefereeCheck : MatchEventType.PlayerCheck);
+                    var ev = new MatchEvent(sender.Room.Match.MatchMilliseconds, tryCheck.Index, userToSet.Team, userInfo.Nick, wasChecked, referee ? MatchEventType.RefereeCheck : MatchEventType.PlayerCheck);
                     logEvent(match, ev);
                     // If first event this match, clear the log from the last match (we want to keep it around as long as possible in case someone requests it too late)
                     if (sender.Room.Match.MatchEvents.Count == 1 && sender.Room.LastMatchLog != null)
