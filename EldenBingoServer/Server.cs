@@ -269,7 +269,7 @@ namespace EldenBingoServer
             AddListener<ClientRequestTeamChange>(clientTeamChange);
             AddListener<ClientBanUserFromRoom>(clientBanUser);
             AddListener<ClientPromoteToAdmin>(clientPromoteUser);
-            AddListener<ClientRequestMatchLog>(clientRequestMatchLog);
+            AddListener<ClientRequestEntireMatchLog>(clientRequestMatchLog);
         }
 
         private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
@@ -559,7 +559,7 @@ namespace EldenBingoServer
                 if (matchStatus.MatchStatus == MatchStatus.Starting)
                 { 
                     // Clear match events from previous match if present
-                    var p = new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), Array.Empty<MatchEvent>()));
+                    var p = new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>()));
                     //Reset the board for all players (except AdminSpectators, who already have the new board)
                     await SendPacketToClients(p, sender.Room.ClientModels.Where(c => !(c.IsAdmin && c.IsSpectator)));
                 }
@@ -611,25 +611,29 @@ namespace EldenBingoServer
                     var check = board.CheckStatus[tryCheck.Index];
                     var wasChecked = check.IsChecked(userToSet.Team);
                     var referee = userInfo.IsAdmin && userInfo.IsSpectator;
-                    var ev = new MatchEvent(sender.Room.Match.MatchMilliseconds, tryCheck.Index, userToSet.Team, userInfo.Nick, wasChecked, referee ? MatchEventType.RefereeCheck : MatchEventType.PlayerCheck);
-                    logEvent(match, ev);
-                    // If first event this match, clear the log from the last match (we want to keep it around as long as possible in case someone requests it too late)
-                    if (sender.Room.Match.MatchEvents.Count == 1 && sender.Room.LastMatchLog != null)
-                    {
-                        sender.Room.LastMatchLog = null;
-                    }
+                   
                     ServerSquareUpdate squareUpdate;
                     ServerUserChecked userCheck;
                     ServerScoreboardUpdate scoreboard = createScoreboardUpdatePacket(sender.Room);
                     var msTimestamp = sender.Room.Match.MatchMilliseconds;
-                    ServerBingoAchievedUpdate[] bingos = board.BingoSet.Except(bingosBefore).Select(b => new ServerBingoAchievedUpdate(b, b.ToMatchEvent(msTimestamp))).ToArray();
-                    foreach(var bingo in bingos)
-                    {
-                        logEvent(match, bingo.Event);
-                    }
+                    ServerBingoAchievedUpdate[] bingos = board.BingoSet.Except(bingosBefore).Select(b => new ServerBingoAchievedUpdate(b)).ToArray();
                     lock (check)
                     {
-                        userCheck = new ServerUserChecked(ev, check.Teams.ToArray());
+                        userCheck = new ServerUserChecked(tryCheck.Index, userToSet.Team, check.Teams.ToArray());
+                        var checkEvent = new MatchEvent(msTimestamp, tryCheck.Index, userToSet.Team, userInfo.Nick, wasChecked, referee ? MatchEventType.RefereeCheck : MatchEventType.PlayerCheck);
+                        var events = new List<MatchEvent>{checkEvent};
+                        events.AddRange(bingos.Select(bu => bu.Bingo.ToMatchEvent(msTimestamp)));
+                        
+                        // If first event this match, clear the log from the last match (we want to keep it around as long as possible in case someone requests it too late)
+                        if (sender.Room.Match.MatchEvents.Count == 0 && sender.Room.LastMatchLog != null)
+                        {
+                            sender.Room.LastMatchLog = null;
+                        }
+                        foreach (var ev in events)
+                        {
+                            logEvent(match, ev);
+                        }
+                        var eventsArray = events.ToArray();
                         // Prepare a unique packet for every player, so they get the correct stars and counters
                         foreach (var recipient in sender.Room.Users)
                         {
@@ -637,6 +641,7 @@ namespace EldenBingoServer
                             var packet = new Packet(squareUpdate, userCheck, scoreboard);
                             foreach (var bingo in bingos)
                                 packet.AddObject(bingo);
+                            packet.AddObject(new ServerMatchEvents(eventsArray));
                             var task = SendPacketToClient(packet, recipient.Client);
                             tasks.Add(task);
                         }
@@ -864,7 +869,7 @@ namespace EldenBingoServer
                         //Send the board to that player
                         if (recipient == userInfo && userInfo.IsAdmin && userInfo.IsSpectator && room.Match.MatchStatus <= MatchStatus.Starting)
                         {
-                            packet.AddObject(createEntireBoardPacket(board, userInfo, Array.Empty<MatchEvent>()));
+                            packet.AddObject(createEntireBoardPacket(board, userInfo));
                         }
                     }
                     var task = SendPacketToClient(packet, recipient.Client);
@@ -924,7 +929,7 @@ namespace EldenBingoServer
             _ = promoteUserInRoom(user.Client, sender, sender.Room);
         }
 
-        private async void clientRequestMatchLog(BingoClientModel? sender, ClientRequestMatchLog clientRequestMatchLog)
+        private async void clientRequestMatchLog(BingoClientModel? sender, ClientRequestEntireMatchLog clientRequestMatchLog)
         {
             if (sender == null || sender?.Room == null)
                 return;
@@ -934,17 +939,22 @@ namespace EldenBingoServer
                 sender.LastLogRequest = DateTime.Now;
                 var log = sender.Room.LastMatchLog == null ? string.Empty : (clientRequestMatchLog.Json ? sender.Room.LastMatchLog.LogAsJson : sender.Room.LastMatchLog.LogAsText);
                 var fn = sender.Room.LastMatchLog == null ? string.Empty : sender.Room.LastMatchLog.GenerateFileName(sender.Room.Name, clientRequestMatchLog.Json);
-                var sml = new ServerMatchLogUpdate(log, fn);
+                var sml = new ServerEntireMatchLogReceived(log, fn, clientRequestMatchLog.Json);
                 await SendPacketToClient(new Packet(sml), sender);
             }
         }
 
-        private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user, MatchEvent[] matchEvents)
+        private ServerEntireBingoBoardUpdate createEntireBoardPacket(ServerBingoBoard? board, UserInRoom user)
         {
             if (board == null)
-                return new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), Array.Empty<MatchEvent>());
+                return new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>());
             var squareData = board.GetSquareDataForUser(user);
-            return new ServerEntireBingoBoardUpdate(board.Size, board.Lockout, squareData, board.AvailableClasses, matchEvents);
+            return new ServerEntireBingoBoardUpdate(board.Size, board.Lockout, squareData, board.AvailableClasses);
+        }
+
+        private ServerMatchEvents createMatchEventsPacket(Match match)
+        {
+            return new ServerMatchEvents(match.MatchEvents.ToArray());
         }
 
         private ServerScoreboardUpdate createScoreboardUpdatePacket(ServerRoom room)
@@ -1006,7 +1016,8 @@ namespace EldenBingoServer
                 bool boardIsAvailableToAll = room.Match.MatchStatus >= MatchStatus.Preparation;
                 if (boardIsAvailableToAll || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
                 {
-                    packet.AddObject(createEntireBoardPacket(board, clientInRoom, room.Match.MatchEvents.ToArray()));
+                    packet.AddObject(createEntireBoardPacket(board, clientInRoom));
+                    packet.AddObject(createMatchEventsPacket(room.Match));
                 }
             }
             packet.AddObject(scoreboard);
@@ -1109,7 +1120,7 @@ namespace EldenBingoServer
             if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
             {
                 //No board set, so we send an empty board
-                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>(), Array.Empty<MatchEvent>())), room);
+                await sendPacketToRoom(new Packet(new ServerEntireBingoBoardUpdate(0, true, Array.Empty<BingoBoardSquare>(), Array.Empty<EldenRingClasses>())), room);
                 return;
             }
 
@@ -1118,14 +1129,17 @@ namespace EldenBingoServer
             foreach (var k in adminSpectators)
             {
                 //Admin spectators get the bingo board regardless of status
-                var adminPacket = new Packet(createEntireBoardPacket(board, k, eventArray));
+                var adminPacket = new Packet(createEntireBoardPacket(board, k));
+                adminPacket.AddObject(new ServerMatchEvents(eventArray));
                 await SendPacketToClient(adminPacket, k.Client);
             }
             bool matchLive = room.Match.MatchStatus >= MatchStatus.Preparation;
             foreach (var k in others)
             {
                 //All other users gets the packet without bingo board if match hasn't started
-                var nonAdminsPacket = new Packet(createEntireBoardPacket(matchLive ? board : null, k, matchLive ? eventArray : Array.Empty<MatchEvent>()));
+                var nonAdminsPacket = new Packet(createEntireBoardPacket(matchLive ? board : null, k));
+                if (matchLive)
+                    nonAdminsPacket.AddObject(new ServerMatchEvents(eventArray));
                 await SendPacketToClient(nonAdminsPacket, k.Client);
             }
         }

@@ -495,21 +495,21 @@ namespace EldenBingo
             if (!Properties.Settings.Default.PlaySounds)
                 return;
             //Only play sound if the team checking is now present in the square
-            if (userCheckedSquareArgs.TeamsChecked.Contains(userCheckedSquareArgs.Event.Team))
+            if (userCheckedSquareArgs.TeamsChecked.Contains(userCheckedSquareArgs.Team))
             {
-                if (userCheckedSquareArgs.Event.Team == _client?.LocalUser?.Team)
+                if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareClaimedOwn);
                 else
                 {
                     // Play snipe sound if we're a player in the match and the other team claimed the square that we had selected
-                    if (Properties.Settings.Default.SnipeSoundEnabled && _client?.LocalUser?.IsSpectator == false && userCheckedSquareArgs.Event.SquareIndex == getCurrentlySelectedSquare())
+                    if (Properties.Settings.Default.SnipeSoundEnabled && _client?.LocalUser?.IsSpectator == false && userCheckedSquareArgs.Index == getCurrentlySelectedSquare())
                         _sounds.PlaySound(SoundType.SquareSniped);
                     _sounds.PlaySound(SoundType.SquareClaimedOther);
                 }
             }
             else
             {
-                if (userCheckedSquareArgs.Event.Team == _client?.LocalUser?.Team)
+                if (userCheckedSquareArgs.Team == _client?.LocalUser?.Team)
                     _sounds.PlaySound(SoundType.SquareUnclaimedOwn);
                 else
                     _sounds.PlaySound(SoundType.SquareUnclaimedOther);

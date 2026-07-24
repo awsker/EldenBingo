@@ -83,18 +83,17 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
             Client.OnRoomChanged += client_RoomChanged;
-            Client.AddListener<ServerUserChecked>(userChecked);
             Client.AddListener<ServerUserJoinedRoom>(userJoined);
             Client.AddListener<ServerUserLeftRoom>(userLeft);
             Client.AddListener<ServerUserBannedFromRoom>(userBanned);
             Client.AddListener<ServerPromoteToAdmin>(userPromoted);
             Client.AddListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.AddListener<ServerUserChat>(userChat);
-            Client.AddListener<ServerBingoAchievedUpdate>(bingoAchieved);
             Client.AddListener<ServerTeamNameChanged>(teamNameChanged);
             Client.AddListener<ServerUserChangedTeam>(userChangedTeam);
             Client.AddListener<ServerBroadcastMessage>(serverMessage);
-            Client.AddListener<ServerMatchLogUpdate>(matchLogUpdate);
+            Client.AddListener<ServerMatchEvents>(gotMatchEvents);
+            Client.AddListener<ServerEntireMatchLogReceived>(matchLogUpdate);
         }
 
         protected override void ClientChanged()
@@ -120,23 +119,23 @@ namespace EldenBingo.UI
             if (Client == null)
                 return;
             Client.OnRoomChanged -= client_RoomChanged;
-            Client.RemoveListener<ServerUserChecked>(userChecked);
             Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
             Client.RemoveListener<ServerUserLeftRoom>(userLeft);
             Client.RemoveListener<ServerUserBannedFromRoom>(userBanned);
             Client.RemoveListener<ServerPromoteToAdmin>(userPromoted);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(gotBingoBoard);
             Client.RemoveListener<ServerUserChat>(userChat);
-            Client.RemoveListener<ServerBingoAchievedUpdate>(bingoAchieved);
             Client.RemoveListener<ServerTeamNameChanged>(teamNameChanged);
             Client.RemoveListener<ServerUserChangedTeam>(userChangedTeam);
             Client.RemoveListener<ServerBroadcastMessage>(serverMessage);
-            Client.RemoveListener<ServerMatchLogUpdate>(matchLogUpdate);
+            Client.RemoveListener<ServerMatchEvents>(gotMatchEvents);
+            Client.RemoveListener<ServerEntireMatchLogReceived>(matchLogUpdate);
         }
 
-        private void userChecked(ClientModel? _, ServerUserChecked userCheckedArgs)
+        private void gotMatchEvents(ClientModel? model, ServerMatchEvents matchEventMessage)
         {
-            logEvent(userCheckedArgs.Event);
+            foreach (var ev in matchEventMessage.Events)
+                logEvent(ev);
         }
 
         private void logEvent(MatchEvent matchEvent)
@@ -162,15 +161,15 @@ namespace EldenBingo.UI
                     {
                         linename = $"diagonal BL->TR";
                     }
-                    updateMatchLog(new string[] { matchEvent.Player, $"BINGO on {linename}!" }, new Color?[] { BingoConstants.GetTeamColorBright(matchEvent.Team), null }, true, matchEvent.Timestamp / 1000);
+                    updateMatchLog([matchEvent.Player, $"BINGO on {linename}!"], [BingoConstants.GetTeamColorBright(matchEvent.Team), null], true, matchEvent.Timestamp / 1000);
                 }
                 else if (matchEvent.SquareIndex >= 0 && matchEvent.SquareIndex < Client.BingoBoard.SquareCount)
                 {
                     Color playerColor = matchEvent.EventType == MatchEventType.RefereeCheck ? BingoConstants.AdminSpectatorColor : BingoConstants.GetTeamColorBright(matchEvent.Team);
                     Color checkColor = matchEvent.Team > -1 ? BingoConstants.GetTeamColorBright(matchEvent.Team) : playerColor;
                     var square = Client.BingoBoard.Squares[matchEvent.SquareIndex];
-                    updateMatchLog(new[] { matchEvent.Player, matchEvent.Checked ? "marked" : "unmarked", square.Text },
-                                   new Color?[] { playerColor, null, checkColor }, true, matchEvent.Timestamp / 1000);
+                    updateMatchLog([matchEvent.Player, matchEvent.Checked ? "marked" : "unmarked", square.Text],
+                                   [playerColor, null, checkColor], true, matchEvent.Timestamp / 1000);
                 }
             }
         }
@@ -179,8 +178,8 @@ namespace EldenBingo.UI
         {
             if (Client?.Room != null)
             {
-                updateMatchLog(new[] { userJoinedArgs.User.Nick, "joined the lobby" },
-                        new Color?[] { userJoinedArgs.User.ColorBright, null }, true);
+                updateMatchLog([userJoinedArgs.User.Nick, "joined the lobby"],
+                        [userJoinedArgs.User.ColorBright, null], true);
             }
         }
 
@@ -188,8 +187,8 @@ namespace EldenBingo.UI
         {
             if (Client?.Room != null)
             {
-                updateMatchLog(new[] { userLeftArgs.User.Nick, "left the lobby" },
-                        new Color?[] { userLeftArgs.User.ColorBright, null }, true);
+                updateMatchLog([userLeftArgs.User.Nick, "left the lobby"],
+                        [userLeftArgs.User.ColorBright, null], true);
             }
         }
 
@@ -197,8 +196,8 @@ namespace EldenBingo.UI
         {
             if (Client?.Room != null)
             {
-                updateMatchLog(new[] { userBannedArgs.User.Nick, "was banned from this lobby by", userBannedArgs.Banner.Nick },
-                        new Color?[] { userBannedArgs.User.ColorBright, null, userBannedArgs.Banner.ColorBright }, true);
+                updateMatchLog([userBannedArgs.User.Nick, "was banned from this lobby by", userBannedArgs.Banner.Nick],
+                        [userBannedArgs.User.ColorBright, null, userBannedArgs.Banner.ColorBright], true);
             }
         }
 
@@ -211,8 +210,8 @@ namespace EldenBingo.UI
                     // Set admin flag just to be sure, even though it's probably already set by Client.cs
                     Client.LocalUser.IsAdmin = true;
                 showHideAdminControls();
-                updateMatchLog(new[] { userPromotedArgs.User.Nick, "was promoted to admin by", userPromotedArgs.Promoter.Nick },
-                       new Color?[] { userPromotedArgs.User.ColorBright, null, userPromotedArgs.Promoter.ColorBright }, true);
+                updateMatchLog([userPromotedArgs.User.Nick, "was promoted to admin by", userPromotedArgs.Promoter.Nick],
+                       [userPromotedArgs.User.ColorBright, null, userPromotedArgs.Promoter.ColorBright], true);
             }
         }
 
@@ -238,11 +237,6 @@ namespace EldenBingo.UI
                 colors.Add(null);
                 updateMatchLog(strings.ToArray(), colors.ToArray(), false);
             }
-            // Log all previous board events
-            foreach (var ev in bingoBoardArgs.Events)
-            {
-                logEvent(ev);
-            }
         }
 
         private void userChat(ClientModel? _, ServerUserChat chatArgs)
@@ -253,14 +247,9 @@ namespace EldenBingo.UI
                 if (user != null)
                 {
                     updateMatchLog(new[] { user.Nick, ":", chatArgs.Message },
-                        new Color?[] { user.ColorBright, null, null }, true);
+                        [user.ColorBright, null, null], true);
                 }
             }
-        }
-
-        private void bingoAchieved(ClientModel? _, ServerBingoAchievedUpdate update)
-        {
-            logEvent(update.Event);
         }
 
         private void teamNameChanged(ClientModel? model, ServerTeamNameChanged teamNameChanged)
@@ -272,8 +261,8 @@ namespace EldenBingo.UI
                 {
                     var teamColor = BingoConstants.GetTeamColorBright(teamNameChanged.Team);
                     updateMatchLog(
-                        new string[] { user.Nick, $"changed name of", teamNameChanged.TeamColorName, "to", teamNameChanged.Name },
-                        new Color?[] { BingoConstants.GetTeamColorBright(user.Team), null, teamColor, null, teamColor },
+                        [user.Nick, $"changed name of", teamNameChanged.TeamColorName, "to", teamNameChanged.Name],
+                        [BingoConstants.GetTeamColorBright(user.Team), null, teamColor, null, teamColor],
                         true);
                 }
             }
@@ -290,8 +279,8 @@ namespace EldenBingo.UI
                     var newTeamColor = BingoConstants.GetTeamColorBright(teamChanged.Team);
                     user.Team = teamChanged.Team;
                     updateMatchLog(
-                        new string[] { user.Nick, $"changed team to", teamChanged.TeamColorName },
-                        new Color?[] { oldTeamColor, null, newTeamColor },
+                        [user.Nick, $"changed team to", teamChanged.TeamColorName],
+                        [oldTeamColor, null, newTeamColor],
                         true);
                 }
             }
@@ -299,31 +288,34 @@ namespace EldenBingo.UI
 
         private void serverMessage(ClientModel? model, ServerBroadcastMessage message)
         {
-            updateMatchLog(new[] { $"Server: {message.Message}" }, new Color?[] { Color.Orange }, true);
+            updateMatchLog([$"Server: {message.Message}"], [Color.Orange], true);
         }
 
-        private void matchLogUpdate(ClientModel? model, ServerMatchLogUpdate update)
+        private void matchLogUpdate(ClientModel? model, ServerEntireMatchLogReceived matchLogResults)
         {
             void saveLog()
             {
                 void saveLogInner()
                 {
-                    if (!string.IsNullOrEmpty(update.MatchLog))
+                    if (string.IsNullOrEmpty(matchLogResults.MatchLog))
                     {
-                        var saveFileDialog = new SaveFileDialog();
-                        saveFileDialog.FileName = update.SuggestedFilename;
-                        saveFileDialog.OverwritePrompt = true;
-                        saveFileDialog.Filter = update.SuggestedFilename.EndsWith("json") ? "Json File|*.json" : "Text File|*.txt";
-                        if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                        updateMatchLog("Couldn't get match log", Color.OrangeRed, false);
+                        return;
+                    }
+                    var saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.FileName = matchLogResults.SuggestedFilename;
+                    saveFileDialog.OverwritePrompt = true;
+                    saveFileDialog.Filter = matchLogResults.Json ? "Json File|*.json" : "Text File|*.txt";
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        try
                         {
-                            try
-                            {
-                                File.WriteAllText(saveFileDialog.FileName, update.MatchLog);
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show("Error saving log: " + ex.Message, Application.ProductName, MessageBoxButtons.OK);
-                            }
+                            File.WriteAllText(saveFileDialog.FileName, matchLogResults.MatchLog);
+                            updateMatchLog("Match log saved", matchLogResults.Json ? _requestJsonLinkLabel.LinkColor : _requestLogLinkLabel.LinkColor, false);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error saving log: " + ex.Message, Application.ProductName, MessageBoxButtons.OK);
                         }
                     }
                 }
@@ -591,7 +583,7 @@ namespace EldenBingo.UI
 
         private void updateMatchLog(string text, Color? color, bool timestamp)
         {
-            updateMatchLog(new[] { text }, new Color?[] { color }, timestamp);
+            updateMatchLog([text], [color], timestamp);
         }
 
         private void updateMatchLog(string[] text, Color?[] color, bool timestamp, int? customTimeStampSeconds = null)
@@ -712,7 +704,7 @@ namespace EldenBingo.UI
         {
             if (Client != null && _requestLogParentPanel.Visible)
             {
-                _ = Client.SendPacketToServer(new Packet(new ClientRequestMatchLog(false)));
+                _ = Client.SendPacketToServer(new Packet(new ClientRequestEntireMatchLog(false)));
             }
         }
 
@@ -720,7 +712,7 @@ namespace EldenBingo.UI
         {
             if (Client != null && _requestLogParentPanel.Visible)
             {
-                _ = Client.SendPacketToServer(new Packet(new ClientRequestMatchLog(true)));
+                _ = Client.SendPacketToServer(new Packet(new ClientRequestEntireMatchLog(true)));
             }
         }
     }

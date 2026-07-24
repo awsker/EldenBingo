@@ -12,18 +12,19 @@ public record ServerUserCoordinates(Guid UserGuid, float X, float Y, float Angle
 public record ServerAdminStatusMessage(string Message, int Color);
 public record ServerUserChat(Guid UserGuid, string Message);
 public record ServerMatchStatusUpdate(MatchStatus MatchStatus, bool Paused, int Timer);
-public record ServerEntireBingoBoardUpdate(int Size, bool Lockout, BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses, MatchEvent[] Events);
+public record ServerEntireBingoBoardUpdate(int Size, bool Lockout, BingoBoardSquare[] Squares, EldenRingClasses[] AvailableClasses);
 public record ServerScoreboardUpdate(TeamScore[] Scoreboard);
-public record ServerBingoAchievedUpdate(BingoLine Bingo, MatchEvent Event);
+public record ServerBingoAchievedUpdate(BingoLine Bingo);
 public record ServerSquareUpdate(BingoBoardSquare Square, int Index);
-public record ServerUserChecked(MatchEvent Event, int[] TeamsChecked);
+public record ServerUserChecked(int Index, int Team, int[] TeamsChecked);
 public record ServerCurrentGameSettings(BingoGameSettings GameSettings);
 public record ServerTeamNameChanged(Guid UserGuid, int Team, string TeamColorName, string Name);
 public record ServerBroadcastMessage(string Message);
 public record ServerUserChangedTeam(Guid UserGuid, int Team, string TeamColorName, UserInRoom[] Users);
 public record ServerUserBannedFromRoom(UserInRoom User, UserInRoom Banner);
 public record ServerPromoteToAdmin(UserInRoom User, UserInRoom Promoter);
-public record ServerMatchLogUpdate(string MatchLog, string SuggestedFilename);
+public record ServerMatchEvents(MatchEvent[] Events);
+public record ServerEntireMatchLogReceived(string MatchLog, string SuggestedFilename, bool Json);
 
 #endregion Server to client
 
@@ -48,6 +49,6 @@ public record ClientSetTeamName(int Team, string Name);
 public record ClientRequestTeamChange(int Team);
 public record ClientBanUserFromRoom(Guid BannedUser);
 public record ClientPromoteToAdmin(Guid PromotedUser);
-public record ClientRequestMatchLog(bool Json);
+public record ClientRequestEntireMatchLog(bool Json);
 
 #endregion Client to server

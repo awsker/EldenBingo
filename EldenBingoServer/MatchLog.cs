@@ -43,6 +43,7 @@ namespace EldenBingoServer
             }
             StartTime = room.Match.MatchStartTime;
             FinishTime = DateTime.Now;
+            MatchLength = room.Match.MatchMilliseconds;
             Squares = room.Match.Board.Squares.Select(s => s.Text).ToArray();
             var eventsList = new List<MatchEvent>(room.Match.MatchEvents);
             Events = eventsList.ToArray();
@@ -54,6 +55,7 @@ namespace EldenBingoServer
             for (int i = 0; i < Teams.Length; ++i)
             {
                 teamsTranslationDict[Teams[i].TeamIndex] = i;
+                Teams[i] = Teams[i] with { TeamIndex = i };
             }
             
             // For the json file, only save actual check events. Remove all bingo events and remap teams to a sequential index
