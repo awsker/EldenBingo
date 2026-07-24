@@ -218,24 +218,27 @@ namespace EldenBingo.UI
 
         private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
-            if (bingoBoardArgs.AvailableClasses.Length <= 0)
-                return;
-
-            var prep = bingoBoardArgs.AvailableClasses.Length == 1 ? "Required class is:" : "Valid classes are:";
-            var strings = new List<string>();
-            var colors = new List<Color?>();
-            foreach (var cl in bingoBoardArgs.AvailableClasses)
+            // Log available classes immediately when entering room and board is fetched
+            if (bingoBoardArgs.AvailableClasses.Length > 0)
             {
-                if (strings.Count == 0)
-                    strings.Add(prep);
-                else
-                    strings.Add(",");
-                strings.Add(cl.ToString());
+
+                var prep = bingoBoardArgs.AvailableClasses.Length == 1 ? "Required class is:" : "Valid classes are:";
+                var strings = new List<string>();
+                var colors = new List<Color?>();
+                foreach (var cl in bingoBoardArgs.AvailableClasses)
+                {
+                    if (strings.Count == 0)
+                        strings.Add(prep);
+                    else
+                        strings.Add(",");
+                    strings.Add(cl.ToString());
+                    colors.Add(null);
+                    colors.Add(BingoConstants.ClassColors[(int)cl]);
+                }
                 colors.Add(null);
-                colors.Add(BingoConstants.ClassColors[(int)cl]);
+                updateMatchLog(strings.ToArray(), colors.ToArray(), false);
             }
-            colors.Add(null);
-            updateMatchLog(strings.ToArray(), colors.ToArray(), false);
+            // Log all previous board events
             foreach (var ev in bingoBoardArgs.Events)
             {
                 logEvent(ev);
