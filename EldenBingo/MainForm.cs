@@ -137,48 +137,6 @@ namespace EldenBingo
             base.WndProc(ref m);
         }
 
-        private void handleSettingsChanges()
-        {
-            bool changed = false;
-            //Use previous binding for Click hotkey if set
-            if (Properties.Settings.Default.ClickHotkey > 0)
-            {
-                Properties.Settings.Default.Hotkey_Check = Properties.Settings.Default.ClickHotkey;
-                Properties.Settings.Default.ClickHotkey = 0;
-                changed = true;
-            }
-            if (Properties.Settings.Default.NumpadNavigation)
-            {
-                Properties.Settings.Default.Hotkey_Up = (int)Keys.NumPad8;
-                Properties.Settings.Default.Hotkey_Down = (int)Keys.NumPad2;
-                Properties.Settings.Default.Hotkey_Left = (int)Keys.NumPad4;
-                Properties.Settings.Default.Hotkey_Right = (int)Keys.NumPad6;
-                Properties.Settings.Default.Hotkey_UpLeft = (int)Keys.NumPad7;
-                Properties.Settings.Default.Hotkey_UpRight = (int)Keys.NumPad9;
-                Properties.Settings.Default.Hotkey_DownLeft = (int)Keys.NumPad1;
-                Properties.Settings.Default.Hotkey_DownRight = (int)Keys.NumPad3;
-                Properties.Settings.Default.Hotkey_Star = (int)Keys.Multiply;
-                Properties.Settings.Default.Hotkey_CountIncrease  = (int)Keys.Add;
-                Properties.Settings.Default.Hotkey_CountDecrease = (int)Keys.Subtract;
-                Properties.Settings.Default.NumpadNavigation = false;
-                changed = true;
-            }
-            else if (Properties.Settings.Default.ArrowNavigation)
-            {
-                Properties.Settings.Default.Hotkey_Up = (int)Keys.Up;
-                Properties.Settings.Default.Hotkey_Down = (int)Keys.Down;
-                Properties.Settings.Default.Hotkey_Left = (int)Keys.Left;
-                Properties.Settings.Default.Hotkey_Right = (int)Keys.Right;
-                Properties.Settings.Default.ArrowNavigation = false;
-                changed = true;
-            }
-            if (changed)
-            {
-                Properties.Settings.Default.Save();
-            }
-
-        }
-
         private void addVersionToTitle()
         {
             var v = getCleanVersionString();
