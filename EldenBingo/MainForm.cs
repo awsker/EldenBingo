@@ -71,7 +71,6 @@ namespace EldenBingo
             _client = new Client();
             _client.PacketDelayMs = Properties.Settings.Default.DelayMatchEvents;
             addClientListeners(_client);
-            handleSettingsChanges();
             listenToSettingsChanged();
             SizeChanged += mainForm_SizeChanged;
             LocationChanged += mainForm_LocationChanged;
