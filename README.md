@@ -99,11 +99,9 @@ As an AdminSpectator, you are basically the referee of the match. You can view t
 The settings are mostly for the convenience of a streamer, to set up the UI components to the right size and position to be easily captured in the streaming software. You can also enable server hosting from here.
 
 # Json Format
-The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for tooltips, categories, center square and token replacements.  
-![json2](https://github.com/user-attachments/assets/847c42df-868c-4c3c-bc87-e73931643b82)
+The format is the same as is used by Bingo Brawlers and BingoSync but with extensions for categories, center square and token replacements.  
+<img width="1139" height="99" src="https://github.com/user-attachments/assets/ac02dbce-a7de-4c22-aa4b-5d0a98e8c8ec" />
 
-Use the **tooltip** key to define a tooltip when hovering that square:  
- ![image](https://github.com/awsker/EldenBingo/assets/604653/a5f97ed4-9454-462a-bd31-8b2de1e186f7)
 
 Use the **category** key to define a single category, or the **categories** key to define an array of categories. These categories can be used in conjunction with the lobby setting *Max square in same category* to ensure that at most that number of categories will be present in one bingo board, in order to generate more balanced bingo boards.
 
