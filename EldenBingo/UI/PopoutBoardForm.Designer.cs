@@ -31,7 +31,7 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PopoutBoardForm));
             bingoControl1 = new BingoControl();
-            panel1 = new Panel();
+            _buttonPanel = new Panel();
             _moveButton = new PictureBox();
             _resizeButton = new PictureBox();
             _opacityButton = new PictureBox();
@@ -40,37 +40,40 @@
             _timerLabel = new Label();
             toolTip1 = new ToolTip(components);
             panel3 = new Panel();
-            tableLayoutPanel1 = new TableLayoutPanel();
-            panel1.SuspendLayout();
+            _statsPanel = new TableLayoutPanel();
+            _bingoPanelFill = new Panel();
+            _bingoPanelParent = new Panel();
+            _buttonPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)_moveButton).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_resizeButton).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_opacityButton).BeginInit();
             ((System.ComponentModel.ISupportInitialize)_closeButton).BeginInit();
             panel3.SuspendLayout();
-            tableLayoutPanel1.SuspendLayout();
+            _statsPanel.SuspendLayout();
+            _bingoPanelFill.SuspendLayout();
+            _bingoPanelParent.SuspendLayout();
             SuspendLayout();
             // 
             // bingoControl1
             // 
             bingoControl1.Client = null;
-            bingoControl1.Dock = DockStyle.Top;
-            bingoControl1.Location = new Point(0, 32);
+            bingoControl1.Location = new Point(0, 0);
             bingoControl1.Name = "bingoControl1";
             bingoControl1.Size = new Size(346, 315);
             bingoControl1.TabIndex = 0;
             // 
-            // panel1
+            // _buttonPanel
             // 
-            panel1.BackColor = Color.Transparent;
-            panel1.Controls.Add(_moveButton);
-            panel1.Controls.Add(_resizeButton);
-            panel1.Controls.Add(_opacityButton);
-            panel1.Controls.Add(_closeButton);
-            panel1.Dock = DockStyle.Top;
-            panel1.Location = new Point(0, 0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(346, 32);
-            panel1.TabIndex = 1;
+            _buttonPanel.BackColor = Color.Transparent;
+            _buttonPanel.Controls.Add(_moveButton);
+            _buttonPanel.Controls.Add(_resizeButton);
+            _buttonPanel.Controls.Add(_opacityButton);
+            _buttonPanel.Controls.Add(_closeButton);
+            _buttonPanel.Dock = DockStyle.Top;
+            _buttonPanel.Location = new Point(0, 0);
+            _buttonPanel.Name = "_buttonPanel";
+            _buttonPanel.Size = new Size(346, 32);
+            _buttonPanel.TabIndex = 1;
             // 
             // _moveButton
             // 
@@ -128,9 +131,9 @@
             // 
             scoreboardControl1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             scoreboardControl1.Client = null;
-            scoreboardControl1.Location = new Point(9, 7);
+            scoreboardControl1.Location = new Point(8, 7);
             scoreboardControl1.Name = "scoreboardControl1";
-            scoreboardControl1.Size = new Size(155, 24);
+            scoreboardControl1.Size = new Size(161, 24);
             scoreboardControl1.TabIndex = 8;
             // 
             // _timerLabel
@@ -140,7 +143,7 @@
             _timerLabel.ForeColor = Color.White;
             _timerLabel.Location = new Point(176, 0);
             _timerLabel.Name = "_timerLabel";
-            _timerLabel.Size = new Size(167, 64);
+            _timerLabel.Size = new Size(167, 79);
             _timerLabel.TabIndex = 7;
             _timerLabel.Text = "00:00:00";
             _timerLabel.TextAlign = ContentAlignment.TopRight;
@@ -149,35 +152,54 @@
             // 
             panel3.Controls.Add(scoreboardControl1);
             panel3.Dock = DockStyle.Fill;
-            panel3.Location = new Point(3, 3);
+            panel3.Location = new Point(0, 0);
+            panel3.Margin = new Padding(0);
             panel3.Name = "panel3";
-            panel3.Size = new Size(167, 58);
+            panel3.Size = new Size(173, 79);
             panel3.TabIndex = 9;
             // 
-            // tableLayoutPanel1
+            // _statsPanel
             // 
-            tableLayoutPanel1.ColumnCount = 2;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Controls.Add(panel3, 0, 0);
-            tableLayoutPanel1.Controls.Add(_timerLabel, 1, 0);
-            tableLayoutPanel1.Dock = DockStyle.Fill;
-            tableLayoutPanel1.Location = new Point(0, 347);
-            tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 1;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(346, 64);
-            tableLayoutPanel1.TabIndex = 9;
+            _statsPanel.ColumnCount = 2;
+            _statsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            _statsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            _statsPanel.Controls.Add(panel3, 0, 0);
+            _statsPanel.Controls.Add(_timerLabel, 1, 0);
+            _statsPanel.Dock = DockStyle.Fill;
+            _statsPanel.Location = new Point(0, 332);
+            _statsPanel.Name = "_statsPanel";
+            _statsPanel.RowCount = 1;
+            _statsPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            _statsPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            _statsPanel.Size = new Size(346, 79);
+            _statsPanel.TabIndex = 9;
+            // 
+            // _bingoPanelFill
+            // 
+            _bingoPanelFill.Controls.Add(_bingoPanelParent);
+            _bingoPanelFill.Dock = DockStyle.Top;
+            _bingoPanelFill.Location = new Point(0, 32);
+            _bingoPanelFill.Margin = new Padding(0);
+            _bingoPanelFill.Name = "_bingoPanelFill";
+            _bingoPanelFill.Size = new Size(346, 300);
+            _bingoPanelFill.TabIndex = 6;
+            // 
+            // _bingoPanelParent
+            // 
+            _bingoPanelParent.Controls.Add(bingoControl1);
+            _bingoPanelParent.Location = new Point(0, 0);
+            _bingoPanelParent.Margin = new Padding(0);
+            _bingoPanelParent.Name = "_bingoPanelParent";
+            _bingoPanelParent.Size = new Size(200, 100);
+            _bingoPanelParent.TabIndex = 6;
             // 
             // PopoutBoardForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.None;
             ClientSize = new Size(346, 411);
-            Controls.Add(tableLayoutPanel1);
-            Controls.Add(bingoControl1);
-            Controls.Add(panel1);
+            Controls.Add(_statsPanel);
+            Controls.Add(_bingoPanelFill);
+            Controls.Add(_buttonPanel);
             FormBorderStyle = FormBorderStyle.None;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MinimumSize = new Size(300, 300);
@@ -185,20 +207,22 @@
             StartPosition = FormStartPosition.Manual;
             Text = "Bingo Board";
             FormClosed += PopoutBoardForm_FormClosed;
-            panel1.ResumeLayout(false);
+            _buttonPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)_moveButton).EndInit();
             ((System.ComponentModel.ISupportInitialize)_resizeButton).EndInit();
             ((System.ComponentModel.ISupportInitialize)_opacityButton).EndInit();
             ((System.ComponentModel.ISupportInitialize)_closeButton).EndInit();
             panel3.ResumeLayout(false);
-            tableLayoutPanel1.ResumeLayout(false);
+            _statsPanel.ResumeLayout(false);
+            _bingoPanelFill.ResumeLayout(false);
+            _bingoPanelParent.ResumeLayout(false);
             ResumeLayout(false);
         }
 
         #endregion
 
         private BingoControl bingoControl1;
-        private Panel panel1;
+        private Panel _buttonPanel;
         private PictureBox _closeButton;
         private PictureBox _moveButton;
         private PictureBox _resizeButton;
@@ -207,6 +231,8 @@
         private ScoreboardControl scoreboardControl1;
         private ToolTip toolTip1;
         private Panel panel3;
-        private TableLayoutPanel tableLayoutPanel1;
+        private TableLayoutPanel _statsPanel;
+        private Panel _bingoPanelFill;
+        private Panel _bingoPanelParent;
     }
 }

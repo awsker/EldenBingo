@@ -70,6 +70,7 @@ namespace EldenBingo.UI
             {
                 // Reconnect key bindings to the regular bingo board when the popup form closes
                 _bingoControl.ConnectHotkeys();
+                _popout.Client = null;
                 _popout = null;
             };
             _popout.SetScoreboardFromScoreboard(_scoreboardControl);

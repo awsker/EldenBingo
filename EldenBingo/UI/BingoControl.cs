@@ -20,8 +20,6 @@ namespace EldenBingo.UI
         private Color BgColor = Color.FromArgb(18, 20, 20);
         private Color TextColor = Color.FromArgb(232, 230, 227);
         private Color ShadowColor = Color.FromArgb(128, 0, 0, 0);
-        private Brush ShadowBrush;
-        private Brush TextBrush;
 
         public Font SquareFont { get; private set; }
         public Font LabelFont { get; private set; }
@@ -90,6 +88,7 @@ namespace EldenBingo.UI
         private static Bitmap _squareGradient;
 
         public Color GridColor { get; set; } = Color.FromArgb(118, 110, 97);
+        public bool AbideByMaxSize { get; set; } = true;
 
         public BingoBoard? BingoBoard
         {
@@ -185,8 +184,6 @@ namespace EldenBingo.UI
             MouseMove += bingoControl_OnMouseMove;
             MouseLeave += bingoControl_OnMouseLeave;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
-            ShadowBrush = new SolidBrush(ShadowColor);
-            TextBrush = new SolidBrush(TextColor);
         }
 
         private void bingoControl_OnMouseMove(object? sender, MouseEventArgs e)
@@ -781,7 +778,7 @@ namespace EldenBingo.UI
         private void updateBingoMaximumSize()
         {
             var sizeBefore = Size;
-            if (Properties.Settings.Default.BingoBoardMaximumSize && Properties.Settings.Default.BingoMaxSizeX > 0 && Properties.Settings.Default.BingoMaxSizeY > 0)
+            if (AbideByMaxSize && Properties.Settings.Default.BingoBoardMaximumSize && Properties.Settings.Default.BingoMaxSizeX > 0 && Properties.Settings.Default.BingoMaxSizeY > 0)
             {
                 MaximumSize = new Size(Properties.Settings.Default.BingoMaxSizeX, Properties.Settings.Default.BingoMaxSizeY);
             }

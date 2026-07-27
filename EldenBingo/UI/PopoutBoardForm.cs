@@ -1,4 +1,5 @@
 ﻿using EldenBingo.Util;
+using Neto.Shared;
 
 namespace EldenBingo.UI
 {
@@ -19,14 +20,22 @@ namespace EldenBingo.UI
         public PopoutBoardForm()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
             AutoScaleMode = AutoScaleMode.None;
             BackColor = ChromaKey;
             TransparencyKey = ChromaKey;
             TopMost = true;
+            bingoControl1.AbideByMaxSize = false;
             setButtonsVisible(false);
             updateBingoControlSize();
             updateScoreboardFont();
+            updateStatsPanelHeight();
+            // When this control changes size, change the size of the bingo control parent
             SizeChanged += (o, e) => updateBingoControlSize();
+            // When the bingo control changes size, update the height of the stats panel
+            bingoControl1.SizeChanged += (o, e) => updateStatsPanelHeight();
+            // When the scoreboard changes size (due to new teams joining), recalculate bingo control size
+            scoreboardControl1.SizeChanged += (o, e) => updateBingoControlSize();
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
             Point location = Location;
             Size size = Size;
@@ -43,7 +52,7 @@ namespace EldenBingo.UI
                 var mf = MainForm.Instance;
                 if (mf != null)
                 {
-                    location = new Point(mf.Location.X + (mf.Size.Width - size.Width) / 2, mf.Location.Y + (mf.Size.Height - size.Height) / 2);
+                    location = new Point(mf.Location.X + (mf.Width - size.Width) / 2, mf.Location.Y + (mf.Height - size.Height) / 2);
                 }
             }
             var offset = WindowHelper.GetLocationAndSizeOffsets(location, size, false, 0);
@@ -55,6 +64,11 @@ namespace EldenBingo.UI
             {
                 Opacity = Properties.Settings.Default.PopoutOpacity;
             }
+        }
+
+        private void updateStatsPanelHeight()
+        {
+            _bingoPanelFill.Height = Math.Min(_bingoPanelParent.Height + 2, bingoControl1.Height + 2);
         }
 
         public Client? Client
@@ -85,6 +99,11 @@ namespace EldenBingo.UI
         {
         }
 
+        private void onServerScoreUpdate(ClientModel? model, ServerScoreboardUpdate update)
+        {
+            updateBingoControlSize();
+        }
+
         private void OnMouseEnteredForm()
         {
             setButtonsVisible(true);
@@ -97,7 +116,7 @@ namespace EldenBingo.UI
 
         private void setButtonsVisible(bool visible)
         {
-            foreach (Control c in panel1.Controls)
+            foreach (Control c in _buttonPanel.Controls)
             {
                 c.Visible = visible;
             }
@@ -107,7 +126,7 @@ namespace EldenBingo.UI
         {
             base.OnLoad(e);
             _mouseHoverTimer = new System.Windows.Forms.Timer();
-            _mouseHoverTimer.Interval = 50; // 10 times per second
+            _mouseHoverTimer.Interval = 16; // 60 times per second
             _mouseHoverTimer.Tick += mouseHoverTimer_Tick;
             _mouseHoverTimer.Start();
         }
@@ -133,13 +152,13 @@ namespace EldenBingo.UI
                             break;
 
                         case MouseAction.Resize:
-                            var new_size = new Size(Size.Width + diff.X, Size.Height + diff.Y);
+                            var new_size = new Size(Width + diff.X, Height + diff.Y);
                             new_size = new Size(Math.Max(160, new_size.Width), Math.Max(160, new_size.Height));
                             var offsets2 = WindowHelper.GetLocationAndSizeOffsets(Location, new_size, true, 0);
                             new_size = new Size(new_size.Width + offsets2.Item2.X, new_size.Height + offsets2.Item2.Y);
                             Size = new_size;
-                            Properties.Settings.Default.PopoutSizeX = Size.Width;
-                            Properties.Settings.Default.PopoutSizeY = Size.Height;
+                            Properties.Settings.Default.PopoutSizeX = Width;
+                            Properties.Settings.Default.PopoutSizeY = Height;
                             updateBingoControlSize();
                             
                             break;
@@ -170,8 +189,8 @@ namespace EldenBingo.UI
 
         private void updateBingoControlSize()
         {
-            var board_max_x = Size.Width;
-            var board_max_y = Size.Height - 32 - Math.Max(50, scoreboardControl1.Height + scoreboardControl1.Location.Y);
+            var board_max_x = Width;
+            var board_max_y = Height - _buttonPanel.Height - Math.Max(50, scoreboardControl1.Height + scoreboardControl1.Location.Y);
             if (board_max_y > board_max_x / BingoControl.AspectRatio)
             {
                 board_max_y = Convert.ToInt32(board_max_x / BingoControl.AspectRatio);
@@ -180,7 +199,8 @@ namespace EldenBingo.UI
             {
                 board_max_x = Convert.ToInt32(board_max_y * BingoControl.AspectRatio);
             }
-            bingoControl1.Size = new Size(board_max_x, board_max_y);
+            _bingoPanelParent.MaximumSize = new Size(board_max_x, board_max_y);
+            _bingoPanelParent.Size = new Size(board_max_x, board_max_y);
             _fontScaleFactor = board_max_x / 160.0f;
             var emSize = Math.Max(0.01f, 8f * _fontScaleFactor);
             var f = new Font(_timerLabel.Font.FontFamily, emSize, FontStyle.Bold);
