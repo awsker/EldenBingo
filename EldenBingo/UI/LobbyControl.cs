@@ -72,10 +72,11 @@ namespace EldenBingo.UI
                 _bingoControl.ConnectHotkeys();
                 _popout = null;
             };
+            _popout.SetScoreboardFromScoreboard(_scoreboardControl);
+            _popout.SetActiveTeams(_bingoControl.ActiveTeams);
             _popout.Show();
             // Disconnect the key bindings for the regular bingo control. Only the popup control will read keys as long as its open
             _bingoControl.DisconnectHotkeys();
-            _popout.SetScoreboardFromScoreboard(_scoreboardControl);
         }
 
         protected override void AddClientListeners()
@@ -393,7 +394,6 @@ namespace EldenBingo.UI
                 e.PropertyName == nameof(Properties.Settings.Default.BingoMaxSizeY) ||
                 e.PropertyName == nameof(Properties.Settings.Default.BingoBoardMaximumSize))
             {
-                updateBingoMaximumSize();
                 updateBingoPanelSize();
             }
             if (e.PropertyName == nameof(Properties.Settings.Default.BingoFont) ||
@@ -442,7 +442,6 @@ namespace EldenBingo.UI
         private void lobbyControl_Load(object? sender, EventArgs e)
         {
             initHideLabel();
-            updateBingoMaximumSize();
             updateBingoPanelSize();
             updateScoreboardFont();
             updateScoreboardControlLocationAndSize();
@@ -528,18 +527,6 @@ namespace EldenBingo.UI
             showHide();
         }
 
-        private void updateBingoMaximumSize()
-        {
-            if (Properties.Settings.Default.BingoBoardMaximumSize && Properties.Settings.Default.BingoMaxSizeX > 0 && Properties.Settings.Default.BingoMaxSizeY > 0)
-            {
-                _bingoControl.MaximumSize = new Size(Properties.Settings.Default.BingoMaxSizeX, Properties.Settings.Default.BingoMaxSizeY);
-            }
-            else
-            {
-                _bingoControl.MaximumSize = new Size();
-            }
-        }
-
         private void updateBingoPanelSize()
         {
             var maxWidth = splitContainer1.Panel1.Width - splitContainer1.SplitterWidth - Convert.ToInt32(270f * this.DefaultScaleFactors().Width);
@@ -558,13 +545,6 @@ namespace EldenBingo.UI
                 maxHeight = (int)(maxHeight / 1.1f);
             }
             _bingoBoardPanel.Width = maxWidth;
-            updateBingoSize();
-        }
-
-        private void updateBingoSize()
-        {
-            var maxSize = _bingoBoardPanel.Size - new Size(_bingoControl.Location) - new Size(3, 3);
-            _bingoControl.Size = maxSize;
         }
 
         private void clearMatchLog()

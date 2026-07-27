@@ -313,6 +313,7 @@ namespace EldenBingo
 
             if (form.ShowDialog(this) == DialogResult.OK && form.Team != teamBefore)
             {
+                Properties.Settings.Default.Team = form.Team;
                 await _client.SendPacketToServer(new Packet(new ClientRequestTeamChange(form.Team)));
             }
         }

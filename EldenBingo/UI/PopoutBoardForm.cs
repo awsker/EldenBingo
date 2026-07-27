@@ -287,5 +287,11 @@ namespace EldenBingo.UI
         {
             scoreboardControl1.CopyFromScoreboard(scoreboard);
         }
+
+        internal void SetActiveTeams(int[] activeTeams)
+        {
+            bingoControl1.ActiveTeams = activeTeams;
+
+        }
     }
 }

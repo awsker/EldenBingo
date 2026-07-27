@@ -19,7 +19,6 @@ namespace EldenBingoServer
                 string? name = square.Value<string>("name");
                 if (string.IsNullOrWhiteSpace(name))
                     continue;
-                string? tooltip = square.Value<string>("tooltip");
                 int? weight = square.Value<int?>("weight");
                 string? category = square.Value<string>("category");
                 int? center = square.Value<int?>("center");
@@ -55,7 +54,7 @@ namespace EldenBingoServer
                         tokenDict.Add(textToken, tokenArray.Select(t => t.Value<string>()).ToArray());
                     }
                 }
-                _list.Add(new BingoJsonObj(name, tooltip, weight.GetValueOrDefault(1), categories.ToArray(), tokenDict.Count == 0 ? null : tokenDict, (CenterType)center.GetValueOrDefault(0)));
+                _list.Add(new BingoJsonObj(name, weight.GetValueOrDefault(1), categories.ToArray(), tokenDict.Count == 0 ? null : tokenDict, (CenterType)center.GetValueOrDefault(0)));
             }
         }
 
@@ -178,7 +177,6 @@ namespace EldenBingoServer
                 squares.Select(s =>
                     new BingoBoardSquare(
                         getTextWithResolvedTokens(s),
-                        s.Tooltip,
                         Array.Empty<int>(),
                         false,
                         Array.Empty<SquareCounter>()
@@ -234,10 +232,9 @@ namespace EldenBingoServer
 
         private struct BingoJsonObj
         {
-            public BingoJsonObj(string text, string? tooltip = null, int weight = 1, string[]? categories = null, IDictionary<string, string[]>? tokens = null, CenterType center = CenterType.None)
+            public BingoJsonObj(string text, int weight = 1, string[]? categories = null, IDictionary<string, string[]>? tokens = null, CenterType center = CenterType.None)
             {
                 Text = text;
-                Tooltip = tooltip == null ? string.Empty : tooltip;
                 Weight = weight;
                 Categories = new HashSet<string>(categories ?? Array.Empty<string>());
                 Tokens = tokens;
@@ -245,7 +242,6 @@ namespace EldenBingoServer
             }
 
             public string Text { get; init; }
-            public string Tooltip { get; init; }
             public int Weight { get; init; }
             public ISet<string> Categories { get; init; }
             public IDictionary<string, string[]>? Tokens { get; init; }

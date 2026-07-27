@@ -145,7 +145,7 @@ namespace EldenBingo.UI
 
             _shadowTrackBar.Value = Properties.Settings.Default.SquareShadows / 10;
             _shadowTrackBar.ValueChanged += (o, e) => updateShadowText();
-            _highlightMarkedCheckBox.Checked = Properties.Settings.Default.MarkHighlight;
+            _highlightMarkedCheckBox.Checked = Properties.Settings.Default.CheckHighlight;
             _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
@@ -272,7 +272,7 @@ namespace EldenBingo.UI
             Properties.Settings.Default.SnipeSoundEnabled = _snipeCheckBox.Checked;
 
             Properties.Settings.Default.SquareShadows = Math.Clamp(_shadowTrackBar.Value * 10, 0, 100);
-            Properties.Settings.Default.MarkHighlight = _highlightMarkedCheckBox.Checked;
+            Properties.Settings.Default.CheckHighlight = _highlightMarkedCheckBox.Checked;
             Properties.Settings.Default.BingoHighlight = _highlightBingoCheckBox.Checked;
             Properties.Settings.Default.ClickHotkey = 0;
             Properties.Settings.Default.NumpadNavigation = false;

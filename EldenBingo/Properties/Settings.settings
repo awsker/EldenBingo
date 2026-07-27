@@ -150,9 +150,9 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="SquareShadows" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">70</Value>
+      <Value Profile="(Default)">50</Value>
     </Setting>
-    <Setting Name="MarkHighlight" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckHighlight" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="BingoHighlight" Type="System.Boolean" Scope="User">

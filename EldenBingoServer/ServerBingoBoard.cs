@@ -61,25 +61,21 @@ namespace EldenBingoServer
             return MarkedBy.Contains(player.Guid);
         }
 
-        public int? GetCounter(UserInRoom player)
+        public int GetCounter(UserInRoom player)
         {
             if (PlayerCounters.TryGetValue(player.Guid, out int counter))
             {
                 return counter;
             }
-            return null;
+            return 0;
         }
 
-        public int? GetCounterByTeam(int team, IEnumerable<UserInRoom> players)
+        public int GetCounterByTeam(int team, IEnumerable<UserInRoom> players)
         {
-            int? counter = null;
+            int counter = 0;
             foreach(var player in players.Where(p => p.Team == team))
             {
-                var c = GetCounter(player);
-                if (c.HasValue)
-                {
-                    counter = (counter ?? 0) + c.Value;
-                }
+                counter += GetCounter(player);
             }
             return counter;
         }
@@ -103,11 +99,12 @@ namespace EldenBingoServer
 
         public SquareCounter[] GetCountersForPlayer(UserInRoom recipient, IEnumerable<UserInRoom> players, IList<Team> teams)
         {
-            var counters = new SquareCounter[teams.Count];
+            var counters = new List<SquareCounter>();
+
             for (int i = 0; i < teams.Count; ++i)
             {
                 var team = teams[i];
-                int? teamCount = null;
+                int teamCount = 0;
                 if(recipient.IsSpectator)
                 {
                     teamCount = GetCounterByTeam(team.Index, players);
@@ -116,9 +113,12 @@ namespace EldenBingoServer
                 {
                     teamCount = GetCounter(recipient);
                 }
-                counters[i] = new SquareCounter(team.Index, teamCount ?? 0);
+                if (teamCount > 0)
+                {
+                    counters.Add(new SquareCounter(team.Index, teamCount));
+                }
             }
-            return counters;
+            return counters.ToArray();
         }
     }
 
@@ -197,7 +197,6 @@ namespace EldenBingoServer
                 teams ??= Room.GetActiveTeams();
                 return new BingoBoardSquare(
                     Squares[index].Text,
-                    Squares[index].Tooltip,
                     status.Teams.ToArray(),
                     status.IsMarked(user),
                     status.GetCountersForPlayer(user, Room.Users, teams));
@@ -211,7 +210,7 @@ namespace EldenBingoServer
             var check = CheckStatus[i];
             lock (check)
             {
-                var oldCount = check.GetCounter(user) ?? 0;
+                var oldCount = check.GetCounter(user);
                 if (user.IsSpectator)
                     return false;
                 return check.SetCounter(user.Guid, Math.Max(0, oldCount + change));

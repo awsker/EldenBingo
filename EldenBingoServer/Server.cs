@@ -988,16 +988,16 @@ namespace EldenBingoServer
             if (client.Room != null)
                 await leaveUserRoom(client);
 
-
             BingoClientInRoom clientInRoom = room.AddUser(client, nick, adminPass, team);
 
             var scoreboard = createScoreboardUpdatePacket(room);
+
             //Only send new user to room if there are any other clients present
             if (room.NumUsers > 1)
             {
                 //Send the user as a UserInRoom (we don't want to send a BingoClientInRoom since this type is unrecognized by the client)
-                var user = new UserInRoom(clientInRoom);
-                var joinPacket = new ServerUserJoinedRoom(user);
+                var newUser = new UserInRoom(clientInRoom);
+                var joinPacket = new ServerUserJoinedRoom(newUser);
                 //Send join message to all clients already in the room
                 await sendPacketToRoomExcept(new Packet(joinPacket, scoreboard), room, client.ClientGuid);
             }

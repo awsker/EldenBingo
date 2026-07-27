@@ -15,6 +15,7 @@ namespace EldenBingo.UI
 
         public ScoreboardControl()
         {
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
             _rows = new List<ScoreboardRowControl>();
             contextMenuStrip1 = new ContextMenuStrip();
             changeTeamNameToolStripMenuItem = new ToolStripMenuItem("Change team name");

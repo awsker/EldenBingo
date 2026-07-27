@@ -613,7 +613,7 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("70")]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
         public int SquareShadows {
             get {
                 return ((int)(this["SquareShadows"]));
@@ -626,12 +626,12 @@ namespace EldenBingo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool MarkHighlight {
+        public bool CheckHighlight {
             get {
-                return ((bool)(this["MarkHighlight"]));
+                return ((bool)(this["CheckHighlight"]));
             }
             set {
-                this["MarkHighlight"] = value;
+                this["CheckHighlight"] = value;
             }
         }
         

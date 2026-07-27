@@ -23,12 +23,10 @@ namespace EldenBingoCommon
         
     }
 
-    public record struct BingoBoardSquare(string Text, string Tooltip, int[] Team, bool Marked, SquareCounter[] Counters)
+    public record struct BingoBoardSquare(string Text, int[] Team, bool Marked, SquareCounter[] Counters)
     {
         [JsonProperty]
         public string Text { get; set; } = Text;
-        [JsonProperty]
-        public string Tooltip { get; set; } = Tooltip;
         [JsonIgnore]
         public int[] Team { get; set; } = Team;
         [JsonIgnore]
