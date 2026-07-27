@@ -17,8 +17,11 @@ namespace EldenBingo.UI
 
         private readonly object _concLock = new object();
 
-        private static readonly Color BgColor = Color.FromArgb(18, 20, 20);
-        private static readonly Color TextColor = Color.FromArgb(232, 230, 227);
+        private Color BgColor = Color.FromArgb(18, 20, 20);
+        private Color TextColor = Color.FromArgb(232, 230, 227);
+        private Color ShadowColor = Color.FromArgb(128, 0, 0, 0);
+        private Brush ShadowBrush;
+        private Brush TextBrush;
 
         public Font SquareFont { get; private set; }
         public Font LabelFont { get; private set; }
@@ -182,6 +185,8 @@ namespace EldenBingo.UI
             MouseMove += bingoControl_OnMouseMove;
             MouseLeave += bingoControl_OnMouseLeave;
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
+            ShadowBrush = new SolidBrush(ShadowColor);
+            TextBrush = new SolidBrush(TextColor);
         }
 
         private void bingoControl_OnMouseMove(object? sender, MouseEventArgs e)
@@ -317,6 +322,11 @@ namespace EldenBingo.UI
                 if (!string.IsNullOrWhiteSpace(StatusString))
                 {
                     var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
+                    int textShadowOffset = Math.Max(1, 1 + Height / 300);
+                    var textRect = innerRect;
+                    var shadowRect = textRect;
+                    shadowRect.Offset(textShadowOffset, textShadowOffset);
+                    TextRenderer.DrawText(g, StatusString, LabelFont, shadowRect, ShadowColor, flags);
                     TextRenderer.DrawText(g, StatusString, LabelFont, innerRect, TextColor, flags);
                 }
                 return;
@@ -1086,23 +1096,23 @@ namespace EldenBingo.UI
             private ColorMatrix _colorMatrix;
 
             private Color? _keywordColor;
+            private Color _keywordBlendedColor;
 
-            private bool _mouseOver;
+            private bool _selected;
             public bool Selected
             {
-                get { return _mouseOver; }
+                get { return _selected; }
                 set
                 {
-                    if (_mouseOver != value)
+                    if (_selected != value)
                     {
-                        _mouseOver = value;
+                        _selected = value;
                         onChanged();
                     }
                 }
             }
             
             public bool Changed;
-
             public event EventHandler OnChanged;
 
             public string _text;
@@ -1130,7 +1140,6 @@ namespace EldenBingo.UI
                 _imageAttributes = new ImageAttributes();
                 _colorMatrix = new ColorMatrix();
                 _imageAttributes.SetColorMatrix(_colorMatrix);
-                
             }
 
             private void onChanged()
@@ -1139,15 +1148,15 @@ namespace EldenBingo.UI
                 OnChanged?.Invoke(this, EventArgs.Empty);
             }
 
-            private void onTextChanged(object? sender, EventArgs e)
-            {
-                UpdateKeywordColor();
-            }
-
             public void UpdateKeywordColor()
             {
                 var oldValue = _keywordColor;
+                _keywordBlendedColor = _parent == null ? Color.White : _parent.TextColor;
                 _keywordColor = KeywordColorsJsonHelper.GetColor(Text)?.Color ?? null;
+                if (_keywordColor != null)
+                {
+                    _keywordBlendedColor = blend(_keywordColor.Value, _keywordBlendedColor, keywordColorAlpha());
+                }
             }
 
             private float keywordColorAlpha()
@@ -1237,7 +1246,7 @@ namespace EldenBingo.UI
                 //Draw empty background
                 void drawBackground()
                 {
-                    Color color = BgColor;
+                    Color color = _parent.BgColor;
                     if (Selected)
                     {
                         color = color.Brighten(0.14f);
@@ -1352,29 +1361,24 @@ namespace EldenBingo.UI
 
                 const int TextOffsetX = 0;
                 const int TextOffsetY = -2;
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
                 var f = _parent.SquareFont;
+                int textShadowOffset = Math.Max(1, 1 + rect.Height / 120);
+                
+                var textRect = rect;
+                var shadowRect = textRect;
+                shadowRect.Offset(textShadowOffset, textShadowOffset);
+
+                var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak;
+
                 Size size = TextRenderer.MeasureText(Text, f, rect.Size, flags);
-                while (size.Width > rect.Width || size.Height > rect.Height + TextOffsetY)
+                while (size.Width > rect.Width || size.Height > rect.Height)
                 {
                     f = new Font(f.FontFamily, f.Size - .2f, f.Style);
                     size = TextRenderer.MeasureText(Text, f, rect.Size, flags);
                 }
-                int textShadowOffset = Math.Max(1, 1 + rect.Height / 90);
-                var textRect = new Rectangle(rect.X + TextOffsetX, rect.Y + TextOffsetY, rect.Width, rect.Height);
-                var shadowRect = new Rectangle(rect.X + TextOffsetX + textShadowOffset, rect.Y + TextOffsetY + textShadowOffset, rect.Width, rect.Height);
-                var shadowColor = Color.FromArgb(96, 0, 0, 0);
-                TextRenderer.DrawText(g, Text, f, shadowRect, shadowColor, flags);
-                //If a keyword color is set for this square (meaning a matching keyword rule was found)
-                //and no team has claimed the square yet:
-                //Color the text with the keyword color
-                var tc = TextColor;
-                if (_keywordColor != null && _teams.Length == 0)
-                {
-                    tc = blend(_keywordColor.Value, TextColor, keywordColorAlpha());
-                }
-                TextRenderer.DrawText(g, Text, f, textRect, tc, flags);
+                TextRenderer.DrawText(g, Text, f, shadowRect, _parent.ShadowColor, flags);
+                TextRenderer.DrawText(g, Text, f, textRect, _teams.Length == 0 ? _keywordBlendedColor : _parent.TextColor, flags);
+
             }
 
             private static Color blend(Color color, Color backColor, double amount)
