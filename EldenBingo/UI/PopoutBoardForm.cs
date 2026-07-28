@@ -34,8 +34,8 @@ namespace EldenBingo.UI
             SizeChanged += (o, e) => updateBingoControlSize();
             // When the bingo control changes size, update the height of the stats panel
             bingoControl1.SizeChanged += (o, e) => updateStatsPanelHeight();
-            // When the scoreboard changes size (due to new teams joining), recalculate bingo control size
-            scoreboardControl1.SizeChanged += (o, e) => updateBingoControlSize();
+            // When the scoreboard changes size (due to new teams joining), make sure the window fits everything at its current size + new scoreboard height
+            scoreboardControl1.SizeChanged += (o, e) => accommodateStatsPanel();
             Properties.Settings.Default.PropertyChanged += default_PropertyChanged;
             Point location = Location;
             Size size = Size;
@@ -69,6 +69,15 @@ namespace EldenBingo.UI
         private void updateStatsPanelHeight()
         {
             _bingoPanelFill.Height = Math.Min(_bingoPanelParent.Height + 2, bingoControl1.Height + 2);
+        }
+
+        private void accommodateStatsPanel()
+        {
+            var totalHeight = _buttonPanel.Height + _bingoPanelFill.Height + calculateStatsPanelMinSize();
+            if (totalHeight > Height)
+            {
+                Height = totalHeight;
+            }
         }
 
         public Client? Client
@@ -187,10 +196,15 @@ namespace EldenBingo.UI
             _lastMouseInside = mouseInside;
         }
 
+        private int calculateStatsPanelMinSize()
+        {
+            return Math.Max(50, scoreboardControl1.Height + scoreboardControl1.Location.Y);
+        }
+
         private void updateBingoControlSize()
         {
             var board_max_x = Width;
-            var board_max_y = Height - _buttonPanel.Height - Math.Max(50, scoreboardControl1.Height + scoreboardControl1.Location.Y);
+            var board_max_y = Height - _buttonPanel.Height - calculateStatsPanelMinSize();
             if (board_max_y > board_max_x / BingoControl.AspectRatio)
             {
                 board_max_y = Convert.ToInt32(board_max_x / BingoControl.AspectRatio);
