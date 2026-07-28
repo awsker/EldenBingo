@@ -14,7 +14,11 @@ namespace EldenBingo
 
         public Client() : base(Properties.Settings.Default.IdentityToken)
         {
-            //Always register the EldenBingoCommon assembly
+#if (DEBUG)
+            // Random unique token when running in debug mode, so we can connect multiple times on the same computer
+            ClientUniqueToken += Random.Shared.Next();
+#endif
+            // Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
             registerHandlers();
             _delayTypes = new HashSet<string>()

@@ -9,7 +9,7 @@ namespace Neto.Client
     {
         private TcpClient? _tcp;
         
-        private string _clientUniqueToken;
+        protected string ClientUniqueToken;
 
         // Timer to handle reconnects if no keep alive packets arrived in time
         private System.Timers.Timer? _keepAliveTimer;
@@ -22,7 +22,7 @@ namespace Neto.Client
         public NetoClient(string? clientUniqueToken = null)
         {
             CancellationToken = new CancellationTokenSource();
-            _clientUniqueToken = clientUniqueToken ?? string.Empty;
+            ClientUniqueToken = clientUniqueToken ?? string.Empty;
         }
 
         ~NetoClient()
@@ -308,7 +308,7 @@ namespace Neto.Client
         {
             try
             {
-                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, _clientUniqueToken));
+                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, ClientUniqueToken));
                 await SendPacketToServer(registerPacket);
                 while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
                 {
