@@ -29,6 +29,7 @@ namespace EldenBingoServer
         private System.Timers.Timer _serializeTimer;
 
         private bool _maintenanceMode = false;
+        private string _maintenanceMessage = string.Empty;
 
         const int SerializationVersion = 2;
 
@@ -86,7 +87,7 @@ namespace EldenBingoServer
         {
             if (!string.IsNullOrWhiteSpace(message))
                 _ = SendPacketToAllClients(new Packet(new ServerBroadcastMessage(message)));
-
+            _maintenanceMessage = message;
             _maintenanceMode = true;
             FireOnStatus($"Maintenance Mode Enabled");
         }
@@ -287,7 +288,7 @@ namespace EldenBingoServer
                 return;
             string? deniedReason = null;
             if (_maintenanceMode)
-                deniedReason = "Server restart pending. No new lobbies can be created";
+                deniedReason = "Server restart pending. No new lobbies can be created. Reason: " + _maintenanceMessage;
             else if (string.IsNullOrWhiteSpace(request.RoomName))
                 deniedReason = "Invalid lobby name";
             else if (_rooms.TryGetValue(request.RoomName, out _))
