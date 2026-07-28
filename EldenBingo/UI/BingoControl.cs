@@ -167,9 +167,9 @@ namespace EldenBingo.UI
         public BingoControl() : base()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
-            AutoScaleMode = AutoScaleMode.None;
             Squares = new List<BingoSquareControl>();
             _activeTeams = Array.Empty<int>();
+            AutoScaleMode = AutoScaleMode.Dpi;
             setBoard(null);
             updateSquaresArray();
             initFonts();
@@ -273,15 +273,17 @@ namespace EldenBingo.UI
 
         private void initFonts()
         {
+            var scale = this.DefaultScaleFactors();
+
             var labelFontSize = Height / 30f;
-            LabelFont = MainForm.GetFontFromSettings(Font, labelFontSize);
+            LabelFont = MainForm.GetFontFromSettings(Font, labelFontSize / scale.Height);
 
             if (Squares == null || Squares.Count == 0)
                 return;
             var squareHeight = Squares[0].Rect.Height;
 
             var bingoFontSize = squareHeight / 10f;
-            SquareFont = MainForm.GetFontFromSettings(Font, bingoFontSize);
+            SquareFont = MainForm.GetFontFromSettings(Font, bingoFontSize / scale.Height);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -1275,7 +1277,7 @@ namespace EldenBingo.UI
                             teamIndex[teamArray[i]] = i;
                         }
                     }
-                    var numTeams = teamIndex.Count;
+                    var numTeams = _teams.Length;
                     if (numTeams > 0)
                     {
                         // If not all teams have checked this square, draw the background so it shows behind the pie

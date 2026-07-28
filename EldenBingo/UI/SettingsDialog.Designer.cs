@@ -171,16 +171,16 @@
             groupBox1.Controls.Add(_mapSizeRememberLastRadioButton);
             groupBox1.Controls.Add(_mapSizeCustomXTextBox);
             groupBox1.Controls.Add(label1);
-            groupBox1.Location = new Point(8, 113);
+            groupBox1.Location = new Point(8, 122);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(240, 107);
+            groupBox1.Size = new Size(240, 110);
             groupBox1.TabIndex = 48;
             groupBox1.TabStop = false;
             groupBox1.Text = "Map Initial Size";
             // 
             // _mapSizeCustomYTextBox
             // 
-            _mapSizeCustomYTextBox.Location = new Point(117, 74);
+            _mapSizeCustomYTextBox.Location = new Point(117, 80);
             _mapSizeCustomYTextBox.Name = "_mapSizeCustomYTextBox";
             _mapSizeCustomYTextBox.Size = new Size(54, 23);
             _mapSizeCustomYTextBox.TabIndex = 54;
@@ -188,7 +188,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(94, 77);
+            label2.Location = new Point(94, 83);
             label2.Name = "label2";
             label2.Size = new Size(17, 15);
             label2.TabIndex = 53;
@@ -218,7 +218,7 @@
             // 
             // _mapSizeCustomXTextBox
             // 
-            _mapSizeCustomXTextBox.Location = new Point(30, 74);
+            _mapSizeCustomXTextBox.Location = new Point(30, 80);
             _mapSizeCustomXTextBox.Name = "_mapSizeCustomXTextBox";
             _mapSizeCustomXTextBox.Size = new Size(54, 23);
             _mapSizeCustomXTextBox.TabIndex = 52;
@@ -226,7 +226,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(7, 77);
+            label1.Location = new Point(7, 83);
             label1.Name = "label1";
             label1.Size = new Size(17, 15);
             label1.TabIndex = 51;
@@ -242,14 +242,14 @@
             groupBox2.Controls.Add(label4);
             groupBox2.Location = new Point(257, 6);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(240, 107);
+            groupBox2.Size = new Size(240, 110);
             groupBox2.TabIndex = 30;
             groupBox2.TabStop = false;
             groupBox2.Text = "Bingo Board Max Size";
             // 
             // _bingoMaxYTextBox
             // 
-            _bingoMaxYTextBox.Location = new Point(117, 72);
+            _bingoMaxYTextBox.Location = new Point(117, 80);
             _bingoMaxYTextBox.Name = "_bingoMaxYTextBox";
             _bingoMaxYTextBox.Size = new Size(54, 23);
             _bingoMaxYTextBox.TabIndex = 36;
@@ -257,7 +257,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(94, 75);
+            label3.Location = new Point(94, 83);
             label3.Name = "label3";
             label3.Size = new Size(17, 15);
             label3.TabIndex = 35;
@@ -287,7 +287,7 @@
             // 
             // _bingoMaxXTextBox
             // 
-            _bingoMaxXTextBox.Location = new Point(30, 72);
+            _bingoMaxXTextBox.Location = new Point(30, 80);
             _bingoMaxXTextBox.Name = "_bingoMaxXTextBox";
             _bingoMaxXTextBox.Size = new Size(54, 23);
             _bingoMaxXTextBox.TabIndex = 34;
@@ -295,7 +295,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(7, 75);
+            label4.Location = new Point(7, 83);
             label4.Name = "label4";
             label4.Size = new Size(17, 15);
             label4.TabIndex = 33;
@@ -372,14 +372,14 @@
             groupBox4.Controls.Add(label7);
             groupBox4.Location = new Point(8, 6);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(240, 107);
+            groupBox4.Size = new Size(240, 110);
             groupBox4.TabIndex = 41;
             groupBox4.TabStop = false;
             groupBox4.Text = "Map Initial Position";
             // 
             // _mapPositionYTextBox
             // 
-            _mapPositionYTextBox.Location = new Point(117, 72);
+            _mapPositionYTextBox.Location = new Point(117, 78);
             _mapPositionYTextBox.Name = "_mapPositionYTextBox";
             _mapPositionYTextBox.Size = new Size(54, 23);
             _mapPositionYTextBox.TabIndex = 47;
@@ -387,7 +387,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(94, 75);
+            label6.Location = new Point(94, 81);
             label6.Name = "label6";
             label6.Size = new Size(17, 15);
             label6.TabIndex = 46;
@@ -417,7 +417,7 @@
             // 
             // _mapPositionXTextBox
             // 
-            _mapPositionXTextBox.Location = new Point(30, 72);
+            _mapPositionXTextBox.Location = new Point(30, 78);
             _mapPositionXTextBox.Name = "_mapPositionXTextBox";
             _mapPositionXTextBox.Size = new Size(54, 23);
             _mapPositionXTextBox.TabIndex = 45;
@@ -425,7 +425,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(7, 75);
+            label7.Location = new Point(7, 81);
             label7.Name = "label7";
             label7.Size = new Size(17, 15);
             label7.TabIndex = 44;
@@ -473,7 +473,7 @@
             // 
             groupBox6.Controls.Add(_showClassesCheckBox);
             groupBox6.Controls.Add(_swapMouseButtons);
-            groupBox6.Location = new Point(8, 226);
+            groupBox6.Location = new Point(264, 6);
             groupBox6.Name = "groupBox6";
             groupBox6.Size = new Size(240, 114);
             groupBox6.TabIndex = 55;
@@ -748,7 +748,7 @@
             // 
             groupBox9.Controls.Add(panel2);
             groupBox9.Controls.Add(label13);
-            groupBox9.Location = new Point(257, 119);
+            groupBox9.Location = new Point(257, 142);
             groupBox9.Name = "groupBox9";
             groupBox9.Size = new Size(240, 107);
             groupBox9.TabIndex = 37;
