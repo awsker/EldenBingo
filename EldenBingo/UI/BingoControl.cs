@@ -1284,11 +1284,11 @@ namespace EldenBingo.UI
                             teamIndex[teamArray[i]] = i;
                         }
                     }
-                    var numTeams = _teams.Length;
+                    var numTeams = _parent.ActiveTeams.Length;
                     if (numTeams > 0)
                     {
                         // If not all teams have checked this square, draw the background so it shows behind the pie
-                        if (_teams.Length < _parent.ActiveTeams.Length)
+                        if (_teams.Length < numTeams)
                             drawBackground();
 
                         if (numTeams > 1)

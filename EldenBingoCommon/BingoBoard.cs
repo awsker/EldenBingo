@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Drawing;
 
 namespace EldenBingoCommon
 {
@@ -28,7 +27,7 @@ namespace EldenBingoCommon
     {
         [JsonProperty]
         public string Text { get; set; } = Text;
-        [JsonProperty]
+        [JsonIgnore]
         public int Color { get; set; } = Color;
         [JsonIgnore]
         public int[] Team { get; set; } = Team;
