@@ -107,6 +107,8 @@ Use the **category** key to define a single category, or the **categories** key 
 
 If one or more squares have the tag **center** set to 1, one of them will be randomly selected to be the center square on board sizes where it's applicable.
 
+You can tag a square with **color** and specify a color as value, either as [Color Name](https://htmlcolorcodes.com/color-names/) or as HTML Color Code. The text in that square will display with that color if the player has enabled showing these suggested colors.
+
 Tokens can be used to create more dynamic squares. Create a token by surrounding a word with percentage signs (for example %x%) and declare a list of possible substitutions in an array with the same name as the token. One of those will be picked at random when the square is generated. You can even have multiple tokens in the same square. See example in the image above.
 
 # Credits
