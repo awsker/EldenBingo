@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using Newtonsoft.Json.Linq;
+using System.Drawing;
 using System.Text.RegularExpressions;
 
 namespace EldenBingoServer
@@ -14,6 +15,7 @@ namespace EldenBingoServer
         {
             RandomSeed = randomSeed;
             _list = new List<BingoJsonObj>();
+            var cc = new ColorConverter();
             foreach (var square in squareArray)
             {
                 string? name = square.Value<string>("name");
@@ -54,7 +56,24 @@ namespace EldenBingoServer
                         tokenDict.Add(textToken, tokenArray.Select(t => t.Value<string>()).ToArray());
                     }
                 }
-                _list.Add(new BingoJsonObj(name, weight.GetValueOrDefault(1), categories.ToArray(), tokenDict.Count == 0 ? null : tokenDict, (CenterType)center.GetValueOrDefault(0)));
+                string? colorString = square.Value<string>("color");
+                Color color = default;
+                if (colorString != null)
+                {
+                    try
+                    {
+                        var parsed = cc.ConvertFromInvariantString(colorString);
+                        if (parsed is Color c)
+                        {
+                            color = Color.FromArgb(255, c);
+                        }
+                    }
+                    catch 
+                    {
+                        throw new Exception($"{colorString} is not a valid color");
+                    }
+                }
+                _list.Add(new BingoJsonObj(name, weight.GetValueOrDefault(1), categories.ToArray(), tokenDict.Count == 0 ? null : tokenDict, (CenterType)center.GetValueOrDefault(0), color));
             }
         }
 
@@ -177,6 +196,7 @@ namespace EldenBingoServer
                 squares.Select(s =>
                     new BingoBoardSquare(
                         getTextWithResolvedTokens(s),
+                        s.CustomColor.ToArgb(),
                         Array.Empty<int>(),
                         false,
                         Array.Empty<SquareCounter>()
@@ -232,13 +252,14 @@ namespace EldenBingoServer
 
         private struct BingoJsonObj
         {
-            public BingoJsonObj(string text, int weight = 1, string[]? categories = null, IDictionary<string, string[]>? tokens = null, CenterType center = CenterType.None)
+            public BingoJsonObj(string text, int weight = 1, string[]? categories = null, IDictionary<string, string[]>? tokens = null, CenterType center = CenterType.None, Color customColor = default)
             {
                 Text = text;
                 Weight = weight;
                 Categories = new HashSet<string>(categories ?? Array.Empty<string>());
                 Tokens = tokens;
                 CenterType = center;
+                CustomColor = customColor;
             }
 
             public string Text { get; init; }
@@ -246,6 +267,7 @@ namespace EldenBingoServer
             public ISet<string> Categories { get; init; }
             public IDictionary<string, string[]>? Tokens { get; init; }
             public CenterType CenterType { get; init; }
+            public Color CustomColor { get; init; }
 
             public override string ToString()
             {

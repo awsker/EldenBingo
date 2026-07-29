@@ -170,6 +170,7 @@ namespace EldenBingo.UI
 
             _checkUpdatesCheckBox.Checked = Properties.Settings.Default.CheckForUpdates;
 
+            _suggestedColorsCheckBox.Checked = Properties.Settings.Default.ApplySuggestedColors;
             _keywordColorAlphaTrackBar.Value = Properties.Settings.Default.KeywordColorsAlpha;
             _keywordColorAlphaTrackBar.ValueChanged += (o, e) => updateKeywordColorText();
 
@@ -286,6 +287,7 @@ namespace EldenBingo.UI
 
             KeywordColorsJsonHelper.Colors = _keywordColors.ToArray();
             Properties.Settings.Default.KeywordColorsAlpha = _keywordColorAlphaTrackBar.Value;
+            Properties.Settings.Default.ApplySuggestedColors = _suggestedColorsCheckBox.Checked;
 
             Properties.Settings.Default.LastSettingsTab = tabControl1.SelectedIndex;
 

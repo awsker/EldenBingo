@@ -116,6 +116,7 @@
             _altCheckBox = new CheckBox();
             label15 = new Label();
             panel1 = new Panel();
+            _suggestedColorsCheckBox = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -500,6 +501,7 @@
             // 
             // groupBox7
             // 
+            groupBox7.Controls.Add(_suggestedColorsCheckBox);
             groupBox7.Controls.Add(_keywordColorAlphaLabel);
             groupBox7.Controls.Add(_keywordColorAlphaTrackBar);
             groupBox7.Controls.Add(_numKeywordsLabel);
@@ -513,7 +515,7 @@
             groupBox7.Controls.Add(label8);
             groupBox7.Location = new Point(8, 6);
             groupBox7.Name = "groupBox7";
-            groupBox7.Size = new Size(240, 304);
+            groupBox7.Size = new Size(240, 340);
             groupBox7.TabIndex = 18;
             groupBox7.TabStop = false;
             groupBox7.Text = "Appearance";
@@ -521,17 +523,17 @@
             // _keywordColorAlphaLabel
             // 
             _keywordColorAlphaLabel.AutoSize = true;
-            _keywordColorAlphaLabel.Location = new Point(12, 242);
+            _keywordColorAlphaLabel.Location = new Point(12, 277);
             _keywordColorAlphaLabel.Name = "_keywordColorAlphaLabel";
-            _keywordColorAlphaLabel.Size = new Size(133, 15);
+            _keywordColorAlphaLabel.Size = new Size(108, 15);
             _keywordColorAlphaLabel.TabIndex = 28;
-            _keywordColorAlphaLabel.Text = "Keyword Color Intensity";
+            _keywordColorAlphaLabel.Text = "Text Color Intensity";
             // 
             // _keywordColorAlphaTrackBar
             // 
             _keywordColorAlphaTrackBar.AutoSize = false;
             _keywordColorAlphaTrackBar.LargeChange = 10;
-            _keywordColorAlphaTrackBar.Location = new Point(6, 263);
+            _keywordColorAlphaTrackBar.Location = new Point(6, 298);
             _keywordColorAlphaTrackBar.Maximum = 100;
             _keywordColorAlphaTrackBar.Name = "_keywordColorAlphaTrackBar";
             _keywordColorAlphaTrackBar.Size = new Size(228, 35);
@@ -1039,6 +1041,16 @@
             panel1.Size = new Size(520, 29);
             panel1.TabIndex = 34;
             // 
+            // _suggestedColorsCheckBox
+            // 
+            _suggestedColorsCheckBox.AutoSize = true;
+            _suggestedColorsCheckBox.Location = new Point(12, 248);
+            _suggestedColorsCheckBox.Name = "_suggestedColorsCheckBox";
+            _suggestedColorsCheckBox.Size = new Size(199, 19);
+            _suggestedColorsCheckBox.TabIndex = 28;
+            _suggestedColorsCheckBox.Text = "Apply colors suggested by board";
+            _suggestedColorsCheckBox.UseVisualStyleBackColor = true;
+            // 
             // SettingsDialog
             // 
             AcceptButton = _okButton;
@@ -1182,5 +1194,6 @@
         private CheckBox _altCheckBox;
         private CheckBox _shiftCheckBox;
         private Label label15;
+        private CheckBox _suggestedColorsCheckBox;
     }
 }

@@ -194,9 +194,11 @@ namespace EldenBingoServer
             var status = CheckStatus[index];
             lock (status)
             {
+                var square = Squares[index];
                 teams ??= Room.GetActiveTeams();
                 return new BingoBoardSquare(
-                    Squares[index].Text,
+                    square.Text,
+                    square.Color,
                     status.Teams.ToArray(),
                     status.IsMarked(user),
                     status.GetCountersForPlayer(user, Room.Users, teams));

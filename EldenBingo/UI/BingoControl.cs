@@ -509,7 +509,7 @@ namespace EldenBingo.UI
             if (BingoBoard != null && update.Index >= 0 && update.Index < boardSize * boardSize)
             {
                 BingoBoard.Squares[update.Index] = update.Square;
-                updateSquareStatus(update.Index, Properties.Settings.Default.CheckHighlight);
+                updateSquare(update.Index, Properties.Settings.Default.CheckHighlight);
             }
         }
 
@@ -882,21 +882,7 @@ namespace EldenBingo.UI
             update();
         }
 
-        private string escapeText(string text)
-        {
-            return text.Replace("&", "&&");
-        }
-
         private void updateSquare(int index, bool highlightNewSquares)
-        {
-            if (BingoBoard == null || index < 0 || index >= BingoBoard.SquareCount)
-                return;
-            var s = BingoBoard.Squares[index];
-            Squares[index].Text = escapeText(s.Text);
-            updateSquareStatus(index, highlightNewSquares);
-        }
-
-        private void updateSquareStatus(int index, bool highlightNewSquares)
         {
             if (BingoBoard == null || index < 0 || index >= BingoBoard.SquareCount)
                 return;
@@ -904,6 +890,8 @@ namespace EldenBingo.UI
             var s = BingoBoard.Squares[index];
             var teamsBefore = Squares[index].Teams;
             var square = Squares[index];
+            square.Text = s.Text;
+            square.SuggestedColor = Color.FromArgb(s.Color);
             square.Teams = s.Team;
             square.Marked = s.Marked;
             square.Counters = s.Counters;
@@ -1096,6 +1084,7 @@ namespace EldenBingo.UI
 
             private Color? _keywordColor;
             private Color _keywordBlendedColor;
+            private Color _suggestedColor;
 
             private bool _selected;
             public bool Selected
@@ -1129,6 +1118,20 @@ namespace EldenBingo.UI
                 }
             }
 
+            public Color SuggestedColor
+            {
+                get { return _suggestedColor; }
+                set
+                {
+                    if (_suggestedColor != value)
+                    {
+                        _suggestedColor = value;
+                        UpdateKeywordColor();
+                        onChanged();
+                    }
+                }
+            }
+
             public BingoSquareControl(BingoControl parent, int index)
             {
                 _parent = parent;
@@ -1152,6 +1155,10 @@ namespace EldenBingo.UI
                 var oldValue = _keywordColor;
                 _keywordBlendedColor = _parent == null ? Color.White : _parent.TextColor;
                 _keywordColor = KeywordColorsJsonHelper.GetColor(Text)?.Color ?? null;
+                if (_keywordColor == null && (_suggestedColor.R + _suggestedColor.G + _suggestedColor.B) > 0)
+                {
+                    _keywordColor = _suggestedColor;
+                }
                 if (_keywordColor != null)
                 {
                     _keywordBlendedColor = blend(_keywordColor.Value, _keywordBlendedColor, keywordColorAlpha());

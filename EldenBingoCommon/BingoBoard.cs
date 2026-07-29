@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Drawing;
 
 namespace EldenBingoCommon
 {
@@ -23,10 +24,12 @@ namespace EldenBingoCommon
         
     }
 
-    public record struct BingoBoardSquare(string Text, int[] Team, bool Marked, SquareCounter[] Counters)
+    public record struct BingoBoardSquare(string Text, int Color, int[] Team, bool Marked, SquareCounter[] Counters)
     {
         [JsonProperty]
         public string Text { get; set; } = Text;
+        [JsonProperty]
+        public int Color { get; set; } = Color;
         [JsonIgnore]
         public int[] Team { get; set; } = Team;
         [JsonIgnore]
