@@ -96,7 +96,7 @@ namespace EldenBingo.UI
             set
             {
                 _bingoBoard = value;
-                
+                Lockout = _bingoBoard?.Lockout ?? true;
                 if (Client != null && Client.Room != null && Client.Room.Match != null)
                 {
                     updateBoardStatus(Client.Room.Match.MatchStatus);
