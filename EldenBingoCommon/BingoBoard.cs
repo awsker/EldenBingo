@@ -20,7 +20,6 @@ namespace EldenBingoCommon
         public BingoBoardSquare[] Squares { get; init; }
         public EldenRingClasses[] AvailableClasses { get; init; }
         public bool Lockout { get; init; }
-        
     }
 
     public record struct BingoBoardSquare(string Text, int Color, int[] Team, bool Marked, SquareCounter[] Counters)

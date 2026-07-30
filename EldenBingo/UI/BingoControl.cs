@@ -1260,67 +1260,59 @@ namespace EldenBingo.UI
                     _brush.Color = color;
                     g.FillRectangle(_brush, rect);
                 }
-                if (_teams.Length == 0)
-                {
+                var teamsChecked = _teams.Length;
+                var maxPotentialCheckers = _parent.Lockout ? 1 : Math.Max(1, _parent.ActiveTeams.Length);
+                if (teamsChecked < maxPotentialCheckers) // If not all teams have checked this square, draw the background so it shows behind the pie
                     drawBackground();
+                if (teamsChecked == 0)
+                    return;
+                Dictionary<int, int> teamIndex = new Dictionary<int, int>();
+                //In lockout, draw the teams in the order they appear in the "selected" list
+                if (maxPotentialCheckers <= 1)
+                {
+                    for (int i = 0; i < _teams.Length; ++i)
+                    {
+                        teamIndex[_teams[i]] = i;
+                    }
                 }
+                //In non-lockout, order the teams according to the active teams list, so we get gaps for teams that have not checked the square
                 else
                 {
-                    Dictionary<int, int> teamIndex = new Dictionary<int, int>();
-                    //In lockout, or if no active teams are set, draw the teams in the order they appear in the "selected" list
-                    if (_parent.Lockout || _parent.ActiveTeams.Length == 0)
+                    var teamArray = _parent.ActiveTeams;
+                    for (int i = 0; i < teamArray.Length; ++i)
                     {
-                        for (int i = 0; i < _teams.Length; ++i)
-                        {
-                            teamIndex[_teams[i]] = i;
-                        }
-                    }
-                    //In non-lockout, order the teams according to the active teams list, so we get gaps for teams that have not checked the square
-                    else
-                    {
-                        var teamArray = _parent.ActiveTeams.ToArray();
-                        for (int i = 0; i < teamArray.Length; ++i)
-                        {
-                            teamIndex[teamArray[i]] = i;
-                        }
-                    }
-                    var numTeams = _parent.ActiveTeams.Length;
-                    if (numTeams > 0)
-                    {
-                        // If not all teams have checked this square, draw the background so it shows behind the pie
-                        if (_teams.Length < numTeams)
-                            drawBackground();
-
-                        if (numTeams > 1)
-                            g.SmoothingMode = SmoothingMode.AntiAlias;
-                        foreach (var team in _teams)
-                        {
-                            //Find the index of the team, if not present (should never happen) continue to next team
-                            if (!teamIndex.TryGetValue(team, out var i))
-                                continue;
-
-                            Color color = BingoConstants.GetTeamColor(team);
-                            if (Selected)
-                            {
-                                color = color.Brighten(0.14f);
-                            }
-                            _brush.Color = color;
-
-                            if (numTeams == 1)
-                            {
-                                g.FillRectangle(_brush, rect);
-                            }
-                            else
-                            {
-                                var angleAdd = 360f / numTeams;
-                                var angleStart = numTeams % 2 == 0 ? 270f - (numTeams == 2 ? 45f : angleAdd / 2f) : 270f;
-                                g.SmoothingMode = SmoothingMode.AntiAlias;
-                                g.FillPie(_brush, new Rectangle(rect.X - rect.Width, rect.Y - rect.Height, rect.Width * 3, rect.Height * 3), angleStart + angleAdd * i, angleAdd);
-                            }
-                        }
-                        g.SmoothingMode = SmoothingMode.None;
+                        teamIndex[teamArray[i]] = i;
                     }
                 }
+                if (maxPotentialCheckers > 1)
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                foreach (var team in _teams)
+                {
+                    //Find the index of the team, if not present (should never happen) continue to next team
+                    if (!teamIndex.TryGetValue(team, out var i))
+                        continue;
+
+                    Color color = BingoConstants.GetTeamColor(team);
+                    if (Selected)
+                    {
+                        color = color.Brighten(0.14f);
+                    }
+                    _brush.Color = color;
+
+                    if (maxPotentialCheckers == 1)
+                    {
+                        g.FillRectangle(_brush, rect);
+                    }
+                    else
+                    {
+                        var angleAdd = 360f / maxPotentialCheckers;
+                        var angleStart = maxPotentialCheckers % 2 == 0 ? 270f - (maxPotentialCheckers == 2 ? 45f : angleAdd / 2f) : 270f;
+                        g.SmoothingMode = SmoothingMode.AntiAlias;
+                        g.FillPie(_brush, new Rectangle(rect.X - rect.Width, rect.Y - rect.Height, rect.Width * 3, rect.Height * 3), angleStart + angleAdd * i, angleAdd);
+                    }
+                }
+                g.SmoothingMode = SmoothingMode.None;
+                
                 var shadows = Properties.Settings.Default.SquareShadows * 0.01f;
                 var gradientColor = isChecked ? Color.FromArgb(Convert.ToInt32(120 * shadows), 0, 0, 0) : Color.FromArgb(Convert.ToInt32(150 * shadows), 0, 0, 0);
                 _gradientBrush.LinearColors = new[] { gradientColor, Color.Transparent };
