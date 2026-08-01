@@ -453,6 +453,7 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerMatchStatusUpdate>(matchStatusUpdate);
             Client.RemoveListener<ServerEntireBingoBoardUpdate>(entireBingoBoardUpdate);
             Client.RemoveListener<ServerBingoAchievedUpdate>(bingoUpdate);
+            Client.RemoveListener<ServerScoreboardUpdate>(scoreBoardUpdate);
         }
 
         private void startTimer()

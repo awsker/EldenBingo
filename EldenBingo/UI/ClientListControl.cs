@@ -48,6 +48,8 @@ namespace EldenBingo.UI
                 Client.RemoveListener<ServerJoinRoomAccepted>(joinRoomAccepted);
                 Client.RemoveListener<ServerUserJoinedRoom>(userJoined);
                 Client.RemoveListener<ServerUserLeftRoom>(userLeft);
+                Client.RemoveListener<ServerPromoteToAdmin>(userPromoted);
+                Client.RemoveListener<ServerUserChangedTeam>(userChangedTeam);
             }
         }
 
