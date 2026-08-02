@@ -553,6 +553,7 @@ namespace EldenBingo.UI
             void update()
             {
                 _logTextBox.Clear();
+                _requestLogParentPanel.Visible = false;
             }
             if (InvokeRequired)
             {

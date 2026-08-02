@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Drawing;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace EldenBingoServer
 {
@@ -1018,7 +1019,8 @@ namespace EldenBingoServer
                 if (boardIsAvailableToAll || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
                 {
                     packet.AddObject(createEntireBoardPacket(board, clientInRoom));
-                    packet.AddObject(createMatchEventsPacket(room.Match));
+                    if(room.Match.MatchEvents.Count > 0)
+                        packet.AddObject(createMatchEventsPacket(room.Match));
                 }
             }
             packet.AddObject(scoreboard);
@@ -1131,7 +1133,8 @@ namespace EldenBingoServer
             {
                 //Admin spectators get the bingo board regardless of status
                 var adminPacket = new Packet(createEntireBoardPacket(board, k));
-                adminPacket.AddObject(new ServerMatchEvents(eventArray));
+                if(eventArray.Length > 0)
+                    adminPacket.AddObject(new ServerMatchEvents(eventArray));
                 await SendPacketToClient(adminPacket, k.Client);
             }
             bool matchLive = room.Match.MatchStatus >= MatchStatus.Preparation;
@@ -1139,7 +1142,7 @@ namespace EldenBingoServer
             {
                 //All other users gets the packet without bingo board if match hasn't started
                 var nonAdminsPacket = new Packet(createEntireBoardPacket(matchLive ? board : null, k));
-                if (matchLive)
+                if (matchLive && eventArray.Length > 0)
                     nonAdminsPacket.AddObject(new ServerMatchEvents(eventArray));
                 await SendPacketToClient(nonAdminsPacket, k.Client);
             }

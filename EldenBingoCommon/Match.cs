@@ -25,8 +25,20 @@ namespace EldenBingoCommon
 
         public event EventHandler? MatchStatusChanged;
 
+        private BingoBoard? _board;
         [JsonProperty(TypeNameHandling = TypeNameHandling.Auto)]
-        public BingoBoard? Board { get; set; }
+        public BingoBoard? Board
+        {
+            get { return _board; }
+            set
+            {
+                if (value == null || _board != value)
+                {
+                    _board = value;
+                    MatchEvents.Clear();
+                }
+            }
+        }
 
         [JsonProperty]
         public bool Paused { get; private set; }
