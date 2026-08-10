@@ -108,11 +108,11 @@ namespace Neto.Client
                 FireOnError(error);
                 return ConnectionResult.Denied;
             }
-
+            FireOnStatus($"Connecting to {address}:{port}");
             ConnectionResult lastResult = ConnectionResult.Denied;
             foreach (var endpoint in endpoints)
             {
-                lastResult = await Connect(endpoint);
+                lastResult = await connect(endpoint);
                 if (lastResult == ConnectionResult.Connected)
                     return lastResult;
                 if (CancellationToken.IsCancellationRequested)
@@ -122,7 +122,7 @@ namespace Neto.Client
             return lastResult;
         }
 
-        public async Task<ConnectionResult> Connect(IPEndPoint ipEndpoint)
+        private async Task<ConnectionResult> connect(IPEndPoint ipEndpoint)
         {
             if (_tcp != null)
             {
@@ -141,12 +141,10 @@ namespace Neto.Client
             tcp.NoDelay = true;
             try
             {
-                FireOnStatus($"Connecting to {ipEndpoint}...");
                 await tcp.ConnectAsync(ipEndpoint, CancellationToken.Token);
 
                 if (!tcp.Connected)
                 {
-                    FireOnError($"Could not connect to {ipEndpoint}");
                     CancellationToken.Cancel();
                     tcp.Dispose();
                     return ConnectionResult.Denied;
