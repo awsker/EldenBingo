@@ -238,11 +238,17 @@
             // 
             // _bingoControl
             // 
+            _bingoControl.AbideByMaxSize = true;
             _bingoControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            _bingoControl.AspectRatio = 1.1F;
+            _bingoControl.BingoBoard = null;
             _bingoControl.Client = null;
+            _bingoControl.GridColor = Color.FromArgb(118, 110, 97);
+            _bingoControl.LineWidth = 2;
             _bingoControl.Location = new Point(5, 5);
+            _bingoControl.MaintainAspectRatio = true;
             _bingoControl.Name = "_bingoControl";
-            _bingoControl.Size = new Size(568, 408);
+            _bingoControl.Size = new Size(454, 413);
             _bingoControl.TabIndex = 0;
             // 
             // adminControl1
