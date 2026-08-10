@@ -70,7 +70,7 @@ namespace EldenBingo.UI
 
         protected override void ClientChanged()
         {
-            updateButtonsStatus();
+            UpdateButtonStatus();
         }
 
         protected override void RemoveClientListeners()
@@ -121,7 +121,6 @@ namespace EldenBingo.UI
             await tryChangeMatchStatus(MatchStatus.Starting);
         }
 
-
         private async void _stopMatchButton_Click(object sender, EventArgs e)
         {
             clearFocus();
@@ -143,12 +142,12 @@ namespace EldenBingo.UI
 
         private void client_Connected(object? sender, EventArgs e)
         {
-            updateButtonsStatus();
+            UpdateButtonStatus();
         }
 
         private void client_Disconnected(object? sender, StringEventArgs e)
         {
-            updateButtonsStatus();
+            UpdateButtonStatus();
         }
 
         private void adminStatusMessage(ClientModel? _, ServerAdminStatusMessage message)
@@ -158,7 +157,7 @@ namespace EldenBingo.UI
 
         private void client_RoomChanged(object? sender, RoomChangedEventArgs e)
         {
-            updateButtonsStatus();
+            UpdateButtonStatus();
             if (e.PreviousRoom != null)
                 e.PreviousRoom.Match.MatchStatusChanged -= match_MatchStatusChanged;
             if (e.NewRoom != null)
@@ -167,7 +166,7 @@ namespace EldenBingo.UI
 
         private void match_MatchStatusChanged(object? sender, EventArgs e)
         {
-            updateButtonsStatus();
+            UpdateButtonStatus();
         }
 
         private async Task randomizeNewBoard()
@@ -246,7 +245,7 @@ namespace EldenBingo.UI
             update();
         }
 
-        private void updateButtonsStatus()
+        public void UpdateButtonStatus()
         {
             void update()
             {

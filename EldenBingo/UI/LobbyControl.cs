@@ -517,6 +517,7 @@ namespace EldenBingo.UI
                 var isAdmin = Client?.LocalUser?.IsAdmin == true;
                 adminControl1.Visible = isAdmin;
                 adminControl1.Height = isAdmin ? _adminHeight : 0;
+                adminControl1.UpdateButtonStatus();
                 _adminInfoLabel.Visible = isAdmin && Client?.LocalUser?.IsSpectator == true;
                 updateBingoPanelSize();
             }
