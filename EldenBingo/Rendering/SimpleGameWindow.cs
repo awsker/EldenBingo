@@ -20,8 +20,9 @@ namespace EldenBingo.Rendering
         public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) :
             base(new SFML.Window.VideoMode(width, height), title, styles, new SFML.Window.ContextSettings() { MajorVersion = 1, MinorVersion = 3, AttributeFlags = SFML.Window.ContextSettings.Attribute.Default})
         {
+            //No SetFramerateLimit alongside this: its per-frame sleep overshoots badly, 292 ms
+            //stalls measured with vsync off. Vsync alone paces the loop.
             SetVerticalSyncEnabled(true);
-            SetFramerateLimit(60);
 
             GameObjects = new HashSet<object>();
             Updateables = new List<IUpdateable>();
