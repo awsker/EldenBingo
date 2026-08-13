@@ -13,7 +13,9 @@ namespace EldenBingoCommon
         Samurai,
         Prisoner,
         Confessor,
-        Wretch
+        Wretch,
+        IdusKnight,
+        HeavyKnight
     }
 
     public record struct Team(int Index, string Name);
@@ -92,9 +94,11 @@ namespace EldenBingoCommon
             Color.FromArgb(171, 103, 32),
             Color.FromArgb(203, 177, 134),
             Color.FromArgb(177, 73, 44),
-            Color.FromArgb(130, 130, 130),
+            Color.FromArgb(150, 150, 150),
             Color.FromArgb(140, 53, 185),
             Color.FromArgb(204, 204, 204),
+            Color.FromArgb(58, 130, 80),
+            Color.FromArgb(104, 104, 104),
         };
 
         public static Color AdminSpectatorColor = Color.White;

@@ -1,6 +1,8 @@
 ﻿using EldenBingo.Net;
+using EldenBingo.Util;
 using EldenBingoCommon;
 using Neto.Shared;
+using System.Text;
 
 namespace EldenBingo.UI
 {
@@ -232,13 +234,33 @@ namespace EldenBingo.UI
                         strings.Add(prep);
                     else
                         strings.Add(",");
-                    strings.Add(cl.ToString());
+                    strings.Add(StringHelper.AddSpacesBeforeCapitals(cl.ToString()));
                     colors.Add(null);
-                    colors.Add(BingoConstants.ClassColors[(int)cl]);
+                    if ((int)cl < BingoConstants.ClassColors.Length)
+                        colors.Add(BingoConstants.ClassColors[(int)cl]);
+                    else
+                        colors.Add(null);
                 }
                 colors.Add(null);
                 updateMatchLog(strings.ToArray(), colors.ToArray(), false);
             }
+        }
+
+        private string addSpacesBeforeCapitals(string input)
+        {
+            var result = new StringBuilder(input.Length);
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                // Space before captital letters if the previous or next character are lower case
+                if (i > 0 && char.IsUpper(input[i]) &&
+                    (char.IsLower(input[i - 1]) ||
+                    (i < input.Length - 1 && char.IsLower(input[i + 1]))))
+                        result.Append(' ');
+
+                result.Append(input[i]);
+            }
+            return result.ToString();
         }
 
         private void userChat(ClientModel? _, ServerUserChat chatArgs)

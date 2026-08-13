@@ -1,4 +1,5 @@
-﻿using EldenBingoCommon;
+﻿using EldenBingo.Util;
+using EldenBingoCommon;
 
 namespace EldenBingo.UI
 {
@@ -78,7 +79,9 @@ namespace EldenBingo.UI
         {
             foreach (var cl in Enum.GetValues(typeof(EldenRingClasses)))
             {
-                _classesListBox.Items.Add(cl);
+                if (cl == null)
+                    continue;
+                _classesListBox.Items.Add(StringHelper.AddSpacesBeforeCapitals(cl.ToString()));
             }
         }
 

@@ -66,9 +66,10 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(4, 4);
+            label1.Location = new Point(6, 6);
+            label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(82, 15);
+            label1.Size = new Size(126, 25);
             label1.TabIndex = 4;
             label1.Text = "Random seed:";
             // 
@@ -77,17 +78,19 @@
             _classesListBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _classesListBox.CheckOnClick = true;
             _classesListBox.FormattingEnabled = true;
-            _classesListBox.Location = new Point(0, 29);
+            _classesListBox.Location = new Point(0, 44);
+            _classesListBox.Margin = new Padding(4, 4, 4, 4);
             _classesListBox.Name = "_classesListBox";
-            _classesListBox.Size = new Size(248, 184);
+            _classesListBox.Size = new Size(370, 172);
             _classesListBox.TabIndex = 17;
             // 
             // _classLimitCheckBox
             // 
             _classLimitCheckBox.AutoSize = true;
-            _classLimitCheckBox.Location = new Point(4, 4);
+            _classLimitCheckBox.Location = new Point(6, 6);
+            _classLimitCheckBox.Margin = new Padding(4, 4, 4, 4);
             _classLimitCheckBox.Name = "_classLimitCheckBox";
-            _classLimitCheckBox.Size = new Size(138, 19);
+            _classLimitCheckBox.Size = new Size(204, 29);
             _classLimitCheckBox.TabIndex = 15;
             _classLimitCheckBox.Text = "Limit starting classes:";
             _classLimitCheckBox.UseVisualStyleBackColor = true;
@@ -96,70 +99,78 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(4, 4);
+            label2.Location = new Point(6, 6);
+            label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(169, 15);
+            label2.Size = new Size(255, 25);
             label2.TabIndex = 19;
             label2.Text = "Max squares in same category:";
             // 
             // _numClassesUpDown
             // 
-            _numClassesUpDown.Location = new Point(145, 2);
+            _numClassesUpDown.Location = new Point(218, 3);
+            _numClassesUpDown.Margin = new Padding(4, 4, 4, 4);
             _numClassesUpDown.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
             _numClassesUpDown.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             _numClassesUpDown.Name = "_numClassesUpDown";
-            _numClassesUpDown.Size = new Size(66, 23);
+            _numClassesUpDown.Size = new Size(99, 31);
             _numClassesUpDown.TabIndex = 16;
             _numClassesUpDown.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // _maxCategoryUpDown
             // 
-            _maxCategoryUpDown.Location = new Point(192, 2);
+            _maxCategoryUpDown.Location = new Point(288, 3);
+            _maxCategoryUpDown.Margin = new Padding(4, 4, 4, 4);
             _maxCategoryUpDown.Maximum = new decimal(new int[] { 25, 0, 0, 0 });
             _maxCategoryUpDown.Name = "_maxCategoryUpDown";
-            _maxCategoryUpDown.Size = new Size(56, 23);
+            _maxCategoryUpDown.Size = new Size(84, 31);
             _maxCategoryUpDown.TabIndex = 20;
             // 
             // _randomSeedUpDown
             // 
-            _randomSeedUpDown.Location = new Point(99, 2);
+            _randomSeedUpDown.Location = new Point(148, 3);
+            _randomSeedUpDown.Margin = new Padding(4, 4, 4, 4);
             _randomSeedUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
             _randomSeedUpDown.Minimum = new decimal(new int[] { int.MinValue, 0, 0, int.MinValue });
             _randomSeedUpDown.Name = "_randomSeedUpDown";
-            _randomSeedUpDown.Size = new Size(87, 23);
+            _randomSeedUpDown.Size = new Size(130, 31);
             _randomSeedUpDown.TabIndex = 5;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(4, 4);
+            label3.Location = new Point(6, 6);
+            label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new Size(98, 15);
+            label3.Size = new Size(147, 25);
             label3.TabIndex = 8;
             label3.Text = "Preparation time:";
             // 
             // _preparationTimeUpDown
             // 
-            _preparationTimeUpDown.Location = new Point(114, 2);
+            _preparationTimeUpDown.Location = new Point(171, 3);
+            _preparationTimeUpDown.Margin = new Padding(4, 4, 4, 4);
             _preparationTimeUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
             _preparationTimeUpDown.Name = "_preparationTimeUpDown";
-            _preparationTimeUpDown.Size = new Size(72, 23);
+            _preparationTimeUpDown.Size = new Size(108, 31);
             _preparationTimeUpDown.TabIndex = 9;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(192, 4);
+            label4.Location = new Point(288, 6);
+            label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(50, 15);
+            label4.Size = new Size(77, 25);
             label4.TabIndex = 10;
             label4.Text = "seconds";
             // 
             // button1
             // 
-            button1.Location = new Point(192, 1);
+            button1.Location = new Point(288, 2);
+            button1.Margin = new Padding(4, 4, 4, 4);
             button1.Name = "button1";
-            button1.Size = new Size(51, 23);
+            button1.Size = new Size(76, 34);
             button1.TabIndex = 6;
             button1.Text = "Reset";
             button1.UseVisualStyleBackColor = true;
@@ -168,26 +179,29 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(4, 4);
+            label5.Location = new Point(6, 6);
+            label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
-            label5.Size = new Size(131, 15);
+            label5.Size = new Size(200, 25);
             label5.TabIndex = 12;
             label5.Text = "Bonus points for bingo:";
             // 
             // _bonusPointsUpDown
             // 
-            _bonusPointsUpDown.Location = new Point(145, 2);
+            _bonusPointsUpDown.Location = new Point(218, 3);
+            _bonusPointsUpDown.Margin = new Padding(4, 4, 4, 4);
             _bonusPointsUpDown.Maximum = new decimal(new int[] { int.MaxValue, 0, 0, 0 });
             _bonusPointsUpDown.Name = "_bonusPointsUpDown";
-            _bonusPointsUpDown.Size = new Size(66, 23);
+            _bonusPointsUpDown.Size = new Size(99, 31);
             _bonusPointsUpDown.TabIndex = 13;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(4, 4);
+            label6.Location = new Point(6, 6);
+            label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
-            label6.Size = new Size(63, 15);
+            label6.Size = new Size(97, 25);
             label6.TabIndex = 1;
             label6.Text = "Board size:";
             // 
@@ -195,10 +209,11 @@
             // 
             _boardSizeComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             _boardSizeComboBox.FormattingEnabled = true;
-            _boardSizeComboBox.Location = new Point(73, 1);
+            _boardSizeComboBox.Location = new Point(110, 2);
+            _boardSizeComboBox.Margin = new Padding(4, 4, 4, 4);
             _boardSizeComboBox.MaxDropDownItems = 6;
             _boardSizeComboBox.Name = "_boardSizeComboBox";
-            _boardSizeComboBox.Size = new Size(100, 23);
+            _boardSizeComboBox.Size = new Size(148, 33);
             _boardSizeComboBox.TabIndex = 2;
             // 
             // panel1
@@ -208,16 +223,18 @@
             panel1.Controls.Add(_boardSizeComboBox);
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
+            panel1.Margin = new Padding(4, 4, 4, 4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(256, 30);
+            panel1.Size = new Size(384, 45);
             panel1.TabIndex = 0;
             // 
             // _lockoutCheckBox
             // 
             _lockoutCheckBox.AutoSize = true;
-            _lockoutCheckBox.Location = new Point(180, 3);
+            _lockoutCheckBox.Location = new Point(270, 4);
+            _lockoutCheckBox.Margin = new Padding(4, 4, 4, 4);
             _lockoutCheckBox.Name = "_lockoutCheckBox";
-            _lockoutCheckBox.Size = new Size(69, 19);
+            _lockoutCheckBox.Size = new Size(101, 29);
             _lockoutCheckBox.TabIndex = 19;
             _lockoutCheckBox.Text = "Lockout";
             _lockoutCheckBox.UseVisualStyleBackColor = true;
@@ -228,9 +245,10 @@
             panel2.Controls.Add(_randomSeedUpDown);
             panel2.Controls.Add(button1);
             panel2.Dock = DockStyle.Top;
-            panel2.Location = new Point(0, 30);
+            panel2.Location = new Point(0, 45);
+            panel2.Margin = new Padding(4, 4, 4, 4);
             panel2.Name = "panel2";
-            panel2.Size = new Size(256, 30);
+            panel2.Size = new Size(384, 45);
             panel2.TabIndex = 3;
             // 
             // panel3
@@ -239,9 +257,10 @@
             panel3.Controls.Add(_preparationTimeUpDown);
             panel3.Controls.Add(label4);
             panel3.Dock = DockStyle.Top;
-            panel3.Location = new Point(0, 60);
+            panel3.Location = new Point(0, 90);
+            panel3.Margin = new Padding(4, 4, 4, 4);
             panel3.Name = "panel3";
-            panel3.Size = new Size(256, 30);
+            panel3.Size = new Size(384, 45);
             panel3.TabIndex = 7;
             // 
             // panel4
@@ -249,9 +268,10 @@
             panel4.Controls.Add(label5);
             panel4.Controls.Add(_bonusPointsUpDown);
             panel4.Dock = DockStyle.Top;
-            panel4.Location = new Point(0, 90);
+            panel4.Location = new Point(0, 135);
+            panel4.Margin = new Padding(4, 4, 4, 4);
             panel4.Name = "panel4";
-            panel4.Size = new Size(256, 30);
+            panel4.Size = new Size(384, 45);
             panel4.TabIndex = 11;
             // 
             // panel5
@@ -260,9 +280,10 @@
             panel5.Controls.Add(_numClassesUpDown);
             panel5.Controls.Add(_classesListBox);
             panel5.Dock = DockStyle.Top;
-            panel5.Location = new Point(0, 120);
+            panel5.Location = new Point(0, 180);
+            panel5.Margin = new Padding(4, 4, 4, 4);
             panel5.Name = "panel5";
-            panel5.Size = new Size(256, 216);
+            panel5.Size = new Size(384, 220);
             panel5.TabIndex = 14;
             // 
             // panel6
@@ -270,14 +291,15 @@
             panel6.Controls.Add(label2);
             panel6.Controls.Add(_maxCategoryUpDown);
             panel6.Dock = DockStyle.Top;
-            panel6.Location = new Point(0, 336);
+            panel6.Location = new Point(0, 400);
+            panel6.Margin = new Padding(4, 4, 4, 4);
             panel6.Name = "panel6";
-            panel6.Size = new Size(256, 30);
+            panel6.Size = new Size(384, 45);
             panel6.TabIndex = 18;
             // 
             // GameSettingsControl
             // 
-            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleDimensions = new SizeF(144F, 144F);
             AutoScaleMode = AutoScaleMode.Dpi;
             Controls.Add(panel6);
             Controls.Add(panel5);
@@ -285,8 +307,10 @@
             Controls.Add(panel3);
             Controls.Add(panel2);
             Controls.Add(panel1);
+            Margin = new Padding(4, 4, 4, 4);
+            MinimumSize = new Size(0, 440);
             Name = "GameSettingsControl";
-            Size = new Size(256, 367);
+            Size = new Size(384, 440);
             ((System.ComponentModel.ISupportInitialize)_numClassesUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)_maxCategoryUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)_randomSeedUpDown).EndInit();
