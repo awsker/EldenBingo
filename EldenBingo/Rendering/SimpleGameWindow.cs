@@ -16,12 +16,14 @@ namespace EldenBingo.Rendering
         protected IList<IUpdateable> Updateables;
         protected IList<IDrawable> Drawables;
         private object _lock = new object();
+        private bool _vsync = true;
+        private uint _framerateLimit = 60;
 
         public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) :
             base(new SFML.Window.VideoMode(width, height), title, styles, new SFML.Window.ContextSettings() { MajorVersion = 1, MinorVersion = 3, AttributeFlags = SFML.Window.ContextSettings.Attribute.Default})
         {
-            SetVerticalSyncEnabled(true);
-            SetFramerateLimit(60);
+            VSync = true;
+            FramerateLimit = 60;
 
             GameObjects = new HashSet<object>();
             Updateables = new List<IUpdateable>();
@@ -31,6 +33,27 @@ namespace EldenBingo.Rendering
         }
 
         public bool DisposeDrawables { get; private set; }
+
+        public bool VSync
+        {
+            get { return _vsync; }
+            set
+            {
+                _vsync = value;
+                SetVerticalSyncEnabled(_vsync);
+            }
+        }
+
+        public uint FramerateLimit
+        {
+            get { return _framerateLimit; }
+            set
+            {
+                _framerateLimit = value;
+                SetFramerateLimit(value);
+            }
+        }
+
         protected bool Running { get; set; }
 
         public void Stop()
@@ -84,7 +107,7 @@ namespace EldenBingo.Rendering
                     if (DisposeDrawables)
                         draw.Dispose();
                 }
-                GameObjects.Add(go);
+                GameObjects.Remove(go);
             }
         }
 
@@ -167,9 +190,10 @@ namespace EldenBingo.Rendering
                 Clear(SFML.Graphics.Color.Black);
                 lock (_lock)
                 {
+                    var elapsedSeconds = elapsed.AsSeconds();
                     foreach (var up in Updateables.Where(u => u.Enabled))
                     {
-                        up.Update(elapsed.AsSeconds());
+                        up.Update(elapsedSeconds);
                     }
                 }
                 AfterUpdate?.Invoke(this, EventArgs.Empty);

@@ -1,4 +1,5 @@
 ﻿using EldenBingo.GameInterop;
+using EldenBingo.Util;
 using EldenBingoCommon;
 using SFML.Graphics;
 using SFML.System;
@@ -14,7 +15,7 @@ namespace EldenBingo.Rendering.Game
         private static readonly Shader? _shader;
         private static readonly SFML.Graphics.Font Font;
 
-        private float _targetX, _targetY, _targetAngle, _previousX, _previousY, _previousAngle, _interpTime, _angleDiff;
+        private float _targetX, _targetY, _targetAngle, _previousX, _previousY, _previousAngle, _interpTime;
         private float _timeLeftToInterpolate = 0f;
 
         private MapWindow _window;
@@ -102,10 +103,10 @@ namespace EldenBingo.Rendering.Game
             _timeLeftToInterpolate = Math.Max(0, _timeLeftToInterpolate - dt);
             if (_interpTime > 0 && _timeLeftToInterpolate > 0)
             {
-                var frac = _timeLeftToInterpolate / _interpTime;
-                X = frac * _previousX + (1f - frac) * _targetX;
-                Y = frac * _previousY + (1f - frac) * _targetY;
-                Angle = _previousAngle + _angleDiff * (1 - frac);
+                var t = 1f - _timeLeftToInterpolate / _interpTime;
+                X = Math2.Lerp(_previousX, _targetX, t);
+                Y = Math2.Lerp(_previousY, _targetY, t);
+                Angle = Math2.LerpAngle(_previousAngle, _targetAngle, t);
             }
             else
             {
@@ -181,7 +182,7 @@ namespace EldenBingo.Rendering.Game
             _previousAngle = Angle;
             _targetX = x;
             _targetY = y;
-            _targetAngle = convertAngle(angle);
+            _targetAngle = angle;
 
             if (!ValidPosition)
             {
@@ -193,30 +194,19 @@ namespace EldenBingo.Rendering.Game
                 return;
             }
             ValidPosition = true;
-            if (dist(_previousX, _previousY, _targetX, _targetY) > 10)
+            if (Math2.DistSqr(_previousX, _previousY, _targetX, _targetY) > 100)
             {
-                //Distance > 10, Teleport instead of interpolate
+                //Distance > 10 -> Teleport instead of interpolate
                 _interpTime = 0;
                 _timeLeftToInterpolate = 0;
             }
             else
             {
-                _angleDiff = (_targetAngle - Angle + 540) % 360 - 180;
                 _interpTime = interpolationTime;
                 _timeLeftToInterpolate = interpolationTime;
             }
             Underground = underground;
             MapInstance = map;
-        }
-
-        private float convertAngle(float degreeAngle)
-        {
-            return degreeAngle;
-        }
-
-        private double dist(float x1, float y1, float x2, float y2)
-        {
-            return Math.Sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         }
     }
 }

@@ -127,18 +127,24 @@ namespace EldenBingo.UI
 
             _mapSizeCustomXTextBox.Text = Properties.Settings.Default.MapWindowWidth.ToString();
             _mapSizeCustomYTextBox.Text = Properties.Settings.Default.MapWindowHeight.ToString();
+            ensureIntegerInput(_mapSizeCustomXTextBox);
+            ensureIntegerInput(_mapSizeCustomYTextBox);
 
             _mapPositionRelativeRadioButton.Checked = !Properties.Settings.Default.MapWindowCustomPosition;
             _mapPositionCustomRadioButton.Checked = Properties.Settings.Default.MapWindowCustomPosition;
 
             _mapPositionXTextBox.Text = Properties.Settings.Default.MapWindowX.ToString();
             _mapPositionYTextBox.Text = Properties.Settings.Default.MapWindowY.ToString();
+            ensureIntegerInput(_mapPositionXTextBox);
+            ensureIntegerInput(_mapPositionYTextBox);
 
             _bingoNoMaxSizeRadioButton.Checked = !Properties.Settings.Default.BingoBoardMaximumSize;
             _bingoCustomMaxSizeRadioButton.Checked = Properties.Settings.Default.BingoBoardMaximumSize;
 
             _bingoMaxXTextBox.Text = Properties.Settings.Default.BingoMaxSizeX.ToString();
             _bingoMaxYTextBox.Text = Properties.Settings.Default.BingoMaxSizeY.ToString();
+            ensureIntegerInput(_bingoMaxXTextBox);
+            ensureIntegerInput(_bingoMaxYTextBox);
 
             _fontLinkLabel.Font = MainForm.GetFontFromSettings(_fontLinkLabel.Font, fontSize);
             _fontLinkLabel.Text = _fontLinkLabel.Font.FontFamily.Name;
@@ -150,6 +156,7 @@ namespace EldenBingo.UI
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
             _portTextBox.Text = Properties.Settings.Default.Port.ToString();
+            ensureIntegerInput(_portTextBox);
 
             _mapSizeCustomRadioButton.CheckedChanged += (_, _) => updateSizeEnable();
             _mapPositionCustomRadioButton.CheckedChanged += (_, _) => updatePositionEnable();
@@ -157,6 +164,8 @@ namespace EldenBingo.UI
 
             _swapMouseButtons.Checked = Properties.Settings.Default.FlipMouseButtons;
             _showClassesCheckBox.Checked = Properties.Settings.Default.ShowClassesOnMap;
+            _framerateTextBox.Text = Properties.Settings.Default.MapFramerateLimit.ToString();
+            ensureIntegerInput(_framerateTextBox);
 
             _soundCheckBox.Checked = Properties.Settings.Default.PlaySounds;
             _volumeTrackBar.Value = Properties.Settings.Default.SoundVolume / 10;
@@ -167,6 +176,7 @@ namespace EldenBingo.UI
             _alwaysOnTopCheckbox.Checked = Properties.Settings.Default.AlwaysOnTop;
 
             _delayMatchEventsTextBox.Text = Properties.Settings.Default.DelayMatchEvents.ToString();
+            ensureIntegerInput(_delayMatchEventsTextBox);
 
             _checkUpdatesCheckBox.Checked = Properties.Settings.Default.CheckForUpdates;
 
@@ -245,12 +255,18 @@ namespace EldenBingo.UI
                 //Invalid event delay
                 return false;
             }
+            if (!int.TryParse(_framerateTextBox.Text, out int framerate))
+            {
+                //Invalid event delay
+                return false;
+            }
             Properties.Settings.Default.MapWindowCustomSize = _mapSizeCustomRadioButton.Checked;
             Properties.Settings.Default.MapWindowCustomPosition = _mapPositionCustomRadioButton.Checked;
             Properties.Settings.Default.MapWindowWidth = mapWidth;
             Properties.Settings.Default.MapWindowHeight = mapHeight;
             Properties.Settings.Default.MapWindowX = mapX;
             Properties.Settings.Default.MapWindowY = mapY;
+            Properties.Settings.Default.MapFramerateLimit = framerate;
             Properties.Settings.Default.BingoBoardMaximumSize = _bingoCustomMaxSizeRadioButton.Checked;
             Properties.Settings.Default.BingoMaxSizeX = bingoMaxWidth;
             Properties.Settings.Default.BingoMaxSizeY = bingoMaxHeight;
@@ -297,6 +313,22 @@ namespace EldenBingo.UI
                 (_altCheckBox.Checked ? (int)Keys.Alt : 0);
             Properties.Settings.Default.Save();
             return true;
+        }
+
+        private void ensureIntegerInput(TextBox tb)
+        {
+            tb.KeyPress += integer_Keypress;
+        }
+
+        private void integer_Keypress(object? sender, KeyPressEventArgs e)
+        {
+            // Allow control characters such as Backspace, Delete etc.
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            // Reject anything that isn't a number
+            if (!char.IsDigit(e.KeyChar))
+                e.Handled = true;
         }
 
         private void SettingsDialog_Load(object sender, EventArgs e)

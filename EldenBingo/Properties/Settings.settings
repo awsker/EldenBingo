@@ -242,8 +242,8 @@
     <Setting Name="ApplySuggestedColors" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="Setting" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+    <Setting Name="MapFramerateLimit" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">60</Value>
     </Setting>
   </Settings>
 </SettingsFile>

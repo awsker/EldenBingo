@@ -63,9 +63,12 @@
             label9 = new Label();
             _hostServerCheckBox = new CheckBox();
             groupBox6 = new GroupBox();
+            _framerateTextBox = new TextBox();
+            label16 = new Label();
             _showClassesCheckBox = new CheckBox();
             _swapMouseButtons = new CheckBox();
             groupBox7 = new GroupBox();
+            _suggestedColorsCheckBox = new CheckBox();
             _keywordColorAlphaLabel = new Label();
             _keywordColorAlphaTrackBar = new TrackBar();
             _numKeywordsLabel = new Label();
@@ -116,7 +119,6 @@
             _altCheckBox = new CheckBox();
             label15 = new Label();
             panel1 = new Panel();
-            _suggestedColorsCheckBox = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -148,7 +150,7 @@
             _okButton.Location = new Point(360, 3);
             _okButton.Name = "_okButton";
             _okButton.Size = new Size(75, 23);
-            _okButton.TabIndex = 76;
+            _okButton.TabIndex = 78;
             _okButton.Text = "OK";
             _okButton.UseVisualStyleBackColor = true;
             _okButton.Click += _okButton_Click;
@@ -159,7 +161,7 @@
             _cancelButton.Location = new Point(441, 3);
             _cancelButton.Name = "_cancelButton";
             _cancelButton.Size = new Size(75, 23);
-            _cancelButton.TabIndex = 77;
+            _cancelButton.TabIndex = 79;
             _cancelButton.Text = "Cancel";
             _cancelButton.UseVisualStyleBackColor = true;
             _cancelButton.Click += _cancelButton_Click;
@@ -472,14 +474,32 @@
             // 
             // groupBox6
             // 
+            groupBox6.Controls.Add(_framerateTextBox);
+            groupBox6.Controls.Add(label16);
             groupBox6.Controls.Add(_showClassesCheckBox);
             groupBox6.Controls.Add(_swapMouseButtons);
             groupBox6.Location = new Point(264, 6);
             groupBox6.Name = "groupBox6";
-            groupBox6.Size = new Size(240, 114);
+            groupBox6.Size = new Size(240, 172);
             groupBox6.TabIndex = 55;
             groupBox6.TabStop = false;
             groupBox6.Text = "Misc.";
+            // 
+            // _framerateTextBox
+            // 
+            _framerateTextBox.Location = new Point(9, 142);
+            _framerateTextBox.Name = "_framerateTextBox";
+            _framerateTextBox.Size = new Size(58, 23);
+            _framerateTextBox.TabIndex = 59;
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(9, 116);
+            label16.Name = "label16";
+            label16.Size = new Size(188, 15);
+            label16.TabIndex = 58;
+            label16.Text = "Map Framerate Limit (0 to disable)";
             // 
             // _showClassesCheckBox
             // 
@@ -519,6 +539,16 @@
             groupBox7.TabIndex = 18;
             groupBox7.TabStop = false;
             groupBox7.Text = "Appearance";
+            // 
+            // _suggestedColorsCheckBox
+            // 
+            _suggestedColorsCheckBox.AutoSize = true;
+            _suggestedColorsCheckBox.Location = new Point(12, 248);
+            _suggestedColorsCheckBox.Name = "_suggestedColorsCheckBox";
+            _suggestedColorsCheckBox.Size = new Size(199, 19);
+            _suggestedColorsCheckBox.TabIndex = 28;
+            _suggestedColorsCheckBox.Text = "Apply colors suggested by board";
+            _suggestedColorsCheckBox.UseVisualStyleBackColor = true;
             // 
             // _keywordColorAlphaLabel
             // 
@@ -824,7 +854,7 @@
             groupBox12.Location = new Point(6, 6);
             groupBox12.Name = "groupBox12";
             groupBox12.Size = new Size(506, 374);
-            groupBox12.TabIndex = 58;
+            groupBox12.TabIndex = 60;
             groupBox12.TabStop = false;
             groupBox12.Text = "Bingo Board Hotkeys";
             // 
@@ -858,7 +888,7 @@
             _upBindingControl.Location = new Point(3, 3);
             _upBindingControl.Name = "_upBindingControl";
             _upBindingControl.Size = new Size(250, 23);
-            _upBindingControl.TabIndex = 59;
+            _upBindingControl.TabIndex = 61;
             _upBindingControl.ValueName = "Hotkey_Up";
             // 
             // _downBindingControl
@@ -868,7 +898,7 @@
             _downBindingControl.Location = new Point(3, 32);
             _downBindingControl.Name = "_downBindingControl";
             _downBindingControl.Size = new Size(250, 23);
-            _downBindingControl.TabIndex = 60;
+            _downBindingControl.TabIndex = 62;
             _downBindingControl.ValueName = "Hotkey_Down";
             // 
             // _leftBindingControl
@@ -878,7 +908,7 @@
             _leftBindingControl.Location = new Point(3, 61);
             _leftBindingControl.Name = "_leftBindingControl";
             _leftBindingControl.Size = new Size(250, 23);
-            _leftBindingControl.TabIndex = 61;
+            _leftBindingControl.TabIndex = 63;
             _leftBindingControl.ValueName = "Hotkey_Left";
             // 
             // _rightBindingControl
@@ -888,7 +918,7 @@
             _rightBindingControl.Location = new Point(3, 90);
             _rightBindingControl.Name = "_rightBindingControl";
             _rightBindingControl.Size = new Size(250, 23);
-            _rightBindingControl.TabIndex = 62;
+            _rightBindingControl.TabIndex = 64;
             _rightBindingControl.ValueName = "Hotkey_Right";
             // 
             // _upLeftBindingControl
@@ -898,7 +928,7 @@
             _upLeftBindingControl.Location = new Point(3, 119);
             _upLeftBindingControl.Name = "_upLeftBindingControl";
             _upLeftBindingControl.Size = new Size(250, 23);
-            _upLeftBindingControl.TabIndex = 63;
+            _upLeftBindingControl.TabIndex = 65;
             _upLeftBindingControl.ValueName = "Hotkey_UpLeft";
             // 
             // _upRightBindingControl
@@ -908,7 +938,7 @@
             _upRightBindingControl.Location = new Point(3, 148);
             _upRightBindingControl.Name = "_upRightBindingControl";
             _upRightBindingControl.Size = new Size(250, 23);
-            _upRightBindingControl.TabIndex = 64;
+            _upRightBindingControl.TabIndex = 66;
             _upRightBindingControl.ValueName = "Hotkey_UpRight";
             // 
             // _downLeftBindingControl
@@ -918,7 +948,7 @@
             _downLeftBindingControl.Location = new Point(3, 177);
             _downLeftBindingControl.Name = "_downLeftBindingControl";
             _downLeftBindingControl.Size = new Size(250, 23);
-            _downLeftBindingControl.TabIndex = 65;
+            _downLeftBindingControl.TabIndex = 67;
             _downLeftBindingControl.ValueName = "Hotkey_DownLeft";
             // 
             // _downRightBindingControl
@@ -928,7 +958,7 @@
             _downRightBindingControl.Location = new Point(3, 206);
             _downRightBindingControl.Name = "_downRightBindingControl";
             _downRightBindingControl.Size = new Size(250, 23);
-            _downRightBindingControl.TabIndex = 66;
+            _downRightBindingControl.TabIndex = 68;
             _downRightBindingControl.ValueName = "Hotkey_DownRight";
             // 
             // _checkBindingControl
@@ -938,7 +968,7 @@
             _checkBindingControl.Location = new Point(3, 235);
             _checkBindingControl.Name = "_checkBindingControl";
             _checkBindingControl.Size = new Size(250, 23);
-            _checkBindingControl.TabIndex = 67;
+            _checkBindingControl.TabIndex = 69;
             _checkBindingControl.ValueName = "Hotkey_Check";
             // 
             // _starBindingControl
@@ -948,7 +978,7 @@
             _starBindingControl.Location = new Point(3, 264);
             _starBindingControl.Name = "_starBindingControl";
             _starBindingControl.Size = new Size(250, 23);
-            _starBindingControl.TabIndex = 68;
+            _starBindingControl.TabIndex = 70;
             _starBindingControl.ValueName = "Hotkey_Star";
             // 
             // _countIncBindingControl
@@ -958,7 +988,7 @@
             _countIncBindingControl.Location = new Point(3, 293);
             _countIncBindingControl.Name = "_countIncBindingControl";
             _countIncBindingControl.Size = new Size(250, 23);
-            _countIncBindingControl.TabIndex = 69;
+            _countIncBindingControl.TabIndex = 71;
             _countIncBindingControl.ValueName = "Hotkey_CountIncrease";
             // 
             // _countDecBindingControl
@@ -968,7 +998,7 @@
             _countDecBindingControl.Location = new Point(3, 322);
             _countDecBindingControl.Name = "_countDecBindingControl";
             _countDecBindingControl.Size = new Size(250, 23);
-            _countDecBindingControl.TabIndex = 70;
+            _countDecBindingControl.TabIndex = 72;
             _countDecBindingControl.ValueName = "Hotkey_CountDecrease";
             // 
             // panel3
@@ -988,7 +1018,7 @@
             label11.Location = new Point(5, 4);
             label11.Name = "label11";
             label11.Size = new Size(227, 32);
-            label11.TabIndex = 71;
+            label11.TabIndex = 73;
             label11.Text = "Enable hotkeys only if these modifier keys are held:";
             // 
             // _shiftCheckBox
@@ -997,7 +1027,7 @@
             _shiftCheckBox.Location = new Point(10, 41);
             _shiftCheckBox.Name = "_shiftCheckBox";
             _shiftCheckBox.Size = new Size(50, 19);
-            _shiftCheckBox.TabIndex = 72;
+            _shiftCheckBox.TabIndex = 74;
             _shiftCheckBox.Text = "Shift";
             _shiftCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -1007,7 +1037,7 @@
             _controlCheckBox.Location = new Point(77, 41);
             _controlCheckBox.Name = "_controlCheckBox";
             _controlCheckBox.Size = new Size(66, 19);
-            _controlCheckBox.TabIndex = 73;
+            _controlCheckBox.TabIndex = 75;
             _controlCheckBox.Text = "Control";
             _controlCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -1017,7 +1047,7 @@
             _altCheckBox.Location = new Point(157, 41);
             _altCheckBox.Name = "_altCheckBox";
             _altCheckBox.Size = new Size(64, 19);
-            _altCheckBox.TabIndex = 74;
+            _altCheckBox.TabIndex = 76;
             _altCheckBox.Text = "Left Alt";
             _altCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -1028,7 +1058,7 @@
             label15.Name = "label15";
             label15.Padding = new Padding(2, 8, 0, 0);
             label15.Size = new Size(235, 73);
-            label15.TabIndex = 75;
+            label15.TabIndex = 77;
             label15.Text = "Note: Mouse wheel is always bound to increment and decrement the counter for the hovered square";
             // 
             // panel1
@@ -1040,16 +1070,6 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(520, 29);
             panel1.TabIndex = 34;
-            // 
-            // _suggestedColorsCheckBox
-            // 
-            _suggestedColorsCheckBox.AutoSize = true;
-            _suggestedColorsCheckBox.Location = new Point(12, 248);
-            _suggestedColorsCheckBox.Name = "_suggestedColorsCheckBox";
-            _suggestedColorsCheckBox.Size = new Size(199, 19);
-            _suggestedColorsCheckBox.TabIndex = 28;
-            _suggestedColorsCheckBox.Text = "Apply colors suggested by board";
-            _suggestedColorsCheckBox.UseVisualStyleBackColor = true;
             // 
             // SettingsDialog
             // 
@@ -1079,6 +1099,7 @@
             groupBox5.ResumeLayout(false);
             groupBox5.PerformLayout();
             groupBox6.ResumeLayout(false);
+            groupBox6.PerformLayout();
             groupBox7.ResumeLayout(false);
             groupBox7.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)_keywordColorAlphaTrackBar).EndInit();
@@ -1195,5 +1216,7 @@
         private CheckBox _shiftCheckBox;
         private Label label15;
         private CheckBox _suggestedColorsCheckBox;
+        private TextBox _framerateTextBox;
+        private Label label16;
     }
 }

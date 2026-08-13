@@ -985,13 +985,13 @@ namespace EldenBingo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Setting {
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
+        public int MapFramerateLimit {
             get {
-                return ((string)(this["Setting"]));
+                return ((int)(this["MapFramerateLimit"]));
             }
             set {
-                this["Setting"] = value;
+                this["MapFramerateLimit"] = value;
             }
         }
     }

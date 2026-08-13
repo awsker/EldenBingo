@@ -47,6 +47,8 @@ namespace EldenBingo.Rendering
         public MapWindow(uint width, uint height) : base("Map Window", width, height)
         {
             Instance = this;
+            FramerateLimit = (uint)Math.Max(0, Properties.Settings.Default.MapFramerateLimit);
+
             _guids = new HashSet<Guid>();
 
             Players = new List<PlayerDrawable>();
@@ -213,6 +215,10 @@ namespace EldenBingo.Rendering
             if (e.PropertyName == nameof(Properties.Settings.ShowClassesOnMap) && Properties.Settings.Default.ShowClassesOnMap && _availableClasses == null)
             {
                 initClassesDrawable();
+            }
+            if (e.PropertyName == nameof(Properties.Settings.MapFramerateLimit))
+            {
+                FramerateLimit = (uint) Math.Max(0, Properties.Settings.Default.MapFramerateLimit);
             }
         }
 
