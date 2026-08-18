@@ -308,6 +308,11 @@ namespace EldenBingo.UI
                         [user.Nick, $"changed team to", teamChanged.TeamColorName],
                         [oldTeamColor, null, newTeamColor],
                         true);
+                    // If my client changed team, store that team as the last selected
+                    if(user.Guid == Client.ClientGuid)
+                    {
+                        Properties.Settings.Default.Team = teamChanged.Team;
+                    }
                 }
             }
         }
