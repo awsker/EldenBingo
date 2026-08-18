@@ -150,7 +150,7 @@ namespace EldenBingo.UI
             UpdateButtonStatus();
         }
 
-        private void adminStatusMessage(ClientModel? _, ServerAdminStatusMessage message)
+        private async Task adminStatusMessage(ClientModel? _, ServerAdminStatusMessage message)
         {
             updateAdminStatusText(message.Message, Color.FromArgb(message.Color));
         }
@@ -312,10 +312,10 @@ namespace EldenBingo.UI
             await Client.SendPacketToServer(new Packet(request));
         }
 
-        private void receivedGameSettings(ClientModel? _, ServerCurrentGameSettings gameSettingsArgs)
+        private async Task receivedGameSettings(ClientModel? _, ServerCurrentGameSettings gameSettingsArgs)
         {
             //Open the settings window without locking the receiver thread
-            Task.Run(() => openSettingsWindow(gameSettingsArgs.GameSettings));
+            await new Task(() => openSettingsWindow(gameSettingsArgs.GameSettings));
         }
 
         private void openSettingsWindow(BingoGameSettings settings)

@@ -397,6 +397,7 @@ namespace EldenBingo
 
 
         private void onServerMessage(ClientModel? model, ServerBroadcastMessage message)
+        private async Task onServerMessage(ClientModel? model, ServerBroadcastMessage message)
         {
             _consoleControl.PrintToConsole("Server: " + message.Message, Color.Orange);
         }
@@ -429,16 +430,19 @@ namespace EldenBingo
         }
 
         private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
+        private async Task joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
         {
             updateButtonAvailability();
         }
 
         private void joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinRoomDeniedArgs)
+        private async Task joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinRoomDeniedArgs)
         {
             updateButtonAvailability();
         }
 
         private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
+        private async Task gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
             if (Properties.Settings.Default.ShowClassesOnMap && _mapWindow != null && _client.Room != null &&
                 //If we got available classes in preparation phase, or within 20 seconds of the match starting -> Show the available classes
@@ -449,6 +453,7 @@ namespace EldenBingo
         }
 
         private void userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
+        private async Task userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
         {
             if (!Properties.Settings.Default.PlaySounds)
                 return;
@@ -475,6 +480,7 @@ namespace EldenBingo
         }
 
         private void bingoAchieved(ClientModel? model, ServerBingoAchievedUpdate update)
+        private async Task bingoAchieved(ClientModel? model, ServerBingoAchievedUpdate update)
         {
             if (Properties.Settings.Default.PlaySounds)
             {

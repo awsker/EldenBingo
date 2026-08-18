@@ -48,7 +48,7 @@ namespace Neto.Shared
             GetOrRegisterDispatcher(type);
         }
 
-        public void AddListener<T>(Action<CM?, T> func)
+        public void AddListener<T>(Func<CM?, T, Task> func)
         {
             var typeName = NameFromType(typeof(T));
             if (!_eventDispatchers.TryGetValue(typeName, out TypeContainer<CM>? dispatcher))
@@ -61,7 +61,7 @@ namespace Neto.Shared
             }
         }
 
-        public void RemoveListener<T>(Action<CM?, T> func)
+        public void RemoveListener<T>(Func<CM?, T, Task> func)
         {
             var typeName = NameFromType(typeof(T));
             if (_eventDispatchers.TryGetValue(typeName, out TypeContainer<CM>? dispatcher) && dispatcher is TypeContainer<CM, T> tct)
@@ -121,17 +121,19 @@ namespace Neto.Shared
             return packets.ToArray();
         }
 
-        protected virtual async void DispatchObjects(CM? sender, IEnumerable<object> objects)
+        protected virtual async Task DispatchObjects(CM? sender, IEnumerable<object> objects)
         {
             foreach (var o in objects)
             {
                 try
                 {
-                    GetOrRegisterDispatcher(o.GetType())?.Dispatch(sender, o);
+                    var dispatcher = GetOrRegisterDispatcher(o.GetType());
+                    if (dispatcher != null)
+                        await dispatcher.Dispatch(sender, o);
                 } 
                 catch(Exception ex)
                 {
-                    FireOnError($"Exception when dispatching event ${o.GetType().Name}: {ex.Message}");
+                    FireOnError($"Exception when dispatching event {o.GetType().Name}: {ex.Message}");
                 }
             }
         }

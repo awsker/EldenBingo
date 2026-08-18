@@ -53,31 +53,31 @@ namespace EldenBingo.UI
             }
         }
 
-        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
+        private async Task joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
         {
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
         }
 
-        private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
+        private async Task userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
         {
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
         }
 
-        private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
+        private async Task userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
         {
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
         }
 
-        private void userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
+        private async Task userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
         {
             if (Client?.Room != null)
                 updateUsersList(Client.Room);
         }
 
-        private void userChangedTeam(ClientModel? model, ServerUserChangedTeam teamChangedArgs)
+        private async Task userChangedTeam(ClientModel? model, ServerUserChangedTeam teamChangedArgs)
         {
             if (Client?.Room != null)
             {

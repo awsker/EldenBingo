@@ -25,6 +25,7 @@ public record ServerUserBannedFromRoom(UserInRoom User, UserInRoom Banner);
 public record ServerPromoteToAdmin(UserInRoom User, UserInRoom Promoter);
 public record ServerMatchEvents(MatchEvent[] Events);
 public record ServerEntireMatchLogReceived(string MatchLog, string SuggestedFilename, bool Json);
+public record ServerToClientErrorMessage(string Message);
 
 #endregion Server to client
 

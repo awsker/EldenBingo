@@ -429,7 +429,7 @@ namespace EldenBingo.UI
             Client.AddListener<ServerScoreboardUpdate>(scoreBoardUpdate);
         }
 
-        private void scoreBoardUpdate(ClientModel? model, ServerScoreboardUpdate update)
+        private async Task scoreBoardUpdate(ClientModel? model, ServerScoreboardUpdate update)
         {
             ActiveTeams = update.Scoreboard.Select(t => t.Team).ToArray();
         }
@@ -504,7 +504,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void squareUpdate(ClientModel? _, ServerSquareUpdate update)
+        private async Task squareUpdate(ClientModel? _, ServerSquareUpdate update)
         {
             var boardSize = BingoBoard?.Size ?? 0;
             if (BingoBoard != null && update.Index >= 0 && update.Index < boardSize * boardSize)
@@ -514,12 +514,12 @@ namespace EldenBingo.UI
             }
         }
 
-        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
+        private async Task matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
         {
             updateBoardStatus(matchStatus.MatchStatus);
         }
 
-        private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
+        private async Task entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
         {
             if (Client?.Room == null)
                 return;
@@ -527,7 +527,7 @@ namespace EldenBingo.UI
             setBoard(Client.Room.Match.Board);
         }
 
-        private void bingoUpdate(ClientModel? _, ServerBingoAchievedUpdate update)
+        private async Task bingoUpdate(ClientModel? _, ServerBingoAchievedUpdate update)
         {
             if(Properties.Settings.Default.BingoHighlight)
                 FlashBingo(update.Bingo);

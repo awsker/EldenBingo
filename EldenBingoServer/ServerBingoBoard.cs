@@ -229,8 +229,8 @@ namespace EldenBingoServer
             if (clicker.IsSpectator && !clicker.IsAdmin)
                 return false;
 
-            //Only admins can click for other players
-            if (clicker != onBehalfOf && !clicker.IsAdmin)
+            //Only admin+spectators can click for other players
+            if (clicker != onBehalfOf && !clicker.IsAdminSpectator)
                 return false;
 
             var check = CheckStatus[i];
@@ -244,7 +244,7 @@ namespace EldenBingoServer
                     teamChanged = onBehalfOf.Team;
                 }
                 //Allow admin spectators to uncheck squares with only 1 check without specifying the team
-                else if (clicker.IsSpectator && clicker.IsAdmin && check.Teams.Count == 1)
+                else if (clicker.IsAdminSpectator && check.Teams.Count == 1)
                 {
                     var team = check.Teams[0];
                     checkChanged = CheckStatus[i].Uncheck(team);

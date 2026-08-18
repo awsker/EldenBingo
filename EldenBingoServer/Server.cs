@@ -303,7 +303,7 @@ namespace EldenBingoServer
             AddListener<ClientRequestEntireMatchLog>(clientRequestMatchLog);
         }
 
-        private async void roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
+        private async Task roomNameRequested(BingoClientModel? sender, ClientRequestRoomName request)
         {
             if (sender == null)
                 return;
@@ -312,7 +312,7 @@ namespace EldenBingoServer
             await SendPacketToClient(new Packet(roomNamePacket), sender);
         }
 
-        private async void createRoomRequested(BingoClientModel? sender, ClientRequestCreateRoom request)
+        private async Task createRoomRequested(BingoClientModel? sender, ClientRequestCreateRoom request)
         {
             if (sender == null)
                 return;
@@ -389,21 +389,23 @@ namespace EldenBingoServer
             }
         }
 
-        private async void joinRoomRequested(BingoClientModel? sender, ClientRequestJoinRoom request)
+        private async Task joinRoomRequested(BingoClientModel? sender, ClientRequestJoinRoom request)
         {
             if (sender == null)
                 return;
 
             string? deniedReason = null;
             ServerRoom? room = null;
-            if (string.IsNullOrWhiteSpace(request.RoomName))
+            if (string.IsNullOrWhiteSpace(request.Nick))
+                deniedReason = "Invalid nickname";
+            else if (!validateTeam(request.Team))
+                deniedReason = "Invalid team";
+            else if (string.IsNullOrWhiteSpace(request.RoomName))
                 deniedReason = "Invalid lobby name";
             else if (!_rooms.TryGetValue(request.RoomName, out room))
                 deniedReason = "Lobby doesn't exist";
             else if (room != null && sender.Room == room)
                 deniedReason = "Already in this lobby";
-            else if (string.IsNullOrWhiteSpace(request.Nick))
-                deniedReason = "Invalid nickname";
             //else if (room != null && room.Users.Any(c => c.Nick == request.Nick))
             //  deniedReason = "Nickname already in use";
             else if (room != null && !string.IsNullOrWhiteSpace(request.AdminPass) && !room.IsCorrectAdminPassword(request.AdminPass))
@@ -425,7 +427,12 @@ namespace EldenBingoServer
             }
         }
 
-        private async void leaveRoomRequested(BingoClientModel? sender, ClientRequestLeaveRoom request)
+        private bool validateTeam(int team)
+        {
+            return team >= -1 && team < BingoConstants.TeamColors.Length;
+        }
+
+        private async Task leaveRoomRequested(BingoClientModel? sender, ClientRequestLeaveRoom request)
         {
             if (sender == null)
                 return;
@@ -433,7 +440,7 @@ namespace EldenBingoServer
             await leaveUserRoom(sender);
         }
 
-        private async void clientCoordinates(BingoClientModel? sender, ClientCoordinates coordinates)
+        private async Task clientCoordinates(BingoClientModel? sender, ClientCoordinates coordinates)
         {
             if (sender?.Room == null)
                 return;
@@ -447,7 +454,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientChat(BingoClientModel? sender, ClientChat chatMessage)
+        private async Task clientChat(BingoClientModel? sender, ClientChat chatMessage)
         {
             if (sender?.Room == null)
                 return;
@@ -467,7 +474,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientBingoJson(BingoClientModel? sender, ClientBingoJson bingoJson)
+        private async Task clientBingoJson(BingoClientModel? sender, ClientBingoJson bingoJson)
         {
             if (sender?.Room == null)
                 return;
@@ -525,7 +532,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientRandomizeBoard(BingoClientModel? sender, ClientRandomizeBoard randomizeBoard)
+        private async Task clientRandomizeBoard(BingoClientModel? sender, ClientRandomizeBoard randomizeBoard)
         {
             if (sender?.Room == null)
                 return;
@@ -553,7 +560,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientChangeMatchStatus(BingoClientModel? sender, ClientChangeMatchStatus matchStatus)
+        private async Task clientChangeMatchStatus(BingoClientModel? sender, ClientChangeMatchStatus matchStatus)
         {
             if (sender?.Room == null)
                 return;
@@ -620,7 +627,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientTryCheck(BingoClientModel? sender, ClientTryCheck tryCheck)
+        private async Task clientTryCheck(BingoClientModel? sender, ClientTryCheck tryCheck)
         {
             if (sender?.Room == null || sender.Room.Match == null)
                 return;
@@ -639,10 +646,10 @@ namespace EldenBingoServer
                 return;
 
             if (targetUser == sender.ClientGuid || //Setting my own count
-                userInfo.IsAdmin && userInfo.IsSpectator) //Setting someone elses count as admin+spectator
+                userInfo.IsAdminSpectator) //Setting someone elses count as admin+spectator
             {
                 var userToSet = targetUser == sender.ClientGuid ? userInfo : sender.Room.GetUser(targetUser);
-                if (userToSet == null)
+                if (userToSet == null || userToSet.IsSpectator)
                     return;
 
                 var bingosBefore = board.BingoSet;
@@ -651,7 +658,6 @@ namespace EldenBingoServer
                     var tasks = new List<Task>();
                     var check = board.CheckStatus[tryCheck.Index];
                     var wasChecked = check.IsChecked(userToSet.Team);
-                    var referee = userInfo.IsAdmin && userInfo.IsSpectator;
                    
                     ServerSquareUpdate squareUpdate;
                     ServerUserChecked userCheck;
@@ -661,7 +667,7 @@ namespace EldenBingoServer
                     lock (check)
                     {
                         userCheck = new ServerUserChecked(tryCheck.Index, userToSet.Team, check.Teams.ToArray());
-                        var checkEvent = new MatchEvent(msTimestamp, tryCheck.Index, userToSet.Team, userInfo.Nick, wasChecked, referee ? MatchEventType.RefereeCheck : MatchEventType.PlayerCheck);
+                        var checkEvent = new MatchEvent(msTimestamp, tryCheck.Index, userToSet.Team, userInfo.Nick, wasChecked, userInfo.IsAdminSpectator ? MatchEventType.RefereeCheck : MatchEventType.PlayerCheck);
                         var events = new List<MatchEvent>{checkEvent};
                         events.AddRange(bingos.Select(bu => bu.Bingo.ToMatchEvent(msTimestamp)));
                         
@@ -700,7 +706,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientTryMark(BingoClientModel? sender, ClientTryMark tryMark)
+        private async Task clientTryMark(BingoClientModel? sender, ClientTryMark tryMark)
         {
             if (sender?.Room == null)
                 return;
@@ -724,7 +730,7 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientTrySetCounter(BingoClientModel? sender, ClientTrySetCounter trySetCounter)
+        private async Task clientTrySetCounter(BingoClientModel? sender, ClientTrySetCounter trySetCounter)
         {
             if (sender?.Room == null)
                 return;
@@ -762,24 +768,26 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientRequestGameSettings(BingoClientModel? sender, ClientRequestCurrentGameSettings gameSettingsRequest)
+        private async Task clientRequestGameSettings(BingoClientModel? sender, ClientRequestCurrentGameSettings gameSettingsRequest)
         {
             if (sender == null)
                 return;
             if (!await confirm(sender, admin: true, inRoom: true))
                 return;
-
+            if (sender.Room == null)
+                return;
             var packet = new ServerCurrentGameSettings(sender.Room.GameSettings);
             await SendPacketToClient(new Packet(packet), sender);
         }
 
-        private async void clientSetGameSettings(BingoClientModel? sender, ClientSetGameSettings gameSettingsRequest)
+        private async Task clientSetGameSettings(BingoClientModel? sender, ClientSetGameSettings gameSettingsRequest)
         {
             if (sender == null)
                 return;
             if (!await confirm(sender, admin: true, inRoom: true))
                 return;
-
+            if (sender.Room == null)
+                return;
             var oldScorePerBingo = sender.Room.GameSettings.PointsPerBingoLine;
             var settings = validateGameSettings(gameSettingsRequest.GameSettings);
             sender.Room.GameSettings = settings;
@@ -790,13 +798,13 @@ namespace EldenBingoServer
             }
             if (oldScorePerBingo != settings.PointsPerBingoLine)
             {
-                _ = sendScoreboard(sender.Room);
+                await sendScoreboard(sender.Room);
             }
             var matchInProgress = sender.Room?.Match?.MatchStatus > MatchStatus.NotRunning && sender.Room?.Match?.MatchStatus < MatchStatus.Finished;
             //If size was changed when match was not running and the generated board size is different than the new one -> Generate new board
             if (!matchInProgress && sender.Room?.Match?.Board != null && sender.Room.Match.Board.Size != settings.BoardSize)
             {
-                clientRandomizeBoard(sender, new ClientRandomizeBoard());
+                await clientRandomizeBoard(sender, new ClientRandomizeBoard());
             }
             else
             {
@@ -804,13 +812,14 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientTogglePause(BingoClientModel? sender, ClientTogglePause pauseRequest)
+        private async Task clientTogglePause(BingoClientModel? sender, ClientTogglePause pauseRequest)
         {
             if (sender == null)
                 return;
             if (!await confirm(sender, admin: true, inRoom: true))
                 return;
-
+            if (sender.Room == null)
+                return;
             if (!sender.Room.Match.Running)
             {
                 await sendAdminErrorMessage(sender, "Match not running");
@@ -827,13 +836,14 @@ namespace EldenBingoServer
             await sendMatchStatus(sender.Room);
         }
 
-        private async void clientSetTeamName(BingoClientModel? sender, ClientSetTeamName setNameRequest)
+        private async Task clientSetTeamName(BingoClientModel? sender, ClientSetTeamName setNameRequest)
         {
             if (sender == null)
                 return;
             if (!await confirm(sender, inRoom: true))
                 return;
-
+            if (sender.Room == null)
+                return;
             var userInfo = sender.Room.GetUser(sender.ClientGuid);
             if (userInfo != null)
             {
@@ -854,13 +864,14 @@ namespace EldenBingoServer
             }
         }
 
-        private async void clientTeamChange(BingoClientModel? sender, ClientRequestTeamChange change)
+        private async Task clientTeamChange(BingoClientModel? sender, ClientRequestTeamChange change)
         {
             if (sender == null)
                 return;
             if (!await confirm(sender, inRoom: true))
                 return;
-
+            if (sender.Room == null)
+                return;
             var room = sender.Room;
 
             var userInfo = room.GetUser(sender.ClientGuid);
@@ -869,6 +880,21 @@ namespace EldenBingoServer
 
             var oldTeam = userInfo.Team;
             var newTeam = change.Team;
+
+            string deniedReason = string.Empty;
+            if (!validateTeam(newTeam))
+            {
+                deniedReason = "Invalid team";
+            }
+            if (sender.Room.Match.Running)
+            {
+                deniedReason = "Cannot change team while match is running";
+            }
+            if (!string.IsNullOrEmpty(deniedReason))
+            {
+                await SendPacketToClient(new Packet(new ServerToClientErrorMessage(deniedReason)), sender);
+                return;
+            }
             if (userInfo != null && newTeam != oldTeam)
             {
                 userInfo.Team = newTeam;
@@ -879,7 +905,7 @@ namespace EldenBingoServer
                     currentUsers.Add(new UserInRoom(user));
                 }
                 
-                var teamColorName = room.GetTeamNameIgnoreUsers(change.Team);
+                var teamColorName = room.GetTeamNameIgnoreUsers(newTeam);
 
                 var teamChangePacket = new ServerUserChangedTeam(sender.ClientGuid, newTeam, teamColorName, currentUsers.ToArray());
                 var scoreboardUpdatePacket = createScoreboardUpdatePacket(room);
@@ -908,7 +934,7 @@ namespace EldenBingoServer
                         }
                         //If this recipient is the client that switched team, and they switched to spectator, and they are admin, and the match isn't started
                         //Send the board to that player
-                        if (recipient == userInfo && userInfo.IsAdmin && userInfo.IsSpectator && room.Match.MatchStatus <= MatchStatus.Starting)
+                        if (recipient == userInfo && userInfo.IsAdminSpectator && room.Match.MatchStatus <= MatchStatus.Starting)
                         {
                             packet.AddObject(createEntireBoardPacket(board, userInfo));
                         }
@@ -920,12 +946,11 @@ namespace EldenBingoServer
             }
         }
 
-        private void clientBanUser(BingoClientModel? sender, ClientBanUserFromRoom banUserRequest)
+        private async Task clientBanUser(BingoClientModel? sender, ClientBanUserFromRoom banUserRequest)
         {
             if (sender == null || sender.IsAdmin == false || sender.Room == null)
-            {
                 return;
-            }
+
             var user = sender.Room.GetUser(banUserRequest.BannedUser);
             if (user == null)
             {
@@ -945,12 +970,11 @@ namespace EldenBingoServer
             _ = banUserFromRoom(user.Client, sender, sender.Room);
         }
 
-        private void clientPromoteUser(BingoClientModel? sender, ClientPromoteToAdmin promoteUserRequest)
+        private async Task clientPromoteUser(BingoClientModel? sender, ClientPromoteToAdmin promoteUserRequest)
         {
             if (sender == null || sender.IsAdmin == false || sender.Room == null)
-            {
                 return;
-            }
+
             var user = sender.Room.GetUser(promoteUserRequest.PromotedUser);
             if (user == null)
             {
@@ -970,9 +994,9 @@ namespace EldenBingoServer
             _ = promoteUserInRoom(user.Client, sender, sender.Room);
         }
 
-        private async void clientRequestMatchLog(BingoClientModel? sender, ClientRequestEntireMatchLog clientRequestMatchLog)
+        private async Task clientRequestMatchLog(BingoClientModel? sender, ClientRequestEntireMatchLog clientRequestMatchLog)
         {
-            if (sender == null || sender?.Room == null)
+            if (sender == null || sender.Room == null)
                 return;
 
             if (DateTime.Now - sender.LastLogRequest > TimeSpan.FromSeconds(MatchLogRequestLimit))
@@ -1055,7 +1079,7 @@ namespace EldenBingoServer
             {
                 //Also send the bingo board if user should have it
                 bool boardIsAvailableToAll = room.Match.MatchStatus >= MatchStatus.Preparation;
-                if (boardIsAvailableToAll || clientInRoom.IsAdmin && clientInRoom.IsSpectator)
+                if (boardIsAvailableToAll || clientInRoom.IsAdminSpectator)
                 {
                     packet.AddObject(createEntireBoardPacket(board, clientInRoom));
                     if(room.Match.MatchEvents.Count > 0)
@@ -1157,7 +1181,7 @@ namespace EldenBingoServer
 
         private async Task sendBoardAndClasses(ServerRoom room)
         {
-            var (adminSpectators, others) = splitClients(room, c => c.IsAdmin && c.IsSpectator);
+            var (adminSpectators, others) = splitClients(room, c => c.IsAdminSpectator);
 
             if (room.Match?.Board == null || room.Match?.Board is not ServerBingoBoard board)
             {

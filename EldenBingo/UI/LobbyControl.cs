@@ -38,7 +38,7 @@ namespace EldenBingo.UI
                 if (_instance == null || _instance.Client == null || _instance.Client.LocalUser == null)
                     return null;
 
-                if (_instance.Client.LocalUser.IsAdmin != true || _instance.Client.LocalUser.IsSpectator != true)
+                if (!_instance.Client.LocalUser.IsAdminSpectator)
                     return _instance.Client.LocalUser;
 
                 var selectedClient = _instance._clientList.SelectedUser;
@@ -95,9 +95,10 @@ namespace EldenBingo.UI
             Client.AddListener<ServerUserChat>(userChat);
             Client.AddListener<ServerTeamNameChanged>(teamNameChanged);
             Client.AddListener<ServerUserChangedTeam>(userChangedTeam);
-            Client.AddListener<ServerBroadcastMessage>(serverMessage);
+            Client.AddListener<ServerBroadcastMessage>(serverBroadcastMessage);
             Client.AddListener<ServerMatchEvents>(gotMatchEvents);
             Client.AddListener<ServerEntireMatchLogReceived>(matchLogUpdate);
+            Client.AddListener<ServerToClientErrorMessage>(serverErrorMessage);
         }
 
         protected override void ClientChanged()
@@ -131,12 +132,13 @@ namespace EldenBingo.UI
             Client.RemoveListener<ServerUserChat>(userChat);
             Client.RemoveListener<ServerTeamNameChanged>(teamNameChanged);
             Client.RemoveListener<ServerUserChangedTeam>(userChangedTeam);
-            Client.RemoveListener<ServerBroadcastMessage>(serverMessage);
+            Client.RemoveListener<ServerBroadcastMessage>(serverBroadcastMessage);
             Client.RemoveListener<ServerMatchEvents>(gotMatchEvents);
             Client.RemoveListener<ServerEntireMatchLogReceived>(matchLogUpdate);
+            Client.RemoveListener<ServerToClientErrorMessage>(serverErrorMessage);
         }
 
-        private void gotMatchEvents(ClientModel? model, ServerMatchEvents matchEventMessage)
+        private async Task gotMatchEvents(ClientModel? model, ServerMatchEvents matchEventMessage)
         {
             foreach (var ev in matchEventMessage.Events)
                 logEvent(ev);
@@ -178,7 +180,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
+        private async Task userJoined(ClientModel? _, ServerUserJoinedRoom userJoinedArgs)
         {
             if (Client?.Room != null)
             {
@@ -187,7 +189,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
+        private async Task userLeft(ClientModel? _, ServerUserLeftRoom userLeftArgs)
         {
             if (Client?.Room != null)
             {
@@ -196,7 +198,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void userBanned(ClientModel? _, ServerUserBannedFromRoom userBannedArgs)
+        private async Task userBanned(ClientModel? _, ServerUserBannedFromRoom userBannedArgs)
         {
             if (Client?.Room != null)
             {
@@ -205,7 +207,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
+        private async Task userPromoted(ClientModel? _, ServerPromoteToAdmin userPromotedArgs)
         {
             if (Client?.Room != null)
             {
@@ -219,7 +221,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
+        private async Task gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
             // Log available classes immediately when entering room and board is fetched
             if (bingoBoardArgs.AvailableClasses.Length > 0)
@@ -263,7 +265,7 @@ namespace EldenBingo.UI
             return result.ToString();
         }
 
-        private void userChat(ClientModel? _, ServerUserChat chatArgs)
+        private async Task userChat(ClientModel? _, ServerUserChat chatArgs)
         {
             if (Client?.Room != null)
             {
@@ -276,7 +278,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void teamNameChanged(ClientModel? model, ServerTeamNameChanged teamNameChanged)
+        private async Task teamNameChanged(ClientModel? model, ServerTeamNameChanged teamNameChanged)
         {
             if (Client?.Room != null)
             {
@@ -292,7 +294,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void userChangedTeam(ClientModel? model, ServerUserChangedTeam teamChanged)
+        private async Task userChangedTeam(ClientModel? model, ServerUserChangedTeam teamChanged)
         {
             if (Client?.Room != null)
             {
@@ -310,12 +312,17 @@ namespace EldenBingo.UI
             }
         }
 
-        private void serverMessage(ClientModel? model, ServerBroadcastMessage message)
+        private async Task serverBroadcastMessage(ClientModel? model, ServerBroadcastMessage message)
         {
             updateMatchLog([$"Server: {message.Message}"], [Color.Orange], true);
         }
 
-        private void matchLogUpdate(ClientModel? model, ServerEntireMatchLogReceived matchLogResults)
+        private async Task serverErrorMessage(ClientModel? model, ServerToClientErrorMessage message)
+        {
+            updateMatchLog(message.Message, Color.Red, false);
+        }
+
+        private async Task matchLogUpdate(ClientModel? model, ServerEntireMatchLogReceived matchLogResults)
         {
             void saveLog()
             {
@@ -537,10 +544,11 @@ namespace EldenBingo.UI
             void showHide()
             {
                 var isAdmin = Client?.LocalUser?.IsAdmin == true;
+                var isAdminSpectator = Client?.LocalUser?.IsAdminSpectator == true;
                 adminControl1.Visible = isAdmin;
                 adminControl1.Height = isAdmin ? _adminHeight : 0;
                 adminControl1.UpdateButtonStatus();
-                _adminInfoLabel.Visible = isAdmin && Client?.LocalUser?.IsSpectator == true;
+                _adminInfoLabel.Visible = isAdminSpectator;
                 updateBingoPanelSize();
             }
             if (InvokeRequired)

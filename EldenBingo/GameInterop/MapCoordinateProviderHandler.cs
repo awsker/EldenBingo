@@ -75,7 +75,7 @@ namespace EldenBingo.GameInterop
             client.AddListener<ServerUserCoordinates>(incomingCoordinates);
         }
 
-        private void incomingCoordinates(ClientModel? sender, ServerUserCoordinates coords)
+        private async Task incomingCoordinates(ClientModel? sender, ServerUserCoordinates coords)
         {
             if (_netProviders.TryGetValue(coords.UserGuid, out var np))
             {

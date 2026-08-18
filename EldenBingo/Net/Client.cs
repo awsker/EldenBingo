@@ -111,7 +111,7 @@ namespace EldenBingo
             FireOnStatus("Banned from lobby");
         }
 
-        protected override async void DispatchObjects(ClientModel? sender, IEnumerable<object> objects)
+        protected override async Task DispatchObjects(ClientModel? sender, IEnumerable<object> objects)
         {
             if (PacketDelayMs > 0 && LocalUser != null && LocalUser.IsSpectator)
             {
@@ -129,16 +129,16 @@ namespace EldenBingo
                         ordinaryPackets.Enqueue(o);
                     }
                 }
-                base.DispatchObjects(sender, ordinaryPackets);
+                await base.DispatchObjects(sender, ordinaryPackets);
                 if (delayPackets.Count > 0)
                 {
                     await Task.Delay(PacketDelayMs);
-                    base.DispatchObjects(sender, delayPackets);
+                    await base.DispatchObjects(sender, delayPackets);
                 }
             }
             else
             {
-                base.DispatchObjects(sender, objects);
+                await base.DispatchObjects(sender, objects);
             }
         }
 
@@ -160,7 +160,7 @@ namespace EldenBingo
             AddListener<ServerMatchStatusUpdate>(matchStatusUpdate);
         }
 
-        private void userJoinedRoom(ClientModel? _, ServerUserJoinedRoom userJoined)
+        private async Task userJoinedRoom(ClientModel? _, ServerUserJoinedRoom userJoined)
         {
             if (Room != null)
             {
@@ -169,7 +169,7 @@ namespace EldenBingo
             }
         }
 
-        private void userLeftRoom(ClientModel? _, ServerUserLeftRoom userLeft)
+        private async Task userLeftRoom(ClientModel? _, ServerUserLeftRoom userLeft)
         {
             if (Room != null)
             {
@@ -178,7 +178,7 @@ namespace EldenBingo
             }
         }
 
-        private void userBanned(ClientModel? model, ServerUserBannedFromRoom userBanned)
+        private async Task userBanned(ClientModel? model, ServerUserBannedFromRoom userBanned)
         {
             if (Room != null && userBanned.User.Guid == ClientGuid)
             {
@@ -187,7 +187,7 @@ namespace EldenBingo
             }
         }
 
-        private void userPromoted(ClientModel? model, ServerPromoteToAdmin userPromoted)
+        private async Task userPromoted(ClientModel? model, ServerPromoteToAdmin userPromoted)
         {
             if (Room != null) 
             {
@@ -199,19 +199,19 @@ namespace EldenBingo
             }
         }
 
-        private void createRoomDenied(ClientModel? _, ServerCreateRoomDenied createRoomDenied)
+        private async Task createRoomDenied(ClientModel? _, ServerCreateRoomDenied createRoomDenied)
         {
             Room = null;
             FireOnStatus($"Create lobby failed: {createRoomDenied.Reason}");
         }
 
-        private void joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinDenied)
+        private async Task joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinDenied)
         {
             Room = null;
             FireOnStatus($"Join lobby failed: {joinDenied.Reason}");
         }
 
-        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
+        private async Task joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinAccepted)
         {
             var sameRoomAsBefore = Room != null && Room.Name == joinAccepted.RoomName;
 
@@ -229,7 +229,7 @@ namespace EldenBingo
             Room = room;
         }
 
-        private void entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
+        private async Task entireBingoBoardUpdate(ClientModel? _, ServerEntireBingoBoardUpdate boardUpdate)
         {
             if (Room != null)
             {
@@ -239,7 +239,7 @@ namespace EldenBingo
             }
         }
 
-        private void matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
+        private async Task matchStatusUpdate(ClientModel? _, ServerMatchStatusUpdate matchStatus)
         {
             if (Room != null)
             {

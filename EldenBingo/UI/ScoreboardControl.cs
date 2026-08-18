@@ -89,7 +89,7 @@ namespace EldenBingo.UI
             }
         }
 
-        private void scoreBoardUpdate(ClientModel? _, ServerScoreboardUpdate update)
+        private async Task scoreBoardUpdate(ClientModel? _, ServerScoreboardUpdate update)
         {
             _lastUpdate = update;
             updateRows(update.Scoreboard);

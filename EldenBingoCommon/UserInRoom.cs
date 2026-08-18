@@ -24,7 +24,7 @@
         {
             get
             {
-                if (IsSpectator && IsAdmin)
+                if (IsAdminSpectator)
                     return BingoConstants.AdminSpectatorColor;
                 return BingoConstants.GetTeamColor(Team);
             }
@@ -34,7 +34,7 @@
         {
             get
             {
-                if (IsSpectator && IsAdmin)
+                if (IsAdminSpectator)
                     return BingoConstants.AdminSpectatorColor;
                 return BingoConstants.GetTeamColorBright(Team);
             }
@@ -45,6 +45,7 @@
         public string Nick { get; set; }
         public int Team { get; set; }
         public bool IsSpectator => Team == -1;
+        public bool IsAdminSpectator => IsAdmin && IsSpectator;
 
         public override string ToString()
         {

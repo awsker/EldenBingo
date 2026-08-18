@@ -74,7 +74,7 @@ namespace EldenBingo.UI
             set { _teamComboBox.SelectedIndex = (int)value + 1; }
         }
 
-        private void availableRoomNameData(ClientModel? _, ServerRoomNameSuggestion roomNameData)
+        private async Task availableRoomNameData(ClientModel? _, ServerRoomNameSuggestion roomNameData)
         {
             void update() { RoomName = roomNameData.RoomName; };
             if (InvokeRequired)

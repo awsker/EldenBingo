@@ -142,7 +142,7 @@ public class EventManager
         _gameHandler.ResetEventManPtrs();
     }
 
-    private void acceptedIntoRoom(ClientModel? model, ServerJoinRoomAccepted accepted)
+    private async Task acceptedIntoRoom(ClientModel? model, ServerJoinRoomAccepted accepted)
     {
         //Joined a new lobby, so we reset the game status...
         resetGameStartedStatus();

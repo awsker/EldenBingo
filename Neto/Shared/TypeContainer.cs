@@ -7,19 +7,30 @@
             Type = typeof(T);
         }
 
-        public event Action<CM?, T>? OnDispatch;
+        public event Func<CM?, T, Task>? OnDispatch;
 
         public override Type Type { get; }
 
-        public void Dispatch(CM? sender, T obj)
+        public async Task Dispatch(CM? sender, T obj)
         {
-            OnDispatch?.Invoke(sender, obj);
+            if (OnDispatch == null)
+                return;
+            var handlers = OnDispatch.GetInvocationList().Cast<Func<CM?, T, Task>>();
+
+            var tasks = handlers.Select(handler => handler(sender, obj));
+
+            await Task.WhenAll(tasks);
         }
 
-        public override void Dispatch(CM? sender, object obj)
+        public override async Task Dispatch(CM? sender, object obj)
         {
-            if (obj is T objT)
-                OnDispatch?.Invoke(sender, objT);
+            if (obj is not T objT || OnDispatch == null)
+                return;
+            var handlers = OnDispatch.GetInvocationList().Cast<Func<CM?, T, Task>>();
+
+            var tasks = handlers.Select(handler => handler(sender, objT));
+            
+            await Task.WhenAll(tasks);
         }
     }
 
@@ -27,6 +38,6 @@
     {
         public abstract Type Type { get; }
 
-        public abstract void Dispatch(CM? sender, object obj);
+        public abstract Task Dispatch(CM? sender, object obj);
     }
 }
