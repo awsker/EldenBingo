@@ -3,6 +3,7 @@ using EldenBingoServer;
 using InteractiveReadLine;
 using Microsoft.Extensions.Configuration;
 using Neto.Shared;
+using System.Net;
 
 namespace EldenBingoServerStandalone
 {
@@ -27,6 +28,9 @@ namespace EldenBingoServerStandalone
             {'j', new("Print path to server data json", showJsonPath)},
             {'l', new("Toggle match logging", toggleLogging)},
             {'m', new("Enable Maintenance mode", maintenanceMode)},
+            {'b', new("Ban IP", banIp)},
+            {'u', new("Unban IP", unbanIp)},
+            {'p', new("List banned IPs", printBanlist)},
         };
 
         public static void Main(string[] args)
@@ -190,6 +194,92 @@ namespace EldenBingoServerStandalone
             {
                 _readInput = true;
             }
+        }
+
+        private static void banIp()
+        {
+            try
+            {
+                _readInput = false;
+                output("Enter an IP to ban:", DefaultColor);
+                ConsoleKeyInfo key;
+                var config = ReadLineConfig.Basic;
+                bool _cancelled = false;
+                config.KeyBehaviors.Add(new InteractiveReadLine.KeyBehaviors.KeyId(ConsoleKey.Escape, false, false, false), (kbt) =>
+                {
+                    _cancelled = true;
+                    kbt.Finish();
+                });
+                string ip = ConsoleReadLine.ReadLine(config);
+                if (_cancelled)
+                {
+                    Console.WriteLine();
+                    output("Cancelled ban entry", InfoColor);
+                }
+                else
+                {
+                    try
+                    {
+                        _server.BanIP(IPAddress.Parse(ip));
+                    } 
+                    catch(Exception ex)
+                    {
+                        output($"Couldn't ban IP {ip}: {ex.Message}", InfoColor);
+                    }
+                }
+            }
+            finally
+            {
+                _readInput = true;
+            }
+        }
+
+        private static void unbanIp()
+        {
+            try
+            {
+                _readInput = false;
+                output("Enter an IP to unban:", DefaultColor);
+                ConsoleKeyInfo key;
+                var config = ReadLineConfig.Basic;
+                bool _cancelled = false;
+                config.KeyBehaviors.Add(new InteractiveReadLine.KeyBehaviors.KeyId(ConsoleKey.Escape, false, false, false), (kbt) =>
+                {
+                    _cancelled = true;
+                    kbt.Finish();
+                });
+                string ip = ConsoleReadLine.ReadLine(config);
+                if (_cancelled)
+                {
+                    Console.WriteLine();
+                    output("Cancelled unban entry", InfoColor);
+                }
+                else
+                {
+                    try
+                    {
+                        _server.UnbanIP(IPAddress.Parse(ip));
+                    }
+                    catch (Exception ex)
+                    {
+                        output($"Couldn't unban IP {ip}: {ex.Message}", InfoColor);
+                    }
+                }
+            }
+            finally
+            {
+                _readInput = true;
+            }
+        }
+
+        private static void printBanlist()
+        {
+            output("------- Ban List ------", InfoColor);
+            foreach (var ip in _server.ListBannedIps())
+            {
+                output(ip, DefaultColor);
+            }
+            output("-----------------------", InfoColor);
         }
 
         private static void toggleLogging()

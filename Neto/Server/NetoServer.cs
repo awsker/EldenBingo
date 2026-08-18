@@ -13,6 +13,7 @@ namespace Neto.Server
         private readonly ConcurrentDictionary<Guid, CM> _clients;
         private readonly ConcurrentBag<TcpListener> _tcpListeners;
         private readonly ConstructorInfo _clientModelConstructor;
+        protected readonly HashSet<IPAddress> BannedIps;
         private CancellationTokenSource _cancelToken;
 
         private System.Timers.Timer? _keepAliveTimer;
@@ -26,6 +27,7 @@ namespace Neto.Server
             _tcpListeners = new ConcurrentBag<TcpListener>();
             _clients = new ConcurrentDictionary<Guid, CM>();
             _cancelToken = new CancellationTokenSource();
+            BannedIps = new HashSet<IPAddress>();
             var clientModelConstructor = typeof(CM).GetConstructor(new[] { typeof(TcpClient) });
             if (clientModelConstructor == null)
                 throw new ApplicationException("No constructor with TcpClient as argument was found");
@@ -103,6 +105,47 @@ namespace Neto.Server
                 return;
             }
             await sendBytesToClient(data, client);
+        }
+
+        public bool IsBanned(IPAddress ip)
+        {
+            lock (BannedIps)
+                return BannedIps.Contains(ip);
+        }
+
+        public void Ban(ClientModel client)
+        {
+            BanIP(client.IPAddress);
+        }
+
+        public void BanIP(IPAddress ip)
+        {
+            lock(BannedIps)
+                BannedIps.Add(ip);
+            var currentClients = _clients.Values.ToArray();
+            foreach (CM c in currentClients)
+            {
+                if(c.IPAddress == ip)
+                {
+                    _ = sendBannedMessageAndStop(c);
+                }
+            }
+            FireOnStatus($"Banned IP {ip}");
+        }
+
+        public void UnbanIP(IPAddress ip)
+        {
+            lock (BannedIps)
+            {
+                if (BannedIps.Remove(ip))
+                    FireOnStatus($"Unbanned IP {ip}");
+            }
+        }
+
+        public IList<string> ListBannedIps()
+        {
+            lock (BannedIps)
+                return BannedIps.Select(ip => ip.ToString()).ToList();
         }
 
         protected virtual async Task DropClient(CM client)
@@ -244,6 +287,12 @@ namespace Neto.Server
                 TcpKeepAliveSettings.Apply(tcpClient);
                 tcpClient.GetStream().WriteTimeout = 10000;
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
+                if (IsBanned(client.IPAddress))
+                {
+                    _ = sendBannedMessageAndStop(client);
+                    FireOnStatus($"Banned client connected ({client.IPAddress}) and connection was subsequently closed");
+                    return;
+                }
                 _clients[client.ClientGuid] = client;
                 FireOnStatus($"Client connected ({GetClientIp(client)})");
                 _ = clientTcpListenerTask(client);
@@ -510,6 +559,14 @@ namespace Neto.Server
             {
                 // Ignore any errors in this rudimentary kick function
             }
+        }
+
+        private async Task sendBannedMessageAndStop(CM client)
+        {
+            var p = new Packet(PacketTypes.ServerClientDropped, new ServerKicked("Banned"));
+            await SendPacketToClient(p, client);
+            await Task.Delay(100);
+            client.Stop();
         }
     }
 }

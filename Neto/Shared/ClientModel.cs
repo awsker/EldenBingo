@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 
 namespace Neto.Shared
 {
@@ -7,6 +8,9 @@ namespace Neto.Shared
         public ClientModel(TcpClient client)
         {
             TcpClient = client;
+            var ip = client.Client.RemoteEndPoint as IPEndPoint;
+            if (ip != null)
+                IPAddress = ip.Address;
             ClientGuid = Guid.NewGuid();
             CancellationToken = new CancellationTokenSource();
             LastActivity = DateTime.Now;
@@ -14,6 +18,7 @@ namespace Neto.Shared
         }
 
         public TcpClient TcpClient { get; init; }
+        public IPAddress IPAddress { get; init; }
         public Guid ClientGuid { get; internal set; }
         public CancellationTokenSource CancellationToken { get; init; }
         public bool IsRegistered { get; set; }

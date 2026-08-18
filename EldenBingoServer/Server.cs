@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Drawing;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace EldenBingoServer
 {
@@ -14,6 +15,9 @@ namespace EldenBingoServer
     {
         // 10 seconds countdown before match starts
         private const int MatchStartCountdown = 9999;
+
+        // 8 suspcious activites results in a ban
+        private const int BanThreshold = 8;
 
         // Check for inactive rooms once every hour (3600 seconds)
         private const int RoomInactivityRemovalSeconds = 3600;
@@ -38,11 +42,21 @@ namespace EldenBingoServer
         public bool MatchLogging { get; set; } = false;
         public string MatchLogDirectory { get; set; } = string.Empty;
 
+        private class IPSuspiciousActivity
+        {
+            public int BanScore;
+        }
+
+        private ConcurrentDictionary<IPAddress, IPSuspiciousActivity> _ipStats;
+
         public Server(int port, string? jsonPath = null) : base(port)
         {
             _rooms = new ConcurrentDictionary<string, ServerRoom>(StringComparer.OrdinalIgnoreCase);
+            _ipStats = new ConcurrentDictionary<IPAddress, IPSuspiciousActivity>();
             //Always register the EldenBingoCommon assembly
             RegisterAssembly(Assembly.GetAssembly(typeof(BingoBoard)));
+            OnClientConnected += server_onClientConnected;
+            OnClientDisconnected += server_onClientDisconnected;
             registerHandlers();
 
             //Start the room clearing timer
@@ -76,6 +90,21 @@ namespace EldenBingoServer
                 if (serverData.Identities != null)
                 {
                     CachedIdentities = serverData.Identities;
+                }
+                if (serverData.BannedIps != null)
+                {
+                    lock (BannedIps)
+                    {
+                        foreach (var ip in serverData.BannedIps)
+                        {
+                            try
+                            {
+                                BannedIps.Add(IPAddress.Parse(ip));
+                            }
+                            // Ignore errors when parsing IP address
+                            catch {}
+                        }
+                    }
                 }
             }
         }
@@ -143,7 +172,8 @@ namespace EldenBingoServer
                 {
                     File.Move(_jsonPath, _jsonPath + ".old", true);
                 }
-                var data = new SerializableServerData(SerializationVersion, _rooms, CachedIdentities);
+                var bannedList = BannedIps.Select(ip => ip.ToString()).ToList();
+                var data = new SerializableServerData(SerializationVersion, _rooms, CachedIdentities, bannedList);
 
                 var cx = JsonConvert.SerializeObject(data, settings);
                 File.WriteAllText(_jsonPath, cx);
@@ -297,15 +327,21 @@ namespace EldenBingoServer
                 deniedReason = "Invalid nickname";
             if (deniedReason != null)
             {
-                var deniedPacket = new ServerJoinRoomDenied(deniedReason);
-                await SendPacketToClient(new Packet(deniedPacket), sender);
+                if (logBanScore(sender, 1))
+                {
+                    var deniedPacket = new ServerJoinRoomDenied(deniedReason);
+                    await SendPacketToClient(new Packet(deniedPacket), sender);
+                }
                 return;
             }
-            ServerRoom? room = createRoom(request.RoomName, request.AdminPass, sender, request.Settings);
-            //Join new room
-            if (room != null)
+            if (logBanScore(sender, 1))
             {
-                await joinUserRoom(sender, request.Nick, request.AdminPass, request.Team, room, created: true);
+                ServerRoom? room = createRoom(request.RoomName, request.AdminPass, sender, request.Settings);
+                //Join new room
+                if (room != null)
+                {
+                    await joinUserRoom(sender, request.Nick, request.AdminPass, request.Team, room, created: true);
+                }
             }
         }
 
@@ -374,13 +410,17 @@ namespace EldenBingoServer
                 deniedReason = "Wrong admin password";
             if (deniedReason != null)
             {
-                var deniedPacket = new ServerJoinRoomDenied(deniedReason);
-                await SendPacketToClient(new Packet(deniedPacket), sender);
+                if (logBanScore(sender, 1))
+                {
+                    var deniedPacket = new ServerJoinRoomDenied(deniedReason);
+                    await SendPacketToClient(new Packet(deniedPacket), sender);
+                }
                 return;
             }
             //Join new room
             if (room != null)
             {
+                logBanScore(sender, -1);
                 await joinUserRoom(sender, request.Nick, request.AdminPass, request.Team, room, created: true);
             }
         }
@@ -1262,6 +1302,7 @@ namespace EldenBingoServer
         private void _roomClearTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             removeNonActiveRooms(RoomInactivityRemovalSeconds);
+            decayBanScores();
         }
 
         private void removeNonActiveRooms(int maxSecondsInactive)
@@ -1286,6 +1327,52 @@ namespace EldenBingoServer
                 removeRoom(roomName);
                 FireOnStatus($"Removed inactive lobby '{roomName}'");
             }
+        }
+
+        private void decayBanScores()
+        {
+            var scores = _ipStats.ToArray();
+            foreach (var kv in scores)
+            {
+                // Decay ban score by 4 every hour, and remove all entries that reached 0
+                var newScore = Math.Max(0, kv.Value.BanScore - 4);
+                if (newScore <= 0)
+                {
+                    _ipStats.TryRemove(kv.Key, out _);
+                }
+                else
+                {
+                    kv.Value.BanScore = newScore;
+                }
+            }
+        }
+
+        private void server_onClientConnected(object? sender, ClientEventArgs<BingoClientModel> e)
+        {
+            logBanScore(e.Client, 1);
+        }
+
+        private void server_onClientDisconnected(object? sender, ClientEventArgs<BingoClientModel> e)
+        {
+            logBanScore(e.Client, -1);
+        }
+        
+        /// <summary>
+        /// Log a ban score and ban the user if too many suspcious activities
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="banScoreChange"></param>
+        /// <returns>True if the action was allowed. False if the ban score change resulted in a ban</returns>
+        private bool logBanScore(ClientModel client, int banScoreChange)
+        {
+            IPSuspiciousActivity data = _ipStats.GetOrAdd(client.IPAddress, (ip) => new IPSuspiciousActivity());
+            data.BanScore = Math.Max(0, data.BanScore + banScoreChange);
+            if(data.BanScore >= BanThreshold)
+            {
+                BanIP(client.IPAddress);
+                return false;
+            }
+            return true;
         }
 
         private void removeRoom(string roomName)

@@ -155,6 +155,8 @@ namespace Neto.Client
                 TcpKeepAliveSettings.Apply(_tcp);
                 FireOnStatus("Connected to server");
                 _ = run();
+                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, ClientUniqueToken));
+                _ = SendPacketToServer(registerPacket);
                 return ConnectionResult.Connected;
             }
             catch (OperationCanceledException)
@@ -306,8 +308,6 @@ namespace Neto.Client
         {
             try
             {
-                var registerPacket = new Packet(PacketTypes.ClientRegister, new ClientRegister(NetConstants.ClientRegisterString, Version, ClientUniqueToken));
-                await SendPacketToServer(registerPacket);
                 while (_tcp?.Connected == true && !CancellationToken.IsCancellationRequested)
                 {
                     await waitForPacketAsync();
