@@ -16,8 +16,12 @@ namespace EldenBingoServer
         // 10 seconds countdown before match starts
         private const int MatchStartCountdown = 9999;
 
-        // 8 suspcious activites results in a ban
-        private const int BanThreshold = 8;
+        // 4 characters looks cleanest. Brute force attacks should no longer be an issue since
+        // we keep track of join attempts for every IP
+        private const int DefaultRoomNameLength = 4;
+
+        // 10 suspicious activites results in a ban
+        private const int BanThreshold = 10;
 
         // Check for inactive rooms once every hour (3600 seconds)
         private const int RoomInactivityRemovalSeconds = 3600;
@@ -262,7 +266,7 @@ namespace EldenBingoServer
             do
             {
                 roomName = string.Empty;
-                for (int i = 0; i < 4; ++i)
+                for (int i = 0; i < DefaultRoomNameLength; ++i)
                 {
                     roomName += (char)(r.Next(65, 91));
                 }
