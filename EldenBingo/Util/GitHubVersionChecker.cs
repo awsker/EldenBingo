@@ -32,12 +32,8 @@ namespace EldenBingo.Util
                 GitHubRelease? latestRelease = null;
                 string downloadUrl = string.Empty;
 
-                foreach (var release in releases.OrderByDescending(r => new Version(r.Tag_Name)))
+                foreach (var release in releases.Where(r => !r.Prerelease).OrderByDescending(r => new Version(r.Tag_Name)))
                 {
-                    // Skip pre-releases if needed
-                    if (release.Prerelease)
-                        continue;
-
                     var releaseVersion = new Version(release.Tag_Name);
 
                     if (releaseVersion > latestVersion)
