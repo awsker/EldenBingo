@@ -59,7 +59,7 @@ namespace EldenBingo.Rendering.Game
                         var tex = new Texture(cl) { Smooth = true };
                         _classTextures[i] = tex;
                     }
-                    _backgroundTexture = new Texture(Path.Combine(imgPath, "Classes_Background_2.jpg"));
+                    _backgroundTexture = new Texture(Path.Combine(imgPath, "Classes_Background.jpg"));
                     _texturesLoaded = true;
                 }
                 catch (SFML.LoadingFailedException)

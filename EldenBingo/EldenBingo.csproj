@@ -93,10 +93,7 @@
     <None Update="Textures\Classes\Bandit_Text.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Update="Textures\Classes\Classes_Background_1.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Textures\Classes\Classes_Background_2.jpg">
+    <None Update="Textures\Classes\Classes_Background.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Textures\Classes\Confessor.png">

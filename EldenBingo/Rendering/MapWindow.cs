@@ -243,7 +243,6 @@ namespace EldenBingo.Rendering
 
         private void onBeforeDraw(object? sender, EventArgs e)
         {
-            
             SetView(Camera.GetView());
         }
 
