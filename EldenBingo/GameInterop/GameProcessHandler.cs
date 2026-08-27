@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 
 namespace EldenBingo.GameInterop
 {
+    internal delegate long PatternScanDelegate(in byte[] cbMemory, in byte[] cbPattern, string szMask);
+
     public enum GameRunningStatus
     {
         NotRunning,
@@ -315,27 +317,6 @@ namespace EldenBingo.GameInterop
             _scanGameThread.Start();
         }
 
-        /*
-        private void initGameMemoryWorker()
-        {
-            if (_gameProc != null)
-            {
-                GameMemoryWorker = new GameMemoryWorker(_gameProc, _gameAccessHwnd);
-                GameMemoryWorker.Start();
-                GameMemoryWorkerChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        private void killGameMemoryWorker()
-        {
-            if (GameMemoryWorker != null)
-            {
-                GameMemoryWorker.Stop();
-                GameMemoryWorker = null;
-                GameMemoryWorkerChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }*/
-
         public long GetEventManPtr()
         {
             InitEventManPtrs();
@@ -627,8 +608,8 @@ namespace EldenBingo.GameInterop
             try
             {
                 var pattern = stringToByteArray(GameData.PATTERN_SETEVENTFLAGFUNC);
-                var position =
-                    findPatternInProcessNaive(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                // Naive pattern scan
+                var position = findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2, PatternScanNaiveFor.FindPattern);
                 if (position != -1)
                 {
                     _setEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
@@ -643,8 +624,8 @@ namespace EldenBingo.GameInterop
             try
             {
                 var pattern = stringToByteArray(GameData.PATTERN_ISEVENTFLAGFUNC);
-                var position =
-                    findPatternInProcessNaive(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2);
+                // Naive pattern scan
+                var position = findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, pattern.Item1, pattern.Item2, PatternScanNaiveFor.FindPattern);
                 if (position != -1)
                 {
                     _isEventFlagAddress = processBaseAddress(_gameProc.MainModule) + position;
@@ -657,49 +638,61 @@ namespace EldenBingo.GameInterop
         }
 
         /// <summary>
-        /// Initialize PatternScanner and read all memory from process.
+        /// Find pattern in process by loading the process data in chunks
         /// </summary>
         /// <param name="hProcess">Handle to the process in whose memory pattern will be searched for.</param>
         /// <param name="pModule">Module which will be searched for the pattern.</param>
-        private long findPatternInProcess(IntPtr hProcess, ProcessModule pModule, byte[] pattern, string mask)
+        /// <param name="pattern">The byte pattern to look for, wildcard positions are replaced by 0.</param>
+        /// <param name="mask">A string that determines how pattern should be matched, 'x' is match, '?' acts as wildcard.</param>
+        private long findPatternInProcess(IntPtr hProcess, ProcessModule pModule, byte[] pattern, string mask, PatternScanDelegate scanDelegate)
         {
             long dwStart = processBaseAddress(pModule);
             int nSize = pModule.ModuleMemorySize;
 
-            var bData = new byte[nSize];
+            const int ChunkSize = 4 * 1024 * 1024; // 4 MB
 
-            if (!WinAPI.ReadProcessMemory(hProcess, dwStart, bData, (ulong)nSize, out IntPtr lpNumberOfBytesRead))
-            {
-                throw new Exception("Could not read memory in PatternScan()!");
-            }
-            if (lpNumberOfBytesRead.ToInt64() != nSize || bData == null || bData.Length == 0)
-            {
-                throw new Exception("ReadProcessMemory error in PatternScan()!");
-            }
-            return PatternScanLazySIMD.FindPattern(bData, pattern, mask);
-        }
+            if (pattern.Length == 0)
+                return -1;
 
-        /// <summary>
-        /// Initialize PatternScanner and read all memory from process.
-        /// </summary>
-        /// <param name="hProcess">Handle to the process in whose memory pattern will be searched for.</param>
-        /// <param name="pModule">Module which will be searched for the pattern.</param>
-        private long findPatternInProcessNaive(IntPtr hProcess, ProcessModule pModule, byte[] pattern, string mask)
-        {
-            long dwStart = processBaseAddress(pModule);
-            int nSize = pModule.ModuleMemorySize;
+            byte[] previousChunk = Array.Empty<byte>();
+            byte[] currentChunk = new byte[ChunkSize];
 
-            var bData = new byte[nSize];
+            for (int offset = 0; offset < nSize; offset += ChunkSize)
+            {
+                int bytesToRead = Math.Min(ChunkSize, nSize - offset);
 
-            if (!WinAPI.ReadProcessMemory(hProcess, dwStart, bData, (ulong)nSize, out IntPtr lpNumberOfBytesRead))
-            {
-                throw new Exception("Could not read memory in PatternScan()!");
+                if (!WinAPI.ReadProcessMemory(hProcess, dwStart + offset, currentChunk, (ulong)bytesToRead, out IntPtr lpNumberOfBytesRead))
+                {
+                    throw new Exception("Could not read memory in PatternScan()!");
+                }
+
+                int bytesRead = lpNumberOfBytesRead.ToInt32();
+
+                if (bytesRead != bytesToRead)
+                {
+                    throw new Exception("ReadProcessMemory error in PatternScan()!");
+                }
+                // Combine the previous chunk's tail with the current chunk.
+                int combinedLength = previousChunk.Length + bytesRead;
+                byte[] combinedChunk = new byte[combinedLength];
+
+                Buffer.BlockCopy(previousChunk, 0, combinedChunk, 0, previousChunk.Length);
+                Buffer.BlockCopy(currentChunk, 0, combinedChunk, previousChunk.Length, bytesRead);
+                long result = scanDelegate(combinedChunk, pattern, mask);
+
+                if (result >= 0)
+                {
+                    // Convert the index within combinedChunk to a
+                    // module-relative offset.
+                    return offset - previousChunk.Length + result;
+                }
+                // Preserve the last pattern.Length - 1 bytes for the next iteration.
+                int bytesToKeep = Math.Min(pattern.Length, combinedLength);
+                previousChunk = new byte[bytesToKeep];
+                Buffer.BlockCopy(combinedChunk, combinedLength - bytesToKeep, previousChunk, 0, bytesToKeep);
             }
-            if (lpNumberOfBytesRead.ToInt64() != nSize || bData == null || bData.Length == 0)
-            {
-                throw new Exception("ReadProcessMemory error in PatternScan()!");
-            }
-            return PatternScanNaiveFor.FindPattern(bData, pattern, mask);
+
+            return -1;
         }
 
         private long followPointers(long startAddress, long[] offsets)
@@ -959,7 +952,7 @@ namespace EldenBingo.GameInterop
 
             byte[] assm = new byte[addressLength];
 
-            long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2) + offset;
+            long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2, PatternScanLazySIMD.FindPattern) + offset;
             WinAPI.ReadProcessMemory(_gameAccessHwnd, address + patternData.Item3, assm, addressLength, out _); //Only fetch the 4 address bytes
             var offsetFromAsm = BitConverter.ToUInt32(assm);
             return address + offsetFromAsm + patternData.Item3 + addressLength;
@@ -973,7 +966,7 @@ namespace EldenBingo.GameInterop
 
             byte[] assm = new byte[addressLength];
 
-            long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2) + offset;
+            long address = processOffset + findPatternInProcess(_gameAccessHwnd, _gameProc.MainModule, patternData.Item1, patternData.Item2, PatternScanLazySIMD.FindPattern) + offset;
             WinAPI.ReadProcessMemory(_gameAccessHwnd, address + patternData.Item3, assm, addressLength, out _); //Only fetch the 4 address bytes
             var offsetFromAsm = BitConverter.ToUInt32(assm);
             return readPointer(address + offsetFromAsm + patternData.Item3 + addressLength);
