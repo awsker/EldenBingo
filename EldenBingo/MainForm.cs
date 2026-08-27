@@ -11,6 +11,7 @@ using Neto.Shared;
 using SFML.System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using Version = System.Version;
 
@@ -122,6 +123,7 @@ namespace EldenBingo
             return parent as MainForm;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PrintToConsole(string text, Color color, bool timestamp = true)
         {
             _consoleControl.PrintToConsole(text, color, timestamp);
@@ -172,10 +174,7 @@ namespace EldenBingo
             lock (_connectLock)
             {
                 if (_connecting)
-                {
-                    _consoleControl.PrintToConsole("Already connecting...", Color.Red);
                     return;
-                }
             }
             var form = new ConnectForm();
             form.TopMost = Properties.Settings.Default.AlwaysOnTop;
@@ -395,13 +394,6 @@ namespace EldenBingo
             client.AddListener<ServerBroadcastMessage>(onServerMessage);
         }
 
-
-        private void onServerMessage(ClientModel? model, ServerBroadcastMessage message)
-        private async Task onServerMessage(ClientModel? model, ServerBroadcastMessage message)
-        {
-            _consoleControl.PrintToConsole("Server: " + message.Message, Color.Orange);
-        }
-
         private void client_Connected(object? sender, EventArgs e)
         {
             updateButtonAvailability();
@@ -414,7 +406,7 @@ namespace EldenBingo
                 return;
             BeginInvoke(hideLobbyTab);
             updateButtonAvailability();
-            _consoleControl.PrintToConsole(e.Message, Color.Red);
+            PrintToConsole(e.Message, Color.Red);
             updateStatusString();
             if (_autoReconnect && !string.IsNullOrWhiteSpace(Properties.Settings.Default.ServerAddress))
             {
@@ -424,24 +416,21 @@ namespace EldenBingo
 
         private void client_Kicked(object? sender, StringEventArgs e)
         {
-            _consoleControl.PrintToConsole(e.Message, Color.Red);
+            PrintToConsole(e.Message, Color.Red);
             _autoReconnect = false; //So we don't reconnect automatically after kick
             _connecting = false;
         }
 
-        private void joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
         private async Task joinRoomAccepted(ClientModel? _, ServerJoinRoomAccepted joinRoomAcceptedArgs)
         {
             updateButtonAvailability();
         }
 
-        private void joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinRoomDeniedArgs)
         private async Task joinRoomDenied(ClientModel? _, ServerJoinRoomDenied joinRoomDeniedArgs)
         {
             updateButtonAvailability();
         }
 
-        private void gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         private async Task gotBingoBoard(ClientModel? _, ServerEntireBingoBoardUpdate bingoBoardArgs)
         {
             if (Properties.Settings.Default.ShowClassesOnMap && _mapWindow != null && _client.Room != null &&
@@ -452,7 +441,6 @@ namespace EldenBingo
                 _mapWindow.ShowAvailableClasses(bingoBoardArgs.AvailableClasses);
         }
 
-        private void userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
         private async Task userCheckedSquare(ClientModel? _, ServerUserChecked userCheckedSquareArgs)
         {
             if (!Properties.Settings.Default.PlaySounds)
@@ -479,13 +467,17 @@ namespace EldenBingo
             }
         }
 
-        private void bingoAchieved(ClientModel? model, ServerBingoAchievedUpdate update)
         private async Task bingoAchieved(ClientModel? model, ServerBingoAchievedUpdate update)
         {
             if (Properties.Settings.Default.PlaySounds)
             {
                 _sounds.PlaySound(SoundType.Bingo);
             }
+        }
+
+        private async Task onServerMessage(ClientModel? model, ServerBroadcastMessage message)
+        {
+            PrintToConsole("Server: " + message.Message, Color.Orange);
         }
 
         private int getCurrentlySelectedSquare()
@@ -575,7 +567,7 @@ namespace EldenBingo
         {
             if (FormReady)
             {
-                _consoleControl.PrintToConsole(e.Message, Color.LightBlue);
+                PrintToConsole(e.Message, Color.LightBlue);
                 updateStatusString();
             }
         }
@@ -584,7 +576,7 @@ namespace EldenBingo
         {
             if (FormReady)
             {
-                _consoleControl.PrintToConsole(e.Message, Color.Red);
+                PrintToConsole(e.Message, Color.Red);
                 updateStatusString();
             }
         }
@@ -816,12 +808,12 @@ namespace EldenBingo
 
         private void server_OnStatus(object? sender, StringEventArgs e)
         {
-            _consoleControl.PrintToConsole(e.Message, Color.Orange);
+            PrintToConsole(e.Message, Color.Orange);
         }
 
         private void server_OnError(object? sender, StringEventArgs e)
         {
-            _consoleControl.PrintToConsole(e.Message, Color.Red);
+            PrintToConsole(e.Message, Color.Red);
         }
 
         private async Task tryStartingGameWithoutEAC()
