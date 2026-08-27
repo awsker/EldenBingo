@@ -312,10 +312,11 @@ namespace EldenBingo.UI
             await Client.SendPacketToServer(new Packet(request));
         }
 
-        private async Task receivedGameSettings(ClientModel? cm, ServerCurrentGameSettings gameSettingsArgs)
+        private Task receivedGameSettings(ClientModel? cm, ServerCurrentGameSettings gameSettingsArgs)
         {
             //Open the settings window without locking the receiver thread
             _ = Task.Run(() => openSettingsWindow(gameSettingsArgs.GameSettings));
+            return Task.CompletedTask;
         }
 
         private void openSettingsWindow(BingoGameSettings settings)
