@@ -1,4 +1,5 @@
-﻿using EldenBingoCommon;
+﻿using BCryptNet = BCrypt.Net.BCrypt;
+using EldenBingoCommon;
 using Neto.Shared;
 using Newtonsoft.Json;
 using System.Runtime.Serialization;
@@ -8,6 +9,8 @@ namespace EldenBingoServer
 {
     public class ServerRoom : Room<BingoClientInRoom>
     {
+        private const int AdminPasswordHashCost = 12;
+
         [JsonProperty]
         private Guid _creatorGuid;
         private System.Timers.Timer? _timer;
@@ -20,7 +23,7 @@ namespace EldenBingoServer
 
         public ServerRoom(string name, string adminPassword, ClientModel creator, BingoGameSettings gameSettings) : base(name)
         {
-            AdminPassword = adminPassword;
+            AdminPassword = HashPassword(adminPassword);
             CreateTime = DateTime.Now;
             Match.MatchStatusChanged += match_MatchStatusChanged;
             GameSettings = gameSettings;
@@ -33,7 +36,7 @@ namespace EldenBingoServer
 
         public event EventHandler<RoomEventArgs>? TimerElapsed;
         [JsonProperty]
-        public string AdminPassword { get; init; }
+        public string AdminPassword { get; private set; }
         [JsonIgnore]
         public BingoBoardGenerator? BoardGenerator { get; set; }
 
@@ -90,7 +93,28 @@ namespace EldenBingoServer
 
         public bool IsCorrectAdminPassword(string pass)
         {
-            return !string.IsNullOrWhiteSpace(AdminPassword) && AdminPassword == pass;
+            if (string.IsNullOrWhiteSpace(pass) || string.IsNullOrWhiteSpace(AdminPassword))
+                return false;
+
+            if (AdminPassword.StartsWith("$2", StringComparison.Ordinal))
+            {
+                return BCryptNet.Verify(pass, AdminPassword);
+            }
+
+            var legacyMatch = string.Equals(AdminPassword, pass, StringComparison.Ordinal);
+            if (legacyMatch)
+            {
+                AdminPassword = HashPassword(pass);
+            }
+            return legacyMatch;
+        }
+
+        private static string HashPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                return string.Empty;
+
+            return BCryptNet.HashPassword(password, AdminPasswordHashCost);
         }
 
         public BingoClientInRoom? RemoveUser(BingoClientModel client)
