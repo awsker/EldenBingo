@@ -286,6 +286,11 @@ namespace Neto.Server
                 tcpClient.NoDelay = true;
                 TcpKeepAliveSettings.Apply(tcpClient);
                 tcpClient.GetStream().WriteTimeout = 10000;
+                if (tcpClient.Client.RemoteEndPoint is not IPEndPoint)
+                {
+                    FireOnError("Could not establish IP Endpoint");
+                    return;
+                }
                 var client = (CM)_clientModelConstructor.Invoke(new[] { tcpClient });
                 if (IsBanned(client.IPAddress))
                 {
@@ -411,7 +416,7 @@ namespace Neto.Server
                     break;
 
                 case PacketTypes.ObjectData:
-                    DispatchObjects(client, packet.Objects);
+                    _ = DispatchObjects(client, packet.Objects);
                     break;
             }
         }

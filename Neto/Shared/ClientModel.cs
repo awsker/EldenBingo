@@ -9,8 +9,7 @@ namespace Neto.Shared
         {
             TcpClient = client;
             var ip = client.Client.RemoteEndPoint as IPEndPoint;
-            if (ip != null)
-                IPAddress = ip.Address;
+            IPAddress = ip?.Address ?? IPAddress.None;
             ClientGuid = Guid.NewGuid();
             CancellationToken = new CancellationTokenSource();
             LastActivity = DateTime.Now;

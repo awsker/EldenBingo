@@ -3,9 +3,12 @@ using MessagePack.Formatters;
 
 namespace Neto.Shared
 {
-    public class PacketFormatter : IMessagePackFormatter<Packet>
+    public class PacketFormatter : IMessagePackFormatter<Packet?>
     {
         private Func<string, Type?> _typeFromStringFunc;
+
+        internal PacketFormatter()
+        {}
 
         public PacketFormatter(Func<string, Type?> getTypeFromStringFunc)
         {
@@ -46,8 +49,10 @@ namespace Neto.Shared
             }
         }
 
-        public void Serialize(ref MessagePackWriter writer, Packet packet, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Packet? packet, MessagePackSerializerOptions options)
         {
+            if (packet == null)
+                throw new ArgumentNullException(nameof(packet));
             var objectsToSend = packet.Objects;
             if (objectsToSend == null)
                 throw new ArgumentNullException("Objects are null");
@@ -62,7 +67,6 @@ namespace Neto.Shared
                 writer.Write(dataType);
                 MessagePackSerializer.Serialize(o.GetType(), ref writer, o, noCompressionOptions);
             }
-            //writer.Flush();
         }
     }
 }

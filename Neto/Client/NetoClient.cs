@@ -270,7 +270,7 @@ namespace Neto.Client
                     break;
 
                 case PacketTypes.ObjectData:
-                    DispatchObjects(null, packet.Objects);
+                    _ = DispatchObjects(null, packet.Objects);
                     break;
 
                 case PacketTypes.KeepAlive:
