@@ -225,7 +225,7 @@ namespace EldenBingo.Rendering
         private void onInitializingDrawables(object? sender, EventArgs e)
         {
             Clear(new SFML.Graphics.Color(96, 96, 96));
-            var text = new Text("Textures loading...", Font, 15);
+            var text = new Text(Font, "Textures loading...", 15);
             var viewSize = GetView().Size;
             var textSize = text.GetGlobalBounds();
             text.Position = new Vector2f((viewSize.X - textSize.Width) * 0.5f, (viewSize.Y - textSize.Height) * 0.5f);

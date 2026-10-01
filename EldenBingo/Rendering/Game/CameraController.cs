@@ -131,7 +131,7 @@ namespace EldenBingo.Rendering.Game
                         if (boundingBox.HasValue)
                             boundingBox = boundingBox.Value.MaxBounds(new Vector2f(pos.X, pos.Y));
                         else
-                            boundingBox = new FloatRect(x, y, 0f, 0f);
+                            boundingBox = new FloatRect(new Vector2f(x, y), new Vector2f(0f, 0f));
                     }
                 }
             }
@@ -260,7 +260,7 @@ namespace EldenBingo.Rendering.Game
         {
             if (Enabled && _window.InputHandler.GetFramesHeld(UIActions.MoveMap) > 0 && CameraMode == CameraMode.FreeCam)
             {
-                var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
+                var pos = screenToWorldCoordinates(e.Position);
                 var diff = _lastMouseWorldPosition - pos;
                 _camera.Position += diff;
                 if (_camera is LerpCamera lerp)

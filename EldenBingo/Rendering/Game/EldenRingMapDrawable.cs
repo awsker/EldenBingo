@@ -49,7 +49,7 @@ namespace EldenBingo.Rendering.Game
             initMapTextures();
         }
 
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(IRenderTarget target, RenderStates states)
         {
             if (_textures == null ||  MapWindow.Instance == null)
                 return;
@@ -57,7 +57,7 @@ namespace EldenBingo.Rendering.Game
             var viewBounds = MapWindow.Instance.GetViewBounds();
             foreach (var texData in _textures)
             {
-                if (texData != null && texData.Sprite.GetGlobalBounds().Intersects(viewBounds))
+                if (texData != null && texData.Sprite.GetGlobalBounds().FindIntersection(viewBounds) != null)
                     target.Draw(texData.Sprite);
             }
         }

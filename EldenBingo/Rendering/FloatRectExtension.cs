@@ -13,7 +13,7 @@ namespace EldenBingo.Rendering
 
         public static FloatRect Extrude(this FloatRect rect, float f)
         {
-            return new FloatRect(rect.Left - f, rect.Top, rect.Width + 2f * f, rect.Height + 2f * f);
+            return new FloatRect(new Vector2f(rect.Left - f, rect.Top), new Vector2f(rect.Width + 2f * f, rect.Height + 2f * f));
         }
 
         public static FloatRect MaxBounds(this FloatRect r1, FloatRect r2)
@@ -23,7 +23,7 @@ namespace EldenBingo.Rendering
             maxX = Math.Max(r1.Left + r1.Width, r2.Left + r2.Width);
             minY = Math.Min(r1.Top, r2.Top);
             maxY = Math.Max(r1.Top + r1.Height, r2.Top + r2.Height);
-            return new FloatRect(minX, minY, maxX - minX, maxY - minY);
+            return new FloatRect(new Vector2f(minX, minY), new Vector2f(maxX - minX, maxY - minY));
         }
 
         public static FloatRect MaxBounds(this FloatRect r1, Vector2f pos)
@@ -33,7 +33,7 @@ namespace EldenBingo.Rendering
             maxX = Math.Max(r1.Right(), pos.X);
             minY = Math.Min(r1.Top, pos.Y);
             maxY = Math.Max(r1.Bottom(), pos.Y);
-            return new FloatRect(minX, minY, maxX - minX, maxY - minY);
+            return new FloatRect(new Vector2f(minX, minY), new Vector2f(maxX - minX, maxY - minY));
         }
     }
 }

@@ -20,9 +20,9 @@ namespace EldenBingo.Rendering
         {
             Window = window;
 
-            _renderTex = new RenderTexture(window.Size.X, window.Size.Y);
+            _renderTex = new RenderTexture(window.Size);
             _renderSprite = new Sprite(_renderTex.Texture);
-            _renderView = new SFML.Graphics.View(new FloatRect(0, 0, window.Size.X, window.Size.Y));
+            _renderView = new SFML.Graphics.View(new FloatRect(new Vector2f(0f, 0f), new Vector2f(window.Size.X, window.Size.Y)));
             GameObjects = new HashSet<object>();
             Updateables = new List<IUpdateable>();
             Drawables = new List<IDrawable>();
@@ -95,7 +95,7 @@ namespace EldenBingo.Rendering
             }
         }
 
-        public virtual void Draw(RenderTarget target, RenderStates states)
+        public virtual void Draw(IRenderTarget target, RenderStates states)
         {
             lock (_lock)
             {
@@ -107,14 +107,14 @@ namespace EldenBingo.Rendering
                 foreach (var draw in Drawables.Where(d => d.Visible))
                 {
                     var rect = draw.GetBoundingBox();
-                    if (rect != null && !viewBounds.Intersects(rect.Value))
+                    if (rect != null && viewBounds.FindIntersection(rect.Value) == null)
                         continue;
 
                     _renderTex.Draw(draw, states);
                 }
 
                 var trans = Transform.Identity;
-                trans.Translate(0, _renderTex.Size.Y);
+                trans.Translate(new Vector2f(0f, _renderTex.Size.Y));
                 trans.Scale(new Vector2f(1f, -1f));
                 states.Transform *= trans;
                 if (Shader != null)
@@ -161,9 +161,9 @@ namespace EldenBingo.Rendering
 
         private void window_Resized(object? sender, SizeEventArgs e)
         {
-            _renderTex = new RenderTexture(Window.Size.X, Window.Size.Y);
+            _renderTex = new RenderTexture(Window.Size);
             _renderSprite = new Sprite(_renderTex.Texture);
-            _renderView = new SFML.Graphics.View(new FloatRect(0, 0, Window.Size.X, Window.Size.Y));
+            _renderView = new SFML.Graphics.View(new FloatRect(new Vector2f(0f, 0f), new Vector2f(Window.Size.X, Window.Size.Y)));
         }
     }
 }

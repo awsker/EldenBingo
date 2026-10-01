@@ -2,7 +2,7 @@
 
 namespace EldenBingo.Rendering
 {
-    public interface IDrawable : Drawable
+    public interface IDrawable : SFML.Graphics.IDrawable
     {
         bool Visible { get; }
 

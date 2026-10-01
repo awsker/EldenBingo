@@ -38,15 +38,15 @@ namespace EldenBingo.Rendering.Game
 
         public bool Visible { get; set; } = true;
 
-        public Vector2f Position => _sprite.Position;
+        public Vector2f Position => _sprite?.Position ?? new Vector2f(0f, 0f);
 
         public static void DisposeStatic()
         {
-            _roundTableTexture.Dispose();
-            _sprite.Dispose();
+            _roundTableTexture?.Dispose();
+            _sprite?.Dispose();
         }
 
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(IRenderTarget target, RenderStates states)
         {
             if (_sprite != null)
             {

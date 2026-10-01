@@ -40,7 +40,7 @@ namespace EldenBingo.Rendering.Game
 
         public bool Enabled { get; set; } = true;
 
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(IRenderTarget target, RenderStates states)
         {
             _sprite.Color = new SFML.Graphics.Color(255, 255, 255, (byte)Math.Min(255, _opacity * 255));
             target.Draw(_sprite, states);

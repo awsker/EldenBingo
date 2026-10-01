@@ -83,7 +83,7 @@ void main()
             _changed = true;
         }
 
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(IRenderTarget target, RenderStates states)
         {
             var v = target.GetView();
             if (_buffer == null || _changed)

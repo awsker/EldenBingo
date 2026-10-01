@@ -1,6 +1,7 @@
 ﻿using EldenBingo.Util;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 
 namespace EldenBingo.Rendering
 {
@@ -19,8 +20,8 @@ namespace EldenBingo.Rendering
         private bool _vsync = true;
         private uint _framerateLimit = 60;
 
-        public SimpleGameWindow(string title, uint width, uint height, SFML.Window.Styles styles = SFML.Window.Styles.Default) :
-            base(new SFML.Window.VideoMode(width, height), title, styles, new SFML.Window.ContextSettings() { MajorVersion = 1, MinorVersion = 3, AttributeFlags = SFML.Window.ContextSettings.Attribute.Default})
+        public SimpleGameWindow(string title, uint width, uint height, Styles styles = Styles.Default) :
+            base(new VideoMode(new Vector2u(width, height)), title, styles, new State(), new ContextSettings(0, 0, 0, 1, 3, ContextSettings.Attribute.Default, false))
         {
             VSync = true;
             FramerateLimit = 60;
@@ -157,10 +158,8 @@ namespace EldenBingo.Rendering
         {
             var view = GetView();
             FloatRect rt;
-            rt.Left = view.Center.X - view.Size.X * 0.5f;
-            rt.Top = view.Center.Y - view.Size.Y * 0.5f;
-            rt.Width = view.Size.X;
-            rt.Height = view.Size.Y;
+            rt.Position = new Vector2f(view.Center.X - view.Size.X * 0.5f, view.Center.Y - view.Size.Y * 0.5f);
+            rt.Size = view.Size;
             return rt;
         }
 
@@ -204,7 +203,7 @@ namespace EldenBingo.Rendering
                     foreach (var draw in Drawables.Where(d => d.Visible))
                     {
                         var rect = draw.GetBoundingBox();
-                        if (rect != null && !viewBounds.Intersects(rect.Value))
+                        if (rect != null && viewBounds.FindIntersection(rect.Value) == null)
                             continue;
 
                         Draw(draw);

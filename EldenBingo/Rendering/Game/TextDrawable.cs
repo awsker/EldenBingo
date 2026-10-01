@@ -4,15 +4,11 @@ namespace EldenBingo.Rendering.Game
 {
     public class TextDrawable : Text, IDrawable
     {
-        public TextDrawable()
+        public TextDrawable(string str, SFML.Graphics.Font font) : base(font, str)
         {
         }
 
-        public TextDrawable(string str, SFML.Graphics.Font font) : base(str, font)
-        {
-        }
-
-        public TextDrawable(string str, SFML.Graphics.Font font, uint characterSize) : base(str, font, characterSize)
+        public TextDrawable(string str, SFML.Graphics.Font font, uint characterSize) : base(font, str, characterSize)
         {
         }
 

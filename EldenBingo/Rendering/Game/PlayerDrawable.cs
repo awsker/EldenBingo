@@ -61,14 +61,14 @@ namespace EldenBingo.Rendering.Game
             }
             Name = provider.Name;
             if (!string.IsNullOrWhiteSpace(Name))
-                NameTag = new Text(Name, Font, 42) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 3f };
+                NameTag = new Text(Font, Name, 42) { OutlineColor = SFML.Graphics.Color.Black, OutlineThickness = 3f };
         }
 
         public bool Enabled { get; set; } = true;
         public bool Visible { get; set; } = true;
         public Guid Guid => _coordinateProvider.Guid;
 
-        public float Angle { get; private set; }
+        public Angle Angle { get; private set; }
         public string Name { get; private set; }
         public Text? NameTag { get; private set; } = null;
         public bool Underground { get; private set; }
@@ -106,17 +106,17 @@ namespace EldenBingo.Rendering.Game
                 var t = 1f - _timeLeftToInterpolate / _interpTime;
                 X = Math2.Lerp(_previousX, _targetX, t);
                 Y = Math2.Lerp(_previousY, _targetY, t);
-                Angle = Math2.LerpAngle(_previousAngle, _targetAngle, t);
+                Angle = Angle.FromDegrees(Math2.LerpAngle(_previousAngle, _targetAngle, t));
             }
             else
             {
                 X = _targetX;
                 Y = _targetY;
-                Angle = _targetAngle;
+                Angle = Angle.FromDegrees(_targetAngle);
             }
         }
 
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(IRenderTarget target, RenderStates states)
         {
             if (!ValidPosition)
                 return;
@@ -130,8 +130,10 @@ namespace EldenBingo.Rendering.Game
             var cameraScaleAdjust = (float)Math.Pow(_window.Camera.Zoom, 0.85); 
             //Initial scale, scaled up to match window size
             var scale = 0.62f * cameraScaleAdjust;
-            trans.Scale(scale, scale);
-            var st = new RenderStates(BlendMode.Alpha, trans, _playerArrowSprite.Texture, _shader);
+            var scale2f = new Vector2f(scale, scale);
+            trans.Scale(scale2f);
+
+            var st = new RenderStates(BlendMode.Alpha, StencilMode.Default, trans, CoordinateType.Pixels, _playerArrowSprite.Texture, _shader);
 
             var color = new SFML.Graphics.Glsl.Vec4(_coordinateProvider.Color.R, _coordinateProvider.Color.G, _coordinateProvider.Color.B, _coordinateProvider.Color.A);
             _shader?.SetUniform("alpha", Underground ? 0.4f : 1.0f);
@@ -141,8 +143,8 @@ namespace EldenBingo.Rendering.Game
 
             trans = Transform.Identity;
             trans.Translate(pos);
-            trans.Scale(scale, scale);
-            st = new RenderStates(BlendMode.Alpha, trans, _playerIconSprite.Texture, _shader);
+            trans.Scale(scale2f);
+            st = new RenderStates(BlendMode.Alpha, StencilMode.Default, trans, CoordinateType.Pixels, _playerIconSprite.Texture, _shader);
             _window.Draw(_playerIconSprite, st);
 
             if (_window.ShowPlayerNames && NameTag != null)
@@ -154,7 +156,7 @@ namespace EldenBingo.Rendering.Game
                 var width = bounds.Width * scale2;
                 var height = 40f * scale2;
                 trans2.Translate(new Vector2f(pos.X - width * 0.5f, pos.Y + height));
-                trans2.Scale(scale2, scale2);
+                trans2.Scale(new Vector2f(scale2, scale2));
                 st2.Transform = trans2;
                 _window.Draw(NameTag, st2);
             }
@@ -179,7 +181,7 @@ namespace EldenBingo.Rendering.Game
         {
             _previousX = X;
             _previousY = Y;
-            _previousAngle = Angle;
+            _previousAngle = Angle.Degrees;
             _targetX = x;
             _targetY = y;
             _targetAngle = angle;
@@ -188,7 +190,7 @@ namespace EldenBingo.Rendering.Game
             {
                 X = _targetX;
                 Y = _targetY;
-                Angle = _targetAngle;
+                Angle = Angle.FromDegrees(_targetAngle);
                 MapInstance = map;
                 ValidPosition = true;
                 return;

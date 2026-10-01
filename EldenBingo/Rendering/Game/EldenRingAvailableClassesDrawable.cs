@@ -1,5 +1,6 @@
 ﻿using EldenBingoCommon;
 using SFML.Graphics;
+using SFML.System;
 
 namespace EldenBingo.Rendering.Game
 {
@@ -15,7 +16,7 @@ namespace EldenBingo.Rendering.Game
         public EldenRingAvailableClassesDrawable(SimpleGameWindow window) : base(window)
         {
             _classes = Array.Empty<ClassDrawable>();
-            CustomView = new SFML.Graphics.View(new FloatRect(0, 0, Window.Size.X, Window.Size.Y));
+            CustomView = new SFML.Graphics.View(new FloatRect(new Vector2f(0f, 0f), new Vector2f(Window.Size.X, Window.Size.Y)));
             window.Resized += window_Resized;
         }
 
@@ -87,11 +88,11 @@ namespace EldenBingo.Rendering.Game
 
         private void window_Resized(object? sender, SFML.Window.SizeEventArgs e)
         {
-            CustomView = new SFML.Graphics.View(new FloatRect(0, 0, e.Width, e.Height));
-            var size = new SFML.System.Vector2u(e.Width, e.Height);
-            _background?.SetTargetSize(size);
+            var sizeF = new Vector2f(e.Size.X, e.Size.Y);
+            CustomView = new SFML.Graphics.View(new FloatRect(new Vector2f(0f, 0f), sizeF));
+            _background?.SetTargetSize(e.Size);
             foreach (var cl in _classes)
-                cl.SetTargetSize(size);
+                cl.SetTargetSize(e.Size);
         }
     }
 }

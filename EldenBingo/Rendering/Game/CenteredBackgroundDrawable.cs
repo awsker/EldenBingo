@@ -18,7 +18,7 @@ namespace EldenBingo.Rendering.Game
 
         public bool Visible { get; set; } = true;
 
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(IRenderTarget target, RenderStates states)
         {
             target.Draw(_sprite, states);
         }

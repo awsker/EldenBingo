@@ -22,7 +22,7 @@ namespace EldenBingo.Rendering.Game
 
         public System.Drawing.Color DrawColor { get; set; } = System.Drawing.Color.White;
 
-        public override void Draw(RenderTarget target, RenderStates states)
+        public override void Draw(IRenderTarget target, RenderStates states)
         {
             if (_lines.Count == 0)
                 return;
@@ -117,7 +117,7 @@ namespace EldenBingo.Rendering.Game
 
         private void onMouseMoved(object? sender, MouseMoveEventArgs e)
         {
-            var pos = screenToWorldCoordinates(new Vector2i(e.X, e.Y));
+            var pos = screenToWorldCoordinates(new Vector2i(e.Position.X, e.Position.Y));
 
             if (Enabled && _mapWindow.ToolMode == ToolMode.Draw && _currentLine != null)
             {

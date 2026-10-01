@@ -151,14 +151,14 @@ namespace EldenBingo.Rendering.Game
         {
             var action = getActionFromMouseButton(e.Button);
             if (action.HasValue)
-                actionDown(action.Value, new Vector2i(e.X, e.Y));
+                actionDown(action.Value, e.Position);
         }
 
         private void window_onMouseButtonReleased(object? sender, MouseButtonEventArgs e)
         {
             var action = getActionFromMouseButton(e.Button);
             if (action.HasValue)
-                actionUp(action.Value, new Vector2i(e.X, e.Y));
+                actionUp(action.Value, e.Position);
         }
 
         private void window_onMouseScrolled(object? sender, MouseWheelScrollEventArgs e)
@@ -166,8 +166,8 @@ namespace EldenBingo.Rendering.Game
             var action = getActionFromMouseWheel(e.Delta);
             if (action.HasValue)
             {
-                actionDown(action.Value, new Vector2i(e.X, e.Y));
-                actionUp(action.Value, new Vector2i(e.X, e.Y));
+                actionDown(action.Value, e.Position);
+                actionUp(action.Value, e.Position);
             }
         }
 
