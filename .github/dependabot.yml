@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /EldenBingo
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /EldenBingoCommon
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /EldenBingoServer
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /EldenBingoServerStandalone
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /InteractiveReadLine
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /Neto
+    schedule:
+      interval: weekly
