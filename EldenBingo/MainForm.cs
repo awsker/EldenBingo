@@ -196,11 +196,12 @@ namespace EldenBingo
             try
             {
                 var connectRetries = 500;
+                var addressSanitized = address.Trim();
                 while (_connecting && connectRetries > 0)
                 {
                     try
                     {
-                        ConnectionResult connectResult = await initClientAsync(address, port);
+                        ConnectionResult connectResult = await initClientAsync(addressSanitized, port);
                         if (connectResult == ConnectionResult.Connected)
                         {
                             if (_autoReconnect && !string.IsNullOrEmpty(_lastRoom))
@@ -213,6 +214,8 @@ namespace EldenBingo
                             }
                             return; //Successfully connected, so we return immediately
                         }
+                        if (connectResult == ConnectionResult.Exception)
+                            break; // Stop connecting if an exception was thrown
                     }
                     catch
                     {
@@ -626,7 +629,7 @@ namespace EldenBingo
                     Directory.CreateDirectory(appSpecificFolder);
                 }
                 string jsonFile = Path.Combine(appSpecificFolder, "serverData.json");
-                _server = new Server(Properties.Settings.Default.Port, jsonFile);
+                _server = new Server(Properties.Settings.Default.HostServerPort, jsonFile);
                 _server.MatchLogDirectory = appSpecificFolder;
                 _server.OnStatus += server_OnStatus;
                 _server.OnError += server_OnError;
@@ -644,6 +647,7 @@ namespace EldenBingo
             if (endpoints == null || endpoints.Count == 0)
             {
                 MessageBox.Show(this, error, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return ConnectionResult.Exception;
             }
             else
             {
