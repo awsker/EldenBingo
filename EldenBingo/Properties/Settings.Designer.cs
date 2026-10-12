@@ -994,5 +994,17 @@ namespace EldenBingo.Properties {
                 this["MapFramerateLimit"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4501")]
+        public int HostServerPort {
+            get {
+                return ((int)(this["HostServerPort"]));
+            }
+            set {
+                this["HostServerPort"] = value;
+            }
+        }
     }
 }

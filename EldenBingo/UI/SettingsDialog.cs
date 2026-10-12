@@ -155,7 +155,7 @@ namespace EldenBingo.UI
             _highlightBingoCheckBox.Checked = Properties.Settings.Default.BingoHighlight;
 
             _hostServerCheckBox.Checked = Properties.Settings.Default.HostServerOnLaunch;
-            _portTextBox.Text = Properties.Settings.Default.Port.ToString();
+            _portTextBox.Text = Properties.Settings.Default.HostServerPort.ToString();
             ensureIntegerInput(_portTextBox);
 
             _mapSizeCustomRadioButton.CheckedChanged += (_, _) => updateSizeEnable();
@@ -277,7 +277,7 @@ namespace EldenBingo.UI
             Properties.Settings.Default.BingoFontStyle = (int)_fontLinkLabel.Font.Style;
             Properties.Settings.Default.BingoFontSize = _fontLinkLabel.Font.Size;
 
-            Properties.Settings.Default.Port = port;
+            Properties.Settings.Default.HostServerPort = port;
             Properties.Settings.Default.HostServerOnLaunch = _hostServerCheckBox.Checked;
 
             Properties.Settings.Default.FlipMouseButtons = _swapMouseButtons.Checked;

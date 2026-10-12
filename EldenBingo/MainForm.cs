@@ -644,7 +644,6 @@ namespace EldenBingo
             if (endpoints == null || endpoints.Count == 0)
             {
                 MessageBox.Show(this, error, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                return ConnectionResult.Denied;
             }
             else
             {
