@@ -83,7 +83,7 @@ namespace Neto.Shared
                 // Validate length header to avoid memory exhaustion / DoS
                 if (numBytes <= 0 || numBytes > MaxPacketSize)
                 {
-                    FireOnError($"Invalid packet length: {numBytes}");
+                    FireOnStatus($"Invalid packet length from client. Dropping connection...");
                     cancelToken.Cancel();
                     return Array.Empty<Packet?>();
                 }
