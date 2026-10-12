@@ -333,10 +333,11 @@ namespace EldenBingoServerStandalone
             {
                 log(message);
             }
-            finally
-            {
-                Environment.Exit(0);
-            }
+            catch { }
+            // A single client sending junk (port scanners, browsers) must not take every lobby down with it
+            if (e.Message.StartsWith("Invalid packet length") || e.Message.StartsWith("Exception when dispatching event"))
+                return;
+            Environment.Exit(0);
         }
     }
 }
